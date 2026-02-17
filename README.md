@@ -222,6 +222,8 @@ Audit one or more GCP projects (or an organization) and highlight:
   - Resource IAM across the project (enabled by default; can be disabled)
   - External trust discovery (WIF, domain principals, cross-project SAs, public access)
 - Recommender API for IAM least-privilege recommendations
+- IAM insights are also used to mark `reported unused` permissions in principal risk output (`Critical/High & reported unused`).
+  This is best-effort and only appears when insight payloads include permission-level detail.
 - Cloud Logging (Audit Logs) best-effort for activity checks
 - Cloud Identity group membership expansion (optional, best-effort)
 

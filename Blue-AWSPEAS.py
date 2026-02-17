@@ -359,7 +359,7 @@ def print_results(
             print()
 
     if external_trust_roles:
-        print(f"{colored('Roles trusting external principals (best-effort)', 'yellow', attrs=['bold'])}:")
+        print(f"{colored('Roles trusting external principals', 'yellow', attrs=['bold'])}:")
         for arn, data in external_trust_roles.items():
             principals = data.get("principals") or []
             conds = data.get("conditions") or []

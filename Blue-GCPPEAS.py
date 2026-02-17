@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -354,6 +355,16 @@ def print_permissions(flagged_perms: dict) -> None:
         print(f"    - {colored(risk_level.upper(), color)}: {shown}{more_than_str}")
 
 
+def format_permission_list(perms: list[str], *, max_perms: int = MAX_PERMS_TO_PRINT) -> str:
+    if not perms:
+        return "-"
+    shown = perms[:max_perms]
+    rendered = ", ".join(f"`{p}`" for p in shown)
+    if len(perms) > max_perms:
+        rendered += f" and {len(perms) - max_perms} more..."
+    return rendered
+
+
 def iam_bindings_to_principal_roles(policy: dict) -> dict[str, set[str]]:
     out: dict[str, set[str]] = {}
     for b in policy.get("bindings", []) or []:
@@ -573,6 +584,45 @@ def iter_recommendations(
         if not page_token:
             break
     return recs
+
+
+def iter_insights(
+    *,
+    parent: str,
+    insight_type_id: str,
+    token: str,
+    quota_project: Optional[str],
+    location: str,
+    page_size: int,
+) -> list[dict]:
+    insights: list[dict] = []
+    page_token: Optional[str] = None
+    while True:
+        params = {"pageSize": str(page_size)}
+        if page_token:
+            params["pageToken"] = page_token
+
+        base = (
+            f"https://recommender.googleapis.com/v1/{parent}"
+            f"/locations/{location}/insightTypes/{insight_type_id}/insights"
+        )
+        url = f"{base}?{urllib.parse.urlencode(params)}"
+
+        try:
+            data = http_json(url, token=token, quota_project=quota_project)
+        except ApiError as exc:
+            message = str(exc).lower()
+            if quota_project is None and "requires a quota project" in message:
+                quota_guess = parent.split("/", 1)[1] if parent.startswith("projects/") else None
+                data = http_json(url, token=token, quota_project=quota_guess)
+            else:
+                raise
+
+        insights.extend(data.get("insights", []) or [])
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return insights
 
 
 def list_recommender_locations(*, parent: str, token: str, quota_project: Optional[str]) -> list[str]:
@@ -1014,6 +1064,217 @@ def summarize_iam_policy_recommendation(rec: dict) -> dict:
     }
 
 
+def summarize_iam_policy_insight(insight: dict) -> dict:
+    content = insight.get("content", {}) or {}
+    description = insight.get("description") or ""
+    insight_type = insight.get("insightType") or ""
+    subtype = insight.get("insightSubtype") or ""
+
+    def _first_str_by_keys(obj, wanted_keys: set[str]) -> Optional[str]:
+        stack = [obj]
+        while stack:
+            cur = stack.pop()
+            if isinstance(cur, dict):
+                for k, v in cur.items():
+                    if isinstance(k, str) and isinstance(v, str) and k in wanted_keys and v:
+                        return v
+                    if isinstance(v, (dict, list)):
+                        stack.append(v)
+            elif isinstance(cur, list):
+                for item in cur:
+                    if isinstance(item, (dict, list)):
+                        stack.append(item)
+        return None
+
+    principal = (
+        content.get("principalEmail")
+        or content.get("member")
+        or content.get("principal")
+        or content.get("serviceAccount")
+        or _first_str_by_keys(
+            content,
+            {
+                "principalEmail",
+                "principal",
+                "member",
+                "serviceAccount",
+                "serviceAccountEmail",
+                "email",
+            },
+        )
+    )
+    role = content.get("role") or content.get("bindingRole")
+    resource = (
+        content.get("resource")
+        or content.get("resourceName")
+        or content.get("fullResourceName")
+        or insight.get("targetResources", [None])[0]
+        or _first_str_by_keys(content, {"resource", "resourceName", "fullResourceName"})
+    )
+
+    # Common for service-account activity insights: principal is present only in description.
+    if not principal and description:
+        m = re.search(r"([A-Za-z0-9_.+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z0-9\-]+)", description)
+        if m:
+            principal = m.group(1)
+
+    # Some insights are principal-level and intentionally have no role.
+    if not role:
+        if "serviceAccount" in insight_type or "SERVICE_ACCOUNT" in subtype.upper():
+            role = "N/A (principal-level insight)"
+
+    return {
+        "name": insight.get("name"),
+        "description": insight.get("description"),
+        "insightSubtype": insight.get("insightSubtype"),
+        "severity": insight.get("severity"),
+        "state": insight.get("stateInfo", {}).get("state"),
+        "etag": insight.get("etag"),
+        "lastRefreshTime": insight.get("lastRefreshTime"),
+        "principal": principal,
+        "role": role,
+        "resource": resource,
+        "associatedRecommendations": insight.get("associatedRecommendations", []) or [],
+        "targetResources": insight.get("targetResources", []) or [],
+        "content": content,
+    }
+
+
+def principal_match_keys(principal: Optional[str]) -> set[str]:
+    if not isinstance(principal, str):
+        return set()
+    p = principal.strip().lower()
+    if not p:
+        return set()
+
+    out = {p}
+    if ":" in p and not p.startswith("principal://") and not p.startswith("principalset://"):
+        kind, payload = p.split(":", 1)
+        payload = payload.strip()
+        if payload:
+            out.add(payload)
+            if kind == "user":
+                out.add(f"user:{payload}")
+            elif kind in ("serviceaccount", "serviceAccount"):
+                out.add(f"serviceaccount:{payload}")
+            elif kind == "group":
+                out.add(f"group:{payload}")
+    elif "@" in p:
+        # Insight principals are sometimes returned without the IAM member prefix.
+        out.add(f"user:{p}")
+        out.add(f"serviceaccount:{p}")
+        out.add(f"group:{p}")
+    return out
+
+
+def _is_permission_string(value: str) -> bool:
+    if not isinstance(value, str):
+        return False
+    s = value.strip()
+    if not s:
+        return False
+    if s == "*":
+        return True
+    return "." in s and " " not in s
+
+
+def collect_permission_strings_by_keys(obj, wanted_keys: set[str]) -> set[str]:
+    out: set[str] = set()
+    stack = [obj]
+    while stack:
+        cur = stack.pop()
+        if isinstance(cur, dict):
+            for k, v in cur.items():
+                if isinstance(k, str) and k in wanted_keys:
+                    if isinstance(v, str) and _is_permission_string(v):
+                        out.add(v.strip())
+                    elif isinstance(v, list):
+                        for item in v:
+                            if isinstance(item, str) and _is_permission_string(item):
+                                out.add(item.strip())
+                    elif isinstance(v, dict):
+                        for vv in v.values():
+                            if isinstance(vv, str) and _is_permission_string(vv):
+                                out.add(vv.strip())
+                            elif isinstance(vv, list):
+                                for item in vv:
+                                    if isinstance(item, str) and _is_permission_string(item):
+                                        out.add(item.strip())
+                if isinstance(v, (dict, list)):
+                    stack.append(v)
+        elif isinstance(cur, list):
+            for item in cur:
+                if isinstance(item, (dict, list)):
+                    stack.append(item)
+    return out
+
+
+def extract_reported_unused_permissions_from_insight(insight: dict) -> set[str]:
+    content = insight.get("content", {}) or {}
+    explicit_unused_keys = {
+        "unusedPermissions",
+        "excessPermissions",
+        "overGrantedPermissions",
+        "removedPermissions",
+        "permissionsToRemove",
+        "revokePermissions",
+    }
+    granted_keys = {"permissions", "allPermissions", "grantedPermissions", "includedPermissions"}
+    used_keys = {"exercisedPermissions", "inferredPermissions", "usedPermissions"}
+
+    explicit_unused = collect_permission_strings_by_keys(content, explicit_unused_keys)
+    granted = collect_permission_strings_by_keys(content, granted_keys)
+    used = collect_permission_strings_by_keys(content, used_keys)
+    derived_unused = (granted - used) if granted and used else set()
+    return explicit_unused | derived_unused
+
+
+def build_insight_unused_permissions_index(insights: list[dict]) -> dict[str, dict[str, set[str] | None]]:
+    # Best-effort only: we can split "reported unused" permissions only when
+    # Recommender insights include detailed permission arrays in `content`.
+    # key: principal candidate (see principal_match_keys)
+    # value: {"unused_perms": set[str], "roles": Optional[set[str]]}
+    index: dict[str, dict[str, set[str] | None]] = {}
+    for insight in insights or []:
+        if not isinstance(insight, dict):
+            continue
+        unused_perms = extract_reported_unused_permissions_from_insight(insight)
+        if not unused_perms:
+            continue
+
+        principal = insight.get("principal")
+        role = insight.get("role")
+        role_norm = role.strip() if isinstance(role, str) and role.strip() and not role.startswith("N/A") else None
+        pkeys = principal_match_keys(principal)
+        if not pkeys:
+            continue
+
+        for pkey in pkeys:
+            bucket = index.setdefault(pkey, {"unused_perms": set(), "roles": None})
+            bucket["unused_perms"].update(unused_perms)  # type: ignore[union-attr]
+            if role_norm:
+                if bucket["roles"] is None:
+                    bucket["roles"] = set()
+                bucket["roles"].add(role_norm)  # type: ignore[union-attr]
+    return index
+
+
+def get_principal_reported_unused_permissions(
+    principal: str, roles: set[str], insight_unused_index: dict[str, dict[str, set[str] | None]]
+) -> set[str]:
+    unused: set[str] = set()
+    for pkey in principal_match_keys(principal):
+        bucket = insight_unused_index.get(pkey)
+        if not bucket:
+            continue
+        bucket_roles = bucket.get("roles")
+        if bucket_roles:
+            if not any(r in roles for r in bucket_roles):
+                continue
+        unused.update(bucket.get("unused_perms", set()) or set())
+    return unused
+
+
 def print_human(results: list[dict], *, max_items: int) -> None:
     for proj in results:
         scope_type = proj.get("scope_type")
@@ -1029,6 +1290,7 @@ def print_human(results: list[dict], *, max_items: int) -> None:
             print(f"{colored('Errors', 'red', attrs=['bold'])}: {len(errors)} (use --out-json for details)")
 
         recs = proj.get("recommendations", [])
+        insights = proj.get("insights", []) or []
         public = proj.get("public_iam", [])
         wit = proj.get("workload_identity_trusts", [])
         external_domains = proj.get("external_domains", [])
@@ -1061,6 +1323,7 @@ def print_human(results: list[dict], *, max_items: int) -> None:
         has_findings = bool(
             errors
             or recs
+            or insights
             or public
             or wit
             or (external_domains is not None and external_domains)
@@ -1086,6 +1349,22 @@ def print_human(results: list[dict], *, max_items: int) -> None:
                 resource = r.get("resource") or "<unknown resource>"
                 desc = r.get("description") or ""
                 print(f"  - `{principal}` -> `{role}`{priv}")
+                print(f"    resource: `{resource}`")
+                if desc:
+                    print(f"    {desc}")
+
+        if insights:
+            print(f"{colored('IAM insights', 'yellow', attrs=['bold'])}: {len(insights)}")
+            shown = 0
+            for i in insights:
+                if shown >= max_items:
+                    break
+                shown += 1
+                principal = i.get("principal") or "<principal not provided>"
+                role = i.get("role") or "N/A (principal-level insight)"
+                resource = i.get("resource") or "<unknown resource>"
+                desc = i.get("description") or ""
+                print(f"  - `{principal}` -> `{role}`")
                 print(f"    resource: `{resource}`")
                 if desc:
                     print(f"    {desc}")
@@ -1167,6 +1446,13 @@ def print_human(results: list[dict], *, max_items: int) -> None:
 
         if principal_risks:
             print(f"{colored('Principals with flagged permissions', 'yellow', attrs=['bold'])}: {len(principal_risks)}")
+            has_reported_unused = any(
+                (item.get("critical_reported_unused") or item.get("high_reported_unused"))
+                for item in principal_risks
+                if isinstance(item, dict)
+            )
+            if has_reported_unused:
+                print("  note: \"reported unused\" is best-effort and only available when IAM insights include permission details.")
             for item in principal_risks[:max_items]:
                 principal = item.get("principal")
                 flagged_perms = item.get("flagged_perms", {})
@@ -1174,7 +1460,18 @@ def print_human(results: list[dict], *, max_items: int) -> None:
                     continue
                 roles = item.get("roles", []) or []
                 print(f"  - `{principal}` ({len(roles)} roles)")
-                print_permissions(flagged_perms)
+                crit_unused = item.get("critical_reported_unused", []) or []
+                high_unused = item.get("high_reported_unused", []) or []
+                crit_all = item.get("critical", []) or []
+                high_all = item.get("high", []) or []
+                if crit_unused:
+                    print(f"    - Critical & reported unused: {format_permission_list(crit_unused)}")
+                if high_unused:
+                    print(f"    - High & reported unused: {format_permission_list(high_unused)}")
+                if crit_all:
+                    print(f"    - Critical: {format_permission_list(crit_all)}")
+                if high_all:
+                    print(f"    - High: {format_permission_list(high_all)}")
                 print()
 
         sa_keys = proj.get("service_account_keys", []) or []
@@ -1350,6 +1647,18 @@ def main() -> int:
     recommenders_org = [
         "google.iam.policy.Recommender",
     ]
+    insight_types_project = [
+        "google.iam.policy.Insight",
+        "google.iam.policy.LateralMovementInsight",
+        "google.iam.policy.iamPolicyChangeRiskInsights",
+        "google.iam.serviceAccount.Insight",
+        "google.iam.serviceAccountKey.Insight",
+        "google.iam.serviceAccount.serviceAccountChangeRiskInsights",
+    ]
+    insight_types_org = [
+        "google.iam.policy.Insight",
+        "google.iam.policy.LateralMovementInsight",
+    ]
 
     results: list[dict] = []
     allowed_domains = {d.strip().lower() for d in args.allowed_domain if d and d.strip()}
@@ -1444,7 +1753,9 @@ def main() -> int:
             "scope": scope,
             "quota_project": quota_project,
             "recommenders": recommenders_org if scope_type == "organization" else recommenders_project,
+            "insight_types": insight_types_org if scope_type == "organization" else insight_types_project,
             "recommendations": [],
+            "insights": [],
             "public_iam": [],
             "workload_identity_trusts": [],
             "external_domains": [],
@@ -1469,8 +1780,9 @@ def main() -> int:
                     {"kind": "serviceusage", "service": "recommender.googleapis.com", "error": err}
                 )
         active_recommenders = recommenders_org if scope_type == "organization" else recommenders_project
+        active_insight_types = insight_types_org if scope_type == "organization" else insight_types_project
+        locations = list_recommender_locations(parent=scope, token=token, quota_project=quota_project)
         for recommender_id in active_recommenders:
-            locations = list_recommender_locations(parent=scope, token=token, quota_project=quota_project)
             try:
                 for location in locations:
                     recs_raw = iter_recommendations(
@@ -1495,6 +1807,26 @@ def main() -> int:
             except ApiError as exc:
                 project_out["errors"].append(
                     {"kind": "recommender", "recommender": recommender_id, "error": str(exc)}
+                )
+        for insight_type_id in active_insight_types:
+            try:
+                for location in locations:
+                    insights_raw = iter_insights(
+                        parent=scope,
+                        insight_type_id=insight_type_id,
+                        token=token,
+                        quota_project=quota_project,
+                        location=location,
+                        page_size=args.page_size,
+                    )
+                    for insight in insights_raw:
+                        summary = summarize_iam_policy_insight(insight)
+                        summary["insightType"] = insight_type_id
+                        summary["location"] = location
+                        project_out["insights"].append(summary)
+            except ApiError as exc:
+                project_out["errors"].append(
+                    {"kind": "insight", "insightType": insight_type_id, "error": str(exc)}
                 )
 
         if step_bar is not None:
@@ -1651,7 +1983,7 @@ def main() -> int:
                             key_last_seen = None
                         inactive = not bool(key_last_seen)
                         reason = (
-                            f"No audit-log key usage observed in the last {args.min_unused_days} days (best-effort)."
+                            f"No audit-log key usage observed in the last {args.min_unused_days} days."
                             if inactive
                             else None
                         )
@@ -1951,6 +2283,7 @@ def main() -> int:
                         pass
 
         principal_items_all = list(sorted(principal_to_roles_all.items()))
+        insight_unused_index = build_insight_unused_permissions_index(project_out.get("insights", []) or [])
         principal_eval_bar = (
             _new_progress(
                 total=len(principal_items_all),
@@ -1997,12 +2330,26 @@ def main() -> int:
             for lvl in list(perm_sources.keys()):
                 for perm in list(perm_sources[lvl].keys()):
                     perm_sources[lvl][perm] = sorted(set(perm_sources[lvl][perm]))
+
+            reported_unused = get_principal_reported_unused_permissions(
+                principal=principal,
+                roles=roles,
+                insight_unused_index=insight_unused_index,
+            )
+            critical_all = sorted(set(known["flagged_perms"].get("critical", []) or []))
+            high_all = sorted(set(known["flagged_perms"].get("high", []) or []))
+            critical_unused = sorted(set(critical_all) & reported_unused)
+            high_unused = sorted(set(high_all) & reported_unused)
             project_out["principal_risks"].append(
                 {
                     "principal": principal,
                     "roles": sorted(roles),
                     "flagged_perms": known["flagged_perms"],
                     "flagged_perm_sources": perm_sources,
+                    "critical_reported_unused": critical_unused,
+                    "high_reported_unused": high_unused,
+                    "critical": critical_all,
+                    "high": high_all,
                 }
             )
         if principal_eval_bar is not None:
