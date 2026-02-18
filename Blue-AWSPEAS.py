@@ -4,6 +4,7 @@ import fnmatch
 import argparse
 import sys
 import signal
+import random
 
 import json
 from termcolor import colored
@@ -39,7 +40,7 @@ _POLICY_CACHE_LOCK = threading.Lock()
 
 # Boto3 config with retries and connection pooling
 BOTO3_CONFIG = Config(
-    retries={'max_attempts': 3, 'mode': 'adaptive'},
+    retries={'max_attempts': 10, 'mode': 'standard'},
     max_pool_connections=50
 )
 
@@ -86,12 +87,17 @@ def _principal_name_from_arn(arn: Optional[str]) -> Optional[str]:
     return None
 
 
-def print_permissions(ppal_permissions):
-    """Print flagged permissions by risk level."""
+def print_permissions(ppal_permissions, *, verbose: bool = False):
+    """Print flagged permissions by risk level.
+
+    If `verbose` and source data is present, also print where permissions come from
+    (e.g., inherited from a group).
+    """
     if not ppal_permissions or "flagged_perms" not in ppal_permissions:
         return
     
     flagged_perms = ppal_permissions["flagged_perms"]
+    flagged_perm_sources = ppal_permissions.get("flagged_perm_sources") or {}
     
     # Print in order of severity
     risk_colors = {
@@ -101,12 +107,28 @@ def print_permissions(ppal_permissions):
         'low': 'cyan'
     }
     
+    def _format_source(src: dict) -> str:
+        attachment = src.get("attachment")
+        attachment_name = src.get("attachment_name")
+        pol = src.get("policy_name") or src.get("policy_arn") or "unknown-policy"
+        if attachment and attachment_name:
+            return f"{attachment} `{attachment_name}` via `{pol}`"
+        return f"via `{pol}`"
+
     for risk_level in ['critical', 'high', 'medium', 'low']:
         if risk_level in flagged_perms and flagged_perms[risk_level]:
             perms = flagged_perms[risk_level]
             more_than_str = " and more..." if len(perms) > MAX_PERMS_TO_PRINT else ""
             color = risk_colors.get(risk_level, 'white')
             print(f"    - {colored(risk_level.upper(), color)}: {', '.join(f'`{p}`' for p in perms[:MAX_PERMS_TO_PRINT])}{more_than_str}")
+            if verbose and flagged_perm_sources.get(risk_level):
+                for p in perms[:MAX_PERMS_TO_PRINT]:
+                    sources = (flagged_perm_sources.get(risk_level, {}) or {}).get(p) or []
+                    if not sources:
+                        continue
+                    shown = sources[:3]
+                    suffix = f" (+{len(sources) - 3} more)" if len(sources) > 3 else ""
+                    print(f"      - sources for `{p}`: {', '.join(_format_source(s) for s in shown)}{suffix}")
 
 
 
@@ -130,6 +152,7 @@ def print_results(
     role_permissions=None,
     group_memberships=None,
     min_unused_days=30,
+    verbose=False,
 ):
     """Print results for a single account and return a JSON-serializable dict."""
     result = {
@@ -160,7 +183,7 @@ def print_results(
             name_str = f" ({name})" if name else ""
             print(f"  - `{arn}`{name_str}")
             if data.get("permissions"):
-                print_permissions(data["permissions"])
+                print_permissions(data["permissions"], verbose=verbose)
             else:
                 print("    - (No flagged permissions)")
             print()
@@ -207,7 +230,7 @@ def print_results(
             print(intro_str)
 
             if data.get("permissions"):
-                print_permissions(data["permissions"])
+                print_permissions(data["permissions"], verbose=verbose)
 
             print()
 
@@ -232,7 +255,7 @@ def print_results(
             print(intro_str)
 
             if data.get("permissions"):
-                print_permissions(data["permissions"])
+                print_permissions(data["permissions"], verbose=verbose)
 
             print()
 
@@ -257,7 +280,7 @@ def print_results(
             print(intro_str)
 
             if data.get("permissions"):
-                print_permissions(data["permissions"])
+                print_permissions(data["permissions"], verbose=verbose)
 
             print()
 
@@ -277,7 +300,7 @@ def print_results(
                 print(f"  - `{arn}`: Never used{is_external_str}")
 
             if data.get("permissions"):
-                print_permissions(data["permissions"])
+                print_permissions(data["permissions"], verbose=verbose)
 
             print()
 
@@ -291,7 +314,7 @@ def print_results(
                 is_external_str = " and is externally accessible" if external_ppals.get(arn) else ""
                 type_str = f" ({data.get('type')})" if data.get("type") else ""
                 print(f"  - `{arn}`{type_str}{is_external_str}")
-                print_permissions(data["permissions"])
+                print_permissions(data["permissions"], verbose=verbose)
                 print()
 
         if unused_flagged:
@@ -304,7 +327,7 @@ def print_results(
                 else:
                     print(f"  - `{arn}`: Last used {data['n_days']} days ago{is_external_str}")
 
-                print_permissions(data["permissions"])
+                print_permissions(data["permissions"], verbose=verbose)
 
                 print(f"    - {colored('Unused permissions', 'magenta')}:")
                 for service in list(data["last_perms"].keys())[:4]:
@@ -646,7 +669,7 @@ def classify_actions_with_sources(action_sources, risk_levels):
     return {
         "flagged_perms": flagged_perms,
         "flagged_perm_sources": flagged_perm_sources,
-        "is_admin": False,
+        "is_admin": is_admin,
         "all_actions": all_actions,
     }
 
@@ -740,6 +763,17 @@ def get_policies(
                 "attachment": principal_type.lower(),
                 "attachment_name": principal_name,
             }
+
+            # Model well-known AWS managed admin policy without needing iam:GetPolicyVersion.
+            # This avoids false "no flagged permissions" results when GetPolicyVersion is denied.
+            if policy_arn == "arn:aws:iam::aws:policy/AdministratorAccess":
+                doc = {
+                    "Version": "2012-10-17",
+                    "Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}],
+                }
+                policy_document.append(doc)
+                policy_docs_with_sources.append((doc, source))
+                continue
             
             # Check cache first
             with _POLICY_CACHE_LOCK:
@@ -1213,10 +1247,10 @@ def check_user_permissions(
                 if has_login:
                     with lock:
                         unused_logins[user["Arn"]]["permissions"] = user_perms
-                elif has_key:
+                if has_key:
                     with lock:
                         unused_acc_keys[user["Arn"]]["permissions"] = user_perms
-                else:
+                if (not has_login) and (not has_key):
                     # Use pre-fetched findings if available
                     finding_ids = unused_permission_findings_map.get(user["Arn"], [])
                     if finding_ids:
@@ -1660,13 +1694,29 @@ def process_account(
 
         # Get all users with pagination
         users = []
-        try:
-            paginator = iam.get_paginator("list_users")
-            for page in paginator.paginate():
-                users.extend(page.get("Users", []))
-        except ClientError as e:
-            print(f"{colored('[-] ', 'red')}Error listing users: {e.response['Error']['Message']}")
-            permission_errors.append({"operation": "ListUsers", "error": e.response["Error"]["Message"]})
+        max_retries = 5
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                paginator = iam.get_paginator("list_users")
+                for page in paginator.paginate():
+                    users.extend(page.get("Users", []))
+                break  # Success, exit retry loop
+            except ClientError as e:
+                error_code = e.response.get('Error', {}).get('Code', '')
+                if error_code in ['Throttling', 'TooManyRequestsException', 'RequestLimitExceeded']:
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        wait_time = (2 ** retry_count) + (random.random() * 2)  # Exponential backoff with jitter
+                        print(f"{colored('[!] ', 'yellow')}Rate limit hit. Retrying in {wait_time:.1f}s... (attempt {retry_count}/{max_retries})")
+                        time.sleep(wait_time)
+                    else:
+                        print(f"{colored('[-] ', 'red')}Error listing users after {max_retries} retries: {e.response['Error']['Message']}")
+                        permission_errors.append({"operation": "ListUsers", "error": e.response["Error"]["Message"]})
+                else:
+                    print(f"{colored('[-] ', 'red')}Error listing users: {e.response['Error']['Message']}")
+                    permission_errors.append({"operation": "ListUsers", "error": e.response["Error"]["Message"]})
+                    break
 
         lock = threading.Lock()
 
@@ -1834,6 +1884,7 @@ def process_account(
             role_permissions=ROLE_PERMISSIONS,
             group_memberships=USER_GROUP_MEMBERSHIPS,
             min_unused_days=min_unused_days,
+            verbose=verbose,
         )
 
         # Cleanup: Remove created analyzers
