@@ -54,6 +54,7 @@ OPTIONAL_GRAPH_SCOPES = {
 AZURE_PUBLIC_CLIENT_ID = "04b07795-8ddb-461a-bbee-02f9e1bf7b46"  # Common public client (Azure CLI app id)
 MGMT_API_VERSION = "2020-05-01"
 AUTHZ_API_VERSION = "2022-04-01"
+SECURITY_ASSESSMENTS_API_VERSION = "2020-01-01"
 
 
 class AzureMsalTokenCacheCredential:
@@ -537,13 +538,286 @@ def _arm_get(
     params: Optional[dict[str, str]] = None,
 ) -> dict[str, Any]:
     token = credential.get_token("https://management.azure.com/.default").token
-    r = requests.get(url, headers={"Authorization": f"Bearer {token}"}, params=params or {}, timeout=60)
-    if r.status_code >= 400:
+    retryable = {429, 500, 502, 503, 504}
+    attempts = 0
+    while True:
+        r = requests.get(url, headers={"Authorization": f"Bearer {token}"}, params=params or {}, timeout=60)
+        if r.status_code < 400:
+            break
+        if r.status_code in retryable and attempts < 4:
+            # Respect Retry-After when present (typically on 429).
+            ra = r.headers.get("Retry-After")
+            delay = None
+            if isinstance(ra, str) and ra.strip().isdigit():
+                try:
+                    delay = int(ra.strip())
+                except Exception:
+                    delay = None
+            if delay is None:
+                delay = 1 * (2**attempts)
+            time.sleep(min(delay, 20))
+            attempts += 1
+            continue
         raise RuntimeError(f"ARM GET failed ({r.status_code}) {url}: {r.text[:200]}")
+
     data = r.json()
     if not isinstance(data, dict):
         raise RuntimeError("Unexpected ARM response (not JSON object)")
     return data
+
+
+def _arm_list(
+    *,
+    credential: Any,
+    url: str,
+    params: Optional[dict[str, str]] = None,
+    max_items: int = 5000,
+) -> list[dict[str, Any]]:
+    """
+    List helper for ARM endpoints that return {"value":[...], "nextLink": "..."}.
+    """
+    out: list[dict[str, Any]] = []
+    while url and len(out) < max_items:
+        data = _arm_get(credential=credential, url=url, params=params)
+        params = None
+        vals = data.get("value") or []
+        if isinstance(vals, list):
+            for item in vals:
+                if isinstance(item, dict):
+                    out.append(item)
+                    if len(out) >= max_items:
+                        break
+        url = data.get("nextLink")
+    return out
+
+
+IAM_RECOMMENDATION_KEYWORDS = (
+    "owner",
+    "privileged",
+    "permission",
+    "permissions",
+    "rbac",
+    "role",
+    "roles",
+    "administrator",
+    "admin",
+    "guest",
+    "external",
+    "inactive",
+    "unused",
+    "service principal",
+    "serviceprincipal",
+    "managed identity",
+    "identity",
+    "entra",
+    "azure ad",
+    "mfa",
+    "multi-factor",
+    "conditional access",
+)
+
+
+def _is_iam_recommendation_item(item: dict[str, Any]) -> bool:
+    """
+    Best-effort heuristic to classify Defender for Cloud assessments as IAM/identity/access related.
+    """
+    if not isinstance(item, dict):
+        return False
+    props = item.get("properties") if isinstance(item.get("properties"), dict) else {}
+    display = (
+        props.get("displayName")
+        or item.get("displayName")
+        or props.get("recommendationDisplayName")
+        or item.get("name")
+        or ""
+    )
+    if isinstance(display, str) and display:
+        s = display.lower()
+        if any(k in s for k in IAM_RECOMMENDATION_KEYWORDS):
+            return True
+    add = props.get("additionalData")
+    if isinstance(add, dict):
+        keys = " ".join(str(k).lower() for k in add.keys())
+        if any(k in keys for k in ("identity", "owner", "guest", "permission", "rbac", "role", "principal")):
+            return True
+        vals = " ".join(str(v).lower() for v in add.values())
+        if any(k in vals for k in ("identity", "owner", "guest", "permission", "rbac", "role", "principal")):
+            return True
+    return False
+
+
+def _defender_iam_recommendations(
+    *,
+    credential: Any,
+    subscription_id: str,
+    max_items: int,
+    max_subassessments: int,
+) -> list[dict[str, Any]]:
+    """
+    Fetch Microsoft Defender for Cloud assessments and keep only IAM-relevant items (best-effort).
+    """
+    base = f"https://management.azure.com/subscriptions/{subscription_id}/providers/Microsoft.Security/assessments"
+    items = _arm_list(
+        credential=credential,
+        url=base,
+        params={"api-version": SECURITY_ASSESSMENTS_API_VERSION},
+        max_items=max_items,
+    )
+    out: list[dict[str, Any]] = []
+    for it in items:
+        if not _is_iam_recommendation_item(it):
+            continue
+        props = it.get("properties") if isinstance(it.get("properties"), dict) else {}
+        status = props.get("status") if isinstance(props.get("status"), dict) else {}
+        add = props.get("additionalData") if isinstance(props.get("additionalData"), dict) else {}
+
+        entry: dict[str, Any] = {
+            "id": it.get("id"),
+            "name": it.get("name"),
+            "display_name": props.get("displayName") or it.get("displayName"),
+            "status_code": status.get("code"),
+            "status_cause": status.get("cause"),
+            "status_description": status.get("description"),
+            "first_evaluation_date": status.get("firstEvaluationDate"),
+            "status_change_date": status.get("statusChangeDate"),
+            "additional_data": add,
+        }
+
+        sub_link = add.get("subAssessmentsLink")
+        if isinstance(sub_link, str) and sub_link.strip() and max_subassessments:
+            try:
+                subs = _arm_list(
+                    credential=credential,
+                    url=f"https://management.azure.com{sub_link.strip()}",
+                    params={"api-version": SECURITY_ASSESSMENTS_API_VERSION},
+                    max_items=max_subassessments,
+                )
+                entry["sub_assessments_count"] = len(subs)
+                entry["sub_assessments_sample"] = subs[: min(len(subs), 20)]
+            except Exception as e:
+                entry["sub_assessments_error"] = str(e)
+        out.append(entry)
+
+    out.sort(
+        key=lambda x: (
+            str(x.get("status_code") or ""),
+            str(x.get("display_name") or ""),
+            str(x.get("id") or ""),
+        )
+    )
+    return out
+
+
+def _graph_list(
+    *,
+    credential: Any,
+    url: str,
+    params: Optional[dict[str, str]] = None,
+    max_items: int,
+) -> list[dict[str, Any]]:
+    token = credential.get_token("https://graph.microsoft.com/.default").token
+    out: list[dict[str, Any]] = []
+    while url and len(out) < max_items:
+        r = requests.get(url, headers={"Authorization": f"Bearer {token}"}, params=params, timeout=30)
+        params = None
+        if r.status_code >= 400:
+            raise RuntimeError(f"Graph list failed ({r.status_code}) {url}: {r.text[:200]}")
+        data = r.json() or {}
+        vals = data.get("value") or []
+        if isinstance(vals, list):
+            for item in vals:
+                if isinstance(item, dict):
+                    out.append(item)
+                    if len(out) >= max_items:
+                        break
+        url = data.get("@odata.nextLink")
+    return out
+
+
+def _entra_directory_recommendations(
+    *,
+    credential: Any,
+    max_items: int,
+    max_impacted: int,
+) -> list[dict[str, Any]]:
+    """
+    Best-effort Entra ID recommendations (tenant-wide). Graph beta.
+    Requires tenant permissions that might not be granted in all environments.
+    """
+    recs = _graph_list(
+        credential=credential,
+        url="https://graph.microsoft.com/beta/directory/recommendations",
+        params={"$top": "50"},
+        max_items=max_items,
+    )
+    out: list[dict[str, Any]] = []
+    for r in recs:
+        rid = r.get("id")
+        entry: dict[str, Any] = {
+            "id": rid,
+            "display_name": r.get("displayName"),
+            "recommendation_type": r.get("recommendationType"),
+            "priority": r.get("priority"),
+            "status": r.get("status"),
+            "created_at": r.get("createdDateTime"),
+            "updated_at": r.get("lastModifiedDateTime") or r.get("updatedDateTime"),
+        }
+        if isinstance(rid, str) and rid.strip() and max_impacted:
+            try:
+                impacted = _graph_list(
+                    credential=credential,
+                    url=f"https://graph.microsoft.com/beta/directory/recommendations/{rid}/impactedResources",
+                    params={"$top": "50"},
+                    max_items=max_impacted,
+                )
+                entry["impacted_resources_count"] = len(impacted)
+                entry["impacted_resources_sample"] = impacted[: min(len(impacted), 20)]
+            except Exception as e:
+                entry["impacted_resources_error"] = str(e)
+        out.append(entry)
+    out.sort(key=lambda x: (str(x.get("priority") or ""), str(x.get("display_name") or ""), str(x.get("id") or "")))
+    return out
+
+
+def _pim_role_management_alerts(
+    *,
+    credential: Any,
+    max_items: int,
+) -> list[dict[str, Any]]:
+    """
+    Best-effort PIM role management alerts (tenant-wide). Graph beta.
+    Permissions vary widely; treat as optional.
+    """
+    alerts = _graph_list(
+        credential=credential,
+        url="https://graph.microsoft.com/beta/identityGovernance/roleManagementAlerts/alerts",
+        params={"$top": "50"},
+        max_items=max_items,
+    )
+    out: list[dict[str, Any]] = []
+    for a in alerts:
+        if not isinstance(a, dict):
+            continue
+        out.append(
+            {
+                "id": a.get("id"),
+                "alert_definition_id": a.get("alertDefinitionId"),
+                "scope_id": a.get("scopeId"),
+                "scope_type": a.get("scopeType"),
+                "is_active": a.get("isActive"),
+                "incident_count": a.get("incidentCount"),
+                "last_scanned_at": a.get("lastScannedDateTime"),
+                "last_updated_at": a.get("lastUpdatedDateTime"),
+            }
+        )
+    out.sort(
+        key=lambda x: (
+            -int(x.get("incident_count") or 0),
+            str(x.get("alert_definition_id") or ""),
+            str(x.get("id") or ""),
+        )
+    )
+    return out
 
 
 def _list_management_groups(credential: Any, *, max_items: int) -> list[dict[str, Any]]:
@@ -724,6 +998,7 @@ class SubscriptionScanResult:
     managed_identity_federated_credentials: list[dict]
     guest_users: list[dict]
     group_memberships: list[dict]
+    iam_recommendations: list[dict]
     errors: list[dict]
     stats: dict
 
@@ -733,6 +1008,14 @@ class ManagementGroupScanResult:
     management_groups_scanned: int
     unused_custom_roles: list[dict]
     errors: list[dict]
+
+
+@dataclass
+class TenantIamScanResult:
+    entra_recommendations: list[dict]
+    pim_alerts: list[dict]
+    errors: list[dict]
+    stats: dict
 
 
 def scan_subscription(
@@ -749,6 +1032,11 @@ def scan_subscription(
     scan_entra: bool,
     scan_mi_federation: bool,
     max_entra_items: int,
+    scan_iam_recommendations: bool,
+    iam_recommendations_max_items: int,
+    iam_recommendations_max_subassessments: int,
+    only_iam_recommendations: bool = False,
+    entra_guest_users: Optional[list[dict[str, Any]]] = None,
     mg_assignments: Optional[list[dict[str, Any]]] = None,
     current_identity: Optional[dict[str, Any]] = None,
     stage_cb: Optional[Callable[[str], None]] = None,
@@ -760,6 +1048,43 @@ def scan_subscription(
         errors.append({"where": where, "error": str(e)})
 
     scope = f"/subscriptions/{subscription_id}"
+
+    if only_iam_recommendations:
+        iam_recommendations: list[dict] = []
+        if scan_iam_recommendations:
+            stage_cb("iam_recommendations")
+            try:
+                iam_recommendations = _defender_iam_recommendations(
+                    credential=credential,
+                    subscription_id=subscription_id,
+                    max_items=iam_recommendations_max_items,
+                    max_subassessments=iam_recommendations_max_subassessments,
+                )
+            except Exception as e:
+                fail("defender_iam_recommendations", e)
+        stage_cb("render")
+        stats = {
+            "subscription_id": subscription_id,
+            "subscription_name": subscription_name,
+            "scanned_at": _utc_now_iso(),
+            "only_iam_recommendations": True,
+            "max_items_stdout": max_items,
+        }
+        return SubscriptionScanResult(
+            subscription_id=subscription_id,
+            subscription_name=subscription_name,
+            principals=[],
+            inactive_principals=[],
+            unused_custom_roles=[],
+            external_rbac_principals=[],
+            managed_identity_federated_credentials=[],
+            guest_users=[],
+            group_memberships=[],
+            iam_recommendations=iam_recommendations,
+            errors=errors,
+            stats=stats,
+        )
+
     authz = AuthorizationManagementClient(credential, subscription_id)
     rm = ResourceManagementClient(credential, subscription_id)
 
@@ -1212,24 +1537,43 @@ def scan_subscription(
     guest_users: list[dict] = []
     mi_fics: list[dict] = []
     group_memberships: list[dict] = []
+    iam_recommendations: list[dict] = []
+
+    stage_cb("iam_recommendations")
+    if scan_iam_recommendations:
+        try:
+            iam_recommendations = _defender_iam_recommendations(
+                credential=credential,
+                subscription_id=subscription_id,
+                max_items=iam_recommendations_max_items,
+                max_subassessments=iam_recommendations_max_subassessments,
+            )
+        except Exception as e:
+            fail("defender_iam_recommendations", e)
 
     stage_cb("entra_external")
     if scan_entra:
-        try:
-            guest_users, err = _graph_list_guest_users(credential=credential, max_items=max_entra_items)
-            if err:
-                fail("graph_guest_users_list", RuntimeError(err))
-        except Exception as e:
-            fail("graph_guest_users_list", e)
+        if entra_guest_users is not None:
+            guest_users = entra_guest_users
+        else:
+            try:
+                guest_users, err = _graph_list_guest_users(credential=credential, max_items=max_entra_items)
+                if err:
+                    fail("graph_guest_users_list", RuntimeError(err))
+            except Exception as e:
+                fail("graph_guest_users_list", e)
 
         # Annotate guests with RBAC access in this subscription (by object id).
         principals_with_access = set(by_principal.keys())
+        annotated: list[dict[str, Any]] = []
         for u in guest_users:
-            oid = u.get("id")
-            if isinstance(oid, str) and oid in principals_with_access:
-                u["has_rbac_access_in_subscription"] = True
-            else:
-                u["has_rbac_access_in_subscription"] = False
+            if not isinstance(u, dict):
+                continue
+            du = dict(u)
+            oid = du.get("id")
+            du["has_rbac_access_in_subscription"] = bool(isinstance(oid, str) and oid in principals_with_access)
+            annotated.append(du)
+        guest_users = annotated
 
     stage_cb("mi_federation")
     if scan_mi_federation:
@@ -1255,6 +1599,7 @@ def scan_subscription(
         managed_identity_federated_credentials=mi_fics,
         guest_users=guest_users,
         group_memberships=group_memberships,
+        iam_recommendations=iam_recommendations,
         errors=errors,
         stats=stats,
     )
@@ -1304,6 +1649,7 @@ def _print_subscription_stdout(res: SubscriptionScanResult, *, flagged_levels: s
     _print_kv("Principals w/ flagged permissions", str(res.stats.get("principals_with_flagged_permissions", 0)))
     _print_kv("Inactive principals (best-effort)", str(res.stats.get("inactive_principals", 0)))
     _print_kv("Unused custom roles", str(res.stats.get("unused_custom_roles", 0)))
+    _print_kv("IAM recommendations (Defender)", str(len(res.iam_recommendations or [])))
     print()
 
     flagged = [p for p in res.principals if p.get("flagged_permission_patterns_by_risk")]
@@ -1376,6 +1722,18 @@ def _print_subscription_stdout(res: SubscriptionScanResult, *, flagged_levels: s
             print(f"  - and {len(res.guest_users) - max_items} more...")
         print()
 
+    if res.iam_recommendations:
+        _print_section("IAM recommendations (Defender for Cloud, best-effort)")
+        for rec in res.iam_recommendations[:max_items]:
+            status = rec.get("status_code") or "Unknown"
+            cause = rec.get("status_cause")
+            title = rec.get("display_name") or rec.get("name") or rec.get("id") or "unknown"
+            suffix = f" ({cause})" if cause else ""
+            print(f"  - [{status}]{suffix} {title}")
+        if len(res.iam_recommendations) > max_items:
+            print(f"  - and {len(res.iam_recommendations) - max_items} more...")
+        print()
+
 
 def _print_mg_stdout(res: ManagementGroupScanResult, *, max_items: int) -> None:
     if not res.unused_custom_roles and not res.errors:
@@ -1420,6 +1778,11 @@ def main() -> None:
     ap.add_argument("--max-items", type=int, default=20, help="Max findings to print per section (default: 20).")
     ap.add_argument("--activity-max-events", type=int, default=20000, help="Max Activity Log events to fetch per subscription (default: 20000).")
     ap.add_argument("--skip-activity-logs", action="store_true", help="Skip Activity Log scan (disables inactive and last-used heuristics).")
+    ap.add_argument(
+        "--only-iam-recommendations",
+        action="store_true",
+        help="Only fetch IAM recommendations (Defender for Cloud + optional tenant Entra/PIM). Skips RBAC role/Activity Log analysis.",
+    )
     ap.set_defaults(resolve_principals=True)
     ap.add_argument(
         "--no-resolve-principals",
@@ -1437,6 +1800,54 @@ def main() -> None:
     )
     ap.add_argument("--no-scan-mi-federation", dest="scan_mi_federation", action="store_false", help="Disable MI federated-credential scan.")
     ap.add_argument("--max-entra-items", type=int, default=2000, help="Cap results for Entra/MI scans (default: 2000).")
+    ap.add_argument(
+        "--scan-iam-recommendations",
+        action="store_true",
+        default=True,
+        help="Fetch IAM recommendations from Defender for Cloud assessments (best-effort; default: enabled).",
+    )
+    ap.add_argument(
+        "--no-scan-iam-recommendations",
+        dest="scan_iam_recommendations",
+        action="store_false",
+        help="Disable Defender for Cloud IAM recommendations scan.",
+    )
+    ap.add_argument(
+        "--iam-recommendations-max-items",
+        type=int,
+        default=5000,
+        help="Max Defender assessments to fetch per subscription (default: 5000).",
+    )
+    ap.add_argument(
+        "--iam-recommendations-max-subassessments",
+        type=int,
+        default=50,
+        help="Max sub-assessments to fetch per IAM assessment (default: 50).",
+    )
+    ap.add_argument(
+        "--scan-entra-recommendations",
+        action="store_true",
+        default=True,
+        help="Fetch Entra ID tenant recommendations (Graph beta, best-effort; default: enabled).",
+    )
+    ap.add_argument(
+        "--no-scan-entra-recommendations",
+        dest="scan_entra_recommendations",
+        action="store_false",
+        help="Disable Entra ID tenant recommendations scan.",
+    )
+    ap.add_argument(
+        "--scan-pim-alerts",
+        action="store_true",
+        default=True,
+        help="Fetch PIM role management alerts (Graph beta, best-effort; default: enabled).",
+    )
+    ap.add_argument(
+        "--no-scan-pim-alerts",
+        dest="scan_pim_alerts",
+        action="store_false",
+        help="Disable PIM alerts scan.",
+    )
     ap.add_argument(
         "--scan-management-groups",
         action="store_true",
@@ -1467,6 +1878,14 @@ def main() -> None:
     ap.add_argument("--out-json", help="Write full JSON results to this path (stdout stays human-readable).")
     args = ap.parse_args()
 
+    if args.only_iam_recommendations:
+        # Keep the run fast and focused on IAM recommendations.
+        args.resolve_principals = False
+        args.skip_activity_logs = True
+        args.scan_entra = False  # guest user list (still can fetch Entra recommendations / PIM alerts)
+        args.scan_mi_federation = False
+        args.scan_management_groups = False
+
     try:
         flagged_levels = set(_risk_levels_from_arg(args.risk_levels))
     except Exception as e:
@@ -1484,8 +1903,8 @@ def main() -> None:
         except Exception as e:
             print(f"{colored('[-] ', 'red')}Invalid ARM token: {e}")
             sys.exit(2)
-        if (args.resolve_principals or args.scan_entra) and not args.graph_token:
-            print(f"{colored('[-] ', 'red')}Graph token required for principal resolution/guest user scan.")
+        if (args.resolve_principals or args.scan_entra or args.scan_entra_recommendations or args.scan_pim_alerts) and not args.graph_token:
+            print(f"{colored('[-] ', 'red')}Graph token required for Microsoft Graph scans (principal resolution / Entra / PIM).")
             sys.exit(2)
         if args.graph_token:
             try:
@@ -1509,7 +1928,7 @@ def main() -> None:
             "upn": mgmt_claims.get("upn") or mgmt_claims.get("preferred_username"),
             "tid": mgmt_claims.get("tid"),
         }
-        if args.resolve_principals or args.scan_entra:
+        if args.resolve_principals or args.scan_entra or args.scan_entra_recommendations or args.scan_pim_alerts:
             _graph_permissions_check(credential)
     except Exception as e:
         print(f"{colored('[-] ', 'red')}Azure authentication failed: {e}")
@@ -1576,6 +1995,7 @@ def main() -> None:
         "resolve_principals",
         "activity_logs",
         "custom_roles",
+        "iam_recommendations",
         "entra_external",
         "mi_federation",
         "render",
@@ -1584,6 +2004,52 @@ def main() -> None:
 
     all_results: list[SubscriptionScanResult] = []
     all_errors: list[dict] = []
+
+    # Tenant-wide IAM posture items (best-effort) + cached guest user list to avoid per-subscription Graph calls.
+    tenant_iam: Optional[TenantIamScanResult] = None
+    entra_guest_users_cache: Optional[list[dict[str, Any]]] = None
+    if args.scan_entra or args.scan_entra_recommendations or args.scan_pim_alerts:
+        t_errors: list[dict] = []
+        entra_recs: list[dict] = []
+        pim_alerts: list[dict] = []
+
+        if args.scan_entra:
+            try:
+                entra_guest_users_cache, err = _graph_list_guest_users(credential=credential, max_items=args.max_entra_items)
+                if err:
+                    t_errors.append({"where": "graph_guest_users_list", "error": err})
+                    entra_guest_users_cache = None
+            except Exception as e:
+                t_errors.append({"where": "graph_guest_users_list", "error": str(e)})
+                entra_guest_users_cache = None
+
+        if args.scan_entra_recommendations:
+            try:
+                entra_recs = _entra_directory_recommendations(
+                    credential=credential,
+                    max_items=args.max_entra_items,
+                    max_impacted=200,
+                )
+            except Exception as e:
+                t_errors.append({"where": "entra_recommendations", "error": str(e)})
+
+        if args.scan_pim_alerts:
+            try:
+                pim_alerts = _pim_role_management_alerts(credential=credential, max_items=args.max_entra_items)
+            except Exception as e:
+                t_errors.append({"where": "pim_alerts", "error": str(e)})
+
+        tenant_iam = TenantIamScanResult(
+            entra_recommendations=entra_recs,
+            pim_alerts=pim_alerts,
+            errors=t_errors,
+            stats={
+                "entra_recommendations": len(entra_recs),
+                "pim_alerts": len(pim_alerts),
+                "guest_users": len(entra_guest_users_cache or []),
+                "scanned_at": _utc_now_iso(),
+            },
+        )
 
     if args.scan_management_groups:
         try:
@@ -1646,6 +2112,11 @@ def main() -> None:
                 scan_entra=args.scan_entra,
                 scan_mi_federation=args.scan_mi_federation,
                 max_entra_items=args.max_entra_items,
+                scan_iam_recommendations=args.scan_iam_recommendations,
+                iam_recommendations_max_items=args.iam_recommendations_max_items,
+                iam_recommendations_max_subassessments=args.iam_recommendations_max_subassessments,
+                only_iam_recommendations=args.only_iam_recommendations,
+                entra_guest_users=entra_guest_users_cache,
                 mg_assignments=mg_assignments_by_sub.get(sid),
                 current_identity=current_identity,
                 stage_cb=cb,
@@ -1670,6 +2141,22 @@ def main() -> None:
     all_results.sort(key=lambda r: (r.subscription_name or "", r.subscription_id))
     for r in all_results:
         _print_subscription_stdout(r, flagged_levels=flagged_levels, max_items=args.max_items)
+
+    if tenant_iam:
+        _print_section("Tenant IAM recommendations (Entra / PIM, best-effort)")
+        print(f"  - guest users cached: {tenant_iam.stats.get('guest_users', 0)}")
+        print(f"  - entra recommendations: {tenant_iam.stats.get('entra_recommendations', 0)}")
+        print(f"  - pim alerts: {tenant_iam.stats.get('pim_alerts', 0)}")
+        if tenant_iam.errors:
+            print(f"  - errors: {len(tenant_iam.errors)}")
+            for e in tenant_iam.errors[: min(args.max_items, 10)]:
+                print(f"    - {e.get('where')}: {e.get('error')}")
+        # Keep output short; details are in JSON report.
+        for rec in (tenant_iam.entra_recommendations or [])[: min(args.max_items, 10)]:
+            print(f"  - [Entra] {rec.get('display_name') or rec.get('id')}")
+        for a in (tenant_iam.pim_alerts or [])[: min(args.max_items, 10)]:
+            print(f"  - [PIM] def={a.get('alert_definition_id')} incidents={a.get('incident_count')}")
+        print()
 
     # Management groups custom roles (only when scanning all subscriptions).
     mg_result: Optional[ManagementGroupScanResult] = None
@@ -1768,9 +2255,43 @@ def main() -> None:
                             "external_rbac_principals": r.external_rbac_principals,
                             "managed_identity_federated_credentials": r.managed_identity_federated_credentials,
                             "guest_users": r.guest_users,
+                            "iam_recommendations": r.iam_recommendations,
                             "errors": r.errors,
                         }
                     ),
+                ).to_dict()
+            )
+
+        if tenant_iam is not None:
+            targets.append(
+                Target(
+                    target_type="tenant",
+                    target_id="entra_iam",
+                    label="entra_iam",
+                    data={
+                        "scope": {"scope_type": "tenant", "scope_id": "entra", "scope_name": "entra"},
+                        "findings": {
+                            "principals_flagged": [],
+                            "principals_inactive": [],
+                            "principals_with_unused_permissions": [],
+                            "privileged_principals": [],
+                            "unused_permissions_available": False,
+                            "keys": [],
+                            "unused_custom_definitions": [],
+                            "external_trusts": [],
+                            "group_memberships": [],
+                            "permission_catalog": [],
+                            "principal_catalog": [],
+                            "group_catalog": [],
+                            "role_catalog": [],
+                        },
+                        "errors": tenant_iam.errors,
+                        "provider_raw": {
+                            "entra_recommendations": tenant_iam.entra_recommendations,
+                            "pim_alerts": tenant_iam.pim_alerts,
+                            "stats": tenant_iam.stats,
+                        },
+                    },
                 ).to_dict()
             )
 

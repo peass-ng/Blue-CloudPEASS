@@ -1223,6 +1223,10 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
             member_kind = "principal"
         group_memberships.append({"group_ref": group_ref, "member_ref": member_ref, "member_kind": member_kind})
 
+    provider_raw: dict[str, Any] = {}
+    if isinstance(raw.get("iam_recommendations"), list):
+        provider_raw["iam_recommendations"] = raw.get("iam_recommendations")
+
     return {
         "scope": {
             "scope_type": "subscription",
@@ -1248,7 +1252,7 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
             "role_catalog": role_items,
         },
         "errors": raw.get("errors") or [],
-        "provider_raw": {},
+        "provider_raw": provider_raw,
     }
 
 
