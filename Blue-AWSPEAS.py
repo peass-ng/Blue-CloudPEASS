@@ -6,7 +6,7 @@ import sys
 import signal
 import random
 
-import json
+import traceback
 from termcolor import colored
 from datetime import datetime, timezone
 from tqdm import tqdm
@@ -37,6 +37,8 @@ from bluepeass.progress_pool import SlotStageProgress
 #########################
 _POLICY_CACHE = {}  # Cache for AWS policy documents
 _POLICY_CACHE_LOCK = threading.Lock()
+_NOTACTION_CANDIDATES_CACHE = {}
+_NOTACTION_CANDIDATES_LOCK = threading.Lock()
 
 # Boto3 config with retries and connection pooling
 BOTO3_CONFIG = Config(
@@ -383,12 +385,26 @@ def print_results(
 
     if external_trust_roles:
         print(f"{colored('Roles trusting external principals', 'yellow', attrs=['bold'])}:")
-        for arn, data in external_trust_roles.items():
+        severity_order = {"critical": 3, "high": 2, "medium": 1, "low": 0}
+        items = sorted(
+            external_trust_roles.items(),
+            key=lambda kv: (
+                severity_order.get(str((kv[1] or {}).get("risk_level", "low")).lower(), 0),
+                int((kv[1] or {}).get("risk_score", 0)),
+            ),
+            reverse=True,
+        )
+        for arn, data in items:
             principals = data.get("principals") or []
             conds = data.get("conditions") or []
+            level = str(data.get("risk_level") or "low").lower()
+            score = int(data.get("risk_score") or 0)
+            reasons = data.get("risk_reasons") or []
             plist = ", ".join(f"{p.get('type')}={p.get('value')}" for p in principals[:8])
             more = f" and {len(principals) - 8} more" if len(principals) > 8 else ""
-            print(f"  - `{arn}`: {plist}{more}")
+            print(f"  - `{arn}` [{colored(level.upper(), 'red' if level in ('critical', 'high') else ('yellow' if level == 'medium' else 'green'))} score={score}]: {plist}{more}")
+            if reasons:
+                print(f"    - Reasons: {', '.join(reasons[:6])}{' ...' if len(reasons) > 6 else ''}")
             if conds:
                 print(f"    - Conditions: {conds[:2]}{' ...' if len(conds) > 2 else ''}")
             print()
@@ -486,7 +502,11 @@ def get_unused_custom_policies(iam_client, only_all_resources, risk_levels, verb
                         "policy_name": name,
                     }
                     action_sources = {}
-                    for action in extract_actions_from_document(doc, only_all_resources=only_all_resources):
+                    for action in extract_actions_from_document(
+                        doc,
+                        only_all_resources=only_all_resources,
+                        risk_levels=risk_levels,
+                    ):
                         action_sources.setdefault(action, []).append(source)
                     flagged = classify_actions_with_sources(action_sources, risk_levels)
                     unused[arn] = {"policy_name": name, "permissions": flagged}
@@ -500,8 +520,133 @@ def get_unused_custom_policies(iam_client, only_all_resources, risk_levels, verb
     return unused
 
 
-def find_external_trust_roles(roles, account_id: str):
-    """Best-effort scan of role trust policies for external principals (independent of Access Analyzer)."""
+def find_external_trust_roles(roles, account_id: str, trusted_accounts=None, trusted_idp_arns=None):
+    """Scan role trust policies for external principals with condition-aware risk categorization."""
+    trusted_accounts_set = set(str(a).strip() for a in (trusted_accounts or []) if str(a).strip())
+    trusted_idp_patterns = [str(p).strip().lower() for p in (trusted_idp_arns or []) if str(p).strip()]
+
+    def _as_list(v):
+        if isinstance(v, list):
+            return v
+        if v is None:
+            return []
+        return [v]
+
+    def _normalize_str(v) -> str:
+        return str(v).strip()
+
+    def _extract_account_id(value: str) -> Optional[str]:
+        v = _normalize_str(value)
+        if v.isdigit() and len(v) == 12:
+            return v
+        if v.startswith("arn:"):
+            parts = v.split(":")
+            # arn:partition:service:region:account-id:resource
+            if len(parts) > 4 and parts[4].isdigit() and len(parts[4]) == 12:
+                return parts[4]
+        return None
+
+    def _is_trusted_idp(value: str) -> bool:
+        v = _normalize_str(value).lower()
+        if not v:
+            return False
+        for pattern in trusted_idp_patterns:
+            if fnmatch.fnmatch(v, pattern):
+                return True
+        return False
+
+    def _severity_from_score(score: int) -> str:
+        if score >= 90:
+            return "critical"
+        if score >= 75:
+            return "high"
+        if score >= 45:
+            return "medium"
+        return "low"
+
+    def _severity_rank(sev: str) -> int:
+        return {"low": 0, "medium": 1, "high": 2, "critical": 3}.get(sev, 0)
+
+    def _condition_entries(cond: dict):
+        # Yield (operator_lower, key_lower, values[list[str]], has_wildcards[bool])
+        for op, kv in (cond or {}).items():
+            op_l = _normalize_str(op).lower()
+            if not isinstance(kv, dict):
+                continue
+            for key, raw_val in kv.items():
+                key_l = _normalize_str(key).lower()
+                vals = [_normalize_str(x) for x in _as_list(raw_val)]
+                has_wildcards = any(("*" in x) or ("?" in x) for x in vals)
+                yield op_l, key_l, vals, has_wildcards
+
+    def _external_principal_base_score(principals: list[dict]) -> tuple[int, list[str]]:
+        base = 0
+        reasons = []
+        for p in principals:
+            ptype = _normalize_str(p.get("type"))
+            value = _normalize_str(p.get("value"))
+            if ptype == "AWS" and value == "*":
+                base = max(base, 98)
+                reasons.append("public_wildcard_principal")
+                continue
+            if ptype == "AWS":
+                if value.isdigit() and value != account_id:
+                    base = max(base, 85)
+                    reasons.append("external_account_principal")
+                elif value.endswith(":root") and f":{account_id}:" not in value:
+                    base = max(base, 85)
+                    reasons.append("external_root_principal")
+                else:
+                    base = max(base, 72)
+                    reasons.append("external_aws_principal")
+                continue
+            if ptype == "Federated":
+                base = max(base, 78)
+                reasons.append("federated_principal")
+        return base, list(dict.fromkeys(reasons))
+
+    def _condition_mitigations(cond: dict) -> tuple[int, list[str], list[str]]:
+        strong = []
+        weak = []
+        reduction = 0
+
+        for op_l, key_l, vals, has_wildcards in _condition_entries(cond):
+            is_eq = ("equals" in op_l) and ("like" not in op_l)
+
+            if key_l == "aws:principalorgid" and is_eq and not has_wildcards:
+                strong.append("principal_org_restriction")
+                reduction += 28
+            elif key_l == "sts:externalid" and is_eq and not has_wildcards:
+                strong.append("external_id_required")
+                reduction += 24
+            elif key_l == "aws:sourcearn" and is_eq and not has_wildcards:
+                strong.append("source_arn_restriction")
+                reduction += 18
+            elif key_l == "aws:sourceaccount" and is_eq and not has_wildcards:
+                if any(v.isdigit() and len(v) == 12 for v in vals):
+                    strong.append("source_account_restriction")
+                    reduction += 12
+            elif key_l == "aws:principalarn" and is_eq and not has_wildcards:
+                strong.append("principal_arn_restriction")
+                reduction += 10
+            elif (key_l.endswith(":sub") or key_l.endswith(":aud") or key_l == "saml:aud") and is_eq and not has_wildcards:
+                strong.append("federation_claim_restriction")
+                reduction += 16
+            elif key_l == "aws:multifactorauthpresent":
+                if any(v.lower() == "true" for v in vals):
+                    strong.append("mfa_required")
+                    reduction += 6
+            elif key_l == "aws:sourceip":
+                weak.append("source_ip_restriction")
+                reduction += 4
+            elif key_l in ("aws:currenttime", "aws:epochtime", "aws:tokenissuetime"):
+                weak.append("time_bound_restriction")
+                reduction += 3
+
+        if reduction > 55:
+            reduction = 55
+        return reduction, list(dict.fromkeys(strong)), list(dict.fromkeys(weak))
+
     out = {}
     for r in roles or []:
         arn = r.get("Arn")
@@ -510,40 +655,100 @@ def find_external_trust_roles(roles, account_id: str):
             continue
         principals = []
         conditions = []
+        statement_assessments = []
         for st in doc.get("Statement", []) or []:
             if not isinstance(st, dict) or st.get("Effect") != "Allow":
+                continue
+            actions = _as_list(st.get("Action"))
+            actions = [_normalize_str(a) for a in actions if isinstance(a, str)]
+            if actions and not any(a.lower().startswith("sts:assumerole") for a in actions):
                 continue
             pr = st.get("Principal") or {}
             cond = st.get("Condition") or {}
             if cond:
                 conditions.append(cond)
+            statement_principals = []
             if pr == "*" or pr == {"AWS": "*"}:
-                principals.append({"type": "AWS", "value": "*"})
+                statement_principals.append({"type": "AWS", "value": "*"})
             if isinstance(pr, dict):
                 for ptype, pval in pr.items():
                     vals = pval if isinstance(pval, list) else [pval]
                     for v in vals:
                         if not v:
                             continue
-                        principals.append({"type": ptype, "value": v})
-        external = []
-        for p in principals:
-            ptype = p["type"]
-            v = str(p["value"])
-            if v == "*" and ptype in ("AWS",):
-                external.append(p)
-                continue
-            if ptype == "Federated":
-                external.append(p)
-                continue
-            if ptype == "AWS":
-                # External if principal references another account ID/root/role/user.
-                if v.isdigit() and v != account_id:
+                        statement_principals.append({"type": ptype, "value": v})
+            external = []
+            for p in statement_principals:
+                ptype = p["type"]
+                v = str(p["value"])
+                if v == "*" and ptype in ("AWS",):
                     external.append(p)
-                elif f":{account_id}:" not in v and (":iam::" in v or v.startswith("arn:aws:iam::")):
+                    continue
+                if ptype == "Federated":
+                    if _is_trusted_idp(v):
+                        continue
                     external.append(p)
-        if external:
-            out[arn] = {"principals": external, "conditions": conditions}
+                    continue
+                if ptype == "AWS":
+                    # External if principal references another account ID/root/role/user.
+                    account_ref = _extract_account_id(v)
+                    if v.isdigit() and v != account_id:
+                        if account_ref and account_ref in trusted_accounts_set:
+                            continue
+                        external.append(p)
+                    elif f":{account_id}:" not in v and (":iam::" in v or v.startswith("arn:aws:iam::")):
+                        if account_ref and account_ref in trusted_accounts_set:
+                            continue
+                        external.append(p)
+
+            if not external:
+                continue
+
+            base_score, base_reasons = _external_principal_base_score(external)
+            reduction, strong_mitigations, weak_mitigations = _condition_mitigations(cond if isinstance(cond, dict) else {})
+            final_score = max(0, min(100, base_score - reduction))
+            statement_assessments.append(
+                {
+                    "principals": external,
+                    "actions": actions,
+                    "conditions": cond if isinstance(cond, dict) else {},
+                    "risk_score": final_score,
+                    "risk_level": _severity_from_score(final_score),
+                    "reasons": base_reasons,
+                    "mitigations": {
+                        "strong": strong_mitigations,
+                        "weak": weak_mitigations,
+                    },
+                }
+            )
+            principals.extend(external)
+
+        if statement_assessments:
+            worst = max(statement_assessments, key=lambda x: _severity_rank(x.get("risk_level", "low")))
+            role_level = worst.get("risk_level", "low")
+            worst_score = max(int(s.get("risk_score", 0)) for s in statement_assessments)
+            reasons = []
+            for s in statement_assessments:
+                reasons.extend(s.get("reasons", []))
+                reasons.extend((s.get("mitigations") or {}).get("strong", []))
+                reasons.extend((s.get("mitigations") or {}).get("weak", []))
+            reasons = list(dict.fromkeys(reasons))
+            dedup_principals = []
+            seen_principals = set()
+            for p in principals:
+                key = (_normalize_str(p.get("type")), _normalize_str(p.get("value")))
+                if key in seen_principals:
+                    continue
+                seen_principals.add(key)
+                dedup_principals.append({"type": key[0], "value": key[1]})
+            out[arn] = {
+                "principals": dedup_principals,
+                "conditions": conditions,
+                "risk_level": role_level,
+                "risk_score": worst_score,
+                "risk_reasons": reasons,
+                "statement_assessments": statement_assessments,
+            }
     return out
 
 # Function to combine all permissions from policy documents
@@ -576,10 +781,54 @@ def combine_permissions(policy_documents, *, only_all_resources: bool):
     return permissions
 
 
-def extract_actions_from_document(document, *, only_all_resources: bool):
+def extract_actions_from_document(document, *, only_all_resources: bool, risk_levels=None):
     actions = []
     if not isinstance(document, dict):
         return actions
+    if risk_levels is None:
+        risk_levels = ["high", "critical"]
+    normalized_levels = []
+    for lvl in risk_levels:
+        l = str(lvl).strip().lower()
+        if l and l not in normalized_levels:
+            normalized_levels.append(l)
+
+    def _as_list(v):
+        if isinstance(v, str):
+            return [v]
+        if isinstance(v, list):
+            return [x for x in v if isinstance(x, str)]
+        return []
+
+    def _resource_is_broad(resource_value) -> bool:
+        if isinstance(resource_value, str):
+            return resource_value == "*" or resource_value.endswith(":*")
+        if isinstance(resource_value, list):
+            return any(isinstance(r, str) and (r == "*" or r.endswith(":*")) for r in resource_value)
+        return False
+
+    def _statement_has_broad_scope(statement: dict) -> bool:
+        resource = statement.get("Resource", [])
+        if _resource_is_broad(resource):
+            return True
+        # Allow + NotResource means "all resources except X", which is broad by design.
+        not_resource = _as_list(statement.get("NotResource", []))
+        if not_resource and "*" not in not_resource:
+            return True
+        return False
+
+    def _notaction_candidates() -> list[str]:
+        # Use exact candidates aligned to selected risk levels as conservative expansion for Allow+NotAction.
+        cache_key = tuple(normalized_levels)
+        with _NOTACTION_CANDIDATES_LOCK:
+            cached = _NOTACTION_CANDIDATES_CACHE.get(cache_key)
+            if cached is not None:
+                return list(cached)
+        cands = candidate_actions("aws", normalized_levels)
+        with _NOTACTION_CANDIDATES_LOCK:
+            _NOTACTION_CANDIDATES_CACHE[cache_key] = list(cands)
+        return cands
+
     statements = document.get("Statement", [])
     if not isinstance(statements, list):
         statements = [statements]
@@ -592,18 +841,24 @@ def extract_actions_from_document(document, *, only_all_resources: bool):
 
         resource = statement.get("Resource", [])
         if only_all_resources:
-            if isinstance(resource, str) and resource != "*" and not resource.endswith(":*"):
+            if not _statement_has_broad_scope(statement):
                 continue
-            elif isinstance(resource, list):
-                if "*" not in resource and not any(isinstance(r, str) and r.endswith(":*") for r in resource):
-                    continue
 
-        perms = statement.get("Action", [])
-        if isinstance(perms, str):
-            perms = [perms]
+        perms = _as_list(statement.get("Action", []))
         for perm in perms:
             if isinstance(perm, str) and perm:
                 actions.append(perm)
+
+        # Best-effort handling of Allow + NotAction:
+        # expand to known risky exact actions not excluded by NotAction patterns.
+        not_actions = _as_list(statement.get("NotAction", []))
+        if not_actions and _statement_has_broad_scope(statement):
+            deny_patterns = [p.lower() for p in not_actions if p and p != "*"]
+            if "*" not in not_actions:
+                for cand in _notaction_candidates():
+                    c = cand.lower()
+                    if not any(fnmatch.fnmatch(c, pat) for pat in deny_patterns):
+                        actions.append(cand)
     return actions
 
 
@@ -873,7 +1128,11 @@ def get_policies(
 
     action_sources: dict[str, list[dict]] = {}
     for doc, source in policy_docs_with_sources:
-        for action in extract_actions_from_document(doc, only_all_resources=only_all_resources):
+        for action in extract_actions_from_document(
+            doc,
+            only_all_resources=only_all_resources,
+            risk_levels=risk_levels,
+        ):
             action_sources.setdefault(action, []).append(source)
 
     interesting_perms = classify_actions_with_sources(action_sources, risk_levels)
@@ -1189,12 +1448,50 @@ def get_external_principals(accessanalyzer, analyzer_arn_exposed, external_ppals
 
             arn = finding["resource"]
 
-            details = accessanalyzer.get_finding_v2(analyzerArn=analyzer_arn_exposed, id=finding["id"])['findingDetails'][0]['externalAccessDetails']
+            finding_v2 = accessanalyzer.get_finding_v2(analyzerArn=analyzer_arn_exposed, id=finding["id"])
+            details_list = finding_v2.get("findingDetails", []) or []
+            ext = None
+            for d in details_list:
+                if isinstance(d, dict) and isinstance(d.get("externalAccessDetails"), dict):
+                    ext = d.get("externalAccessDetails")
+                    break
+            if not ext:
+                continue
+
+            actions = ext.get("action")
+            if isinstance(actions, str):
+                actions = [actions]
+            if not isinstance(actions, list):
+                actions = []
+            actions = [str(a) for a in actions if a]
+
+            principals = ext.get("principal")
+            if not isinstance(principals, dict):
+                principals = {}
+            principal_parts = []
+            for k, v in principals.items():
+                if isinstance(v, list):
+                    v_str = ", ".join(str(x) for x in v if x is not None)
+                else:
+                    v_str = str(v)
+                principal_parts.append(f"{k}: `{v_str}`")
+
+            conditions = ext.get("condition")
+            if not isinstance(conditions, dict):
+                conditions = {}
+            condition_parts = []
+            for k, v in conditions.items():
+                if isinstance(v, list):
+                    v_str = ", ".join(str(x) for x in v if x is not None)
+                else:
+                    v_str = str(v)
+                condition_parts.append(f"`{k} == {v_str}`")
+
             external_ppals[arn] = {
-                "is_public": details["isPublic"],
-                "action": ", ".join(details["action"]),
-                "access": " AND ".join([f'{k}: `{v}`' for k, v in details["principal"].items()]),
-                "conditions": " AND ".join([f'`{k} == {v}`' for k, v in details["condition"].items()])
+                "is_public": bool(ext.get("isPublic")),
+                "action": ", ".join(actions),
+                "access": " AND ".join(principal_parts),
+                "conditions": " AND ".join(condition_parts),
             }
         except Exception as e:
             if verbose:
@@ -1308,8 +1605,8 @@ def check_group_permissions(
         )
         is_empty = is_group_empty(iam_client, group["GroupName"])
         
-        # Quick dict write with lock (only if Access Analyzer is available)
-        if is_empty and accessanalyzer:
+        # Record empty groups regardless of Access Analyzer availability.
+        if is_empty:
             with lock:
                 unused_groups[group["Arn"]] = {
                     "type": "group",
@@ -1425,6 +1722,9 @@ def process_account(
     role_arn,
     verbose,
     no_access_analyzer,
+    access_analyzer_region,
+    trusted_accounts,
+    trusted_idp_arns,
     only_all_resources,
     max_perms_to_print,
     min_unused_days,
@@ -1534,7 +1834,7 @@ def process_account(
             if progress_cb:
                 progress_cb("access_analyzer")
             already_created_analyzers = True
-            accessanalyzer = session.client("accessanalyzer", "us-east-1", config=BOTO3_CONFIG)
+            accessanalyzer = session.client("accessanalyzer", access_analyzer_region, config=BOTO3_CONFIG)
 
             # Try to create or find unused access analyzer
             try:
@@ -1817,7 +2117,12 @@ def process_account(
 
         # Detect externally-trustable roles (independent of Access Analyzer)
         try:
-            EXTERNAL_TRUST_ROLES = find_external_trust_roles(roles, account_id)
+            EXTERNAL_TRUST_ROLES = find_external_trust_roles(
+                roles,
+                account_id,
+                trusted_accounts=trusted_accounts,
+                trusted_idp_arns=trusted_idp_arns,
+            )
         except Exception as e:
             permission_errors.append({"operation": "ExternalTrustRoles", "error": str(e)})
 
@@ -1937,10 +2242,14 @@ def main(
     assume_roles,
     verbose,
     no_access_analyzer,
+    access_analyzer_region,
+    trusted_accounts,
+    trusted_idp_arns,
     only_all_resources,
     max_perms_to_print,
     min_unused_days,
     risk_levels,
+    max_parallel_accounts=10,
     *,
     out_json_path=None,
 ):
@@ -1968,7 +2277,7 @@ def main(
     # Process accounts in parallel:
     # - if --assume-roles is used, default cap is 5
     # - otherwise default cap is 10
-    max_workers = max(1, int(args.max_parallel_accounts or 10))
+    max_workers = max(1, int(max_parallel_accounts or 10))
     multi = len(accounts_to_process) > 1
     stage_progress = None
     slot_progress = None
@@ -2026,6 +2335,9 @@ def main(
                         _role_arn,
                         verbose,
                         no_access_analyzer,
+                        access_analyzer_region,
+                        trusted_accounts,
+                        trusted_idp_arns,
                         only_all_resources,
                         max_perms_to_print,
                         min_unused_days,
@@ -2113,6 +2425,21 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", default=False, help="Get info about why a permission is sensitive or useful for privilege escalation.", action="store_true")
     parser.add_argument("--no-access-analyzer", default=False, help="Disable AWS Access Analyzer (will not report unused resources/permissions, but will still list all principals and their sensitive permissions)", action="store_true")
     parser.add_argument(
+        "--access-analyzer-region",
+        default="us-east-1",
+        help="Region used for IAM Access Analyzer APIs (default: us-east-1).",
+    )
+    parser.add_argument(
+        "--trusted-accounts",
+        nargs="+",
+        help="Trusted external AWS account IDs (or IAM ARNs containing account IDs) to suppress in external trust findings. Supports comma-separated values.",
+    )
+    parser.add_argument(
+        "--trusted-idp-arns",
+        nargs="+",
+        help="Trusted federated IdP ARNs/patterns to suppress in external trust findings. Supports comma-separated values.",
+    )
+    parser.add_argument(
         "--only-all-resources",
         default=False,
         help="Only consider permissions that apply to `Resource: *` (filters out resource-scoped statements).",
@@ -2141,6 +2468,24 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    def _expand_csv_values(values):
+        out = []
+        for item in values or []:
+            if not isinstance(item, str):
+                continue
+            out.extend([p.strip() for p in item.split(",") if p and p.strip()])
+        return out
+
+    def _extract_account_id(value: str) -> Optional[str]:
+        v = str(value or "").strip()
+        if v.isdigit() and len(v) == 12:
+            return v
+        if v.startswith("arn:"):
+            parts = v.split(":")
+            if len(parts) > 4 and parts[4].isdigit() and len(parts[4]) == 12:
+                return parts[4]
+        return None
     
     # Parse and validate risk levels
     valid_risk_levels = ['low', 'medium', 'high', 'critical']
@@ -2197,14 +2542,32 @@ if __name__ == "__main__":
                 print(f"{colored('[-] ', 'red')}Error: Invalid role ARN format: {role_arn}")
                 sys.exit(1)
 
+    trusted_accounts = []
+    for raw in _expand_csv_values(args.trusted_accounts):
+        acct = _extract_account_id(raw)
+        if not acct:
+            print(f"{colored('[-] ', 'red')}Error: Invalid trusted account value '{raw}'. Use 12-digit account IDs or ARNs containing a 12-digit account ID.")
+            sys.exit(1)
+        if acct not in trusted_accounts:
+            trusted_accounts.append(acct)
+
+    trusted_idp_arns = []
+    for raw in _expand_csv_values(args.trusted_idp_arns):
+        if raw not in trusted_idp_arns:
+            trusted_idp_arns.append(raw)
+
     main(
         profiles,
         assume_roles,
         args.verbose,
         args.no_access_analyzer,
+        args.access_analyzer_region,
+        trusted_accounts,
+        trusted_idp_arns,
         args.only_all_resources,
         int(args.max_perms_to_print),
         int(args.min_unused_days),
         risk_levels,
+        max_parallel_accounts=int(args.max_parallel_accounts),
         out_json_path=args.out_json,
     )

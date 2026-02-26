@@ -547,6 +547,24 @@ def list_project_custom_roles(*, project_id: str, token: str, quota_project: str
     return roles
 
 
+def list_organization_custom_roles(*, organization_id: str, token: str, quota_project: str) -> list[dict]:
+    roles: list[dict] = []
+    page_token: Optional[str] = None
+    while True:
+        params = {"pageSize": "300"}
+        if page_token:
+            params["pageToken"] = page_token
+        url = f"https://iam.googleapis.com/v1/organizations/{organization_id}/roles?{urllib.parse.urlencode(params)}"
+        data = http_json(url, token=token, quota_project=quota_project)
+        for r in data.get("roles", []) or []:
+            if isinstance(r, dict):
+                roles.append(r)
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return roles
+
+
 def iter_recommendations(
     *,
     parent: str,
@@ -816,6 +834,19 @@ def extract_sa_project_from_email(payload: str) -> Optional[str]:
     return None
 
 
+def get_project_number(*, project_id: str, token: str, quota_project: str) -> Optional[str]:
+    if not project_id:
+        return None
+    url = f"https://cloudresourcemanager.googleapis.com/v1/projects/{project_id}"
+    data = http_json(url, token=token, quota_project=quota_project)
+    pn = data.get("projectNumber")
+    if isinstance(pn, int):
+        return str(pn)
+    if isinstance(pn, str) and pn.strip():
+        return pn.strip()
+    return None
+
+
 def cloud_identity_group_lookup(*, group_email: str, token: str, quota_project: str) -> Optional[str]:
     params = {"groupKey.id": group_email}
     url = f"https://cloudidentity.googleapis.com/v1/groups:lookup?{urllib.parse.urlencode(params)}"
@@ -883,8 +914,74 @@ def parse_external_trusts(
     include_cross_project_same_org: bool,
     project_org_id: Optional[str],
     resolve_org_for_project,
+    project_number: Optional[str],
     source_scope: str,
 ) -> list[dict]:
+    def _severity_from_score(score: int) -> str:
+        if score >= 90:
+            return "critical"
+        if score >= 75:
+            return "high"
+        if score >= 45:
+            return "medium"
+        return "low"
+
+    def _base_score_from_reasons(reasons: list[str]) -> int:
+        score = 35
+        if "public" in reasons:
+            return 98
+        if "cross_org_service_account" in reasons:
+            score = max(score, 88)
+        if "cross_project_service_account" in reasons:
+            score = max(score, 80)
+        if "workload_identity_federation" in reasons:
+            score = max(score, 78)
+        if "gmail_identity" in reasons:
+            score = max(score, 76)
+        if "external_domain_principal" in reasons:
+            score = max(score, 72)
+        if "external_email_domain" in reasons:
+            score = max(score, 70)
+        if "external_email_domain_no_allowlist" in reasons:
+            score = max(score, 64)
+        return score
+
+    def _role_boost(role: Optional[str]) -> tuple[int, list[str]]:
+        r = (role or "").strip().lower()
+        if not r:
+            return 0, []
+        boost = 0
+        why: list[str] = []
+        if any(k in r for k in ("owner", "admin", "securityadmin")):
+            boost = max(boost, 14)
+            why.append("privileged_role_binding")
+        elif "editor" in r:
+            boost = max(boost, 10)
+            why.append("editor_role_binding")
+        elif any(k in r for k in ("iam.securityreviewer", "viewer", "browser")):
+            boost = max(boost, 2)
+            why.append("read_or_review_role_binding")
+        return boost, why
+
+    def _condition_reduction(cond: Optional[dict]) -> tuple[int, list[str]]:
+        if not isinstance(cond, dict):
+            return 0, []
+        expr = cond.get("expression")
+        if not isinstance(expr, str) or not expr.strip():
+            return 0, []
+        e = expr.lower()
+        reduction = 4
+        mitigations = ["conditional_binding"]
+        if any(k in e for k in ("request.time", "timestamp(", "date(")):
+            reduction += 6
+            mitigations.append("time_bound_condition")
+        if any(k in e for k in ("assertion.", "attribute.", "subject", "audience", "principal", "ip")):
+            reduction += 8
+            mitigations.append("identity_or_attribute_condition")
+        if reduction > 20:
+            reduction = 20
+        return reduction, mitigations
+
     trusts: list[dict] = []
     for item in results:
         resource = item.get("resource")
@@ -918,6 +1015,16 @@ def parse_external_trusts(
                 if kind in ("user", "group") and email_domain in ("gmail.com", "googlemail.com"):
                     reasons.append("gmail_identity")
 
+                if kind in ("user", "group") and email_domain and (not allowed_domains):
+                    # No explicit allowlist available: treat non-system domains as external by default.
+                    internal_like = (
+                        email_domain.endswith(".gserviceaccount.com")
+                        or email_domain.endswith(".google.com")
+                        or email_domain.endswith(".googleapis.com")
+                    )
+                    if not internal_like:
+                        reasons.append("external_email_domain_no_allowlist")
+
                 if kind in ("user", "group") and email_domain and allowed_domains:
                     if email_domain not in allowed_domains:
                         reasons.append("external_email_domain")
@@ -929,7 +1036,13 @@ def parse_external_trusts(
 
                 if kind == "serviceAccount":
                     other_project = extract_sa_project_from_email(payload)
-                    if other_project and project_id and other_project != project_id and other_project not in allowed_projects:
+                    is_same_project = False
+                    if other_project and project_id:
+                        if other_project == project_id:
+                            is_same_project = True
+                        elif project_number and other_project == project_number:
+                            is_same_project = True
+                    if other_project and project_id and (not is_same_project) and other_project not in allowed_projects:
                         cross_project = True
                         reasons.append("cross_project_service_account")
                         if project_org_id and resolve_org_for_project:
@@ -950,6 +1063,12 @@ def parse_external_trusts(
                         and (other_org_id == project_org_id)
                     ):
                         continue
+                    base = _base_score_from_reasons(reasons)
+                    boost, boost_reasons = _role_boost(role if isinstance(role, str) else None)
+                    reduction, mitigations = _condition_reduction(cond)
+                    risk_score = max(0, min(100, base + boost - reduction))
+                    risk_level = _severity_from_score(risk_score)
+                    risk_reasons = sorted(set(reasons + boost_reasons + mitigations))
                     trusts.append(
                         {
                             "resource": resource,
@@ -957,12 +1076,30 @@ def parse_external_trusts(
                             "member": m,
                             "memberKind": kind,
                             "reasons": sorted(set(reasons)),
+                            "reason": ",".join(sorted(set(reasons))),
+                            "kind": "external_binding",
                             "condition": cond,
                             "crossProject": cross_project,
                             "crossOrg": cross_org,
                             "otherProject": other_project,
                             "otherOrgId": other_org_id,
                             "sourceScope": source_scope,
+                            "risk_level": risk_level,
+                            "risk_score": risk_score,
+                            "risk_reasons": risk_reasons,
+                            "statement_assessments": [
+                                {
+                                    "trust_type": "external_binding",
+                                    "member": m,
+                                    "member_kind": kind,
+                                    "role": role,
+                                    "resource": resource,
+                                    "risk_level": risk_level,
+                                    "risk_score": risk_score,
+                                    "reasons": risk_reasons,
+                                    "condition_expression": (cond or {}).get("expression") if isinstance(cond, dict) else None,
+                                }
+                            ],
                         }
                     )
     return trusts
@@ -1390,6 +1527,7 @@ def print_human(results: list[dict], *, max_items: int) -> None:
         if external_trusts is not None:
             if external_trusts:
                 grouped: dict[str, dict] = {}
+                severity_rank = {"critical": 3, "high": 2, "medium": 1, "low": 0}
                 for item in external_trusts:
                     if not isinstance(item, dict):
                         continue
@@ -1399,12 +1537,21 @@ def print_human(results: list[dict], *, max_items: int) -> None:
                     reasons = item.get("reasons") or []
                     cond = item.get("condition", {}) or {}
                     cond_expr = cond.get("expression")
+                    risk_level = str(item.get("risk_level") or "low").lower()
+                    risk_score = int(item.get("risk_score") or 0)
 
                     role_entry = grouped.setdefault(role, {"resources": set(), "members": {}})
                     if isinstance(resource, str) and resource:
                         role_entry["resources"].add(resource)
                     m_entry = role_entry["members"].setdefault(
-                        member, {"resources": set(), "reasons": set(), "conditions": set()}
+                        member,
+                        {
+                            "resources": set(),
+                            "reasons": set(),
+                            "conditions": set(),
+                            "risk_level": "low",
+                            "risk_score": 0,
+                        },
                     )
                     if isinstance(resource, str) and resource:
                         m_entry["resources"].add(resource)
@@ -1413,6 +1560,10 @@ def print_human(results: list[dict], *, max_items: int) -> None:
                             m_entry["reasons"].add(r)
                     if isinstance(cond_expr, str) and cond_expr:
                         m_entry["conditions"].add(cond_expr)
+                    prev_level = str(m_entry.get("risk_level") or "low").lower()
+                    if severity_rank.get(risk_level, 0) > severity_rank.get(prev_level, 0):
+                        m_entry["risk_level"] = risk_level
+                    m_entry["risk_score"] = max(int(m_entry.get("risk_score") or 0), risk_score)
 
                 print(f"{colored('External trusts', 'yellow', attrs=['bold'])}: {len(external_trusts)}")
                 shown_roles = 0
@@ -1431,6 +1582,8 @@ def print_human(results: list[dict], *, max_items: int) -> None:
                             break
                         shown_members += 1
                         m_entry = members[member]
+                        lvl = str(m_entry.get("risk_level") or "low").upper()
+                        score = int(m_entry.get("risk_score") or 0)
                         reasons_str = ",".join(sorted(m_entry["reasons"]))
                         reasons_str = f" ({reasons_str})" if reasons_str else ""
                         conds = sorted(m_entry["conditions"])
@@ -1442,7 +1595,7 @@ def print_human(results: list[dict], *, max_items: int) -> None:
                                 res_str = f" resource=`{res_list[0]}`"
                             elif len(res_list) > 1:
                                 res_str = f" resource=`{res_list[0]}` (+{len(res_list) - 1} more)"
-                        print(f"    - `{member}`{reasons_str}{cond_str}{res_str}")
+                        print(f"    - `{member}` [{lvl} score={score}]{reasons_str}{cond_str}{res_str}")
 
         if principal_risks:
             print(f"{colored('Principals with flagged permissions', 'yellow', attrs=['bold'])}: {len(principal_risks)}")
@@ -1697,6 +1850,7 @@ def main() -> int:
 
     def analyze_scope(scope_type: str, scope: str, *, show_progress: bool, progress_cb=None) -> dict:
         org_cache: dict[str, Optional[str]] = {}
+        project_number_cache: dict[str, Optional[str]] = {}
         # Cache for IAM policies within this scope run to avoid duplicate fetches
         iam_policy_cache: dict[str, dict] = {}
 
@@ -1723,6 +1877,16 @@ def main() -> int:
         step_bar = _new_progress(total=6, desc=f"Analyzing {scope_label}", unit="step", leave=False) if show_progress else None
 
         project_org_id = resolve_org_for_project(project_id) if project_id else None
+        project_number: Optional[str] = None
+        if project_id:
+            try:
+                if project_id not in project_number_cache:
+                    project_number_cache[project_id] = get_project_number(
+                        project_id=project_id, token=token, quota_project=quota_project
+                    )
+                project_number = project_number_cache.get(project_id)
+            except Exception:
+                project_number = None
 
         project_allowed_domains = set(allowed_domains)
         if not project_allowed_domains and project_org_id:
@@ -1834,17 +1998,6 @@ def main() -> int:
 
         if progress_cb:
             progress_cb("public_iam")
-        try:
-            public_results = iter_search_all_iam_policies(
-                scope=scope,
-                query="policy:allUsers OR policy:allAuthenticatedUsers",
-                token=token,
-                quota_project=quota_project,
-                page_size=min(args.page_size, 500),
-            )
-            project_out["public_iam"] = parse_public_iam(public_results)
-        except ApiError as exc:
-            project_out["errors"].append({"kind": "cloudasset", "scan": "public_iam", "error": str(exc)})
 
         if step_bar is not None:
             step_bar.update(1)
@@ -2122,6 +2275,7 @@ def main() -> int:
                     include_cross_project_same_org=True,
                     project_org_id=project_org_id,
                     resolve_org_for_project=resolve_org_for_project,
+                    project_number=project_number,
                     source_scope=scope,
                 )
             except ApiError as exc:
@@ -2161,6 +2315,7 @@ def main() -> int:
                     include_cross_project_same_org=True,
                     project_org_id=project_org_id,
                     resolve_org_for_project=resolve_org_for_project,
+                    project_number=None,
                     source_scope=org_scope,
                 )
                 if org_trusts:
@@ -2231,15 +2386,19 @@ def main() -> int:
                     ]
                     res_combined: list[dict] = []
                     for q in resource_queries:
-                        res_combined.extend(
-                            iter_search_all_iam_policies(
-                                scope=f"projects/{project_id}",
-                                query=q,
-                                token=token,
-                                quota_project=quota_project,
-                                page_size=min(args.page_size, 500),
-                            )
+                        cached = cai_results_cache.get(q)
+                        if cached is not None:
+                            res_combined.extend(cached)
+                            continue
+                        fetched = iter_search_all_iam_policies(
+                            scope=f"projects/{project_id}",
+                            query=q,
+                            token=token,
+                            quota_project=quota_project,
+                            page_size=min(args.page_size, 500),
                         )
+                        cai_results_cache[q] = fetched
+                        res_combined.extend(fetched)
                     principal_to_roles_resource = principal_roles_from_search_results(res_combined)
                 except Exception:
                     principal_to_roles_resource = {}
@@ -2393,17 +2552,29 @@ def main() -> int:
         if group_memberships:
             project_out["group_memberships"] = group_memberships
 
-        # Unused custom roles (project-only).
+        # Unused custom roles (project + organization).
         if progress_cb:
             progress_cb("custom_roles")
-        if project_id:
+        if project_id or project_org_id:
             try:
                 used_roles = set()
                 for roles in principal_to_roles_all.values():
                     used_roles.update(roles)
-                custom_roles = list_project_custom_roles(project_id=project_id, token=token, quota_project=quota_project)
+
+                custom_roles_all: list[dict] = []
+                if project_id:
+                    custom_roles_all.extend(
+                        list_project_custom_roles(project_id=project_id, token=token, quota_project=quota_project)
+                    )
+                if project_org_id:
+                    custom_roles_all.extend(
+                        list_organization_custom_roles(
+                            organization_id=project_org_id, token=token, quota_project=quota_project
+                        )
+                    )
+
                 unused_custom_roles: list[dict] = []
-                for r in custom_roles:
+                for r in custom_roles_all:
                     role_name = r.get("name")
                     if not isinstance(role_name, str) or not role_name:
                         continue
@@ -2420,9 +2591,15 @@ def main() -> int:
                         for lvl in list(perm_sources.keys()):
                             for perm in list(perm_sources[lvl].keys()):
                                 perm_sources[lvl][perm] = sorted(set(perm_sources[lvl][perm]))
-                    unused_custom_roles.append({"role": role_name, "flagged_perms": flagged})
+                    entry = {
+                        "role": role_name,
+                        "name": role_name,
+                        "flagged_perms": flagged,
+                        "flagged_permissions_by_risk": flagged,
+                    }
                     if perm_sources:
-                        unused_custom_roles[-1]["flagged_perm_sources"] = perm_sources
+                        entry["flagged_perm_sources"] = perm_sources
+                    unused_custom_roles.append(entry)
                 project_out["unused_custom_roles"] = unused_custom_roles
             except Exception as exc:
                 project_out["errors"].append({"kind": "custom_roles", "error": str(exc)})

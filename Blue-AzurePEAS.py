@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import fnmatch
 import json
 import os
 import sys
@@ -221,6 +222,16 @@ def _max_risk_level(levels: dict[str, list[str]]) -> Optional[str]:
     return best
 
 
+def _trust_level_from_score(score: int) -> str:
+    if score >= 90:
+        return "critical"
+    if score >= 75:
+        return "high"
+    if score >= 45:
+        return "medium"
+    return "low"
+
+
 def _as_dict(obj: Any) -> Any:
     if obj is None:
         return None
@@ -254,8 +265,36 @@ def _extract_role_permission_patterns(role_def_dict: dict[str, Any]) -> dict[str
         not_data_actions += [x for x in (p.get("not_data_actions") or p.get("notDataActions") or []) if isinstance(x, str)]
 
     patterns = sorted({x.strip() for x in actions + data_actions if isinstance(x, str) and x.strip()})
+    deny_patterns = sorted({x.strip() for x in not_actions + not_data_actions if isinstance(x, str) and x.strip()})
+
+    def _pat_match(value: str, pattern: str) -> bool:
+        return fnmatch.fnmatch(value.lower(), pattern.lower())
+
+    def _is_wildcard(p: str) -> bool:
+        return "*" in p or "?" in p
+
+    effective_patterns: list[str] = []
+    excluded_by_not_actions: list[str] = []
+    for allow in patterns:
+        denied = False
+        for deny in deny_patterns:
+            if _is_wildcard(allow):
+                if _pat_match(allow, deny) and _pat_match(deny, allow):
+                    denied = True
+                    break
+            else:
+                if _pat_match(allow, deny):
+                    denied = True
+                    break
+        if denied:
+            excluded_by_not_actions.append(allow)
+        else:
+            effective_patterns.append(allow)
+
     return {
         "patterns": patterns,
+        "effective_patterns": sorted(set(effective_patterns)),
+        "excluded_by_not_actions": sorted(set(excluded_by_not_actions)),
         "not_actions": sorted({x.strip() for x in not_actions if isinstance(x, str) and x.strip()}),
         "not_data_actions": sorted({x.strip() for x in not_data_actions if isinstance(x, str) and x.strip()}),
     }
@@ -1130,6 +1169,8 @@ def scan_subscription(
                     "scope": a.get("scope"),
                     "role_definition_id": a.get("role_definition_id") or a.get("roleDefinitionId"),
                     "role_definition_name": a.get("role_definition_name") or a.get("roleDefinitionName"),
+                    "assignment_condition": a.get("condition"),
+                    "assignment_condition_version": a.get("condition_version") or a.get("conditionVersion"),
                     "assignment_id": a.get("id"),
                     "reason": "foreign_principal_type",
                 }
@@ -1201,14 +1242,16 @@ def scan_subscription(
                     "role_definition_name": role_name,
                     "scope": a_scope,
                     "assignment_id": a.get("id"),
+                    "assignment_condition": a.get("condition"),
+                    "assignment_condition_version": a.get("condition_version") or a.get("conditionVersion"),
                 }
             )
             if isinstance(rdid, str) and rdid in role_defs_by_full_id:
                 rp = _extract_role_permission_patterns(role_defs_by_full_id[rdid])
-                patterns += rp["patterns"]
+                patterns += rp["effective_patterns"]
                 not_actions_union.update(rp["not_actions"])
                 not_data_actions_union.update(rp["not_data_actions"])
-                role_pattern_map[rdid] = rp["patterns"]
+                role_pattern_map[rdid] = rp["effective_patterns"]
                 role_label = role_name or rdid
                 if a_scope:
                     role_label = f"{role_label} @ {a_scope}"
@@ -1258,6 +1301,7 @@ def scan_subscription(
             entry["principal_label"] = f"{principal_type or 'unknown'}:{pid}"
         principal_entries.append(entry)
 
+    group_memberships: list[dict] = []
     if resolve_principals:
         stage_cb("group_memberships")
         group_ids = [p.get("principal_id") for p in principal_entries if p.get("principal_type") == "Group"]
@@ -1288,6 +1332,84 @@ def scan_subscription(
                         "member_type": m_type,
                     }
                 )
+
+    # Categorize external RBAC trusts with AWS-like fields.
+    principal_flagged_level: dict[str, Optional[str]] = {}
+    for p in principal_entries:
+        if not isinstance(p, dict):
+            continue
+        pid = p.get("principal_id")
+        if not isinstance(pid, str):
+            continue
+        principal_flagged_level[pid] = _max_risk_level(p.get("flagged_permission_patterns_by_risk") or {})
+
+    for t in external_rbac_principals:
+        if not isinstance(t, dict):
+            continue
+        pid = t.get("principal_id")
+        scope = str(t.get("scope") or "")
+        ptype = str(t.get("principal_type") or "")
+        flagged_lvl = principal_flagged_level.get(pid if isinstance(pid, str) else "")
+
+        score = 68
+        reasons = ["foreign_principal_type"]
+        if scope.startswith("/providers/Microsoft.Management/managementGroups/"):
+            score += 18
+            reasons.append("management_group_scope")
+        elif scope.startswith(f"/subscriptions/{subscription_id}"):
+            tail = scope[len(f"/subscriptions/{subscription_id}") :].strip("/")
+            if not tail:
+                score += 12
+                reasons.append("subscription_scope")
+            elif tail.lower().startswith("resourcegroups/"):
+                reasons.append("resource_group_scope")
+        if ptype.lower() == "foreigngroup":
+            score += 6
+            reasons.append("foreign_group_principal")
+        elif ptype.lower() == "foreignserviceprincipal":
+            score += 8
+            reasons.append("foreign_service_principal")
+
+        assignment_condition = str(t.get("assignment_condition") or "").strip()
+        assignment_condition_version = str(t.get("assignment_condition_version") or "").strip()
+        if assignment_condition:
+            score -= 10
+            reasons.append("assignment_condition_present")
+            if assignment_condition_version:
+                reasons.append(f"assignment_condition_version_{assignment_condition_version}")
+            cl = assignment_condition.lower()
+            if any(k in cl for k in ("ipaddress", "request[", "resource[", "principal[", "actionmatches")):
+                score -= 6
+                reasons.append("assignment_condition_appears_restrictive")
+
+        if flagged_lvl == "critical":
+            score = max(score, 95)
+            reasons.append("principal_has_critical_flagged_permissions")
+        elif flagged_lvl == "high":
+            score = max(score, 84)
+            reasons.append("principal_has_high_flagged_permissions")
+
+        score = max(0, min(100, score))
+        level = _trust_level_from_score(score)
+        uniq_reasons = sorted(set(reasons))
+        t["risk_level"] = level
+        t["risk_score"] = score
+        t["risk_reasons"] = uniq_reasons
+        t["statement_assessments"] = [
+            {
+                "trust_type": "rbac_foreign_principal",
+                "principal_id": t.get("principal_id"),
+                "principal_type": t.get("principal_type"),
+                "scope": t.get("scope"),
+                "role_definition_id": t.get("role_definition_id"),
+                "role_definition_name": t.get("role_definition_name"),
+                "assignment_condition": t.get("assignment_condition"),
+                "assignment_condition_version": t.get("assignment_condition_version"),
+                "risk_level": level,
+                "risk_score": score,
+                "reasons": uniq_reasons,
+            }
+        ]
 
     # Activity logs: best-effort "inactive principals" + best-effort last-used for exact ops.
     last_seen_by_oid: dict[str, datetime] = {}
@@ -1480,7 +1602,7 @@ def scan_subscription(
             if rid.lower() in assigned_role_def_full_ids:
                 continue
             rp = _extract_role_permission_patterns(rdd)
-            perms_by_level = _classify_patterns(rp["patterns"])
+            perms_by_level = _classify_patterns(rp["effective_patterns"])
             unused_custom_roles.append(
                 {
                     "role_definition_id": rid,
@@ -1536,7 +1658,6 @@ def scan_subscription(
 
     guest_users: list[dict] = []
     mi_fics: list[dict] = []
-    group_memberships: list[dict] = []
     iam_recommendations: list[dict] = []
 
     stage_cb("iam_recommendations")
@@ -1572,6 +1693,24 @@ def scan_subscription(
             du = dict(u)
             oid = du.get("id")
             du["has_rbac_access_in_subscription"] = bool(isinstance(oid, str) and oid in principals_with_access)
+            if du["has_rbac_access_in_subscription"]:
+                score = 82
+                reasons = ["guest_user_with_rbac_access"]
+            else:
+                score = 28
+                reasons = ["guest_user_without_rbac_access"]
+            du["risk_score"] = score
+            du["risk_level"] = _trust_level_from_score(score)
+            du["risk_reasons"] = reasons
+            du["statement_assessments"] = [
+                {
+                    "trust_type": "guest_user",
+                    "principal_id": du.get("id"),
+                    "risk_level": du["risk_level"],
+                    "risk_score": score,
+                    "reasons": reasons,
+                }
+            ]
             annotated.append(du)
         guest_users = annotated
 
@@ -1585,6 +1724,58 @@ def scan_subscription(
                 fail("mi_federated_identity_credentials_list", RuntimeError(err))
         except Exception as e:
             fail("mi_federated_identity_credentials_list", e)
+    for fic in mi_fics:
+        if not isinstance(fic, dict):
+            continue
+        issuer = str(fic.get("issuer") or "")
+        subject = str(fic.get("subject") or "")
+        audiences = fic.get("audiences")
+        aud_list = audiences if isinstance(audiences, list) else ([audiences] if audiences else [])
+        aud_list = [str(a) for a in aud_list if a]
+
+        score = 76
+        reasons = ["managed_identity_federated_credential"]
+        if not issuer:
+            score += 18
+            reasons.append("missing_issuer")
+        if not subject:
+            score += 18
+            reasons.append("missing_subject")
+        elif "*" in subject or "?" in subject:
+            score += 14
+            reasons.append("wildcard_subject")
+        else:
+            score -= 12
+            reasons.append("specific_subject")
+        if not aud_list:
+            score += 10
+            reasons.append("missing_audience")
+        else:
+            reasons.append("audience_present")
+            if all(a.lower() == "api://azureadtokenexchange" for a in aud_list):
+                score += 6
+                reasons.append("broad_token_exchange_audience")
+            else:
+                score -= 8
+                reasons.append("specific_audience")
+
+        score = max(0, min(100, score))
+        level = _trust_level_from_score(score)
+        uniq_reasons = sorted(set(reasons))
+        fic["risk_level"] = level
+        fic["risk_score"] = score
+        fic["risk_reasons"] = uniq_reasons
+        fic["statement_assessments"] = [
+            {
+                "trust_type": "managed_identity_federated_credential",
+                "issuer": fic.get("issuer"),
+                "subject": fic.get("subject"),
+                "audiences": fic.get("audiences"),
+                "risk_level": level,
+                "risk_score": score,
+                "reasons": uniq_reasons,
+            }
+        ]
 
     stage_cb("render")
     return SubscriptionScanResult(
@@ -1691,33 +1882,74 @@ def _print_subscription_stdout(res: SubscriptionScanResult, *, flagged_levels: s
             print(f"  - and {len(res.unused_custom_roles) - max_items} more...")
             print()
 
+    severity_order = {"critical": 3, "high": 2, "medium": 1, "low": 0}
+
     if res.external_rbac_principals:
         _print_section("External trusts (RBAC foreign principals)")
-        for t in res.external_rbac_principals[:max_items]:
+        items = sorted(
+            res.external_rbac_principals,
+            key=lambda x: (
+                severity_order.get(str((x or {}).get("risk_level", "low")).lower(), 0),
+                int((x or {}).get("risk_score") or 0),
+            ),
+            reverse=True,
+        )
+        for t in items[:max_items]:
             role = t.get("role_definition_name") or t.get("role_definition_id") or "unknown_role"
             scope = t.get("scope") or "unknown_scope"
-            print(f"  - `{t.get('principal_type')}:{t.get('principal_id')}` -> `{role}` scope=`{scope}`")
+            level = str(t.get("risk_level") or "low").lower()
+            score = int(t.get("risk_score") or 0)
+            reasons = t.get("risk_reasons") or []
+            print(f"  - `{t.get('principal_type')}:{t.get('principal_id')}` [{level.upper()} score={score}] -> `{role}` scope=`{scope}`")
+            if reasons:
+                print(f"    - Reasons: {', '.join(reasons[:6])}{' ...' if len(reasons) > 6 else ''}")
         if len(res.external_rbac_principals) > max_items:
             print(f"  - and {len(res.external_rbac_principals) - max_items} more...")
         print()
 
     if res.managed_identity_federated_credentials:
         _print_section("Managed identities trusting external identity providers (OIDC)")
-        for fic in res.managed_identity_federated_credentials[:max_items]:
+        items = sorted(
+            res.managed_identity_federated_credentials,
+            key=lambda x: (
+                severity_order.get(str((x or {}).get("risk_level", "low")).lower(), 0),
+                int((x or {}).get("risk_score") or 0),
+            ),
+            reverse=True,
+        )
+        for fic in items[:max_items]:
             name = fic.get("name") or fic.get("id") or "unknown"
             issuer = fic.get("issuer") or "unknown_issuer"
             subject = fic.get("subject") or "unknown_subject"
-            print(f"  - `{name}` issuer=`{issuer}` subject=`{subject}`")
+            level = str(fic.get("risk_level") or "low").lower()
+            score = int(fic.get("risk_score") or 0)
+            reasons = fic.get("risk_reasons") or []
+            print(f"  - `{name}` [{level.upper()} score={score}] issuer=`{issuer}` subject=`{subject}`")
+            if reasons:
+                print(f"    - Reasons: {', '.join(reasons[:6])}{' ...' if len(reasons) > 6 else ''}")
         if len(res.managed_identity_federated_credentials) > max_items:
             print(f"  - and {len(res.managed_identity_federated_credentials) - max_items} more...")
         print()
 
     if res.guest_users:
         _print_section("Guest users (Entra ID)")
-        for u in res.guest_users[:max_items]:
+        items = sorted(
+            res.guest_users,
+            key=lambda x: (
+                severity_order.get(str((x or {}).get("risk_level", "low")).lower(), 0),
+                int((x or {}).get("risk_score") or 0),
+            ),
+            reverse=True,
+        )
+        for u in items[:max_items]:
             upn = u.get("user_principal_name") or u.get("mail") or u.get("id") or "unknown"
             access = " RBAC_ACCESS" if u.get("has_rbac_access_in_subscription") else ""
-            print(f"  - `{upn}`{access}")
+            level = str(u.get("risk_level") or "low").lower()
+            score = int(u.get("risk_score") or 0)
+            reasons = u.get("risk_reasons") or []
+            print(f"  - `{upn}` [{level.upper()} score={score}]{access}")
+            if reasons:
+                print(f"    - Reasons: {', '.join(reasons[:6])}{' ...' if len(reasons) > 6 else ''}")
         if len(res.guest_users) > max_items:
             print(f"  - and {len(res.guest_users) - max_items} more...")
         print()
@@ -2074,7 +2306,7 @@ def main() -> None:
                 continue
             try:
                 assignments = _list_mg_role_assignments(
-                    credential, management_group_id=mg_name, max_items=args.max_items
+                    credential, management_group_id=mg_name, max_items=args.max_entra_items
                 )
             except Exception as e:
                 all_errors.append({"where": "management_group_role_assignments", "error": f"{mg_name}: {e}"})
@@ -2218,7 +2450,7 @@ def main() -> None:
             if not isinstance(props, dict):
                 props = {}
             rp = _extract_role_permission_patterns(props)
-            perms_by_level = _classify_patterns(rp["patterns"])
+            perms_by_level = _classify_patterns(rp["effective_patterns"])
             unused_mg_custom_roles.append(
                 {
                     "role_definition_id": rid,

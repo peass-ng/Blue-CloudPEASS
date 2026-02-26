@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import fnmatch
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 
@@ -86,6 +87,18 @@ def _compact_permissions(perms: Optional[dict[str, Any]]) -> dict[str, Any]:
     if isinstance(all_actions, list):
         out["total_actions"] = len(all_actions)
     return out
+
+
+def _parse_iso_datetime(s: Any) -> Optional[datetime]:
+    if not isinstance(s, str) or not s.strip():
+        return None
+    try:
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 def _unused_permission_last_used(
@@ -254,6 +267,7 @@ def _aws_principal_entry(
     d: dict[str, Any] = {
         "subject_ref": subject_ref,
         "subject_kind": subject_kind,
+        "grant_refs": [],
     }
     if unused_days is not None:
         d["unused_days"] = unused_days
@@ -567,6 +581,16 @@ def normalize_aws_account(raw: dict[str, Any]) -> dict[str, Any]:
                 "trust_type": "role_trust",
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
+                "evidence_scope": account_id,
+                "evidence_resource": str(arn),
+                "evidence_principal": data.get("principals"),
+                "evidence_condition": data.get("conditions"),
+                "principals": data.get("principals"),
+                "conditions": data.get("conditions"),
+                "risk_level": data.get("risk_level"),
+                "risk_score": data.get("risk_score"),
+                "risk_reasons": data.get("risk_reasons"),
+                "statement_assessments": data.get("statement_assessments"),
                 "details": data,
                 "flagged_permissions": flagged,
                 "flagged_permission_sources": _compact_flagged_sources(
@@ -678,6 +702,7 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
     group_items: list[dict[str, Any]] = []
     role_catalog: dict[tuple[str, str], int] = {}
     role_items: list[dict[str, Any]] = []
+    stats = raw.get("stats") or {}
 
     principals_flagged: list[dict[str, Any]] = []
     principal_perm_map: dict[str, dict[str, Any]] = {}
@@ -701,7 +726,7 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
             group_items=group_items,
         )
         binding_refs = []
-        for role in p.get("bindings") or []:
+        for role in (p.get("roles") or p.get("bindings") or []):
             if not isinstance(role, str) or not role:
                 continue
             role_id = _catalog_add(role_catalog, role_items, (role, "role"), {"label": role, "type": "role", "identifier": role})
@@ -710,6 +735,7 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
             {
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
+                "grant_refs": binding_refs,
                 "flagged_permissions": flagged,
                 "flagged_permission_sources": _compact_flagged_sources(
                     _normalize_flagged_sources(p.get("flagged_perm_sources") or {}),
@@ -718,6 +744,7 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
                     role_catalog,
                     role_items,
                 ),
+                # Backward compatibility for existing consumers.
                 "binding_refs": binding_refs,
             }
         )
@@ -726,6 +753,7 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
                 {
                     "subject_ref": subject_ref,
                     "subject_kind": subject_kind,
+                    "grant_refs": binding_refs,
                     "flagged_permissions": flagged,
                     "flagged_permission_sources": _compact_flagged_sources(
                         _normalize_flagged_sources(p.get("flagged_perm_sources") or {}),
@@ -734,6 +762,7 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
                         role_catalog,
                         role_items,
                     ),
+                    # Backward compatibility for existing consumers.
                     "binding_refs": binding_refs,
                 }
             )
@@ -769,6 +798,79 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
                 ),
             }
         )
+
+    principals_unused_perms: list[dict[str, Any]] = []
+    min_unused_days = int(stats.get("min_unused_days") or 0)
+    now = datetime.now(timezone.utc)
+    for p in raw.get("principals") or []:
+        if not isinstance(p, dict):
+            continue
+        flagged_source = p.get("flagged_permission_patterns_by_risk") or {}
+        if not isinstance(flagged_source, dict) or not flagged_source:
+            continue
+        last_used_map = p.get("flagged_permissions_last_used_at")
+        if not isinstance(last_used_map, dict):
+            last_used_map = {}
+
+        filtered_flagged: dict[str, list[str]] = {}
+        for lvl, items in flagged_source.items():
+            if not isinstance(items, list):
+                continue
+            for perm in items:
+                if not isinstance(perm, str) or not perm:
+                    continue
+                last_seen = _parse_iso_datetime(last_used_map.get(perm))
+                if last_seen is None:
+                    filtered_flagged.setdefault(str(lvl), []).append(perm)
+                    continue
+                if min_unused_days > 0:
+                    unused_days = (now - last_seen).days
+                    if unused_days >= min_unused_days:
+                        filtered_flagged.setdefault(str(lvl), []).append(perm)
+        for lvl in list(filtered_flagged.keys()):
+            filtered_flagged[lvl] = sorted(set(filtered_flagged[lvl]))
+            if not filtered_flagged[lvl]:
+                del filtered_flagged[lvl]
+        if not filtered_flagged:
+            continue
+
+        filtered_sources: dict[str, list[dict[str, Any]]] = {}
+        for lvl, entries in _normalize_flagged_sources(p.get("flagged_perm_sources") or {}).items():
+            keep = []
+            keep_set = set(filtered_flagged.get(lvl) or [])
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                perm = entry.get("permission")
+                if isinstance(perm, str) and perm in keep_set:
+                    keep.append(entry)
+            if keep:
+                filtered_sources[lvl] = keep
+
+        principal = p.get("principal") or {}
+        principal_display = principal.get("user_principal_name") or principal.get("mail") or principal.get("display_name")
+        entry = _aws_principal_entry(
+            principal_type=str(p.get("principal_type") or "principal"),
+            principal_id=str(p.get("principal_id") or "unknown"),
+            principal_label=principal_display or str(p.get("principal_label") or p.get("principal_id") or "unknown"),
+            flagged_permissions=filtered_flagged,
+            flagged_permission_sources=filtered_sources,
+            extra={
+                "unused_permissions": {
+                    "flagged_perms": filtered_flagged,
+                    "flagged_perm_sources": filtered_sources,
+                }
+            },
+            perm_catalog=perm_catalog,
+            perm_items=perm_items,
+            role_catalog=role_catalog,
+            role_items=role_items,
+            principal_catalog=principal_catalog,
+            principal_items=principal_items,
+            group_catalog=group_catalog,
+            group_items=group_items,
+        )
+        principals_unused_perms.append(entry)
 
     # Keys (service account keys)
     keys: list[dict[str, Any]] = []
@@ -819,18 +921,21 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
     for r in raw.get("unused_custom_roles") or []:
         if not isinstance(r, dict):
             continue
-        role_label = r.get("title") or r.get("name")
+        role_label = r.get("title") or r.get("name") or r.get("role")
+        if not role_label:
+            continue
         role_id = _catalog_add(
             role_catalog,
             role_items,
             (str(role_label), "custom_role"),
             {"label": str(role_label), "type": "custom_role", "identifier": str(r.get("name") or role_label)},
         )
+        flagged_by_risk = r.get("flagged_permissions_by_risk") or r.get("flagged_perms") or {}
         unused_custom_defs.append(
             {
                 "definition_type": "custom_role",
                 "definition_ref": role_id,
-                "flagged_permissions": _catalog_permissions(r.get("flagged_permissions_by_risk") or {}, perm_catalog, perm_items),
+                "flagged_permissions": _catalog_permissions(flagged_by_risk, perm_catalog, perm_items),
                 "flagged_permission_sources": _compact_flagged_sources(
                     _normalize_flagged_sources(r.get("flagged_perm_sources") or {}),
                     perm_catalog,
@@ -873,8 +978,24 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
                 "role_ref": role_ref,
+                "evidence_scope": t.get("sourceScope"),
+                "evidence_resource": t.get("resource"),
+                "evidence_principal": t.get("member"),
+                "evidence_condition": t.get("condition"),
                 "resource": t.get("resource"),
-                "reason": t.get("reason"),
+                "reason": t.get("reason") or ",".join([str(x) for x in (t.get("reasons") or []) if isinstance(x, str)]),
+                "reasons": [str(x) for x in (t.get("reasons") or []) if isinstance(x, str)],
+                "condition": t.get("condition"),
+                "member_kind": t.get("memberKind"),
+                "cross_project": t.get("crossProject"),
+                "cross_org": t.get("crossOrg"),
+                "other_project": t.get("otherProject"),
+                "other_org_id": t.get("otherOrgId"),
+                "source_scope": t.get("sourceScope"),
+                "risk_level": t.get("risk_level"),
+                "risk_score": t.get("risk_score"),
+                "risk_reasons": t.get("risk_reasons"),
+                "statement_assessments": t.get("statement_assessments"),
                 "flagged_permissions": _catalog_permissions(flagged_source, perm_catalog, perm_items),
                 "flagged_permission_sources": _compact_flagged_sources(
                     _normalize_flagged_sources(t.get("flagged_perm_sources") or {}),
@@ -934,9 +1055,9 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
         "findings": {
             "principals_flagged": principals_flagged,
             "principals_inactive": principals_inactive,
-            "principals_with_unused_permissions": [],
+            "principals_with_unused_permissions": principals_unused_perms,
             "privileged_principals": privileged_principals,
-            "unused_permissions_available": False,
+            "unused_permissions_available": bool(principals_unused_perms),
             "keys": keys,
             "unused_custom_definitions": unused_custom_defs,
             "external_trusts": external_trusts,
@@ -971,6 +1092,7 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
 
     principals_flagged: list[dict[str, Any]] = []
     principal_perm_map: dict[str, dict[str, Any]] = {}
+    principals_unused_perms: list[dict[str, Any]] = []
     privileged_principals: list[dict[str, Any]] = []
     for p in raw.get("principals") or []:
         if not isinstance(p, dict):
@@ -994,19 +1116,32 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
         )
         role_refs = []
         for role in p.get("roles") or []:
-            if not isinstance(role, str) or not role:
+            role_label: Optional[str] = None
+            role_identifier: Optional[str] = None
+            if isinstance(role, dict):
+                role_identifier = role.get("role_definition_id") or role.get("roleDefinitionId") or role.get("assignment_id") or role.get("id")
+                role_label = role.get("role_definition_name") or role.get("roleDefinitionName") or role_identifier
+                role_scope = role.get("scope")
+                if isinstance(role_scope, str) and role_scope and isinstance(role_label, str) and role_label:
+                    role_label = f"{role_label} @ {role_scope}"
+            elif isinstance(role, str) and role:
+                role_identifier = role
+                role_label = role
+            if not isinstance(role_label, str) or not role_label:
                 continue
+            rid = role_identifier if isinstance(role_identifier, str) and role_identifier else role_label
             role_id = _catalog_add(
                 role_catalog,
                 role_items,
-                (role, "role"),
-                {"label": role, "type": "role", "identifier": role},
+                (role_label, "role"),
+                {"label": role_label, "type": "role", "identifier": rid},
             )
             role_refs.append(role_id)
         principals_flagged.append(
             {
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
+                "grant_refs": role_refs,
                 "flagged_permissions": flagged,
                 "flagged_permission_sources": _compact_flagged_sources(
                     _normalize_flagged_sources(p.get("flagged_perm_sources") or {}),
@@ -1015,6 +1150,7 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
                     role_catalog,
                     role_items,
                 ),
+                # Backward compatibility for existing consumers.
                 "role_refs": role_refs,
             }
         )
@@ -1022,6 +1158,7 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
             {
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
+                "grant_refs": role_refs,
                 "flagged_permissions": flagged,
                 "flagged_permission_sources": _compact_flagged_sources(
                     _normalize_flagged_sources(p.get("flagged_perm_sources") or {}),
@@ -1030,6 +1167,7 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
                     role_catalog,
                     role_items,
                 ),
+                # Backward compatibility for existing consumers.
                 "role_refs": role_refs,
             }
         )
@@ -1121,8 +1259,21 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
                 "role_ref": role_ref,
+                "evidence_scope": t.get("scope"),
+                "evidence_resource": t.get("scope"),
+                "evidence_principal": {
+                    "principal_id": t.get("principal_id"),
+                    "principal_type": t.get("principal_type"),
+                },
+                "evidence_condition": t.get("assignment_condition"),
                 "scope": t.get("scope"),
                 "reason": t.get("reason"),
+                "assignment_condition": t.get("assignment_condition"),
+                "assignment_condition_version": t.get("assignment_condition_version"),
+                "risk_level": t.get("risk_level"),
+                "risk_score": t.get("risk_score"),
+                "risk_reasons": t.get("risk_reasons"),
+                "statement_assessments": t.get("statement_assessments"),
                 "flagged_permissions": _catalog_permissions(flagged_source, perm_catalog, perm_items),
                 "flagged_permission_sources": _compact_flagged_sources(
                     _normalize_flagged_sources(t.get("flagged_perm_sources") or {}),
@@ -1158,11 +1309,23 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
                 "trust_type": "managed_identity_federated_credential",
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
+                "evidence_scope": scope_id,
+                "evidence_resource": fic.get("id"),
+                "evidence_principal": fic.get("name") or fic.get("id"),
+                "evidence_condition": {
+                    "issuer": fic.get("issuer"),
+                    "subject": fic.get("subject"),
+                    "audiences": fic.get("audiences"),
+                },
                 "name": fic.get("name"),
                 "issuer": fic.get("issuer"),
                 "subject": fic.get("subject"),
                 "audiences": fic.get("audiences"),
                 "role_ref": role_ref,
+                "risk_level": fic.get("risk_level"),
+                "risk_score": fic.get("risk_score"),
+                "risk_reasons": fic.get("risk_reasons"),
+                "statement_assessments": fic.get("statement_assessments"),
             }
         )
     for u in raw.get("guest_users") or []:
@@ -1182,7 +1345,15 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
                 "trust_type": "guest_user",
                 "subject_ref": subject_ref,
                 "subject_kind": subject_kind,
+                "evidence_scope": scope_id,
+                "evidence_resource": scope_id,
+                "evidence_principal": u.get("id"),
+                "evidence_condition": None,
                 "has_rbac_access_in_scope": u.get("has_rbac_access_in_subscription"),
+                "risk_level": u.get("risk_level"),
+                "risk_score": u.get("risk_score"),
+                "risk_reasons": u.get("risk_reasons"),
+                "statement_assessments": u.get("statement_assessments"),
             }
         )
     group_memberships: list[dict[str, Any]] = []
@@ -1239,9 +1410,9 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
         "findings": {
             "principals_flagged": principals_flagged,
             "principals_inactive": principals_inactive,
-            "principals_with_unused_permissions": [],
+            "principals_with_unused_permissions": principals_unused_perms,
             "privileged_principals": privileged_principals,
-            "unused_permissions_available": False,
+            "unused_permissions_available": bool(stats.get("activity_log_best_effort")),
             "keys": [],
             "unused_custom_definitions": unused_custom_defs,
             "external_trusts": external_trusts,
