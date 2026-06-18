@@ -2412,8 +2412,9 @@ def main(
         )
         atomic_write_json(out_json_path, report)
     
-    # Return success if at least one account was processed
-    if not all_results and all_errors:
+    # Return success if at least one account was processed. In JSON-output mode,
+    # callers can consume the structured error report written above.
+    if not out_json_path and not all_results and all_errors:
         sys.exit(1)
 
 
