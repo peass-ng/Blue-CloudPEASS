@@ -73,3 +73,4 @@ When deciding between buckets, these heuristics reflect the intended policy:
 
 - Bucket assignment can be service-specific. A verb like `Put*` is not automatically high: the deciding factor is whether it changes a security boundary or exposes/changes secrets.
 - These categories are designed to be applied consistently across AWS/Azure/GCP where possible, while still allowing provider-specific overrides for known sensitive actions.
+- CloudPEASS attack-path combinations are synchronized into `risk_rules/*_criticality.yaml`. Every permission in a multi-permission entry is promoted only when the complete combination is present; this avoids treating one incomplete step as a complete attack path.

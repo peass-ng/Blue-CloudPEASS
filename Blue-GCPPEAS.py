@@ -41,7 +41,7 @@ except Exception as exc:
         "Missing dependency `google-auth`. Install with `pip3 install -r requirements.txt`."
     ) from exc
 
-from scripts.permission_risk_classifier import classify_permission
+from scripts.permission_risk_classifier import classify_all
 from bluepeass.report import Target, atomic_write_json, build_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_gcp_scope
@@ -781,12 +781,12 @@ def classify_permissions_yaml(perms: list[str], risk_levels: list[str] = None) -
             "is_admin": True,
         }
     
-    flagged_perms: dict[str, list[str]] = {}
-    for perm in perms:
-        lvl = classify_permission("gcp", perm, unknown_default="high")
-        if lvl not in risk_levels:
-            continue
-        flagged_perms.setdefault(lvl, []).append(perm)
+    classified = classify_all("gcp", perms, unknown_default="high")
+    flagged_perms = {
+        level: permissions
+        for level, permissions in classified.items()
+        if level in risk_levels and permissions
+    }
     
     # Deduplicate permissions within each risk level
     for risk_level in flagged_perms:

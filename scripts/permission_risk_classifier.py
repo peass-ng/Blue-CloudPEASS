@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 import json
 import os
 import re
@@ -11,6 +12,9 @@ import yaml
 
 RISK_ORDER = {"low": 0, "medium": 1, "high": 2, "critical": 3}
 RISK_LEVELS = ("low", "medium", "high", "critical")
+
+
+_CRITICALITY_COMBINATIONS: dict[str, dict[str, tuple[tuple[str, ...], ...]]] = {}
 
 
 def _repo_root() -> str:
@@ -27,6 +31,87 @@ def _load_yaml(path: str) -> dict:
     if not isinstance(data, dict):
         raise ValueError(f"Invalid YAML mapping in {path}")
     return data
+
+
+def load_criticality_combinations(provider: str) -> dict[str, tuple[tuple[str, ...], ...]]:
+    """Load the CloudPEASS sensitive-permission combinations for a provider."""
+    provider = provider.lower().strip()
+    if provider not in {"aws", "gcp", "azure"}:
+        raise ValueError(f"Unknown provider: {provider}")
+    cached = _CRITICALITY_COMBINATIONS.get(provider)
+    if cached is not None:
+        return cached
+
+    path = os.path.join(_rules_dir(), f"{provider}_criticality.yaml")
+    data = _load_yaml(path)
+    if data.get("version") != 1 or data.get("provider") != provider:
+        raise ValueError(f"Invalid criticality metadata in {path}")
+
+    def normalize(key: str) -> tuple[tuple[str, ...], ...]:
+        combinations: list[tuple[str, ...]] = []
+        for raw_combination in data.get(key) or []:
+            if (
+                not isinstance(raw_combination, list)
+                or not raw_combination
+                or not all(isinstance(value, str) and value.strip() for value in raw_combination)
+            ):
+                raise ValueError(f"Invalid {key} entry in {path}: {raw_combination!r}")
+            combinations.append(tuple(value.strip() for value in raw_combination))
+        return tuple(combinations)
+
+    result = {
+        "critical": normalize("critical"),
+        "high": normalize("high"),
+    }
+    _CRITICALITY_COMBINATIONS[provider] = result
+    return result
+
+
+def _permission_matches(provider: str, permission: str, pattern: str, *, reverse: bool = True) -> bool:
+    """Match CloudPEASS permission patterns, including returned Azure wildcards."""
+    if provider in {"aws", "azure"}:
+        permission = permission.casefold()
+        pattern = pattern.casefold()
+    if fnmatch.fnmatchcase(permission, pattern):
+        return True
+    if not reverse:
+        return False
+    if provider == "azure":
+        graph_prefixes = (
+            "entra.",
+            "microsoft.azure.",
+            "microsoft.directory/",
+            "microsoft.office365.",
+            "microsoft.teams/",
+            "owner of ",
+        )
+        pattern_is_arm = "/" in pattern and not pattern.startswith(graph_prefixes)
+        return "*" in permission and pattern_is_arm and fnmatch.fnmatchcase(pattern, permission)
+    return fnmatch.fnmatchcase(pattern, permission)
+
+
+def _combination_levels(provider: str, permissions: Iterable[str]) -> dict[str, str]:
+    """Return severity upgrades produced by complete CloudPEASS combinations."""
+    provider = provider.lower().strip()
+    permission_list = list(permissions)
+    upgrades: dict[str, str] = {}
+    combinations = load_criticality_combinations(provider)
+
+    # Apply High first so Critical always wins if a permission appears in both.
+    for level in ("high", "critical"):
+        for combination in combinations[level]:
+            if not all(
+                any(_permission_matches(provider, permission, pattern) for permission in permission_list)
+                for pattern in combination
+            ):
+                continue
+            for pattern in combination:
+                for permission in permission_list:
+                    if _permission_matches(provider, permission, pattern, reverse=False):
+                        current = upgrades.get(permission)
+                        if current is None or RISK_ORDER[level] > RISK_ORDER[current]:
+                            upgrades[permission] = level
+    return upgrades
 
 
 def load_aws_permissions_from_managed_policies(path: str) -> set[str]:
@@ -631,7 +716,11 @@ def classify_permission(provider: str, permission: str, *, unknown_default: str 
     else:
         raise ValueError(f"Unknown provider: {provider}")
 
-    return category or unknown_default
+    category = category or unknown_default
+    combination_level = _combination_levels(provider, [permission]).get(permission)
+    if combination_level and RISK_ORDER[combination_level] > RISK_ORDER[category]:
+        return combination_level
+    return category
 
 
 def classify_all(
@@ -642,6 +731,7 @@ def classify_all(
 ) -> dict[str, list[str]]:
     categories: dict[str, list[str]] = {"low": [], "medium": [], "high": [], "critical": []}
     seen: set[str] = set()
+    permission_list: list[str] = []
 
     for perm in permissions:
         if not isinstance(perm, str):
@@ -650,8 +740,14 @@ def classify_all(
         if not perm or perm in seen:
             continue
         seen.add(perm)
+        permission_list.append(perm)
 
+    combination_levels = _combination_levels(provider, permission_list)
+    for perm in permission_list:
         category = classify_permission(provider, perm, unknown_default=unknown_default)
+        combination_level = combination_levels.get(perm)
+        if combination_level and RISK_ORDER[combination_level] > RISK_ORDER[category]:
+            category = combination_level
         categories[category].append(perm)
 
     return categories
@@ -696,6 +792,11 @@ def candidate_actions(provider: str, risk_levels: Iterable[str]) -> list[str]:
             add_many(r.high_exact)
         if "low" in levels:
             add_many(r.low_exact)
+        combinations = load_criticality_combinations("aws")
+        for level in ("critical", "high"):
+            if level in levels:
+                for combination in combinations[level]:
+                    add_many(combination)
         # Medium has no exact list in our rule format currently.
         return out
 
@@ -705,6 +806,11 @@ def candidate_actions(provider: str, risk_levels: Iterable[str]) -> list[str]:
             add_many(r.critical_exact)
         if "low" in levels:
             add_many(r.low_exact)
+        combinations = load_criticality_combinations("gcp")
+        for level in ("critical", "high"):
+            if level in levels:
+                for combination in combinations[level]:
+                    add_many(combination)
         # High/medium are mostly heuristic/verb-based for GCP rules.
         return out
 
@@ -715,6 +821,11 @@ def candidate_actions(provider: str, risk_levels: Iterable[str]) -> list[str]:
             add_many(getattr(r, "critical_exact", []) or [])
         if "low" in levels:
             add_many(getattr(r, "low_exact", []) or [])
+        combinations = load_criticality_combinations("azure")
+        for level in ("critical", "high"):
+            if level in levels:
+                for combination in combinations[level]:
+                    add_many(combination)
         return out
 
     raise ValueError(f"Unknown provider: {provider}")

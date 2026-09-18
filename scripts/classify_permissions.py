@@ -25,12 +25,19 @@ def main() -> int:
     if not perms:
         perms = [line.strip() for line in sys.stdin.read().splitlines() if line.strip()]
 
+    out = classify_all(args.cloud, perms, unknown_default=args.unknown_default)
     if args.out_json:
-        out = classify_all(args.cloud, perms, unknown_default=args.unknown_default)
         atomic_write_json(args.out_json, out)
 
+    levels_by_permission = {
+        permission: level
+        for level, permissions in out.items()
+        for permission in permissions
+    }
     for p in perms:
-        lvl = classify_permission(args.cloud, p, unknown_default=args.unknown_default)
+        lvl = levels_by_permission.get(p)
+        if lvl is None:
+            lvl = classify_permission(args.cloud, p, unknown_default=args.unknown_default)
         print(f"{lvl}\\t{p}")
     return 0
 

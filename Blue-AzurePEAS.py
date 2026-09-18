@@ -38,7 +38,7 @@ except Exception as e:  # pragma: no cover
 from bluepeass.progress import StageProgress
 from bluepeass.report import Target, atomic_write_json, build_report
 from bluepeass.normalize import normalize_azure_management_groups, normalize_azure_subscription
-from scripts.permission_risk_classifier import RISK_LEVELS, RISK_ORDER, classify_permission
+from scripts.permission_risk_classifier import RISK_LEVELS, RISK_ORDER, classify_all
 
 REQUIRED_GRAPH_SCOPES_ANY = {
     "Directory.Read.All",
@@ -301,15 +301,7 @@ def _extract_role_permission_patterns(role_def_dict: dict[str, Any]) -> dict[str
 
 
 def _classify_patterns(patterns: list[str]) -> dict[str, list[str]]:
-    out: dict[str, list[str]] = {k: [] for k in RISK_LEVELS}
-    for p in patterns:
-        if not isinstance(p, str):
-            continue
-        p = p.strip()
-        if not p:
-            continue
-        lvl = classify_permission("azure", p, unknown_default="high")
-        out[lvl].append(p)
+    out = classify_all("azure", patterns, unknown_default="high")
     for k in out:
         out[k] = sorted(set(out[k]))
     return out

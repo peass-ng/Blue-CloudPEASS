@@ -17,7 +17,7 @@ from typing import Optional
 from botocore.config import Config
 from botocore.exceptions import ClientError, NoCredentialsError
 from time import sleep
-from scripts.permission_risk_classifier import classify_permission, candidate_actions
+from scripts.permission_risk_classifier import candidate_actions, classify_all
 from bluepeass.report import Target, atomic_write_json, build_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_aws_account
@@ -906,8 +906,14 @@ def classify_actions_with_sources(action_sources, risk_levels):
         flagged_perms.setdefault("critical", []).append("*")
         flagged_perm_sources.setdefault("critical", {}).setdefault("*", []).extend(_dedupe_sources(wildcard_sources))
 
+    classified = classify_all("aws", action_sources, unknown_default="high")
+    levels_by_action = {
+        action: level
+        for level, actions in classified.items()
+        for action in actions
+    }
     for action, sources in action_sources.items():
-        lvl = classify_permission("aws", action, unknown_default="high")
+        lvl = levels_by_action.get(action, "high")
         if lvl not in risk_levels:
             continue
         if action in ("*", "*:*"):
@@ -954,13 +960,10 @@ def check_policy(all_perm, risk_levels=None):
         }
 
     if not is_admin and all_perm:
-        for perm in all_perm:
-            if not isinstance(perm, str) or not perm:
-                continue
-            lvl = classify_permission("aws", perm, unknown_default="high")
-            if lvl not in risk_levels:
-                continue
-            flagged_perms.setdefault(lvl, []).append(perm)
+        classified = classify_all("aws", all_perm, unknown_default="high")
+        for lvl, permissions in classified.items():
+            if lvl in risk_levels:
+                flagged_perms.setdefault(lvl, []).extend(permissions)
         
         # Deduplicate permissions within each risk level
         for risk_level in flagged_perms:

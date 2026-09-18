@@ -6,7 +6,7 @@ Blue Cloud PEASS helps blue teams and auditors quickly find risky IAM privileges
 
 ## What this repo does
 
-- Classifies permissions at runtime using rule files in `risk_rules/` (no huge “full catalog” YAMLs needed for execution).
+- Classifies permissions at runtime using rule files in `risk_rules/`, including the AWS, GCP, and Azure critical/high attack-path combinations synchronized from CloudPEASS.
 - Produces a **human-readable console report** and an **optional JSON report** (`--out-json <path>`) with a consistent, normalized structure across clouds.
 - JSON output includes **permission source attribution** (which role/policy grants each flagged permission) and **group membership expansion** when available.
 - Normalized JSON is compacted with **permission/principal/role/group catalogs** so repeated data is referenced by ID.
@@ -22,6 +22,15 @@ Blue Cloud PEASS helps blue teams and auditors quickly find risky IAM privileges
 ```bash
 python3 -m pip install -r requirements.txt
 ```
+
+The synchronized CloudPEASS lists live in `risk_rules/*_criticality.yaml`. To verify or refresh them from a local CloudPEASS checkout:
+
+```bash
+python3 scripts/sync_cloudpeass_criticality.py --cloudpeass-root /path/to/CloudPEASS --check
+python3 scripts/sync_cloudpeass_criticality.py --cloudpeass-root /path/to/CloudPEASS
+```
+
+Single-permission entries apply immediately. Multi-permission entries become critical or high only when the complete combination is present.
 
 ---
 
