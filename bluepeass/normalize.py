@@ -1470,3 +1470,92 @@ def normalize_azure_management_groups(raw: dict[str, Any]) -> dict[str, Any]:
         "errors": raw.get("errors") or [],
         "provider_raw": {},
     }
+
+
+def normalize_k8s_cluster(raw: dict[str, Any]) -> dict[str, Any]:
+    """Put Kubernetes RBAC grants into the shared catalog-based report shape."""
+    permission_ids: dict[str, int] = {}
+    permissions: list[dict[str, Any]] = []
+    principal_ids: dict[tuple[str, str], int] = {}
+    principals: list[dict[str, Any]] = []
+    group_ids: dict[str, int] = {}
+    groups: list[dict[str, Any]] = []
+    role_ids: dict[tuple[str, str], int] = {}
+    roles: list[dict[str, Any]] = []
+    flagged: list[dict[str, Any]] = []
+    all_grants: list[dict[str, Any]] = []
+    memberships: set[tuple[int, int]] = set()
+
+    for item in raw.get("principals") or []:
+        identity = str(item.get("principal") or "")
+        kind, _, name = identity.partition(":")
+        if kind == "group":
+            subject_ref = _catalog_add(group_ids, groups, name, {"label": name, "identifier": name, "type": "group"})
+            subject_kind = "group"
+        else:
+            subject_ref = _catalog_add(principal_ids, principals, (kind, name), {"label": name, "identifier": name, "type": kind})
+            subject_kind = "principal"
+        grant_refs: set[int] = set()
+        sources: list[dict[str, Any]] = []
+        permission_refs: list[int] = []
+        for permission in item.get("permissions") or []:
+            label = str(permission.get("permission") or "")
+            if not label:
+                continue
+            perm_ref = _catalog_add(permission_ids, permissions, label, {"name": label, "risk": permission.get("risk"), "reason": permission.get("reason")})
+            permission_refs.append(perm_ref)
+            for source in permission.get("sources") or []:
+                role = str(source.get("role") or "")
+                role_ref = _catalog_add(role_ids, roles, (role, "role"), {"label": role, "identifier": role, "type": "role"})
+                grant_refs.add(role_ref)
+                entry = {"permission_ref": perm_ref, "role_ref": role_ref, "binding": source.get("binding")}
+                if source.get("via_group"):
+                    entry["via_group"] = source["via_group"]
+                    if kind == "serviceaccount":
+                        group_ref = _catalog_add(group_ids, groups, source["via_group"], {"label": source["via_group"], "identifier": source["via_group"], "type": "group"})
+                        memberships.add((group_ref, subject_ref))
+                sources.append(entry)
+        grant = {"subject_ref": subject_ref, "subject_kind": subject_kind, "scope": item.get("scope"), "permission_refs": permission_refs, "grant_refs": sorted(grant_refs), "permission_sources": sources}
+        all_grants.append(grant)
+        flagged_refs = _catalog_permissions(item.get("flagged_permissions") or {}, permission_ids, permissions)
+        if flagged_refs:
+            flagged.append({**grant, "flagged_permissions": flagged_refs})
+
+    findings = raw.get("findings") or {}
+    unused = []
+    for role in findings.get("unused_custom_definitions") or []:
+        label = f"{role.get('kind')}/{role.get('scope')}/{role.get('name')}"
+        ref = _catalog_add(role_ids, roles, (label, "role"), {"label": label, "identifier": label, "type": "role"})
+        unused.append({"definition_type": "role", "definition_ref": ref, "scope": role.get("scope")})
+
+    return {
+        "scope": {"scope_type": "cluster", "scope_id": raw.get("context"), "scope_name": raw.get("context")},
+        "findings": {
+            "principals_flagged": flagged,
+            "principals_inactive": [],
+            "principals_with_unused_permissions": [],
+            "privileged_principals": [p for p in flagged if p["flagged_permissions"].get("critical")],
+            "unused_permissions_available": False,
+            "keys": findings.get("token_secrets") or [],
+            "inactive_token_secrets": findings.get("inactive_token_secrets") or [],
+            "invalid_token_secrets": findings.get("invalid_token_secrets") or [],
+            "unused_custom_definitions": unused,
+            "external_trusts": findings.get("external_trusts") or [],
+            "workload_identity_trusts": findings.get("workload_identity_trusts") or [],
+            "workloads_with_flagged_service_accounts": findings.get("workloads_with_flagged_service_accounts") or [],
+            "workload_creation_paths_to_flagged_service_accounts": findings.get("workload_creation_paths_to_flagged_service_accounts") or [],
+            "group_memberships": [{"group_ref": group_ref, "member_ref": member_ref, "member_kind": "principal"} for group_ref, member_ref in sorted(memberships)],
+            "permission_catalog": permissions,
+            "principal_catalog": principals,
+            "group_catalog": groups,
+            "role_catalog": roles,
+            "principal_grants": all_grants,
+            "service_accounts_without_workloads": findings.get("service_accounts_without_workloads") or [],
+            "dangling_bindings": findings.get("dangling_bindings") or [],
+            "unresolved_bindings": findings.get("unresolved_bindings") or [],
+            "permissions_not_observed": findings.get("permissions_not_observed") or [],
+            "principals_not_observed": findings.get("principals_not_observed") or [],
+        },
+        "errors": raw.get("errors") or [],
+        "provider_raw": {"inventory": raw.get("inventory"), "coverage": raw.get("coverage"), "bindings": raw.get("bindings"), "workloads": raw.get("workloads"), "role_definitions": raw.get("role_definitions")},
+    }
