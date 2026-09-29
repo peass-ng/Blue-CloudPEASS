@@ -2,7 +2,7 @@ import importlib.util
 import json
 from datetime import datetime, timezone
 
-from bluepeass.k8s import _audit_permission_matches, analyze_snapshot, classify_permission, fetch_snapshot, read_audit_log
+from bluepeass.k8s import KINDS, _audit_permission_matches, analyze_snapshot, classify_permission, fetch_snapshot, read_audit_log
 from bluepeass.normalize import normalize_k8s_cluster
 
 
@@ -124,28 +124,40 @@ def test_workload_creation_path_to_privileged_service_account():
     assert not any(path["principal"] == "user:alice" and path["service_account"] == "team-b/unused" for path in paths)
 
 
-def test_fetch_snapshot_keeps_optional_read_error(monkeypatch):
-    import subprocess
+class FakeApi:
+    def __init__(self, *, deny_secrets=False):
+        self.calls = []
+        self.deny_secrets = deny_secrets
 
-    calls = []
+    def get_json(self, path, params=None):
+        self.calls.append((path, params))
+        if path == "/apis":
+            return {"groups": [{"preferredVersion": {"groupVersion": "rbac.authorization.k8s.io/v1"}}]}
+        if path == "/api/v1":
+            return {"resources": [{"name": "pods", "namespaced": True}, {"name": "nodes", "namespaced": False}]}
+        if path == "/apis/rbac.authorization.k8s.io/v1":
+            return {"resources": [{"name": "roles", "namespaced": True}, {"name": "clusterroles", "namespaced": False}]}
+        if path == KINDS["secrets"]:
+            if self.deny_secrets:
+                raise RuntimeError("forbidden")
+            return {"items": [obj("legacy", "team-b", type="kubernetes.io/service-account-token", data={"token": "DO_NOT_KEEP"})]}
+        if path == KINDS["clusterroles"] and not (params or {}).get("continue"):
+            return {"items": [obj("first")], "metadata": {"continue": "page-2"}}
+        if path == KINDS["clusterroles"]:
+            return {"items": [obj("second")], "metadata": {}}
+        return {"items": []}
 
-    def fake_run(command, **kwargs):
-        calls.append(command)
-        if "api-resources" in command:
-            output = "pods\nroles.rbac.authorization.k8s.io\n" if "--namespaced=true" in command else "nodes\nclusterroles.rbac.authorization.k8s.io\n"
-            return subprocess.CompletedProcess(command, 0, output, "")
-        if "secrets" in command:
-            return subprocess.CompletedProcess(command, 1, "", "forbidden")
-        return subprocess.CompletedProcess(command, 0, '{"items": []}', "")
 
-    monkeypatch.setattr("bluepeass.k8s.subprocess.run", fake_run)
-    data = fetch_snapshot(context="fixture")
+def test_fetch_snapshot_keeps_optional_read_error_and_paginates():
+    api = FakeApi(deny_secrets=True)
+    data = fetch_snapshot(context="fixture", api=api)
     assert data["context"] == "fixture"
     assert data["errors"] == [{"resource": "secrets", "message": "forbidden"}]
     assert "secrets" not in data["resources"]
     assert "rbac.authorization.k8s.io:clusterroles" in data["discovery"]["cluster_scoped"]
-    assert any(command[:3] == ["kubectl", "--context", "fixture"] for command in calls)
-    assert any("--field-selector=type=kubernetes.io/service-account-token" in command for command in calls)
+    assert [item["metadata"]["name"] for item in data["resources"]["clusterroles"]] == ["first", "second"]
+    assert (KINDS["clusterroles"], {"limit": 500, "continue": "page-2"}) in api.calls
+    assert (KINDS["secrets"], {"limit": 500, "fieldSelector": "type=kubernetes.io/service-account-token"}) in api.calls
 
 
 def test_legacy_token_last_used_and_invalid_labels():
@@ -163,18 +175,8 @@ def test_legacy_token_last_used_and_invalid_labels():
     assert result["findings"]["invalid_token_secrets"][0]["name"] == "legacy"
 
 
-def test_fetched_secret_values_are_not_kept_in_snapshot(monkeypatch):
-    import subprocess
-
-    def fake_run(command, **kwargs):
-        if "api-resources" in command:
-            return subprocess.CompletedProcess(command, 0, "pods\nnodes\n", "")
-        if "secrets" in command:
-            return subprocess.CompletedProcess(command, 0, json.dumps({"items": [obj("legacy", "team-b", type="kubernetes.io/service-account-token", data={"token": "DO_NOT_KEEP"})]}), "")
-        return subprocess.CompletedProcess(command, 0, '{"items": []}', "")
-
-    monkeypatch.setattr("bluepeass.k8s.subprocess.run", fake_run)
-    data = fetch_snapshot(context="fixture")
+def test_fetched_secret_values_are_not_kept_in_snapshot():
+    data = fetch_snapshot(context="fixture", api=FakeApi())
     assert "DO_NOT_KEEP" not in json.dumps(data)
 
 

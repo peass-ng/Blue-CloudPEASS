@@ -10,3 +10,4 @@ azure-identity
 azure-mgmt-resource
 azure-mgmt-authorization
 azure-mgmt-monitor
+kubernetes>=34,<36

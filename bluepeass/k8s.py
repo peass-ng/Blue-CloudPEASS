@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-import subprocess
+import os
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from fnmatch import fnmatchcase
@@ -12,18 +12,18 @@ from urllib.parse import parse_qs, urlsplit
 
 
 KINDS = {
-    "clusterroles": False,
-    "clusterrolebindings": False,
-    "roles": True,
-    "rolebindings": True,
-    "serviceaccounts": True,
-    "pods": True,
-    "deployments": True,
-    "daemonsets": True,
-    "statefulsets": True,
-    "jobs": True,
-    "cronjobs": True,
-    "secrets": True,
+    "clusterroles": "/apis/rbac.authorization.k8s.io/v1/clusterroles",
+    "clusterrolebindings": "/apis/rbac.authorization.k8s.io/v1/clusterrolebindings",
+    "roles": "/apis/rbac.authorization.k8s.io/v1/roles",
+    "rolebindings": "/apis/rbac.authorization.k8s.io/v1/rolebindings",
+    "serviceaccounts": "/api/v1/serviceaccounts",
+    "pods": "/api/v1/pods",
+    "deployments": "/apis/apps/v1/deployments",
+    "daemonsets": "/apis/apps/v1/daemonsets",
+    "statefulsets": "/apis/apps/v1/statefulsets",
+    "jobs": "/apis/batch/v1/jobs",
+    "cronjobs": "/apis/batch/v1/cronjobs",
+    "secrets": "/api/v1/secrets",
 }
 BROAD_SUBJECTS = {"system:authenticated", "system:serviceaccounts"}
 CRITICAL_RESOURCES = {"secrets", "serviceaccounts/token", "pods/exec", "pods/attach", "pods/ephemeralcontainers", "nodes/proxy", "certificatesigningrequests/approval"}
@@ -42,65 +42,167 @@ CLUSTER_SCOPED_RESOURCES = {
 NAMESPACE_SCOPED_CLUSTER_ROLE_VERBS = {"bind"}
 
 
-def _qualified_resource(name: str) -> str:
-    resource, _, group = name.partition(".")
-    return f"{group or 'core'}:{resource}"
+class KubernetesApi:
+    """Small JSON transport over the official Kubernetes client's authenticated API session."""
+
+    def __init__(self, api_client):
+        self.api_client = api_client
+
+    def get_json(self, path: str, params: dict[str, Any] | None = None) -> dict:
+        from kubernetes.client.rest import ApiException
+
+        try:
+            response = self.api_client.call_api(
+                path, "GET", query_params=list((params or {}).items()),
+                auth_settings=["BearerToken"], _preload_content=False,
+                _return_http_data_only=True, _request_timeout=30,
+            )
+        except ApiException as exc:
+            raise RuntimeError(f"Kubernetes API HTTP {exc.status}: {exc.reason}") from exc
+        try:
+            payload = json.loads(response.data or response.read())
+            if not isinstance(payload, dict):
+                raise ValueError(f"Expected a JSON object from {path}")
+            return payload
+        finally:
+            response.close()
+            response.release_conn()
+
+    def close(self) -> None:
+        self.api_client.close()
 
 
-def fetch_snapshot(kubectl: str = "kubectl", context: str | None = None) -> dict[str, Any]:
-    """Fetch each kind separately so denied optional reads do not hide RBAC results."""
-    prefix = [kubectl]
-    if context:
-        prefix += ["--context", context]
-    if not context:
-        proc = subprocess.run(prefix + ["config", "current-context"], capture_output=True, text=True)
-        if proc.returncode:
-            raise RuntimeError(proc.stderr.strip() or "Could not determine kubectl context")
-        context = proc.stdout.strip()
-        prefix += ["--context", context]
-    snapshot: dict[str, Any] = {"context": context, "resources": {}, "errors": []}
-    discovery: dict[str, list[str]] = {}
-    for namespaced in (True, False):
-        scope = "namespaced" if namespaced else "cluster_scoped"
-        cmd = prefix + ["api-resources", f"--namespaced={'true' if namespaced else 'false'}", "-o", "name"]
+def _new_api(
+    *, context: str | None, kubeconfig: str | None, in_cluster: bool,
+    server: str | None, token_file: str | None, ca_cert: str | None,
+) -> tuple[KubernetesApi, str]:
+    try:
+        from kubernetes import client, config
+        from kubernetes.config.config_exception import ConfigException
+    except ImportError as exc:
+        raise RuntimeError("Missing dependency `kubernetes`. Install with `pip install -r requirements.txt`.") from exc
+
+    if server:
+        if not token_file:
+            raise ValueError("--server requires --token-file")
+        configuration = client.Configuration()
+        configuration.host = server.rstrip("/")
+        with open(token_file, encoding="utf-8") as stream:
+            token = stream.read().strip()
+        if not token:
+            raise ValueError("--token-file is empty")
+        configuration.api_key = {"authorization": token}
+        configuration.api_key_prefix = {"authorization": "Bearer"}
+        if ca_cert:
+            configuration.ssl_ca_cert = ca_cert
+        return KubernetesApi(client.ApiClient(configuration)), configuration.host
+
+    use_in_cluster = in_cluster or (not context and not kubeconfig and bool(os.environ.get("KUBERNETES_SERVICE_HOST")))
+    if use_in_cluster:
+        configuration = client.Configuration()
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True)
-        except OSError as exc:
-            snapshot["errors"].append({"resource": f"api-resources/{scope}", "message": str(exc)})
-            continue
-        if proc.returncode:
-            snapshot["errors"].append({"resource": f"api-resources/{scope}", "message": proc.stderr.strip() or "API discovery failed"})
-            continue
-        discovery[scope] = sorted({_qualified_resource(line.strip()) for line in proc.stdout.splitlines() if line.strip()})
-    snapshot["discovery"] = discovery
-    for kind, namespaced in KINDS.items():
-        cmd = prefix + ["get", kind]
-        if namespaced:
-            cmd.append("--all-namespaces")
-        if kind == "secrets":
-            cmd.append("--field-selector=type=kubernetes.io/service-account-token")
-        cmd += ["-o", "json", "--chunk-size=500"]
+            config.load_incluster_config(client_configuration=configuration)
+        except ConfigException as exc:
+            raise RuntimeError(f"Could not load in-cluster credentials: {exc}") from exc
+        return KubernetesApi(client.ApiClient(configuration)), "in-cluster"
+
+    try:
+        api_client = config.new_client_from_config(config_file=kubeconfig, context=context, persist_config=False)
+        if not context:
+            _, current = config.list_kube_config_contexts(config_file=kubeconfig)
+            context = current["name"] if current else None
+    except (ConfigException, KeyError, OSError) as exc:
+        raise RuntimeError(f"Could not load kubeconfig: {exc}") from exc
+    return KubernetesApi(api_client), context or "unknown-context"
+
+
+def _list_resources(api, path: str, *, field_selector: str | None = None, secrets: bool = False) -> list[dict]:
+    items: list[dict] = []
+    continuation = None
+    seen_tokens: set[str] = set()
+    while True:
+        params: dict[str, Any] = {"limit": 500}
+        if continuation:
+            params["continue"] = continuation
+        if field_selector:
+            params["fieldSelector"] = field_selector
+        payload = api.get_json(path, params)
+        batch = payload.get("items")
+        if not isinstance(batch, list):
+            raise ValueError(f"Expected a Kubernetes List from {path}")
+        if secrets:
+            batch = [
+                {"metadata": item.get("metadata") or {}, "type": item.get("type")}
+                for item in batch if isinstance(item, dict)
+            ]
+        items.extend(batch)
+        continuation = (payload.get("metadata") or {}).get("continue")
+        if not continuation:
+            return items
+        if continuation in seen_tokens:
+            raise ValueError(f"Repeated pagination token from {path}")
+        seen_tokens.add(continuation)
+
+
+def _discover_resources(api) -> dict[str, Any]:
+    discovery: dict[str, Any] = {"namespaced": set(), "cluster_scoped": set(), "complete": True, "errors": []}
+    paths = ["/api/v1"]
+    try:
+        groups = api.get_json("/apis").get("groups") or []
+        for group in groups:
+            preferred = (group.get("preferredVersion") or {}).get("groupVersion")
+            if preferred:
+                paths.append(f"/apis/{preferred}")
+    except (RuntimeError, ValueError) as exc:
+        discovery["complete"] = False
+        discovery["errors"].append({"resource": "api-discovery/groups", "message": str(exc)})
+    for path in paths:
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True)
-        except OSError as exc:
-            snapshot["errors"].append({"resource": kind, "message": str(exc)})
-            continue
-        if proc.returncode:
-            snapshot["errors"].append({"resource": kind, "message": proc.stderr.strip() or "kubectl get failed"})
-            continue
-        try:
-            payload = json.loads(proc.stdout)
-            if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
-                raise ValueError("expected a Kubernetes List with items")
-            if kind == "secrets":
-                for secret in payload["items"]:
-                    if isinstance(secret, dict):
-                        secret.pop("data", None)
-                        secret.pop("stringData", None)
-            snapshot["resources"][kind] = payload["items"]
-        except (ValueError, TypeError) as exc:
-            snapshot["errors"].append({"resource": kind, "message": f"Invalid JSON response: {exc}"})
-    return snapshot
+            resources = api.get_json(path).get("resources")
+            if not isinstance(resources, list):
+                raise ValueError(f"Expected API resources from {path}")
+            group = "core" if path == "/api/v1" else path.split("/", 3)[2].split("/", 1)[0]
+            for resource in resources:
+                name = resource.get("name")
+                if not name or "/" in name:
+                    continue
+                scope = "namespaced" if resource.get("namespaced") else "cluster_scoped"
+                discovery[scope].add(f"{group}:{name}")
+        except (RuntimeError, ValueError) as exc:
+            discovery["complete"] = False
+            discovery["errors"].append({"resource": f"api-discovery{path}", "message": str(exc)})
+    return {**discovery, "namespaced": sorted(discovery["namespaced"]), "cluster_scoped": sorted(discovery["cluster_scoped"])}
+
+
+def fetch_snapshot(
+    *, context: str | None = None, kubeconfig: str | None = None,
+    in_cluster: bool = False, server: str | None = None,
+    token_file: str | None = None, ca_cert: str | None = None, api=None,
+) -> dict[str, Any]:
+    """Read the Kubernetes API directly; each denied resource is recorded separately."""
+    owned = api is None
+    if owned:
+        api, label = _new_api(context=context, kubeconfig=kubeconfig, in_cluster=in_cluster, server=server, token_file=token_file, ca_cert=ca_cert)
+    else:
+        label = context or "test-cluster"
+    snapshot: dict[str, Any] = {"context": label, "resources": {}, "errors": []}
+    try:
+        discovery = _discover_resources(api)
+        snapshot["discovery"] = {key: discovery[key] for key in ("namespaced", "cluster_scoped", "complete")}
+        snapshot["errors"].extend(discovery["errors"])
+        for kind, path in KINDS.items():
+            try:
+                snapshot["resources"][kind] = _list_resources(
+                    api, path,
+                    field_selector="type=kubernetes.io/service-account-token" if kind == "secrets" else None,
+                    secrets=kind == "secrets",
+                )
+            except (RuntimeError, ValueError, OSError) as exc:
+                snapshot["errors"].append({"resource": kind, "message": str(exc)})
+        return snapshot
+    finally:
+        if owned:
+            api.close()
 
 
 def _meta(item: dict) -> dict:
@@ -512,7 +614,7 @@ def analyze_snapshot(snapshot: dict[str, Any], risk_levels: set[str] | None = No
     return {
         "context": snapshot.get("context"),
         "inventory": {kind: len(resources.get(kind) or []) for kind in KINDS if kind in resources},
-        "coverage": {"available": sorted(resources), "missing": missing, "api_discovery_available": bool(discovery["namespaced"] and discovery["cluster_scoped"]), "unused_permissions_available": False, "unused_roles_available": "rolebindings" in resources and "clusterrolebindings" in resources, "workload_references_available": all(kind in resources for kind in WORKLOAD_KINDS), "aggregated_roles_without_rules": [f"{r['scope']}/{r['name']}" for r in role_definitions if r["aggregation_rule"] and not r["permissions"]], "audit_activity": audit["coverage"] if audit else None, "reason": "Kubernetes RBAC does not provide permission last-used data. Supplied audit events show observed activity, not exhaustive proof of unused grants."},
+        "coverage": {"available": sorted(resources), "missing": missing, "api_discovery_available": bool(raw_discovery.get("complete", False) and discovery["namespaced"] and discovery["cluster_scoped"]), "unused_permissions_available": False, "unused_roles_available": "rolebindings" in resources and "clusterrolebindings" in resources, "workload_references_available": all(kind in resources for kind in WORKLOAD_KINDS), "aggregated_roles_without_rules": [f"{r['scope']}/{r['name']}" for r in role_definitions if r["aggregation_rule"] and not r["permissions"]], "audit_activity": audit["coverage"] if audit else None, "reason": "Kubernetes RBAC does not provide permission last-used data. Supplied audit events show observed activity, not exhaustive proof of unused grants."},
         "principals": all_principals,
         "findings": {
             "principals_flagged": principal_findings,

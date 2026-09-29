@@ -22,8 +22,12 @@ def _print_section(label: str, values: list, max_items: int, formatter) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read-only Kubernetes RBAC and service-account audit")
-    parser.add_argument("--context", help="kubectl context to scan (default: current context)")
-    parser.add_argument("--kubectl", default="kubectl", help="kubectl executable (default: kubectl)")
+    parser.add_argument("--context", help="Kubeconfig context to scan (default: current context)")
+    parser.add_argument("--kubeconfig", help="Path to kubeconfig (default: KUBECONFIG or ~/.kube/config)")
+    parser.add_argument("--in-cluster", action="store_true", help="Use the pod's mounted service-account credentials")
+    parser.add_argument("--server", help="Kubernetes API URL for direct bearer-token authentication")
+    parser.add_argument("--token-file", help="File containing a bearer token for --server")
+    parser.add_argument("--ca-cert", help="CA certificate for --server (defaults to system trust)")
     parser.add_argument("--input-json", help="Analyze a previously captured snapshot instead of contacting a cluster")
     parser.add_argument("--audit-log", help="Optional Kubernetes JSON-lines audit log for observed activity")
     parser.add_argument("--min-unused-days", type=int, default=90, help="Audit activity lookback and token inactivity threshold in days (default: 90)")
@@ -38,6 +42,14 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--max-items must be nonnegative")
     if args.min_unused_days < 1:
         parser.error("--min-unused-days must be positive")
+    if args.server and not args.token_file:
+        parser.error("--server requires --token-file")
+    if (args.token_file or args.ca_cert) and not args.server:
+        parser.error("--token-file and --ca-cert require --server")
+    if args.server and (args.context or args.kubeconfig or args.in_cluster):
+        parser.error("--server cannot be combined with kubeconfig or in-cluster options")
+    if args.in_cluster and (args.context or args.kubeconfig):
+        parser.error("--in-cluster cannot be combined with kubeconfig options")
 
     try:
         if args.input_json:
@@ -46,7 +58,11 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(snapshot, dict):
                 raise ValueError("snapshot must be a JSON object")
         else:
-            snapshot = fetch_snapshot(args.kubectl, args.context)
+            snapshot = fetch_snapshot(
+                context=args.context, kubeconfig=args.kubeconfig,
+                in_cluster=args.in_cluster, server=args.server,
+                token_file=args.token_file, ca_cert=args.ca_cert,
+            )
         result = analyze_snapshot(snapshot, levels, audit_events=read_audit_log(args.audit_log) if args.audit_log else None, min_unused_days=args.min_unused_days)
     except (OSError, ValueError, RuntimeError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
@@ -55,9 +71,10 @@ def main(argv: list[str] | None = None) -> int:
     findings = result["findings"]
     print(f"Blue K8sPEASS — context: {result['context'] or '<unknown>'}")
     print("Inventory: " + ", ".join(f"{kind}={count}" for kind, count in result["inventory"].items()))
-    _print_section("Principals with flagged RBAC grants", findings["principals_flagged"], args.max_items,
-                   lambda p: f"{p['principal']} @ {p['scope']}: " + ", ".join(f"{level}={len(perms)}" for level, perms in p["flagged_permissions"].items()))
+    print(f"Principals with flagged RBAC grants: {len(findings['principals_flagged'])}")
     for principal in findings["principals_flagged"][:args.max_items]:
+        counts = ", ".join(f"{level}={len(perms)}" for level, perms in principal["flagged_permissions"].items())
+        print(f"  - {principal['principal']} @ {principal['scope']}: {counts}")
         flagged_permissions = [permission for permission in principal["permissions"] if permission["risk"] in levels]
         for permission in flagged_permissions[:args.max_items]:
             print(f"      {permission['risk']}: {permission['permission']}")
@@ -66,6 +83,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"        from {source['role']} ({source['binding']}){via}")
         if len(flagged_permissions) > args.max_items:
             print(f"      ... {len(flagged_permissions) - args.max_items} more permissions in --out-json")
+    if len(findings["principals_flagged"]) > args.max_items:
+        print(f"  ... {len(findings['principals_flagged']) - args.max_items} more principals in --out-json")
     _print_section("Unbound role definitions", findings["unused_custom_definitions"], args.max_items,
                    lambda r: f"{r['kind']}/{r['scope']}/{r['name']}")
     _print_section("Service accounts without listed workloads", findings["service_accounts_without_workloads"], args.max_items, str)

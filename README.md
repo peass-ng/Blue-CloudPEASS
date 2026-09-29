@@ -19,12 +19,14 @@ Blue Cloud PEASS helps blue teams and auditors quickly find risky IAM privileges
 
 ## Blue-K8sPEAS.py (Kubernetes)
 
-Read-only RBAC and service-account audit using your current `kubectl` credentials. The scan lists Roles, ClusterRoles, their bindings, service accounts, workloads, and legacy service-account token Secrets. It resolves each binding into declared RBAC permissions and records the granting role and binding for each principal. Service accounts also inherit grants to `system:serviceaccounts`, their namespace group, and `system:authenticated`. Namespace-scoped RoleBindings remain scoped to their namespace.
+Read-only RBAC and service-account audit using direct Kubernetes API calls through the Python client. It uses the current kubeconfig context by default, accepts `--kubeconfig` and `--context`, and supports in-cluster credentials or `--server` with `--token-file`. **`kubectl` is not required.** A kubeconfig that specifies an `exec` credential plugin can still invoke that configured authentication helper; use in-cluster credentials or a token file to avoid external executables entirely. The scan lists Roles, ClusterRoles, their bindings, service accounts, workloads, and legacy service-account token Secrets. It resolves each binding into declared RBAC permissions and records the granting role and binding for each principal. Service accounts also inherit grants to `system:serviceaccounts`, their namespace group, and `system:authenticated`. Namespace-scoped RoleBindings remain scoped to their namespace.
 
 It flags sensitive grants (wildcards, RBAC changes, impersonation, secrets, token creation, pod execution and workload modification), broad or anonymous bindings, cloud workload identity annotations, workloads running with flagged service accounts, and principals that can create workloads using a flagged service account in the same namespace. It also reports custom role definitions with no bindings, service accounts with no listed workloads, dangling role references, and legacy token Secrets. When Kubernetes supplies last-used or invalid-since labels for a legacy token, those dates are reported and last use is compared with `--min-unused-days`. A missing last-used label is treated as unknown. The JSON report includes all declared grants, role definitions, source attribution, inventory, and coverage errors in the shared catalog-based report format.
 
 ```bash
 python3 Blue-K8sPEAS.py --context minikube --out-json k8s-report.json
+python3 Blue-K8sPEAS.py --server https://k8s.example:6443 --token-file ./token --ca-cert ./ca.crt
+python3 Blue-K8sPEAS.py --in-cluster --out-json k8s-report.json
 python3 Blue-K8sPEAS.py --risk-levels medium,high,critical --max-items 30
 python3 Blue-K8sPEAS.py --audit-log /path/to/kube-audit.jsonl --min-unused-days 90 --out-json k8s-report.json
 ```
@@ -33,7 +35,7 @@ The scanner needs `list` access to `roles`, `clusterroles`, `rolebindings`, and 
 
 Kubernetes RBAC has no per-permission last-used API. With `--audit-log`, the tool reports grants and principals **not observed** in the supplied JSON-lines audit events during the lookback window. This is a lead for review, not proof of unused access: audit policy, retention, gaps, and other authorizers affect what appears in the log. An unbound role is unused *as an RBAC grant*, while a service account without a listed workload can still be used externally. RBAC grants are declared permissions, not a live authorization decision: other authorizers, admission, and resource-specific constraints may also apply. API discovery identifies cluster-scoped resources, including custom resources, so ordinary cluster-resource rules are excluded from namespaced RoleBinding grants; the scanner uses a built-in resource list if discovery fails. Group membership outside the built-in service-account groups cannot be resolved from the Kubernetes API.
 
-The scope and last-used checks follow the Kubernetes [RBAC reference](https://kubernetes.io/docs/reference/access-authn-authz/rbac/), [API resource discovery](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_api-resources/), and [legacy token labels](https://kubernetes.io/docs/reference/labels-annotations-taints/).
+The scope and last-used checks follow the Kubernetes [RBAC reference](https://kubernetes.io/docs/reference/access-authn-authz/rbac/), [API discovery](https://kubernetes.io/docs/reference/using-api/api-concepts/), and [legacy token labels](https://kubernetes.io/docs/reference/labels-annotations-taints/).
 
 ## Install
 
