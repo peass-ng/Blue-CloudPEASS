@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 from collections import defaultdict
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from fnmatch import fnmatchcase
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
@@ -23,7 +23,6 @@ KINDS = {
     "statefulsets": "/apis/apps/v1/statefulsets",
     "jobs": "/apis/batch/v1/jobs",
     "cronjobs": "/apis/batch/v1/cronjobs",
-    "secrets": "/api/v1/secrets",
 }
 BROAD_SUBJECTS = {"system:authenticated", "system:serviceaccounts"}
 CRITICAL_RESOURCES = {"secrets", "serviceaccounts/token", "pods/exec", "pods/attach", "pods/ephemeralcontainers", "nodes/proxy", "certificatesigningrequests/approval"}
@@ -116,7 +115,7 @@ def _new_api(
     return KubernetesApi(api_client), context or "unknown-context"
 
 
-def _list_resources(api, path: str, *, field_selector: str | None = None, secrets: bool = False) -> list[dict]:
+def _list_resources(api, path: str) -> list[dict]:
     items: list[dict] = []
     continuation = None
     seen_tokens: set[str] = set()
@@ -124,17 +123,10 @@ def _list_resources(api, path: str, *, field_selector: str | None = None, secret
         params: dict[str, Any] = {"limit": 500}
         if continuation:
             params["continue"] = continuation
-        if field_selector:
-            params["fieldSelector"] = field_selector
         payload = api.get_json(path, params)
         batch = payload.get("items")
         if not isinstance(batch, list):
             raise ValueError(f"Expected a Kubernetes List from {path}")
-        if secrets:
-            batch = [
-                {"metadata": item.get("metadata") or {}, "type": item.get("type")}
-                for item in batch if isinstance(item, dict)
-            ]
         items.extend(batch)
         continuation = (payload.get("metadata") or {}).get("continue")
         if not continuation:
@@ -192,11 +184,7 @@ def fetch_snapshot(
         snapshot["errors"].extend(discovery["errors"])
         for kind, path in KINDS.items():
             try:
-                snapshot["resources"][kind] = _list_resources(
-                    api, path,
-                    field_selector="type=kubernetes.io/service-account-token" if kind == "secrets" else None,
-                    secrets=kind == "secrets",
-                )
+                snapshot["resources"][kind] = _list_resources(api, path)
             except (RuntimeError, ValueError, OSError) as exc:
                 snapshot["errors"].append({"resource": kind, "message": str(exc)})
         return snapshot
@@ -540,33 +528,6 @@ def analyze_snapshot(snapshot: dict[str, Any], risk_levels: set[str] | None = No
                 continue
             unused_roles.append({"kind": key[0], "scope": key[1], "name": key[2]})
 
-    token_secrets = []
-    inactive_tokens = []
-    invalid_tokens = []
-    referenced_secrets = {
-        (_namespace(sa), ref.get("name"))
-        for sa in resources.get("serviceaccounts") or []
-        for ref in sa.get("secrets") or []
-        if isinstance(ref, dict)
-    }
-    today = datetime.now(timezone.utc).date()
-    for secret in resources.get("secrets") or []:
-        if secret.get("type") == "kubernetes.io/service-account-token":
-            labels = _meta(secret).get("labels") or {}
-            last_used = labels.get("kubernetes.io/legacy-token-last-used")
-            invalid_since = labels.get("kubernetes.io/legacy-token-invalid-since")
-            entry = {"namespace": _namespace(secret), "name": _name(secret), "service_account": (_meta(secret).get("annotations") or {}).get("kubernetes.io/service-account.name"), "created_at": _meta(secret).get("creationTimestamp"), "last_used": last_used, "invalid_since": invalid_since, "auto_generated": (_namespace(secret), _name(secret)) in referenced_secrets if "serviceaccounts" in resources else None}
-            token_secrets.append(entry)
-            if invalid_since:
-                invalid_tokens.append(entry)
-            if isinstance(last_used, str):
-                try:
-                    days_since = (today - date.fromisoformat(last_used)).days
-                except ValueError:
-                    continue
-                if days_since >= min_unused_days:
-                    inactive_tokens.append({**entry, "days_since_last_use": days_since})
-
     unused_accounts = sorted(account for account in accounts if account not in used_accounts) if all(kind in resources for kind in WORKLOAD_KINDS) else []
     risky_by_identity_scope: dict[tuple[str, str], set[str]] = {}
     for key, records in effective.items():
@@ -620,9 +581,6 @@ def analyze_snapshot(snapshot: dict[str, Any], risk_levels: set[str] | None = No
             "principals_flagged": principal_findings,
             "unused_custom_definitions": unused_roles,
             "service_accounts_without_workloads": unused_accounts,
-            "token_secrets": token_secrets,
-            "inactive_token_secrets": inactive_tokens,
-            "invalid_token_secrets": invalid_tokens,
             "external_trusts": broad_trusts,
             "workload_identity_trusts": identity_trusts,
             "workloads_with_flagged_service_accounts": workload_risks,

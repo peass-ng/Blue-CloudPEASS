@@ -30,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ca-cert", help="CA certificate for --server (defaults to system trust)")
     parser.add_argument("--input-json", help="Analyze a previously captured snapshot instead of contacting a cluster")
     parser.add_argument("--audit-log", help="Optional Kubernetes JSON-lines audit log for observed activity")
-    parser.add_argument("--min-unused-days", type=int, default=90, help="Audit activity lookback and token inactivity threshold in days (default: 90)")
+    parser.add_argument("--min-unused-days", type=int, default=90, help="Audit activity lookback in days (default: 90)")
     parser.add_argument("--out-json", help="Write the normalized JSON report to this file")
     parser.add_argument("--risk-levels", default="high,critical", help="Comma-separated levels to flag: low,medium,high,critical")
     parser.add_argument("--max-items", type=int, default=20, help="Maximum findings to print per section")
@@ -88,12 +88,6 @@ def main(argv: list[str] | None = None) -> int:
     _print_section("Unbound role definitions", findings["unused_custom_definitions"], args.max_items,
                    lambda r: f"{r['kind']}/{r['scope']}/{r['name']}")
     _print_section("Service accounts without listed workloads", findings["service_accounts_without_workloads"], args.max_items, str)
-    _print_section("Long-lived service-account token Secrets", findings["token_secrets"], args.max_items,
-                   lambda s: f"{s['namespace']}/{s['name']} -> {s['service_account'] or '<unknown>'}")
-    _print_section("Legacy token Secrets inactive for the threshold", findings["inactive_token_secrets"], args.max_items,
-                   lambda s: f"{s['namespace']}/{s['name']}: last used {s['last_used']} ({s['days_since_last_use']} days ago)")
-    _print_section("Invalidated legacy token Secrets", findings["invalid_token_secrets"], args.max_items,
-                   lambda s: f"{s['namespace']}/{s['name']}: invalid since {s['invalid_since']}")
     _print_section("Broad or public RBAC bindings", findings["external_trusts"], args.max_items,
                    lambda b: f"{b['subject']} -> {b['role']} @ {b['scope']} ({b['binding']})")
     _print_section("Cloud workload identity annotations", findings["workload_identity_trusts"], args.max_items,

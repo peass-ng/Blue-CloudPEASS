@@ -16,7 +16,7 @@ def obj(name, namespace=None, **extra):
 def snapshot():
     resources = {kind: [] for kind in (
         "clusterroles", "clusterrolebindings", "roles", "rolebindings", "serviceaccounts",
-        "pods", "deployments", "daemonsets", "statefulsets", "jobs", "cronjobs", "secrets",
+        "pods", "deployments", "daemonsets", "statefulsets", "jobs", "cronjobs",
     )}
     resources["roles"] = [
         obj("reader", "team-a", rules=[{"apiGroups": [""], "resources": ["secrets"], "verbs": ["get"], "resourceNames": ["deploy-key"]}]),
@@ -29,7 +29,6 @@ def snapshot():
     ]
     resources["serviceaccounts"] = [obj("runner", "team-b"), obj("unused", "team-b")]
     resources["pods"] = [obj("job", "team-b", spec={"serviceAccountName": "runner"})]
-    resources["secrets"] = [obj("legacy", "team-b", type="kubernetes.io/service-account-token", data={"token": "DO_NOT_OUTPUT"})]
     return {"context": "example", "resources": resources, "errors": []}
 
 
@@ -45,7 +44,7 @@ def test_rbac_scope_group_inheritance_sources_and_inventory():
     assert result["findings"]["service_accounts_without_workloads"] == ["team-b/unused"]
     assert result["findings"]["unused_custom_definitions"] == [{"kind": "roles", "scope": "team-a", "name": "unbound"}]
     assert result["coverage"]["unused_permissions_available"] is False
-    assert "DO_NOT_OUTPUT" not in json.dumps(normalize_k8s_cluster(result))
+    assert normalize_k8s_cluster(result)["findings"]["keys"] == []
 
 
 def test_partial_read_does_not_claim_unused_or_dangling():
@@ -125,9 +124,9 @@ def test_workload_creation_path_to_privileged_service_account():
 
 
 class FakeApi:
-    def __init__(self, *, deny_secrets=False):
+    def __init__(self, *, deny_pods=False):
         self.calls = []
-        self.deny_secrets = deny_secrets
+        self.deny_pods = deny_pods
 
     def get_json(self, path, params=None):
         self.calls.append((path, params))
@@ -137,10 +136,12 @@ class FakeApi:
             return {"resources": [{"name": "pods", "namespaced": True}, {"name": "nodes", "namespaced": False}]}
         if path == "/apis/rbac.authorization.k8s.io/v1":
             return {"resources": [{"name": "roles", "namespaced": True}, {"name": "clusterroles", "namespaced": False}]}
-        if path == KINDS["secrets"]:
-            if self.deny_secrets:
+        if path == "/api/v1/secrets":
+            raise AssertionError("Secret API request is forbidden")
+        if path == KINDS["pods"]:
+            if self.deny_pods:
                 raise RuntimeError("forbidden")
-            return {"items": [obj("legacy", "team-b", type="kubernetes.io/service-account-token", data={"token": "DO_NOT_KEEP"})]}
+            return {"items": []}
         if path == KINDS["clusterroles"] and not (params or {}).get("continue"):
             return {"items": [obj("first")], "metadata": {"continue": "page-2"}}
         if path == KINDS["clusterroles"]:
@@ -149,35 +150,22 @@ class FakeApi:
 
 
 def test_fetch_snapshot_keeps_optional_read_error_and_paginates():
-    api = FakeApi(deny_secrets=True)
+    api = FakeApi(deny_pods=True)
     data = fetch_snapshot(context="fixture", api=api)
     assert data["context"] == "fixture"
-    assert data["errors"] == [{"resource": "secrets", "message": "forbidden"}]
-    assert "secrets" not in data["resources"]
+    assert data["errors"] == [{"resource": "pods", "message": "forbidden"}]
+    assert "pods" not in data["resources"]
     assert "rbac.authorization.k8s.io:clusterroles" in data["discovery"]["cluster_scoped"]
     assert [item["metadata"]["name"] for item in data["resources"]["clusterroles"]] == ["first", "second"]
     assert (KINDS["clusterroles"], {"limit": 500, "continue": "page-2"}) in api.calls
-    assert (KINDS["secrets"], {"limit": 500, "fieldSelector": "type=kubernetes.io/service-account-token"}) in api.calls
+    assert all(path != "/api/v1/secrets" for path, _ in api.calls)
 
 
-def test_legacy_token_last_used_and_invalid_labels():
-    data = snapshot()
-    secret = data["resources"]["secrets"][0]
-    secret["metadata"]["labels"] = {
-        "kubernetes.io/legacy-token-last-used": "2020-01-01",
-        "kubernetes.io/legacy-token-invalid-since": "2021-01-01",
-    }
-    data["resources"]["serviceaccounts"][0]["secrets"] = [{"name": "legacy"}]
-    result = analyze_snapshot(data, min_unused_days=90)
-    token = result["findings"]["token_secrets"][0]
-    assert token["auto_generated"] is True
-    assert result["findings"]["inactive_token_secrets"][0]["days_since_last_use"] > 90
-    assert result["findings"]["invalid_token_secrets"][0]["name"] == "legacy"
-
-
-def test_fetched_secret_values_are_not_kept_in_snapshot():
-    data = fetch_snapshot(context="fixture", api=FakeApi())
-    assert "DO_NOT_KEEP" not in json.dumps(data)
+def test_fetch_snapshot_never_calls_secret_api():
+    api = FakeApi()
+    data = fetch_snapshot(context="fixture", api=api)
+    assert "secrets" not in data["resources"]
+    assert all("/secrets" not in path for path, _ in api.calls)
 
 
 def test_audit_log_observation_respects_scope_and_resource_name(tmp_path):
@@ -216,4 +204,4 @@ def test_cli_offline_report(tmp_path):
     report = json.loads(output.read_text())
     assert report["provider"] == "k8s"
     assert report["targets"][0]["data"]["findings"]["principals_flagged"]
-    assert "DO_NOT_OUTPUT" not in output.read_text()
+    assert report["targets"][0]["data"]["findings"]["keys"] == []
