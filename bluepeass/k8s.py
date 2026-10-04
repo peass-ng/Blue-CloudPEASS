@@ -264,29 +264,18 @@ def _rolebinding_grants(record: dict, discovery: dict) -> bool:
 
 
 def classify_permission(record: dict) -> tuple[str, str]:
-    """Classify declared grants; wildcard grants are not expanded against discovery."""
+    """Use the same constrained RBAC rules as CloudPEASS."""
+    from .k8s_risks import PermissionKey, classify_permission as classify_key
+    resource, separator, subresource = record["resource"].partition("/")
     group = record["api_group"]
-    resource = record["resource"]
-    verb = record["verb"]
-    if verb == "*" or resource == "*" or group == "*":
-        return "critical", "Wildcard grant"
-    if verb in {"escalate", "bind", "impersonate", "approve", "sign"}:
-        return "critical", "Privilege boundary operation"
-    if group == "nonResourceURL":
-        return ("high", "Write access to API path") if verb not in {"get"} else ("low", "Read API path")
-    if resource in CRITICAL_RESOURCES and verb in {"get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"}:
-        return "critical", "Credential, execution, or node access"
-    if resource in {"pods/portforward", "pods/proxy"} and verb in {"create", "get"}:
-        return "high", "Access to workload network endpoint"
-    if resource in RBAC_RESOURCES and verb in {"create", "update", "patch", "delete", "deletecollection"}:
-        return "critical", "RBAC policy modification"
-    if resource in {"pods", "deployments", "daemonsets", "statefulsets", "jobs", "cronjobs"} and verb in {"create", "update", "patch"}:
-        return "high", "Workload modification"
-    if resource in {"mutatingwebhookconfigurations", "validatingwebhookconfigurations", "customresourcedefinitions", "nodes", "namespaces", "serviceaccounts"} and verb in {"create", "update", "patch", "delete", "deletecollection"}:
-        return "high", "Sensitive resource modification"
-    if verb in {"create", "update", "patch", "delete", "deletecollection", "connect", "proxy"}:
-        return "medium", "Write operation"
-    return "low", "Read operation"
+    return classify_key(PermissionKey(
+        verb=record["verb"], group=group if group != "nonResourceURL" else "",
+        resource=resource, subresource=subresource if separator else "",
+        namespace=record.get("namespace", "") or "", name=record.get("name", "") or "",
+        non_resource_url=record["resource"] if group == "nonResourceURL" else "",
+        field_selector=record.get("field_selector", "") or "",
+        label_selector=record.get("label_selector", "") or "",
+    ))
 
 
 def _workload_spec(kind: str, item: dict) -> dict:

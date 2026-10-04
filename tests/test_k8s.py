@@ -37,10 +37,10 @@ def test_rbac_scope_group_inheritance_sources_and_inventory():
     grants = {(p["principal"], p["scope"]): p for p in result["principals"]}
     inherited = grants[("serviceaccount:team-b/runner", "team-a")]
     secret = next(p for p in inherited["permissions"] if p["resource"] == "secrets")
-    assert secret["risk"] == "critical"
+    assert secret["risk"] == "high"
     assert secret["resource_names"] == ["deploy-key"]
     assert secret["sources"][0]["via_group"] == "system:serviceaccounts:team-b"
-    assert grants[("serviceaccount:team-b/runner", "team-b")]["permissions"][0]["risk"] == "critical"
+    assert grants[("serviceaccount:team-b/runner", "team-b")]["permissions"][0]["risk"] == "high"
     assert result["findings"]["service_accounts_without_workloads"] == ["team-b/unused"]
     assert result["findings"]["unused_custom_definitions"] == [{"kind": "roles", "scope": "team-a", "name": "unbound"}]
     assert result["coverage"]["unused_permissions_available"] is False
