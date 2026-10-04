@@ -17,6 +17,8 @@ Blue Cloud PEASS helps blue teams and auditors quickly find risky IAM privileges
   - **Keys** (AWS access keys, GCP SA keys)
   - **External trusts** (public access, external identities, cross-account / federation)
 
+Permission levels follow the shared [severity policy](docs/permission-severity-policy.md), with [per-permission source evidence](docs/permission-severity-audit.csv).
+
 ## Blue-K8sPEAS.py (Kubernetes)
 
 Read-only RBAC and service-account audit using direct Kubernetes API calls through the Python client. It uses the current kubeconfig context by default, accepts `--kubeconfig` and `--context`, and supports in-cluster credentials or `--server` with `--token-file`. **`kubectl` is not required.** A kubeconfig that specifies an `exec` credential plugin can still invoke that configured authentication helper; use in-cluster credentials or a token file to avoid external executables entirely. The scan lists Roles, ClusterRoles, their bindings, service accounts, and workloads. It **never lists Secret objects**; it analyzes RBAC rules granting access to Secrets without reading the Secrets themselves. Service accounts also inherit grants to `system:serviceaccounts`, their namespace group, and `system:authenticated`. Namespace-scoped RoleBindings remain scoped to their namespace.

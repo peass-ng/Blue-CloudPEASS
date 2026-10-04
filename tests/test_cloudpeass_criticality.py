@@ -5,11 +5,7 @@ from scripts.permission_risk_classifier import (
 )
 
 
-EXPECTED_COMBINATION_COUNTS = {
-    "aws": {"critical": 150, "high": 367},
-    "gcp": {"critical": 67, "high": 104},
-    "azure": {"critical": 148, "high": 251},
-}
+EXPECTED_COMBINATION_COUNTS = {'aws': {'critical': 174, 'high': 1022}, 'gcp': {'critical': 155, 'high': 494}, 'azure': {'critical': 121, 'high': 661}}
 
 
 def test_synced_cloudpeass_combination_counts():
@@ -20,7 +16,7 @@ def test_synced_cloudpeass_combination_counts():
 
 def test_single_permission_entries_override_generic_heuristics():
     assert classify_permission("aws", "codebuild:StartBuild") == "critical"
-    assert classify_permission("gcp", "container.pods.create") == "critical"
+    assert classify_permission("gcp", "container.pods.create") == "high"
     assert classify_permission("azure", "Microsoft.DocumentDB/mongoClusters/write") == "critical"
 
 
