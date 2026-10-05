@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import importlib.util
 import itertools
 import sys
@@ -28,12 +29,18 @@ def check(root: Path) -> dict[str, int]:
     repo = Path(__file__).resolve().parent.parent
     cloud = load_module('cloudpeass_parity_classifier', root / 'src/CloudPEASS/permission_risk_classifier.py')
     counts = {}
+    documented = list(csv.DictReader((repo / 'docs/hacktricks-permission-inventory.csv').open()))
     for provider in ('aws', 'gcp', 'azure'):
         catalog = yaml.safe_load((repo / f'{provider}_permissions_cat.yaml').read_text())
         catalog_sets = {level: set(values) for level, values in catalog.items()}
         catalog_permissions = set().union(*catalog_sets.values())
         permissions = set(catalog_permissions)
         permissions.update(cloud._load_yaml(provider).get('severity_overrides', {}))
+        permissions.update(cloud._load_yaml(provider).get('non_permission_identifiers', []))
+        permissions.update(row['permission'] for row in documented if row['provider'] == provider)
+        for row in documented:
+            if row['provider'] == provider:
+                assert row['severity'] == cloud.classify_permission(provider, row['permission'], unknown_default='medium'), (provider, row['permission'], 'stale source inventory')
         combinations = cloud.load_criticality_combinations(provider)
         assert combinations == blue.load_criticality_combinations(provider), provider
         permissions.update(p for combos in combinations.values() for combo in combos for p in combo)
@@ -57,8 +64,11 @@ def check(root: Path) -> dict[str, int]:
     sys.path.insert(0, str(repo))
     from bluepeass.k8s import classify_permission as blue_k8s
     groups = ('', '*', 'apps', 'batch', 'policy', 'rbac.authorization.k8s.io', 'certificates.k8s.io', 'authentication.k8s.io', 'admissionregistration.k8s.io', 'apiextensions.k8s.io', 'example.test')
+    groups += ('networking.k8s.io', 'gateway.networking.k8s.io', 'discovery.k8s.io', 'extensions', 'constraints.gatekeeper.sh', 'kyverno.io', 'storage.k8s.io')
     resources = ('*', 'secrets', 'serviceaccounts', 'serviceaccounts/token', 'pods', 'pods/exec', 'pods/attach', 'pods/status', 'nodes/proxy', 'nodes/status', 'daemonsets/status', 'replicasets/status', 'poddisruptionbudgets/status', 'customresourcedefinitions/status', 'clusterroles', 'roles', 'rolebindings', 'clusterrolebindings', 'certificatesigningrequests', 'certificatesigningrequests/approval', 'signers', 'users', 'groups', 'configmaps', 'services/status', 'mutatingwebhookconfigurations')
+    resources += ('pods/log', 'pods/proxy', 'pods/portforward', 'pods/ephemeralcontainers', 'pods/binding', 'pods/eviction', 'bindings', 'deployments', 'deployments/scale', 'daemonsets', 'statefulsets', 'replicasets', 'replicationcontrollers', 'jobs', 'cronjobs', 'namespaces', 'namespaces/status', 'nodes', 'nodes/checkpoint', 'services', 'services/proxy', 'endpoints', 'endpointslices', 'ingresses', 'ingresses/status', 'httproutes', 'networkpolicies', 'persistentvolumes', 'persistentvolumeclaims', 'clustertrustbundles', 'certificatesigningrequests/status', 'validatingadmissionpolicies', 'validatingadmissionpolicybindings', 'mutatingadmissionpolicies', 'mutatingadmissionpolicybindings', 'validatingwebhookconfigurations', 'uids', 'userextras', 'podsecuritypolicies', 'securitycontextconstraints', 'selfsubjectaccessreviews', 'subjectaccessreviews', 'tokenreviews', 'policyreports', 'clusterpolicies', 'storageclasses')
     verbs = ('get', 'list', 'watch', 'create', 'patch', 'update', 'delete', 'deletecollection', 'bind', 'escalate', 'impersonate', 'approve', 'sign', '*', 'impersonate-on:user-info:get')
+    verbs += ('attest', 'use', 'impersonate:user-info', 'impersonate:serviceaccount', 'impersonate:arbitrary-node', 'impersonate-on:user-info:create', 'request-serviceaccounts-token-audience')
     n = 0
     for group, resource, verb in itertools.product(groups, resources, verbs):
         base, _, sub = resource.partition('/')

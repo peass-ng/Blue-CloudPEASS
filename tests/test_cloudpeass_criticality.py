@@ -5,7 +5,7 @@ from scripts.permission_risk_classifier import (
 )
 
 
-EXPECTED_COMBINATION_COUNTS = {'aws': {'critical': 174, 'high': 1022}, 'gcp': {'critical': 155, 'high': 494}, 'azure': {'critical': 121, 'high': 661}}
+EXPECTED_COMBINATION_COUNTS = {'aws': {'critical': 175, 'high': 1011}, 'gcp': {'critical': 157, 'high': 507}, 'azure': {'critical': 117, 'high': 671}}
 
 
 def test_synced_cloudpeass_combination_counts():

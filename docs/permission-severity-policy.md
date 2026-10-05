@@ -25,3 +25,7 @@ python scripts/check_cloudpeass_risk_parity.py --cloudpeass-root /path/to/CloudP
 ```
 
 The first script copies the provider engine, rule YAML, Kubernetes model/engine and audit evidence. The second records the merged source revision and permission combinations. Both sync scripts and the catalog refresh script support `--check`. The parity script checks the catalog union, provider casing, wildcard identifiers, complete/incomplete combinations, and a Kubernetes grant matrix; it never contacts cloud APIs.
+
+Confirmed identifier errors are recorded in `permission-identifier-corrections.csv`. Condition keys, API method names and SDK namespaces are excluded from permission catalogs and candidate actions. Missing reference entries are checked against API documentation rather than automatically discarded.
+
+The recheck also uses the full documented source inventory in `hacktricks-permission-inventory.csv`. It is copied from CloudPEASS together with the identifier corrections and exact rules, and participates in the offline parity check. Kubernetes workload logs are High; pure WAF/filter disruption is Medium; stored Entra BitLocker/LAPS values and conditional ordinary-group membership are High. Existing complete permission combinations retain their prerequisites.
