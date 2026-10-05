@@ -15,16 +15,17 @@ Kubernetes classification includes the API group, resource, subresource, verb an
 
 ## Keeping both repositories aligned
 
-After updating and merging CloudPEASS, use a checkout of its current main branch:
+Update the four canonical files in [HackTricks Cloud](https://github.com/HackTricks-wiki/hacktricks-cloud/tree/master/src/permission-categorizations). Both repositories synchronize them weekly. See [the synchronization guide](permission-categorization-sync.md).
+
+For classifier code updates, use a checkout of CloudPEASS main:
 
 ```bash
 python scripts/sync_cloudpeass_risks.py --cloudpeass-root /path/to/CloudPEASS
-python scripts/sync_cloudpeass_criticality.py --cloudpeass-root /path/to/CloudPEASS
-python scripts/refresh_risk_catalogs.py
+python scripts/sync_hacktricks_permissions.py --book-root /path/to/hacktricks-cloud
 python scripts/check_cloudpeass_risk_parity.py --cloudpeass-root /path/to/CloudPEASS
 ```
 
-The first script copies the provider engine, rule YAML, Kubernetes model/engine and audit evidence. The second records the merged source revision and permission combinations. Both sync scripts and the catalog refresh script support `--check`. The parity script checks the catalog union, provider casing, wildcard identifiers, complete/incomplete combinations, and a Kubernetes grant matrix; it never contacts cloud APIs.
+The code sync copies the provider engine, Kubernetes model/engine and audit evidence. The book sync copies canonical data and regenerates the permission catalogs. Both support `--check`. The parity script checks provider casing, wildcard identifiers, complete/incomplete combinations, and a Kubernetes grant matrix; it never contacts cloud APIs.
 
 Confirmed identifier errors are recorded in `permission-identifier-corrections.csv`. Condition keys, API method names and SDK namespaces are excluded from permission catalogs and candidate actions. Missing reference entries are checked against API documentation rather than automatically discarded.
 

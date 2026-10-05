@@ -6,7 +6,7 @@ Blue Cloud PEASS helps blue teams and auditors quickly find risky IAM privileges
 
 ## What this repo does
 
-- Classifies permissions at runtime using rule files in `risk_rules/`, including the AWS, GCP, and Azure critical/high attack-path combinations synchronized from CloudPEASS.
+- Classifies permissions at runtime using rule files in `risk_rules/`, including AWS, GCP, and Azure permission combinations and Kubernetes context rules synchronized from HackTricks Cloud.
 - Produces a **human-readable console report** and an **optional JSON report** (`--out-json <path>`) with a consistent, normalized structure across clouds.
 - JSON output includes **permission source attribution** (which role/policy grants each flagged permission) and **group membership expansion** when available.
 - Normalized JSON is compacted with **permission/principal/role/group catalogs** so repeated data is referenced by ID.
@@ -45,11 +45,11 @@ The scope and activity checks follow the Kubernetes [RBAC reference](https://kub
 python3 -m pip install -r requirements.txt
 ```
 
-The synchronized CloudPEASS lists live in `risk_rules/*_criticality.yaml`. To verify or refresh them from a local CloudPEASS checkout:
+The shared categorizations live in `risk_rules/{aws,gcp,azure,k8s}.yaml` and are synchronized weekly from HackTricks Cloud. See [maintaining the shared categorizations](docs/permission-categorization-sync.md). To verify or refresh from a local book checkout:
 
 ```bash
-python3 scripts/sync_cloudpeass_criticality.py --cloudpeass-root /path/to/CloudPEASS --check
-python3 scripts/sync_cloudpeass_criticality.py --cloudpeass-root /path/to/CloudPEASS
+python3 scripts/sync_hacktricks_permissions.py --book-root /path/to/hacktricks-cloud --check
+python3 scripts/sync_hacktricks_permissions.py --book-root /path/to/hacktricks-cloud
 ```
 
 Single-permission entries apply immediately. Multi-permission entries become critical or high only when the complete combination is present.

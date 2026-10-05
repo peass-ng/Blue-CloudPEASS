@@ -8,7 +8,7 @@ from pathlib import Path
 
 def sync(source: Path, target: Path, *, check: bool = False) -> None:
     files = {}
-    for provider in ('aws', 'gcp', 'azure'):
+    for provider in ('aws', 'gcp', 'azure', 'k8s'):
         files[target / 'risk_rules' / f'{provider}.yaml'] = (source / 'src/CloudPEASS/risk_rules' / f'{provider}.yaml').read_text()
     classifier = (source / 'src/CloudPEASS/permission_risk_classifier.py').read_text()
     classifier = classifier.replace('Path(__file__).resolve().parent / "risk_rules"', 'Path(__file__).resolve().parent.parent / "risk_rules"')
@@ -16,6 +16,7 @@ def sync(source: Path, target: Path, *, check: bool = False) -> None:
     models = (source / 'src/k8s/models.py').read_text()
     key = models[models.index('@dataclass(frozen=True)\nclass PermissionKey:'):models.index('\n\n@dataclass\nclass PermissionFinding:')]
     k8s = (source / 'src/k8s/risks.py').read_text()
+    k8s = k8s.replace('Path(__file__).resolve().parent.parent / \"CloudPEASS\" / \"risk_rules\" / \"k8s.yaml\"', 'Path(__file__).resolve().parent.parent / \"risk_rules\" / \"k8s.yaml\"')
     k8s = k8s.replace('from .models import PermissionKey', 'from dataclasses import dataclass\n\n\n' + key)
     files[target / 'bluepeass/k8s_risks.py'] = k8s
     files[target / 'docs/permission-severity-audit.csv'] = (source / 'docs/permission-severity-audit.csv').read_text()
