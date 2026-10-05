@@ -590,7 +590,6 @@ low:
 - Microsoft.Automation/automationAccounts/hybridRunbookWorkerGroups/hybridRunbookWorkers/read
 - Microsoft.Automation/automationAccounts/hybridRunbookWorkerGroups/read
 - Microsoft.Automation/automationAccounts/jobSchedules/read
-- Microsoft.Automation/automationAccounts/jobs/output/read
 - Microsoft.Automation/automationAccounts/jobs/read
 - Microsoft.Automation/automationAccounts/linkedWorkspace/read
 - Microsoft.Automation/automationAccounts/logDefinitions/read
@@ -610,7 +609,6 @@ low:
 - Microsoft.Automation/automationAccounts/python2Packages/read
 - Microsoft.Automation/automationAccounts/python3Packages/read
 - Microsoft.Automation/automationAccounts/read
-- Microsoft.Automation/automationAccounts/runbooks/content/read
 - Microsoft.Automation/automationAccounts/runbooks/draft/operationResults/read
 - Microsoft.Automation/automationAccounts/runbooks/draft/read
 - Microsoft.Automation/automationAccounts/runbooks/draft/testJob/read
@@ -2302,7 +2300,6 @@ low:
 - Microsoft.ContainerRegistry/registries/read
 - Microsoft.ContainerRegistry/registries/replications/operationStatuses/read
 - Microsoft.ContainerRegistry/registries/replications/read
-- Microsoft.ContainerRegistry/registries/repositories/content/read
 - Microsoft.ContainerRegistry/registries/repositories/metadata/read
 - Microsoft.ContainerRegistry/registries/runs/read
 - Microsoft.ContainerRegistry/registries/scopeMaps/operationStatuses/read
@@ -7057,7 +7054,6 @@ low:
 - Microsoft.OperationalInsights/workspaces/query/WorkloadDiagnosticLogs/read
 - Microsoft.OperationalInsights/workspaces/query/WorkloadMonitoringPerf/read
 - Microsoft.OperationalInsights/workspaces/query/ZTSRequest/read
-- Microsoft.OperationalInsights/workspaces/query/read
 - Microsoft.OperationalInsights/workspaces/read
 - Microsoft.OperationalInsights/workspaces/rules/read
 - Microsoft.OperationalInsights/workspaces/savedSearches/read
@@ -7461,7 +7457,6 @@ low:
 - Microsoft.Search/searchServices/debugSessions/read
 - Microsoft.Search/searchServices/diagnosticSettings/read
 - Microsoft.Search/searchServices/indexers/read
-- Microsoft.Search/searchServices/indexes/documents/read
 - Microsoft.Search/searchServices/indexes/read
 - Microsoft.Search/searchServices/knowledgeBases/read
 - Microsoft.Search/searchServices/knowledgeSources/read
@@ -9011,7 +9006,6 @@ low:
 - microsoft.web/sites/workflows/read
 - microsoft.web/sites/workflowsconfiguration/read
 - microsoft.web/skus/read
-- microsoft.web/sourcecontrols/read
 - microsoft.web/webappstacks/read
 medium:
 - AdministrativeUnit.ReadWrite.All
@@ -11004,6 +10998,7 @@ medium:
 - Microsoft.Cdn/profiles/rulesets/write
 - Microsoft.Cdn/profiles/secrets/delete
 - Microsoft.Cdn/profiles/secrets/write
+- Microsoft.Cdn/profiles/securitypolicies/delete
 - Microsoft.Cdn/profiles/securitypolicies/write
 - Microsoft.Cdn/profiles/targetgroups/delete
 - Microsoft.Cdn/profiles/targetgroups/write
@@ -17000,6 +16995,7 @@ medium:
 - Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/delete
 - Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/detachWafPolicyFromAgc/action
 - Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/join/action
+- Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/write
 - Microsoft.Network/adminNetworkSecurityGroups/delete
 - Microsoft.Network/adminNetworkSecurityGroups/write
 - Microsoft.Network/applicationGateways/appProtectPolicy/attachAppProtectPolicy/action
@@ -17182,6 +17178,7 @@ medium:
 - Microsoft.Network/firewallPolicies/ruleGroups/write
 - Microsoft.Network/frontDoorWebApplicationFirewallPolicies/delete
 - Microsoft.Network/frontDoorWebApplicationFirewallPolicies/join/action
+- Microsoft.Network/frontDoorWebApplicationFirewallPolicies/write
 - Microsoft.Network/frontDoors/backendPools/delete
 - Microsoft.Network/frontDoors/delete
 - Microsoft.Network/frontDoors/frontendEndpoints/delete
@@ -17199,6 +17196,7 @@ medium:
 - Microsoft.Network/frontDoors/rulesEngines/write
 - Microsoft.Network/frontDoors/validateCustomDomain/action
 - Microsoft.Network/frontDoors/write
+- Microsoft.Network/frontdoorWebApplicationFirewallPolicies/write
 - Microsoft.Network/frontdoors/providers/Microsoft.Insights/diagnosticSettings/write
 - Microsoft.Network/gatewayLoadBalancerAliases/delete
 - Microsoft.Network/gatewayLoadBalancerAliases/write
@@ -18864,6 +18862,7 @@ medium:
 - Microsoft.ServiceNetworking/trafficControllers/delete
 - Microsoft.ServiceNetworking/trafficControllers/frontends/delete
 - Microsoft.ServiceNetworking/trafficControllers/frontends/write
+- Microsoft.ServiceNetworking/trafficControllers/securityPolicies/delete
 - Microsoft.ServiceNetworking/trafficControllers/securityPolicies/write
 - Microsoft.ServiceNetworking/trafficControllers/serviceRoutingConfigurations/delete
 - Microsoft.ServiceNetworking/trafficControllers/serviceRoutingConfigurations/write
@@ -20562,6 +20561,7 @@ medium:
 - microsoft.web/verifyhostingenvironmentvnet/action
 high:
 - ADSynchronization.ReadWrite.All
+- AuditLog.Read.All
 - BitlockerKey.Read.All
 - CustomSecAttributeAssignment.ReadWrite.All
 - DeviceLocalCredential.Read.All
@@ -20570,8 +20570,15 @@ high:
 - DeviceManagementConfiguration.ReadWrite.All
 - DeviceManagementScripts.Read.All
 - DeviceManagementScripts.ReadWrite.All
+- Directory.Read.All
+- Directory.ReadWrite.All
 - Domain.ReadWrite.All
+- Files.ReadWrite.All
+- Group.ReadWrite.All
+- Mail.Read
+- Mail.Read.Shared
 - Mail.ReadWrite.All
+- Mail.ReadWrite.Shared
 - Microsoft.ADHybridHealthService/services/write
 - Microsoft.AVS/privateClouds/addOns/write
 - Microsoft.AVS/privateClouds/authorizations/write
@@ -20582,6 +20589,7 @@ high:
 - Microsoft.AVS/privateClouds/scriptExecutions/write
 - Microsoft.AnalysisServices/servers/write
 - Microsoft.ApiCenter/services/workspaces/apis/versions/securityRequirements/getCredentials/action
+- Microsoft.ApiManagement/service/apiKeys/listSecrets/action
 - Microsoft.ApiManagement/service/apis/operations/policies/read
 - Microsoft.ApiManagement/service/apis/policies/read
 - Microsoft.ApiManagement/service/apis/policies/write
@@ -20605,8 +20613,11 @@ high:
 - Microsoft.ApiManagement/service/subscriptions/listSecrets/action
 - Microsoft.ApiManagement/service/tenant/listSecrets/action
 - Microsoft.ApiManagement/service/workspaces/backends/listSecrets/action
+- Microsoft.ApiManagement/service/workspaces/toolServers/listSecrets/action
 - Microsoft.ApiManagement/service/write
+- Microsoft.App/agents/dataconnectors/listSecrets/action
 - Microsoft.App/agents/dataconnectors/write
+- Microsoft.App/agents/listSecrets/action
 - Microsoft.App/agents/memory/write
 - Microsoft.App/agents/scheduledtasks/write
 - Microsoft.App/agents/threads/approve/action
@@ -20625,6 +20636,10 @@ high:
 - Microsoft.App/managedEnvironments/daprComponents/write
 - Microsoft.App/managedEnvironments/join/action
 - Microsoft.App/managedEnvironments/storages/write
+- Microsoft.App/sandboxGroups/sandboxes/executeCommand/action
+- Microsoft.App/sandboxGroups/sandboxes/executeShellCommand/action
+- Microsoft.App/sandboxGroups/sandboxes/files/read
+- Microsoft.App/sandboxGroups/secrets/peek/action
 - Microsoft.App/sessionPools/executions/action
 - Microsoft.App/sessionPools/files/content/read
 - Microsoft.AppConfiguration/configurationStores/ListKeyValue/action
@@ -20647,10 +20662,12 @@ high:
 - Microsoft.Automation/automationAccounts/configurations/write
 - Microsoft.Automation/automationAccounts/hybridRunbookWorkerGroups/write
 - Microsoft.Automation/automationAccounts/jobSchedules/write
+- Microsoft.Automation/automationAccounts/jobs/output/read
 - Microsoft.Automation/automationAccounts/jobs/streams/read
 - Microsoft.Automation/automationAccounts/listKeys/action
 - Microsoft.Automation/automationAccounts/modules/write
 - Microsoft.Automation/automationAccounts/python3Packages/write
+- Microsoft.Automation/automationAccounts/runbooks/content/read
 - Microsoft.Automation/automationAccounts/runbooks/write
 - Microsoft.Automation/automationAccounts/schedules/write
 - Microsoft.Automation/automationAccounts/sourceControls/write
@@ -20681,7 +20698,6 @@ high:
 - Microsoft.Cdn/profiles/endpoints/origins/write
 - Microsoft.Cdn/profiles/origingroups/origins/write
 - Microsoft.Cdn/profiles/rulesets/rules/write
-- Microsoft.Cdn/profiles/securitypolicies/delete
 - Microsoft.Chaos/experiments/start/action
 - Microsoft.CodeSigning/certificateProfiles/Sign/action
 - Microsoft.CodeSigning/codeSigningAccounts/certificateProfiles/Write
@@ -20727,6 +20743,7 @@ high:
 - Microsoft.ContainerRegistry/registries/importImage/action
 - Microsoft.ContainerRegistry/registries/listCredentials/action
 - Microsoft.ContainerRegistry/registries/pull/read
+- Microsoft.ContainerRegistry/registries/repositories/content/read
 - Microsoft.ContainerRegistry/registries/runs/listLogSasUrl/action
 - Microsoft.ContainerRegistry/registries/scheduleRun/action
 - Microsoft.ContainerRegistry/registries/taskruns/listDetails/action
@@ -20919,9 +20936,11 @@ high:
 - Microsoft.HDInsight/clusters/write
 - Microsoft.HealthBot/healthBots/Admin/ConversationLogs/Export/Action
 - Microsoft.HealthBot/healthBots/Admin/Secrets/GenerateApiKey/Action
+- Microsoft.HealthBot/healthBots/listSecrets/action
 - Microsoft.HybridCompute/machines/write
 - Microsoft.HybridConnectivity/endpoints/listCredentials/action
 - Microsoft.HybridContainerService/provisionedClusters/listClusterUserCredential/action
+- Microsoft.InferenceService/inferenceAccounts/listKeys/action
 - Microsoft.InferenceService/inferenceAccounts/regenerateKeys/action
 - Microsoft.Insights/ActionGroups/Read
 - Microsoft.Insights/ActionGroups/Write
@@ -21009,7 +21028,6 @@ high:
 - Microsoft.Maps/accounts/listSas/action
 - Microsoft.Maps/accounts/regenerateKey/action
 - Microsoft.NetApp/netAppAccounts/capacityPools/volumes/write
-- Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/write
 - Microsoft.Network/applicationGateways/write
 - Microsoft.Network/connections/sharedKey/read
 - Microsoft.Network/connections/sharedkey/action
@@ -21020,9 +21038,7 @@ high:
 - Microsoft.Network/dnszones/TXT/write
 - Microsoft.Network/firewallPolicies/ruleCollectionGroups/write
 - Microsoft.Network/firewallPolicies/write
-- Microsoft.Network/frontDoorWebApplicationFirewallPolicies/write
 - Microsoft.Network/frontDoors/backendPools/write
-- Microsoft.Network/frontdoorWebApplicationFirewallPolicies/write
 - Microsoft.Network/loadBalancers/backendAddressPools/write
 - Microsoft.Network/loadBalancers/write
 - Microsoft.Network/networkInterfaces/join/action
@@ -21051,6 +21067,7 @@ high:
 - Microsoft.OperationalInsights/workspaces/dataexports/write
 - Microsoft.OperationalInsights/workspaces/linkedServices/write
 - Microsoft.OperationalInsights/workspaces/linkedservices/write
+- Microsoft.OperationalInsights/workspaces/query/read
 - Microsoft.OperationalInsights/workspaces/regenerateSharedKey/action
 - Microsoft.OperationalInsights/workspaces/searchJobs/write
 - Microsoft.OperationalInsights/workspaces/sharedkeys/action
@@ -21087,6 +21104,7 @@ high:
 - Microsoft.Search/searchServices/debugSessions/execute/action
 - Microsoft.Search/searchServices/debugSessions/write
 - Microsoft.Search/searchServices/indexers/write
+- Microsoft.Search/searchServices/indexes/documents/read
 - Microsoft.Search/searchServices/indexes/write
 - Microsoft.Search/searchServices/listAdminKeys/action
 - Microsoft.Search/searchServices/listQueryKeys/action
@@ -21116,7 +21134,6 @@ high:
 - Microsoft.ServiceFabric/managedclusters/write
 - Microsoft.ServiceLinker/linkers/generateConfigurations/action
 - Microsoft.ServiceLinker/linkers/listConfigurations/action
-- Microsoft.ServiceNetworking/trafficControllers/securityPolicies/delete
 - Microsoft.SignalRService/SignalR/auth/accessKey/action
 - Microsoft.SignalRService/SignalR/clientConnection/send/action
 - Microsoft.SignalRService/SignalR/listkeys/action
@@ -21208,6 +21225,7 @@ high:
 - Microsoft.Web/sites/slots/functions/listsecrets/action
 - Microsoft.Web/sites/slotsswap/Action
 - Microsoft.Web/sites/slotsswap/action
+- Microsoft.Web/sourcecontrols/read
 - Microsoft.Web/staticSites/Write
 - Microsoft.Web/staticSites/config/Write
 - Microsoft.Web/staticSites/config/write
@@ -21220,10 +21238,14 @@ high:
 - Microsoft.Web/staticSites/write
 - Policy.ReadWrite.AuthenticationFlows
 - Policy.ReadWrite.AuthenticationMethod
+- RoleManagement.Read.Directory
 - RoleManagementPolicy.ReadWrite.AzureADGroup
 - RoleManagementPolicy.ReadWrite.Directory
 - Sites.Read.All
+- Sites.ReadWrite.All
 - Synchronization.ReadWrite.All
+- User.Read.All
+- User.ReadWrite.All
 - microsoft.app/builds/listauthtoken/action
 - microsoft.app/containerapps/authconfigs/write
 - microsoft.app/containerapps/getauthtoken/action
@@ -21241,10 +21263,14 @@ high:
 - microsoft.app/managedenvironments/storages/write
 - microsoft.directory/applications.myOrganization/allProperties/update
 - microsoft.directory/applications/allProperties/update
+- microsoft.directory/bitlockerKeys/key/read
+- microsoft.directory/deviceLocalCredentials/password/read
 - microsoft.directory/devices/registeredOwners/update
 - microsoft.directory/devices/registeredUsers/update
 - microsoft.directory/groups/allProperties/update
 - microsoft.directory/groups/dynamicMembershipRule/update
+- microsoft.directory/groups/members/update
+- microsoft.directory/groups/owners/update
 - microsoft.directory/users/basic/update
 - microsoft.network/virtualnetworkgateways/generatevpnprofile/action
 - microsoft.network/virtualnetworkgateways/listAllRadiusServersSecrets/action
@@ -21272,8 +21298,12 @@ high:
 - microsoft.web/sites/slots/host/systemkeys/write
 - microsoft.web/sites/slots/triggeredwebjobs/run/action
 - microsoft.web/sites/triggeredwebjobs/run/action
+- microsoft.web/sourcecontrols/read
 critical:
+- AppRoleAssignment.ReadWrite.All
+- Application.ReadWrite.All
 - Application.ReadWrite.OwnedBy
+- DelegatedPermissionGrant.ReadWrite.All
 - EntitlementManagement.ReadWrite.All
 - GroupMember.ReadWrite.All
 - Microsoft.ApiManagement/service/gateways/generateToken/action
@@ -21356,10 +21386,20 @@ critical:
 - Microsoft.Web/sites/slots/sitecontainers/Write
 - Microsoft.Web/sites/slots/sourcecontrols/Write
 - Microsoft.Web/sites/sourcecontrols/Write
+- PrivilegedAccess.ReadWrite.AzureAD
+- PrivilegedAccess.ReadWrite.AzureResources
 - PrivilegedEligibilitySchedule.ReadWrite.AzureADGroup
+- RoleManagement.ReadWrite.Directory
+- UserAuthenticationMethod.ReadWrite.All
 - microsoft.app/jobs/start/action
 - microsoft.app/sessionpools/fetchmcpservercredentials/action
+- microsoft.directory/applications.myOrganization/credentials/update
+- microsoft.directory/applications/credentials/update
+- microsoft.directory/applications/owners/update
+- microsoft.directory/servicePrincipals/credentials/update
+- microsoft.directory/servicePrincipals/owners/update
 - microsoft.directory/servicePrincipals/synchronizationCredentials/manage
+- microsoft.directory/users/password/update
 - microsoft.web/sites/extensions/write
 - microsoft.web/sites/functions/masterkey/read
 - microsoft.web/sites/functions/token/read

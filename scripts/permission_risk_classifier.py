@@ -168,4 +168,4 @@ def candidate_actions(provider: str, risk_levels: Iterable[str]) -> list[str]:
         candidates.update(getattr(rules, f"{level}_exact", ()) or ())
     candidates.update(permission for permission, level in _shared._load_yaml(provider).get("severity_overrides", {}).items() if level in levels)
     # Retain companion actions needed to recognize complete combinations.
-    return sorted(permission for permission in candidates if "*" not in permission)
+    return sorted(permission for permission in candidates if "*" not in permission and not _shared.is_non_permission(provider, permission))

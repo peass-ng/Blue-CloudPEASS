@@ -988,7 +988,6 @@ low:
 - chime:GetAccountWithOpenIdConfig
 - chime:GetAppInstanceRetentionSettings
 - chime:GetAppInstanceStreamingConfigurations
-- chime:GetAttendee
 - chime:GetBot
 - chime:GetCDRBucket
 - chime:GetChannelMembershipPreferences
@@ -1041,7 +1040,6 @@ low:
 - chime:ListAppInstanceUsers
 - chime:ListAppInstances
 - chime:ListAttendeeTags
-- chime:ListAttendees
 - chime:ListAvailableVoiceConnectorRegions
 - chime:ListBots
 - chime:ListCDRBucket
@@ -2274,7 +2272,6 @@ low:
 - directconnect:DescribeLags
 - directconnect:DescribeLoa
 - directconnect:DescribeLocations
-- directconnect:DescribeRouterConfiguration
 - directconnect:DescribeTags
 - directconnect:DescribeVirtualGateways
 - directconnect:ListVirtualInterfaceTestHistory
@@ -2433,7 +2430,6 @@ low:
 - dynamodb:DescribeTableReplicaAutoScaling
 - dynamodb:DescribeTimeToLive
 - dynamodb:GetAbacStatus
-- dynamodb:GetRecords
 - dynamodb:GetResourcePolicy
 - dynamodb:GetShardIterator
 - dynamodb:ListBackups
@@ -3337,7 +3333,6 @@ low:
 - glue:GetColumnStatisticsTaskRuns
 - glue:GetColumnStatisticsTaskSettings
 - glue:GetCompletion
-- glue:GetConnections
 - glue:GetCrawler
 - glue:GetCrawlerMetrics
 - glue:GetCrawlers
@@ -3356,7 +3351,6 @@ low:
 - glue:GetDataflowGraph
 - glue:GetDevEndpoint
 - glue:GetDevEndpoints
-- glue:GetEntityRecords
 - glue:GetEnvironment
 - glue:GetExecutors
 - glue:GetExecutorsThreads
@@ -3412,7 +3406,6 @@ low:
 - glue:GetUsageProfile
 - glue:GetUserDefinedFunction
 - glue:GetUserDefinedFunctions
-- glue:GetWorkflow
 - glue:GetWorkflowRun
 - glue:GetWorkflowRuns
 - glue:ListBlueprints
@@ -3791,7 +3784,6 @@ low:
 - invoicing:GetInvoiceCorrection
 - invoicing:GetInvoiceEmailDeliveryPreferences
 - invoicing:GetInvoiceUnit
-- invoicing:GetProcurementPortalPreference
 - invoicing:ListInvoiceCorrections
 - invoicing:ListInvoiceUnits
 - invoicing:ListProcurementPortalPreferences
@@ -5491,7 +5483,6 @@ low:
 - partnercentral:GetAllianceLeadContact
 - partnercentral:GetAwsOpportunitySummary
 - partnercentral:GetBenefit
-- partnercentral:GetBenefitAllocation
 - partnercentral:GetBenefitApplication
 - partnercentral:GetBusinessPlan
 - partnercentral:GetCollaborationChannel
@@ -5657,7 +5648,6 @@ low:
 - private-networks:ListOrders
 - private-networks:ListTagsForResource
 - profile:BatchGetCalculatedAttributeForProfile
-- profile:BatchGetProfile
 - profile:GetAutoMergingPreview
 - profile:GetCalculatedAttributeDefinition
 - profile:GetCalculatedAttributeForProfile
@@ -5703,7 +5693,6 @@ low:
 - profile:ListProfileHistoryRecords
 - profile:ListProfileObjectTypeTemplates
 - profile:ListProfileObjectTypes
-- profile:ListProfileObjects
 - profile:ListRecommenderRecipes
 - profile:ListRecommenders
 - profile:ListRuleBasedMatches
@@ -6008,7 +5997,6 @@ low:
 - redshift-data:DescribeStatement
 - redshift-data:DescribeTable
 - redshift-data:GetStagingBucketLocation
-- redshift-data:GetStatementResult
 - redshift-data:ListDatabases
 - redshift-data:ListSchemas
 - redshift-data:ListStatements
@@ -6512,7 +6500,6 @@ low:
 - s3tables:GetTableBucketPolicy
 - s3tables:GetTableBucketReplication
 - s3tables:GetTableBucketStorageClass
-- s3tables:GetTableData
 - s3tables:GetTableEncryption
 - s3tables:GetTableMaintenanceConfiguration
 - s3tables:GetTableMaintenanceJobStatus
@@ -6777,7 +6764,6 @@ low:
 - security-ir:ListTagsForResource
 - securityagent:BatchGetAgentInstances
 - securityagent:BatchGetArtifactMetadata
-- securityagent:BatchGetFindings
 - securityagent:BatchGetPentestJobs
 - securityagent:BatchGetPentests
 - securityagent:BatchGetSecurityTestContentMetadata
@@ -7116,7 +7102,6 @@ low:
 - snowball:DescribeCluster
 - snowball:DescribeJob
 - snowball:DescribeReturnShippingLabel
-- snowball:GetJobUnlockCode
 - snowball:GetSnowballUsage
 - snowball:GetSoftwareUpdates
 - snowball:ListClusterJobs
@@ -7974,7 +7959,6 @@ low:
 - workmail:ListSmtpGateways
 - workmail:ListTagsForResource
 - workmail:ListUsers
-- workmailmessageflow:GetRawMessageContent
 - workspaces-instances:GetWorkspaceInstance
 - workspaces-instances:ListInstanceTypes
 - workspaces-instances:ListRegions
@@ -8202,6 +8186,7 @@ medium:
 - aidevops:DeleteAgentSpace
 - aidevops:DeleteKnowledgeItem
 - aidevops:DeregisterService
+- aidevops:DisableOperatorApp
 - aidevops:DisassociateService
 - aidevops:DiscoverTopology
 - aidevops:EndChatForCase
@@ -8353,6 +8338,7 @@ medium:
 - apigateway:PutPortalProductSharingPolicy
 - apigateway:RejectAccessAssociation
 - apigateway:RemoveCertificateFromDomain
+- apigateway:SetWebACL
 - apigateway:UpdateDomainNameManagementPolicy
 - apigateway:UpdateDomainNamePolicy
 - apigateway:UpdatePortalProduct
@@ -8624,6 +8610,7 @@ medium:
 - appsync:DisassociateApi
 - appsync:DisassociateMergedGraphqlApi
 - appsync:DisassociateSourceGraphqlApi
+- appsync:DisassociateWebACL
 - appsync:EvaluateCode
 - appsync:EvaluateMappingTemplate
 - appsync:EventConnect
@@ -8631,6 +8618,7 @@ medium:
 - appsync:EventSubscribe
 - appsync:FlushApiCache
 - appsync:PutGraphqlApiEnvironmentVariables
+- appsync:SetWebACL
 - appsync:SourceGraphQL
 - appsync:StartDataSourceIntrospection
 - appsync:StartSchemaCreation
@@ -9264,9 +9252,7 @@ medium:
 - braket:TagResource
 - braket:UntagResource
 - braket:UpdateSpendingLimit
-- budgets:DeleteBudget
 - budgets:DeleteBudgetAction
-- budgets:DeleteNotification
 - budgets:ModifyBudget
 - budgets:TagResource
 - budgets:UntagResource
@@ -12096,6 +12082,7 @@ medium:
 - elasticloadbalancing:CreateRule
 - elasticloadbalancing:CreateTargetGroup
 - elasticloadbalancing:CreateTrustStore
+- elasticloadbalancing:CreateWebACLAssociation
 - elasticloadbalancing:DeleteListener
 - elasticloadbalancing:DeleteLoadBalancer
 - elasticloadbalancing:DeleteLoadBalancerListeners
@@ -12104,6 +12091,7 @@ medium:
 - elasticloadbalancing:DeleteSharedTrustStoreAssociation
 - elasticloadbalancing:DeleteTargetGroup
 - elasticloadbalancing:DeleteTrustStore
+- elasticloadbalancing:DeleteWebACLAssociation
 - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
 - elasticloadbalancing:DeregisterTargets
 - elasticloadbalancing:DetachLoadBalancerFromSubnets
@@ -15117,6 +15105,7 @@ medium:
 - network-firewall:CreateRuleGroup
 - network-firewall:CreateTLSInspectionConfiguration
 - network-firewall:CreateVpcEndpointAssociation
+- network-firewall:DeleteFirewall
 - network-firewall:DeleteFirewallPolicy
 - network-firewall:DeleteNetworkFirewallTransitGatewayAttachment
 - network-firewall:DeleteResourcePolicy
@@ -15132,10 +15121,13 @@ medium:
 - network-firewall:UntagResource
 - network-firewall:UpdateAvailabilityZoneChangeProtection
 - network-firewall:UpdateFirewallAnalysisSettings
+- network-firewall:UpdateFirewallDeleteProtection
 - network-firewall:UpdateFirewallDescription
 - network-firewall:UpdateFirewallEncryptionConfiguration
+- network-firewall:UpdateFirewallPolicyChangeProtection
 - network-firewall:UpdateLoggingConfiguration
 - network-firewall:UpdateRuleGroup
+- network-firewall:UpdateSubnetChangeProtection
 - network-firewall:UpdateTLSInspectionConfiguration
 - network-security-director:UpdateFinding
 - network-security-manager:DeleteAdminAccount
@@ -17526,7 +17518,6 @@ medium:
 - ses:CreateDedicatedIpPool
 - ses:CreateDeliverabilityTestReport
 - ses:CreateEmailIdentity
-- ses:CreateEmailIdentityPolicy
 - ses:CreateEmailTemplate
 - ses:CreateExportJob
 - ses:CreateImportJob
@@ -17628,7 +17619,6 @@ medium:
 - ses:UpdateContact
 - ses:UpdateContactList
 - ses:UpdateCustomVerificationEmailTemplate
-- ses:UpdateEmailIdentityPolicy
 - ses:UpdateEmailTemplate
 - ses:UpdateIngressPoint
 - ses:UpdateReceiptRule
@@ -18053,7 +18043,6 @@ medium:
 - sso:CreateManagedApplicationInstance
 - sso:CreateProfile
 - sso:CreateTrust
-- sso:CreateTrustedTokenIssuer
 - sso:DeleteAccountAssignment
 - sso:DeleteApplication
 - sso:DeleteApplicationAccessScope
@@ -18658,13 +18647,23 @@ medium:
 - waf:UpdateSqlInjectionMatchSet
 - waf:UpdateWebACL
 - waf:UpdateXssMatchSet
+- wafv2:AssociateWebACL
 - wafv2:CheckCapacity
 - wafv2:CreateAPIKey
+- wafv2:CreateIPSet
+- wafv2:CreateRegexPatternSet
+- wafv2:CreateRuleGroup
+- wafv2:CreateWebACL
 - wafv2:DeleteAPIKey
 - wafv2:DeleteFirewallManagerRuleGroups
+- wafv2:DeleteIPSet
 - wafv2:DeleteLoggingConfiguration
 - wafv2:DeletePermissionPolicy
+- wafv2:DeleteRegexPatternSet
+- wafv2:DeleteRuleGroup
+- wafv2:DeleteWebACL
 - wafv2:DisassociateFirewallManager
+- wafv2:DisassociateWebACL
 - wafv2:GenerateMobileSdkReleaseUrl
 - wafv2:PutFirewallManagerRuleGroups
 - wafv2:PutLoggingConfiguration
@@ -18672,7 +18671,11 @@ medium:
 - wafv2:PutPermissionPolicy
 - wafv2:TagResource
 - wafv2:UntagResource
+- wafv2:UpdateIPSet
 - wafv2:UpdateManagedRuleSetVersionExpiryDate
+- wafv2:UpdateRegexPatternSet
+- wafv2:UpdateRuleGroup
+- wafv2:UpdateWebACL
 - wam:AuthenticatePackager
 - wellarchitected:AssociateLenses
 - wellarchitected:AssociateProfiles
@@ -19056,8 +19059,8 @@ high:
 - account:PutContactInformation
 - account:StartPrimaryEmailUpdate
 - acm:ExportCertificate
+- acm:GetAcmeExternalAccountBindingCredentials
 - aidevops:AssociateService
-- aidevops:DisableOperatorApp
 - aidevops:EnableOperatorApp
 - aidevops:UpdateAssociation
 - aidevops:UpdatePrivateConnectionCertificate
@@ -19080,7 +19083,6 @@ high:
 - apigateway:POST
 - apigateway:PUT
 - apigateway:PublishPortal
-- apigateway:SetWebACL
 - apigateway:UpdatePortal
 - apigateway:UpdateRestApiPolicy
 - app-integrations:UpdateApplication
@@ -19111,12 +19113,10 @@ high:
 - appstream:UpdateStack
 - appsync:CreateApiKey
 - appsync:CreateDataSource
-- appsync:DisassociateWebACL
 - appsync:GetGraphqlApiEnvironmentVariables
 - appsync:GraphQL
 - appsync:ListApiKeys
 - appsync:PutResourcePolicy
-- appsync:SetWebACL
 - appsync:UpdateDataSource
 - appsync:UpdateGraphqlApi
 - appsync:UpdateResolver
@@ -19204,8 +19204,10 @@ high:
 - chime:CreateMediaInsightsPipelineConfiguration
 - chime:CreateMediaLiveConnectorPipeline
 - chime:CreateSipRule
+- chime:GetAttendee
 - chime:GetChannelMessage
 - chime:GetMediaPipeline
+- chime:ListAttendees
 - chime:ListChannelMessages
 - chime:ListVoiceConnectorTerminationCredentials
 - chime:PutMessagingStreamingConfigurations
@@ -19262,6 +19264,7 @@ high:
 - cloudwatch:CreateOneTimeDeepLinkCode
 - cloudwatch:CreateView
 - cloudwatch:GetDashboard
+- cloudwatch:GetSpaceCredentialsForOrganization
 - cloudwatch:Link
 - cloudwatch:SetAlarmState
 - codeartifact:GetAuthorizationToken
@@ -19338,7 +19341,6 @@ high:
 - connect:GetContactAttributes
 - connect:GetCurrentUserData
 - connect:GetFederationToken
-- connect:MonitorCapabilities
 - connect:MonitorContact
 - connect:StartContactMediaProcessing
 - connect:StartContactStreaming
@@ -19380,6 +19382,7 @@ high:
 - directconnect:AcceptDirectConnectGatewayAssociationProposal
 - directconnect:AssociateMacSecKey
 - directconnect:CreateDirectConnectGatewayAssociationProposal
+- directconnect:DescribeRouterConfiguration
 - directconnect:DescribeVirtualInterfaces
 - directconnect:UpdateConnection
 - discovery:StartExportTask
@@ -19397,6 +19400,7 @@ high:
 - dynamodb:EnableKinesisStreamingDestination
 - dynamodb:ExportTableToPointInTime
 - dynamodb:GetItem
+- dynamodb:GetRecords
 - dynamodb:PartiQLSelect
 - dynamodb:PutItem
 - dynamodb:Query
@@ -19404,7 +19408,6 @@ high:
 - dynamodb:RestoreTableFromBackup
 - dynamodb:RestoreTableToPointInTime
 - dynamodb:Scan
-- dynamodb:TransactWriteItems
 - dynamodb:UpdateContinuousBackups
 - dynamodb:UpdateItem
 - ebs:GetSnapshotBlock
@@ -19489,14 +19492,14 @@ high:
 - elasticfilesystem:CreateReplicationConfiguration
 - elasticfilesystem:ReplicationRead
 - elasticfilesystem:ReplicationWrite
-- elasticloadbalancing:CreateWebACLAssociation
-- elasticloadbalancing:DeleteWebACLAssociation
 - elasticloadbalancing:ModifyListener
 - elasticloadbalancing:ModifyLoadBalancerAttributes
 - elasticloadbalancing:ModifyRule
 - elasticmapreduce:CreateEditor
 - elasticmapreduce:GetClusterSessionCredentials
 - elasticmapreduce:PutBlockPublicAccessConfiguration
+- elemental-inference:ExportDictionaryEntries
+- elemental-inference:GetMetadata
 - elemental-inference:PutFeedPolicy
 - emr-containers:GetManagedEndpointSessionCredentials
 - emr-containers:StartJobRun
@@ -19539,6 +19542,7 @@ high:
 - gamelift:CreateFleet
 - gamelift:GetComputeAuthToken
 - gameliftstreams:GetStreamSession
+- gameliftstreams:ListStreamUrls
 - geo:CreateKey
 - geo:GetDevicePosition
 - geo:GetDevicePositionHistory
@@ -19549,9 +19553,12 @@ high:
 - glue:CreateSession
 - glue:CreateTrigger
 - glue:GetConnection
+- glue:GetConnections
+- glue:GetEntityRecords
 - glue:GetJob
 - glue:GetJobs
 - glue:GetStatement
+- glue:GetWorkflow
 - glue:GetWorkflowRunProperties
 - glue:PassConnection
 - glue:PutResourcePolicy
@@ -19581,7 +19588,6 @@ high:
 - iam:EnableMFADevice
 - iam:EnableOrganizationsRootCredentialsManagement
 - iam:EnableOrganizationsRootSessions
-- iam:PassedToService
 - iam:SendDelegationToken
 - iam:UpdateAccountEmailAddress
 - iam:UpdateGroup
@@ -19596,6 +19602,7 @@ high:
 - invoicing:BatchGetInvoiceProfile
 - invoicing:CreateInvoiceUnit
 - invoicing:GetInvoicePDF
+- invoicing:GetProcurementPortalPreference
 - invoicing:ListInvoiceSummaries
 - iot:AssumeRoleWithCertificate
 - iot:AttachPolicy
@@ -19755,13 +19762,9 @@ high:
 - neptune-graph:ReadDataViaQuery
 - network-firewall:AssociateFirewallPolicy
 - network-firewall:CreateFirewallPolicy
-- network-firewall:DeleteFirewall
 - network-firewall:DisassociateSubnets
 - network-firewall:PutResourcePolicy
-- network-firewall:UpdateFirewallDeleteProtection
 - network-firewall:UpdateFirewallPolicy
-- network-firewall:UpdateFirewallPolicyChangeProtection
-- network-firewall:UpdateSubnetChangeProtection
 - network-security-manager:DeleteDeployment
 - network-security-manager:PutAdminAccount
 - network-security-manager:UpdateRule
@@ -19796,6 +19799,7 @@ high:
 - organizations:RegisterDelegatedAdministrator
 - organizations:UpdatePolicy
 - osis:PutResourcePolicy
+- partnercentral:GetBenefitAllocation
 - partnercentral:GetVerification
 - partnercentral:PutSellingSystemSettings
 - partnercentral:StartResourceSnapshotJob
@@ -19815,9 +19819,11 @@ high:
 - pipes:StartPipe
 - profile:AddProfileKey
 - profile:AssociateStreamForSegments
+- profile:BatchGetProfile
 - profile:CreateEventStream
 - profile:CreateIntegrationWorkflow
 - profile:CreateSegmentSnapshot
+- profile:ListProfileObjects
 - profile:PutIntegration
 - profile:SearchProfiles
 - proton:CreateComponent
@@ -19842,9 +19848,9 @@ high:
 - rds:RestoreDBInstanceFromDBSnapshot
 - rds:StartDBInstanceAutomatedBackupsReplication
 - redshift-data:ExecuteStatement
+- redshift-data:GetStatementResult
 - redshift-serverless:PutResourcePolicy
 - redshift-serverless:UpdateWorkgroup
-- redshift:AllowWrites
 - redshift:AuthorizeDataShare
 - redshift:AuthorizeEndpointAccess
 - redshift:AuthorizeSnapshotAccess
@@ -19911,6 +19917,7 @@ high:
 - s3files:CreateFileSystem
 - s3files:PutFileSystemPolicy
 - s3files:UpdateMountTarget
+- s3tables:GetTableData
 - s3tables:PutTableBucketReplication
 - s3tables:PutTableReplication
 - s3vectors:GetVectors
@@ -19955,6 +19962,7 @@ high:
 - secretsmanager:UpdateSecretVersionStage
 - security-ir:UpdateCase
 - security-ir:UpdateMembership
+- securityagent:BatchGetFindings
 - securityagent:CreateMembership
 - securityagent:GetArtifact
 - securityagent:GetLoginSessionCredentials
@@ -19966,6 +19974,7 @@ high:
 - servicecatalog:PutResourcePolicy
 - servicediscovery:PutResourcePolicy
 - servicediscovery:RegisterInstance
+- ses:CreateEmailIdentityPolicy
 - ses:CreateReceiptRule
 - ses:GetArchiveMessage
 - ses:GetArchiveMessageContent
@@ -19973,14 +19982,15 @@ high:
 - ses:GetSuppressedDestination
 - ses:ListSuppressedDestinations
 - ses:PutIdentityPolicy
+- ses:UpdateEmailIdentityPolicy
 - ses:UpdateRuleSet
-- sesv2:PutEmailIdentityPolicy
 - signer:StartSigningJob
 - sms-voice:PutResourcePolicy
 - snow-device-management:CreateTask
 - snowball:CreateAddress
 - snowball:CreateJob
 - snowball:GetJobManifest
+- snowball:GetJobUnlockCode
 - snowball:UpdateJob
 - sns:ListSubscriptions
 - sns:ListSubscriptionsByTopic
@@ -20022,10 +20032,10 @@ high:
 - ssm:UpdateManagedInstanceRole
 - ssm:UpdateServiceSetting
 - ssmmessages:CreateControlChannel
-- sso-admin:CreateTrustedTokenIssuer
 - sso-directory:CreateUser
 - sso-directory:ListBearerTokens
 - sso:CreatePermissionSet
+- sso:CreateTrustedTokenIssuer
 - sso:DeleteInlinePolicyFromPermissionSet
 - sso:DeletePermissionsBoundaryFromPermissionSet
 - sso:DescribeTrustedTokenIssuer
@@ -20092,22 +20102,9 @@ high:
 - waf-regional:GetChangeTokenStatus
 - waf:GetChangeToken
 - waf:GetChangeTokenStatus
-- wafv2:AssociateWebACL
-- wafv2:CreateIPSet
-- wafv2:CreateRegexPatternSet
-- wafv2:CreateRuleGroup
-- wafv2:CreateWebACL
-- wafv2:DeleteIPSet
-- wafv2:DeleteRegexPatternSet
-- wafv2:DeleteRuleGroup
-- wafv2:DeleteWebACL
-- wafv2:DisassociateWebACL
 - wafv2:GetDecryptedAPIKey
 - wafv2:GetSampledRequests
-- wafv2:UpdateIPSet
-- wafv2:UpdateRegexPatternSet
-- wafv2:UpdateRuleGroup
-- wafv2:UpdateWebACL
+- wickr:GetOidcInfo
 - wickr:GetOpentdfConfig
 - wickr:ListUsers
 - wisdom:CreateAIAgent
@@ -20124,6 +20121,7 @@ high:
 - workdocs:UpdateUser
 - workmail:GetPersonalAccessTokenMetadata
 - workmail:ListPersonalAccessTokens
+- workmailmessageflow:GetRawMessageContent
 - workmailmessageflow:PutRawMessageContent
 - workspaces-instances:CreateWorkspaceInstance
 - workspaces-web:CreateIdentityProvider
@@ -20146,12 +20144,14 @@ critical:
 - athena:StartCalculationExecution
 - backup:PutBackupVaultAccessPolicy
 - batch:SubmitJob
+- bedrock-agentcore:InvokeAgentRuntimeCommand
 - cloudwatch:CreateAccessGrant
 - codebuild:StartBuild
 - codebuild:StartBuildBatch
 - codebuild:StartCommandExecution
 - codebuild:StartSandboxConnection
 - cognito-identity:UpdateIdentityPool
+- cognito-idp:AddUserPoolClientSecret
 - cognito-idp:AdminAddUserToGroup
 - cognito-idp:AdminConfirmSignUp
 - cognito-idp:AdminCreateUser
@@ -20189,6 +20189,7 @@ critical:
 - entityresolution:PutPolicy
 - es:UpdateDomainConfig
 - gamelift:GetComputeAccess
+- gameliftstreams:CreateStreamSessionAdminShell
 - glue:RunStatement
 - glue:StartJobRun
 - glue:UpdateDevEndpoint
@@ -20284,3 +20285,4 @@ critical:
 - sts:AssumeRoleWithSAML
 - sts:AssumeRoleWithWebIdentity
 - sts:AssumeRoot
+- wickr:CreateDataRetentionBotChallenge

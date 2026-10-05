@@ -2,9 +2,9 @@
 version: 1
 provider: aws
 source_repository: carlospolop/CloudPEASS
-source_revision: 3ce96c74cabf51a29940690953e6ccef77e0be53
+source_revision: 8678507626f91d9fb677155522c03919245b7c95
 source_path: src/sensitive_permissions/aws.py
-source_sha256: c30935d7a095e0123cb1371099998afcd1087e83f64cd6f5280a18645ee21a01
+source_sha256: af429fa3febda1cf13c51e03423e75df79ab4ff2c9bcadbdb4c168401c4db499
 critical:
 - - '[*]'
 - - aps:PutResourcePolicy
@@ -222,7 +222,12 @@ critical:
 - - scn:AssignAdminPermissionsToUser
 - - sso-directory:UpdatePassword
 - - sts:AssumeRoot
+- - bedrock-agentcore:InvokeAgentRuntimeCommand
 high:
+- - partnercentral:GetBenefitAllocation
+- - securityagent:BatchGetFindings
+- - redshift-data:GetStatementResult
+- - snowball:GetJobUnlockCode
 - - ecr-public:SetRepositoryPolicy
 - - ecr:GetAuthorizationToken
   - ecr:BatchCheckLayerAvailability
@@ -366,7 +371,6 @@ high:
 - - cognito-idp:DescribeIdentityProvider
 - - cognito-idp:ListUsers
 - - cognito-idp:ListUsersInGroup
-- - dynamodb:TransactGetItems
 - - deadline:AssumeQueueRoleForRead
 - - deadline:AssumeQueueRoleForUser
 - - deadline:AssumeFleetRoleForRead
@@ -672,7 +676,6 @@ high:
 - - sso:DetachCustomerManagedPolicyReferenceFromPermissionSet
 - - sso:DeleteInlinePolicyFromPermissionSet
 - - sso:DeletePermissionsBoundaryFromPermissionSet
-- - sso:GetRoleCredentials
 - - s3:PutBucketNotification
 - - s3:PutObject
 - - s3:GetObject
@@ -700,7 +703,6 @@ high:
 - - account:StartPrimaryEmailUpdate
 - - acm:ExportCertificate
 - - aidevops:AssociateService
-- - aidevops:DisableOperatorApp
 - - aidevops:EnableOperatorApp
 - - aidevops:UpdateAssociation
 - - aidevops:UpdatePrivateConnectionCertificate
@@ -710,7 +712,6 @@ high:
 - - amplify:UpdateBranch
 - - amplifyuibuilder:GetCodegenJob
 - - apigateway:PublishPortal
-- - apigateway:SetWebACL
 - - apigateway:UpdatePortal
 - - app-integrations:UpdateApplication
 - - appconfig:CreateConfigurationProfile
@@ -735,8 +736,6 @@ high:
 - - appstream:UpdateStack
 - - appsync:CreateApiKey
 - - appsync:CreateDataSource
-- - appsync:DisassociateWebACL
-- - appsync:SetWebACL
 - - appsync:UpdateDataSource
 - - appsync:UpdateGraphqlApi
 - - arc-region-switch:CreatePlan
@@ -844,7 +843,6 @@ high:
 - - connect:CreateIntegrationAssociation
 - - connect:CreateParticipant
 - - connect:CreateUser
-- - connect:MonitorCapabilities
 - - connect:MonitorContact
 - - connect:StartContactMediaProcessing
 - - connect:StartContactStreaming
@@ -882,7 +880,6 @@ high:
 - - dynamodb:EnableKinesisStreamingDestination
 - - dynamodb:RestoreTableFromAwsBackup
 - - dynamodb:RestoreTableToPointInTime
-- - dynamodb:TransactWriteItems
 - - dynamodb:UpdateContinuousBackups
 - - ec2:ApplySecurityGroupsToClientVpnTargetNetwork
 - - ec2:AssociateClientVpnTargetNetwork
@@ -943,8 +940,6 @@ high:
 - - elasticfilesystem:CreateReplicationConfiguration
 - - elasticfilesystem:ReplicationRead
 - - elasticfilesystem:ReplicationWrite
-- - elasticloadbalancing:CreateWebACLAssociation
-- - elasticloadbalancing:DeleteWebACLAssociation
 - - elasticloadbalancing:ModifyLoadBalancerAttributes
 - - elasticmapreduce:CreateEditor
 - - elasticmapreduce:PutBlockPublicAccessConfiguration
@@ -995,7 +990,6 @@ high:
 - - iam:EnableMFADevice
 - - iam:EnableOrganizationsRootCredentialsManagement
 - - iam:EnableOrganizationsRootSessions
-- - iam:PassedToService
 - - iam:SendDelegationToken
 - - iam:UpdateAccountEmailAddress
 - - iam:UpdateGroup
@@ -1075,12 +1069,8 @@ high:
 - - mq:UpdateConfiguration
 - - network-firewall:AssociateFirewallPolicy
 - - network-firewall:CreateFirewallPolicy
-- - network-firewall:DeleteFirewall
 - - network-firewall:DisassociateSubnets
-- - network-firewall:UpdateFirewallDeleteProtection
 - - network-firewall:UpdateFirewallPolicy
-- - network-firewall:UpdateFirewallPolicyChangeProtection
-- - network-firewall:UpdateSubnetChangeProtection
 - - network-security-manager:DeleteDeployment
 - - network-security-manager:PutAdminAccount
 - - network-security-manager:UpdateRule
@@ -1145,7 +1135,6 @@ high:
 - - redshift-data:ExecuteStatement
 - - redshift-serverless:PutResourcePolicy
 - - redshift-serverless:UpdateWorkgroup
-- - redshift:AllowWrites
 - - redshift:AuthorizeDataShare
 - - redshift:AuthorizeEndpointAccess
 - - redshift:AuthorizeSnapshotAccess
@@ -1224,7 +1213,6 @@ high:
 - - ses:CreateReceiptRule
 - - ses:PutIdentityPolicy
 - - ses:UpdateRuleSet
-- - sesv2:PutEmailIdentityPolicy
 - - snow-device-management:CreateTask
 - - snowball:CreateAddress
 - - snowball:CreateJob
@@ -1253,7 +1241,6 @@ high:
 - - ssm:UpdateManagedInstanceRole
 - - ssm:UpdateServiceSetting
 - - ssmmessages:CreateControlChannel
-- - sso-admin:CreateTrustedTokenIssuer
 - - sso-directory:CreateUser
 - - sso:CreatePermissionSet
 - - sso:PutApplicationAssignmentConfiguration
@@ -1283,20 +1270,6 @@ high:
 - - verifiedpermissions:UpdateIdentitySource
 - - vpc-lattice:CreateAccessLogSubscription
 - - vpc-lattice:CreateServiceNetworkVpcAssociation
-- - wafv2:AssociateWebACL
-- - wafv2:CreateIPSet
-- - wafv2:CreateRegexPatternSet
-- - wafv2:CreateRuleGroup
-- - wafv2:CreateWebACL
-- - wafv2:DeleteIPSet
-- - wafv2:DeleteRegexPatternSet
-- - wafv2:DeleteRuleGroup
-- - wafv2:DeleteWebACL
-- - wafv2:DisassociateWebACL
-- - wafv2:UpdateIPSet
-- - wafv2:UpdateRegexPatternSet
-- - wafv2:UpdateRuleGroup
-- - wafv2:UpdateWebACL
 - - wickr:GetOpentdfConfig
 - - wickr:ListUsers
 - - wisdom:CreateAIAgent
@@ -1315,3 +1288,20 @@ high:
 - - workspaces-web:UpdateUserSettings
 - - workspaces:ModifySamlProperties
 - - workspaces:UpdateWorkspaceImagePermission
+- - sso:CreateTrustedTokenIssuer
+- - ses:CreateEmailIdentityPolicy
+- - ses:UpdateEmailIdentityPolicy
+- - chime:GetAttendee
+- - chime:ListAttendees
+- - glue:GetConnections
+- - glue:GetWorkflow
+- - workmailmessageflow:GetRawMessageContent
+- - profile:BatchGetProfile
+- - profile:ListProfileObjects
+- - directconnect:DescribeRouterConfiguration
+- - dynamodb:GetRecords
+- - glue:GetEntityRecords
+- - s3tables:GetTableData
+- - invoicing:GetProcurementPortalPreference
+- - acm:GetAcmeExternalAccountBindingCredentials
+- - cloudwatch:GetSpaceCredentialsForOrganization
