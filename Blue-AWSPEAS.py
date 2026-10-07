@@ -21,6 +21,7 @@ from scripts.permission_risk_classifier import candidate_actions, classify_all
 from bluepeass.report import Target, atomic_write_json, build_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_aws_account
+from bluepeass.hardening import AwsCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from bluepeass.progress_pool import SlotStageProgress
 
 
@@ -1735,6 +1736,7 @@ def process_account(
     *,
     progress_cb=None,
     show_progress=True,
+    hardening_args=None,
 ):
     """Process a single AWS account. Returns (success, result, errors) tuple."""
     global MAX_PERMS_TO_PRINT
@@ -2215,6 +2217,9 @@ def process_account(
         if permission_errors and result and isinstance(result, dict):
             result["permission_errors"] = permission_errors
 
+        if result and hardening_args is not None:
+            result["hardening"] = run_hardening(hardening_args, AwsCredentials(session), account_id)
+
         if progress_cb:
             progress_cb("done")
         return (True, result, permission_errors)
@@ -2255,6 +2260,7 @@ def main(
     max_parallel_accounts=10,
     *,
     out_json_path=None,
+    hardening_args=None,
 ):
     global MAX_PERMS_TO_PRINT
 
@@ -2347,6 +2353,7 @@ def main(
                         risk_levels,
                         progress_cb=cb2,
                         show_progress=not multi,
+                        hardening_args=hardening_args,
                     )
                 finally:
                     if slot_progress:
@@ -2387,6 +2394,9 @@ def main(
     if slot_progress:
         slot_progress.close()
 
+    for result in all_results:
+        print_hardening(result.get("hardening"), target=result.get("account_id", "unknown"), show_passed=bool(hardening_args and hardening_args.hardening_show_passed))
+
 
     if out_json_path:
         targets: list[dict] = []
@@ -2400,7 +2410,7 @@ def main(
                     target_type="account",
                     target_id=str(account_id),
                     label=str(profile) if profile else None,
-                    data=normalize_aws_account(r),
+                    data=attach_hardening(normalize_aws_account(r), r.get("hardening")),
                 ).to_dict()
             )
         report = build_report(
@@ -2425,6 +2435,7 @@ HELP = "Find AWS unused principals and permissions in one or several AWS account
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=HELP)
+    add_hardening_arguments(parser)
     parser.add_argument("--profile", help="AWS profile to check")
     parser.add_argument("-v", "--verbose", default=False, help="Get info about why a permission is sensitive or useful for privilege escalation.", action="store_true")
     parser.add_argument("--no-access-analyzer", default=False, help="Disable AWS Access Analyzer (will not report unused resources/permissions, but will still list all principals and their sensitive permissions)", action="store_true")
@@ -2472,6 +2483,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    validate_hardening_arguments(parser, args)
 
     def _expand_csv_values(values):
         out = []
@@ -2574,4 +2586,5 @@ if __name__ == "__main__":
         risk_levels,
         max_parallel_accounts=int(args.max_parallel_accounts),
         out_json_path=args.out_json,
+        hardening_args=args,
     )

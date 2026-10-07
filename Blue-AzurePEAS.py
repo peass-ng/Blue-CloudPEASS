@@ -7,6 +7,7 @@ import base64
 import fnmatch
 import json
 import os
+import shutil
 import sys
 import time
 from collections import defaultdict
@@ -23,11 +24,15 @@ import msal
 try:
     from azure.core.credentials import AccessToken
     from azure.core.exceptions import HttpResponseError
-    from azure.identity import ClientSecretCredential, DeviceCodeCredential
+    from azure.identity import AzureCliCredential, ClientSecretCredential, DeviceCodeCredential
     from azure.mgmt.authorization import AuthorizationManagementClient
     from azure.mgmt.monitor import MonitorManagementClient
-    from azure.mgmt.resource import ResourceManagementClient
-    from azure.mgmt.resource import SubscriptionClient
+    try:
+        from azure.mgmt.resource import ResourceManagementClient, SubscriptionClient
+    except ImportError:
+        # azure-mgmt-resource 24+ split subscription operations into a package.
+        from azure.mgmt.resource.resources import ResourceManagementClient
+        from azure.mgmt.subscription import SubscriptionClient
 except Exception as e:  # pragma: no cover
     raise SystemExit(
         "Missing/invalid Azure dependencies. Install with:\n"
@@ -38,6 +43,7 @@ except Exception as e:  # pragma: no cover
 from bluepeass.progress import StageProgress
 from bluepeass.report import Target, atomic_write_json, build_report
 from bluepeass.normalize import normalize_azure_management_groups, normalize_azure_subscription
+from bluepeass.hardening import AzureCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from scripts.permission_risk_classifier import RISK_LEVELS, RISK_ORDER, classify_all
 
 REQUIRED_GRAPH_SCOPES_ANY = {
@@ -60,8 +66,9 @@ SECURITY_ASSESSMENTS_API_VERSION = "2020-01-01"
 
 class AzureMsalTokenCacheCredential:
     """
-    Use the Azure CLI MSAL token cache (~/.azure/msal_token_cache.json) WITHOUT invoking `az`.
-    This keeps the script SDK/HTTP-only while letting users reuse `az login` sessions.
+    Prefer the readable Azure CLI MSAL cache, with the SDK's CLI credential
+    fallback for cache layouts that cannot be acquired silently. Bind all token
+    audiences to the identity selected by the first successful token.
     """
 
     def __init__(
@@ -77,6 +84,8 @@ class AzureMsalTokenCacheCredential:
         self._cache = msal.SerializableTokenCache()
         self._app: Optional[msal.PublicClientApplication] = None
         self._loaded = False
+        self._cli = None
+        self._identity = None
 
     def _load(self) -> None:
         if self._loaded:
@@ -93,15 +102,34 @@ class AzureMsalTokenCacheCredential:
         self._loaded = True
 
     def get_token(self, *scopes: str, **kwargs: Any) -> AccessToken:
-        self._load()
-        assert self._app is not None
-        accounts = self._app.get_accounts()
-        if not accounts:
-            raise RuntimeError("No accounts found in Azure CLI token cache. Run `az login` or use device-code/client-secret auth.")
-        result = self._app.acquire_token_silent(list(scopes), account=accounts[0])
-        if not result or "access_token" not in result:
-            raise RuntimeError(f"Failed to acquire token silently from Azure CLI cache: {result}")
-        return AccessToken(result["access_token"], int(result.get("expires_on") or 0))
+        if self._cli is not None:
+            return self._bind_identity(self._cli.get_token(*scopes, **kwargs))
+        try:
+            self._load()
+            assert self._app is not None
+            accounts = self._app.get_accounts()
+            if not accounts:
+                raise RuntimeError("No accounts found in Azure CLI token cache.")
+            result = self._app.acquire_token_silent(list(scopes), account=accounts[0])
+            if not result or "access_token" not in result:
+                raise RuntimeError("Cannot acquire a token silently from the Azure CLI cache.")
+        except Exception:
+            if not shutil.which("az"):
+                raise
+            candidate = AzureCliCredential()
+            token = self._bind_identity(candidate.get_token(*scopes, **kwargs))
+            self._cli = candidate
+            return token
+        return self._bind_identity(AccessToken(result["access_token"], int(result.get("expires_on") or 0)))
+
+    def _bind_identity(self, token):
+        claims = _jwt_claims(token.token)
+        identity = (claims.get("tid"), claims.get("oid"))
+        if all(identity):
+            if self._identity is not None and identity != self._identity:
+                raise RuntimeError("Azure cache authentication changed tenant or principal; refusing to switch identities.")
+            self._identity = identity
+        return token
 
 
 def _jwt_exp(token: str) -> Optional[int]:
@@ -316,7 +344,7 @@ def _flagged_only(perms_by_level: dict[str, list[str]], flagged_levels: set[str]
 
 
 def _build_credential(args) -> Any:
-    # Avoid `AzureCliCredential` to ensure we don't shell out to the `az` CLI.
+    # Cache auth may use the SDK's host CLI helper when direct MSAL cache reads fail.
     auth_method = (getattr(args, "auth_method", None) or "auto").strip().lower()
     if auth_method not in ("auto", "client-secret", "device-code", "az-cache"):
         raise ValueError("Invalid --auth-method. Use one of: auto, client-secret, device-code, az-cache")
@@ -2100,7 +2128,18 @@ def main() -> None:
     )
 
     ap.add_argument("--out-json", help="Write full JSON results to this path (stdout stays human-readable).")
+    add_hardening_arguments(ap)
     args = ap.parse_args()
+    validate_hardening_arguments(ap, args)
+
+    if args.hardening != "off" and args.arm_token and not args.graph_token:
+        # ARM-only read credentials can still audit subscription infrastructure.
+        # Keep unavailable directory reads visible in the hardening coverage.
+        args.resolve_principals = False
+        args.scan_entra = False
+        args.scan_entra_recommendations = False
+        args.scan_pim_alerts = False
+        print("[*] ARM-only credentials: directory resolution is unavailable; auditing subscription configuration and reporting Graph coverage gaps.")
 
     if args.only_iam_recommendations:
         # Keep the run fast and focused on IAM recommendations.
@@ -2460,6 +2499,11 @@ def main() -> None:
         )
         _print_mg_stdout(mg_result, max_items=args.max_items)
 
+    hardening_by_subscription = {}
+    for sid, _ in subscriptions:
+        hardening_by_subscription[sid] = run_hardening(args, AzureCredentials(credential, sid, current_identity.get("tid")), sid)
+        print_hardening(hardening_by_subscription[sid], target=sid, show_passed=args.hardening_show_passed)
+
     if args.out_json:
         targets: list[dict] = []
         for r in all_results:
@@ -2468,7 +2512,7 @@ def main() -> None:
                     target_type="subscription",
                     target_id=r.subscription_id,
                     label=r.subscription_name,
-                    data=normalize_azure_subscription(
+                    data=attach_hardening(normalize_azure_subscription(
                         {
                             "subscription_id": r.subscription_id,
                             "subscription_name": r.subscription_name,
@@ -2482,9 +2526,16 @@ def main() -> None:
                             "iam_recommendations": r.iam_recommendations,
                             "errors": r.errors,
                         }
-                    ),
+                    ), hardening_by_subscription.get(r.subscription_id)),
                 ).to_dict()
             )
+
+        represented = {target["target_id"] for target in targets}
+        for sid, name in subscriptions:
+            if sid not in represented:
+                data = attach_hardening(normalize_azure_subscription({"subscription_id": sid, "subscription_name": name}), hardening_by_subscription[sid])
+                data["provider_raw"]["iam_audit_failed"] = True
+                targets.append(Target(target_type="subscription", target_id=sid, label=name, data=data).to_dict())
 
         if tenant_iam is not None:
             targets.append(

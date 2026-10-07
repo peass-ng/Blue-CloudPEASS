@@ -1,0 +1,29 @@
+FROM python:3.13-slim-bookworm
+
+ARG TARGETARCH
+ARG STEAMPIPE_VERSION=2.4.7
+ARG POWERPIPE_VERSION=1.5.5
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl git procps libssl3 libicu72 libxml2 libreadline8 \
+    && rm -rf /var/lib/apt/lists/*
+COPY docker/install_turbot.py /opt/bluepeass/install_turbot.py
+RUN python /opt/bluepeass/install_turbot.py "${TARGETARCH}" "${STEAMPIPE_VERSION}" "${POWERPIPE_VERSION}"
+RUN useradd --create-home --uid 9193 bluepeass
+USER bluepeass
+WORKDIR /home/bluepeass
+RUN steampipe plugin install aws@1.34.0 azure@1.15.0 azuread@1.9.0 gcp@1.13.1 kubernetes@1.7.0 > /tmp/plugin-install.log 2>&1 \
+    && rm -f /home/bluepeass/.steampipe/config/*.spc \
+    && steampipe query 'select 1' --output json > /dev/null
+USER root
+RUN mv /home/bluepeass/.steampipe /opt/steampipe \
+    && rm -rf /opt/steampipe/internal /opt/steampipe/logs /opt/steampipe/db/*/data \
+    && chmod -R a+rX /opt/steampipe
+COPY docker/credential_helper.py /opt/bluepeass/credential_helper.py
+RUN ln -s /opt/bluepeass/credential_helper.py /usr/local/bin/az && chmod 755 /opt/bluepeass/credential_helper.py
+COPY bluepeass/hardening_catalog.json /opt/bluepeass/catalog.json
+RUN python /opt/bluepeass/install_turbot.py mods
+RUN apt-get update && apt-get install -y --no-install-recommends libnss-wrapper \
+    && rm -rf /var/lib/apt/lists/*
+COPY docker/hardening_worker.py /opt/bluepeass/hardening_worker.py
+USER bluepeass
+ENTRYPOINT ["python", "/opt/bluepeass/hardening_worker.py"]

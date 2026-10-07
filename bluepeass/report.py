@@ -67,6 +67,23 @@ def build_report(
     if extra_summary:
         summary.update(extra_summary)
 
+    audits = [target.get("data", {}).get("hardening") for target in targets if isinstance(target.get("data"), dict)]
+    audits = [audit for audit in audits if isinstance(audit, dict)]
+    if audits:
+        states: dict[str, int] = {}
+        status_counts: dict[str, int] = {}
+        hardening_errors = 0
+        for audit in audits:
+            state = audit.get("status", "unknown")
+            states[state] = states.get(state, 0) + 1
+            hardening_errors += len(audit.get("errors", []))
+            for status, count in audit.get("summary", {}).get("by_status", {}).items():
+                status_counts[status] = status_counts.get(status, 0) + count
+        summary["hardening"] = {"targets": len(audits), "states": states, "by_status": status_counts, "execution_errors": hardening_errors,
+                                "coverage_complete": all(audit.get("coverage", {}).get("complete", False) for audit in audits)}
+        summary["target_errors"] += hardening_errors
+        summary["errors"] += hardening_errors
+
     report = {
         "tool": TOOL_NAME,
         "schema_version": SCHEMA_VERSION,
@@ -78,4 +95,3 @@ def build_report(
     if errors:
         report["errors"] = errors
     return report
-
