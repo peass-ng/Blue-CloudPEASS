@@ -4,6 +4,14 @@
 
 Blue Cloud PEASS helps blue teams and auditors quickly find risky IAM privileges, unused access, and external trust relationships across AWS, GCP, Azure, and Kubernetes.
 
+## License
+
+Original Blue Cloud PEASS project code is licensed under the **GNU Affero General Public License, version 3 only** (`SPDX-License-Identifier: AGPL-3.0-only`). See [LICENSE](LICENSE) for the full, unchanged license text, matching the AGPL v3 license used by the pinned Steampipe and Powerpipe tools.
+
+Commercial use and paid hosting are permitted under this license, subject to its conditions. Operators of modified versions that users interact with over a network must prominently offer the corresponding source of the running version at no charge as required by section 13, including applicable build and installation scripts. The [source repository](https://github.com/peass-ng/Blue-CloudPEASS) is public; a hosted deployment must provide an appropriate source offer for the version it actually runs.
+
+Third-party dependencies, imported data, and assets retain their respective licenses and notices. In particular, the bundled Turbot provider plugins and compliance/perimeter mods remain Apache-2.0 licensed. This project license grants no rights to third-party trademarks or services and does not resolve Turbot's separate [product terms](https://turbot.com/legal/terms) or [trademark policy](https://turbot.com/legal/trademark) for a commercial hosted deployment.
+
 ## What this repo does
 
 - Classifies permissions at runtime using rule files in `risk_rules/`, including AWS, GCP, and Azure permission combinations and Kubernetes context rules synchronized from HackTricks Cloud.

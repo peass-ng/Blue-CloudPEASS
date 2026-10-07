@@ -24,6 +24,7 @@ COPY bluepeass/hardening_catalog.json /opt/bluepeass/catalog.json
 RUN python /opt/bluepeass/install_turbot.py mods
 RUN apt-get update && apt-get install -y --no-install-recommends libnss-wrapper \
     && rm -rf /var/lib/apt/lists/*
+COPY LICENSE /opt/bluepeass/LICENSE
 COPY docker/hardening_worker.py /opt/bluepeass/hardening_worker.py
 USER bluepeass
 ENTRYPOINT ["python", "/opt/bluepeass/hardening_worker.py"]
