@@ -5,6 +5,7 @@ import copy
 from fnmatch import fnmatchcase
 from functools import lru_cache, wraps
 from pathlib import Path
+import json
 
 import yaml
 
@@ -53,7 +54,8 @@ def matching_rule(provider, section, identifier, *, control_id="", status=None, 
                     value = None
                     break
                 value = value[part]
-            if value is None or not any(fnmatchcase(str(value), pattern) for pattern in patterns):
+            rendered = str(value).lower() if isinstance(value, bool) else str(value)
+            if value is None or not any(fnmatchcase(rendered, pattern) for pattern in patterns):
                 matched = False
                 break
         if not matched:
@@ -174,14 +176,39 @@ def filter_normalized_findings(data, provider):
 
 def filter_hardening_audit(audit, provider, *, rules=None):
     result, kept, counts = dict(audit), [], Counter()
+    observations = {}
+    def observation_key(finding):
+        return json.dumps([finding.get("resource"), finding.get("status"), finding.get("reason"), finding.get("dimensions") or {}], sort_keys=True, default=str)
+    for finding in audit.get("findings", []):
+        observations.setdefault(finding.get("control_id"), set()).add(observation_key(finding))
+    merged_sources = {}
     for finding in audit.get("findings", []):
         # Query errors always remain visible, even with a broad custom rule.
         rule = None if finding.get("status") == "ERROR" else matching_rule(provider, "hardening", finding.get("resource"), control_id=finding.get("control_id", ""), status=finding.get("status"), attributes=finding, rules=rules)
+        if rule and rule.get("duplicate_of") and observation_key(finding) not in observations.get(rule["duplicate_of"], set()):
+            rule = None
         if rule:
             counts[rule["id"]] += 1
+            if rule.get("duplicate_of"):
+                key = (rule["duplicate_of"], observation_key(finding))
+                metadata = merged_sources.setdefault(key, {"suites": set(), "control_aliases": set(), "reference_urls": set()})
+                metadata["suites"].update(finding.get("suites", []))
+                metadata["control_aliases"].add(finding["control_id"])
+                if finding.get("reference_url"):
+                    metadata["reference_urls"].add(finding["reference_url"])
         else:
             kept.append(finding)
     result["findings"] = kept
+    if merged_sources:
+        enriched = []
+        for finding in kept:
+            metadata = merged_sources.get((finding.get("control_id"), observation_key(finding)))
+            if metadata:
+                finding = {**finding}
+                for key, values in metadata.items():
+                    finding[key] = sorted(set(finding.get(key, [])) | values)
+            enriched.append(finding)
+        result["findings"] = kept = enriched
     if counts or audit.get("finding_filters"):
         result["finding_filters"] = _metadata(audit.get("finding_filters"), counts, rules)
         statuses = Counter(finding.get("status", "UNKNOWN") for finding in kept)

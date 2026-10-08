@@ -319,7 +319,7 @@ def normalize_results(payload, provider, target):
     return {"engine": "steampipe-powerpipe", "status": "completed" if complete else "partial", "findings": values, "controls": list(controls.values()), "errors": errors,
             "coverage": {"complete": complete, "excluded_controls": excluded, "zero_result_controls": [c["control_id"] for c in controls.values() if not c["rows"]]},
             "summary": {"findings": len(values), "controls": len(controls), "execution_errors": len(errors), "by_status": count},
-            "versions": {r["mod"]: r["version"] for r in runs}}
+            "versions": {r["mod"]: r["version"] for r in runs}, "query_context": payload.get("query_context", [])}
 
 
 def _run_native_worker(command, *, env, timeout):

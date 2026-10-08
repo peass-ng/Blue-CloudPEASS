@@ -89,3 +89,50 @@ def test_azure_builtin_role_edge_case_needs_positive_type_evidence():
     result = filter_raw_scope(raw, "azure")
     assert [role["role_definition_id"] for role in result["unused_custom_roles"]] == ["custom", "unknown"]
     assert result["finding_filters"]["suppressed"] == 1
+
+
+def test_context_exclusions_require_proof_and_keep_customer_or_unknown_resources():
+    cases = [
+        ("aws", "vpc_security_group_unused", "bluepeass_security_group_name", "default", "customer"),
+        ("aws", "vpc_network_acl_unused", "bluepeass_default_network_acl", True, False),
+        ("aws", "ec2_network_interface_unused", "bluepeass_requester_managed", True, False),
+        ("aws", "cloudfront_distribution_origin_access_identity_enabled", "bluepeass_origin_access_control", True, False),
+        ("aws", "cloudfront_distribution_use_custom_ssl_certificate", "bluepeass_custom_domain_count", 0, 1),
+        ("aws", "sqs_queue_dead_letter_queue_configured", "bluepeass_dead_letter_queue", True, False),
+        ("azure", "storage_account_encryption_at_rest_using_mmk", "bluepeass_key_source", "Microsoft.Keyvault", "unknown"),
+        ("kubernetes", "pod_non_root_container", "bluepeass_non_root_configured", True, False),
+        ("kubernetes", "deployment_container_image_pull_policy_always", "bluepeass_image_digest_pinned", True, False),
+        ("kubernetes", "pod_container_argument_service_account_enabled", "bluepeass_cli_setting_secure", True, False),
+    ]
+    for provider, control, field, exception, unsafe in cases:
+        prefix = {"aws": "aws_compliance", "azure": "azure_compliance", "kubernetes": "kubernetes_compliance"}[provider]
+        rows = [{"control_id": prefix + ".control." + control, "resource": name, "status": "FAIL", "dimensions": dimensions} for name, dimensions in [("exception", {field: exception}), ("customer", {field: unsafe}), ("unknown", {})]]
+        result = filter_hardening_audit({"findings": rows}, provider)
+        assert [row["resource"] for row in result["findings"]] == ["customer", "unknown"], control
+
+
+def test_duplicate_queries_collapse_only_equal_observations_and_preserve_sources():
+    canonical = {"control_id": "aws_compliance.control.ec2_instance_in_vpc", "resource": "instance", "status": "FAIL", "reason": "not in VPC", "dimensions": {"region": "test"}, "suites": ["aws-compliance"]}
+    alias = {**canonical, "control_id": "aws_perimeter.control.ec2_instance_in_vpc", "suites": ["aws-perimeter"], "reference_url": "https://example.test/perimeter"}
+    original = copy.deepcopy([canonical, alias])
+    result = filter_hardening_audit({"findings": [canonical, alias]}, "aws")
+    assert [canonical, alias] == original
+    assert len(result["findings"]) == 1
+    assert result["findings"][0]["suites"] == ["aws-compliance", "aws-perimeter"]
+    assert result["findings"][0]["control_aliases"] == [alias["control_id"]]
+    assert filter_hardening_audit({"findings": [alias]}, "aws")["findings"] == [alias]
+    for changed in [{"status": "PASS"}, {"reason": "different evidence"}, {"dimensions": {"region": "other"}}]:
+        conflict = {**alias, **changed}
+        assert len(filter_hardening_audit({"findings": [canonical, conflict]}, "aws")["findings"]) == 2
+
+
+def test_every_hardening_blacklist_rule_keeps_error_rows_and_control_failures():
+    from bluepeass.finding_filters import blacklist_rules
+    for rule in blacklist_rules():
+        if "hardening" not in rule["sections"]:
+            continue
+        control = rule["control_patterns"][0].replace("*", "fixture")
+        error = {"control_id": control, "resource": "fixture", "status": "ERROR", "reason": "Denied read"}
+        result = filter_hardening_audit({"findings": [error], "errors": [{"control_id": control, "error": "HTTP 403"}]}, rule["provider"])
+        assert result["findings"] == [error], rule["id"]
+        assert result["errors"][0]["error"] == "HTTP 403"

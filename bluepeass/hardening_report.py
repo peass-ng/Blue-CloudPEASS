@@ -58,6 +58,7 @@ def group_hardening_targets(targets, provider):
                 "severity": definition.get("severity") or "unknown",
                 "tags": copy.deepcopy(definition.get("tags") or {}),
                 "suites": set(), "reference_urls": set(), "assets": {}, "error_ids": [],
+                "control_aliases": set(),
             }
         group = groups[key]
         for suite in definition.get("suites", []):
@@ -66,6 +67,8 @@ def group_hardening_targets(targets, provider):
             group["suites"].add(definition["suite"])
         if definition.get("reference_url"):
             group["reference_urls"].add(definition["reference_url"])
+        group["reference_urls"].update(definition.get("reference_urls", []))
+        group["control_aliases"].update(definition.get("control_aliases", []))
         return group
 
     for target in targets:
@@ -86,6 +89,7 @@ def group_hardening_targets(targets, provider):
             "summary": copy.deepcopy(audit.get("summary", {})),
             "controls": [{key: control[key] for key in ("control_id", "suite", "rows") if key in control} for control in audit.get("controls", [])],
             "finding_ids": set(), "error_ids": [],
+            "query_context": audit.get("query_context", []),
         }
         if audit.get("finding_filters"):
             scope["finding_filters"] = audit["finding_filters"]
@@ -155,6 +159,7 @@ def group_hardening_targets(targets, provider):
         group["assets"] = assets
         group["suites"] = sorted(group["suites"])
         group["reference_urls"] = sorted(group["reference_urls"])
+        group["control_aliases"] = sorted(group["control_aliases"])
         group["summary"] = {"assets": len(assets), "affected_assets": affected,
                             "resource_evaluations": sum(group_counts.values()), "by_status": dict(sorted(group_counts.items()))}
         if affected or group["error_ids"]:
@@ -247,7 +252,7 @@ def render_hardening_markdown(report, *, show_passed=False):
                     target = asset["target_id"]
                     if scope.get("label") and scope["label"] != target:
                         target += " (" + scope["label"] + ")"
-                    dimensions = ", ".join(f"{key}={value}" for key, value in sorted(observation["dimensions"].items()) if value not in (None, ""))
+                    dimensions = ", ".join(f"{key}={value}" for key, value in sorted(observation["dimensions"].items()) if value not in (None, "") and not key.startswith("bluepeass_"))
                     rows.append("| " + " | ".join(_md(v) for v in [target, asset["resource"], dimensions, observation["status"], observation["reason"]]) + " |")
             if rows:
                 lines += [f"**Affected assets:** {finding['summary']['affected_assets']}", "",

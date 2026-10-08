@@ -14,7 +14,7 @@ def verify(directory):
     expected = {"aws": {"aws-compliance": 679, "aws-perimeter": 62},
                 "azure": {"azure-compliance": 476, "azure-perimeter": 14},
                 "gcp": {"gcp-compliance": 202, "gcp-perimeter": 33},
-                "k8s": {"kubernetes-compliance": 769}}
+                "k8s": {"kubernetes-compliance": 742}}
     for provider, counts in expected.items():
         report = json.loads((directory / (provider + ".json")).read_text())
         grouped = report.get("hardening")

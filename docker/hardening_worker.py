@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+from query_context import prepare_query_context
 
 
 def main():
@@ -26,7 +27,7 @@ def main():
     auth = pathlib.Path(args.input_dir)
     os.environ["BLUEPEASS_AUTH_DIR"] = str(auth)
     output.mkdir(exist_ok=True)
-    result = {"runs": [], "excluded_controls": [], "errors": []}
+    result = {"runs": [], "excluded_controls": [], "errors": [], "query_context": []}
     runtime = pathlib.Path(args.work_dir) if args.work_dir else pathlib.Path(tempfile.mkdtemp(prefix="bluepeass-"))
     runtime.mkdir(mode=0o700, exist_ok=True)
     os.environ["USER"] = "bluepeass"
@@ -106,6 +107,7 @@ control "failure" {
                 local_mod = runtime / entry["mod"]
                 shutil.copytree(directory, local_mod)
                 directory = local_mod
+                result["query_context"].extend(prepare_query_context(directory, args.provider))
             # The RBAC scanner never reads Secret objects. Keep the same contract
             # for hardening; the omitted metadata check is reported explicitly.
             if args.provider == "kubernetes":
@@ -119,8 +121,10 @@ control "failure" {
                         name = match.group(1)
                         if name == "secret_default_namespace_used":
                             reason = "Secret object reads are disabled."
-                        elif removed_psp and name.startswith("pod_security_policy_"):
+                        elif removed_psp and (name.startswith("pod_security_policy_") or name.endswith("_container_argument_pod_security_policy_enabled") or name.endswith("_container_argument_security_context_deny_enabled")):
                             reason = "PodSecurityPolicy was removed in Kubernetes 1.25; this upstream check is not applicable."
+                        elif str(version.get("major")) == "1" and bool(minor) and int(minor) >= 24 and name.endswith("_container_argument_insecure_port_0"):
+                            reason = "The API server's insecure serving flags were removed in Kubernetes 1.24; absence of the removed flag is not insecure serving."
                         else:
                             return match.group(0)
                         result["excluded_controls"].append({"control_id": "kubernetes_compliance.control." + name, "reason": reason})

@@ -68,6 +68,8 @@ With hardening enabled, `--out-json` uses report schema version 2. Grouped resul
 
 [bluepeass/finding_blacklist.yaml](bluepeass/finding_blacklist.yaml) contains the versioned blacklist applied before console, Markdown, and JSON reporting. Rules match a provider and finding section plus explicit resource/identity patterns or control IDs; hardening rules can also limit the matching statuses. Add reviewed edge cases to this file and restart the scanner or rebuild the hosted image to load them.
 
+The [catalog review](docs/hardening-catalog-review.md) and [per-control matrix](docs/hardening-catalog-review.csv) cover all 2,247 definitions in the seven pinned compliance/perimeter mods. The broader blacklist removes invalid assessments and obsolete agent requirements, uses query evidence for resource-specific exceptions, and collapses only identical results from reviewed duplicate queries. `query_context` records the applicability evidence and pinned query corrections used by the runtime. Unknown deployment intent and read failures remain visible.
+
 The initial rules remove inactive/unused cleanup findings for AWS service-linked and Identity Center generated roles, unattached AWS-managed policies, predefined GCP roles, Azure roles explicitly typed `BuiltInRole`, and default Kubernetes system ClusterRoles. The corresponding AWS hardening inactivity checks exclude failed/manual assessments for those provider-managed resources. Customer-defined resources with similar display names remain eligible. Actual role grants and external trusts stay available; execution/query errors remain visible. Rule IDs, reasons, and suppressed record counts appear in `finding_filters`, with a compact console/Markdown explanation. Native benchmark exports remain unfiltered for diagnosis.
 
 ### Credentials and scope
@@ -107,7 +109,7 @@ Sources: [AWS permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/aws
 
 Kubernetes hardening preserves the existing **no Secret-object reads** contract: the upstream Secret namespace check is excluded and appears in coverage. Checks examining Secret references in workload definitions still run. PodSecurityPolicy checks are marked non-applicable on Kubernetes 1.25+ because that API was removed. Host files and hidden managed control-plane settings cannot be assumed audited from API configuration alone. Resource readiness, replica counts, and other operational recommendations are also present in the upstream catalog and should be reviewed in context.
 
-The bundled Kubernetes mod includes a compatibility fix for an upstream `runAsUser` query that otherwise returns a NULL status when both the Pod and container specify UIDs of at least 10000.
+The bundled Kubernetes mod includes a compatibility fix for an upstream `runAsUser` query that otherwise returns a NULL status when both the Pod and container specify UIDs of at least 10000. Removed PodSecurityPolicy admission checks and removed insecure-serving flags are also excluded on server versions where those features no longer exist; the exclusions appear in coverage. There are 742 applicable pinned controls on a Kubernetes 1.25+ cluster.
 
 ### Local integration validation
 

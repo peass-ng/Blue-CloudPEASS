@@ -26,5 +26,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends libnss-wrapper 
     && rm -rf /var/lib/apt/lists/*
 COPY LICENSE /opt/bluepeass/LICENSE
 COPY docker/hardening_worker.py /opt/bluepeass/hardening_worker.py
+COPY docker/query_context.py /opt/bluepeass/query_context.py
 USER bluepeass
 ENTRYPOINT ["python", "/opt/bluepeass/hardening_worker.py"]
