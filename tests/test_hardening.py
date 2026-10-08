@@ -276,6 +276,8 @@ def test_console_does_not_truncate_failures_or_errors(capsys):
 def test_native_worker_keeps_selected_credentials_and_cleans_runtime(monkeypatch):
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "host-role")
     monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", "/host/credentials.json")
+    monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", "/host/aws-credentials")
+    monkeypatch.setenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", "/host-role")
     monkeypatch.setattr(hardening.shutil, "which", lambda cmd: "/usr/bin/" + cmd)
     adapter = SimpleNamespace(provider="kubernetes", probe=lambda: [{"allowed": True}],
         write=lambda root: hardening._write_config(root / "kubernetes.spc", 'config_path = "/input/kubeconfig.json"'))
@@ -289,6 +291,9 @@ def test_native_worker_keeps_selected_credentials_and_cleans_runtime(monkeypatch
         assert str(auth / "kubeconfig.json") in (auth / "kubernetes.spc").read_text()
         assert "AWS_ACCESS_KEY_ID" not in env
         assert "GOOGLE_APPLICATION_CREDENTIALS" not in env
+        assert "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" not in env
+        assert env["AWS_SHARED_CREDENTIALS_FILE"] == str(auth / "aws-shared-credentials")
+        assert Path(env["AWS_SHARED_CREDENTIALS_FILE"]).read_text() == ""
         assert env["AWS_EC2_METADATA_DISABLED"] == "true"
         (output / "result.json").write_text(json.dumps(export({"resource": "pod", "status": "alarm", "reason": "configuration"})))
         return SimpleNamespace(returncode=0, stderr="")

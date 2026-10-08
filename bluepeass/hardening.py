@@ -404,9 +404,10 @@ def _run_hardening(args, adapter, target):
                 worker = Path(__file__).resolve().parent.parent / "docker" / "hardening_worker.py"
                 command = [sys.executable, str(worker), "--provider", adapter.provider, "--timeout", str(timeout), "--input-dir", str(auth), "--output-dir", str(output), "--work-dir", str(root / "runtime")]
                 process_env = dict(os.environ)
-                for key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_WEB_IDENTITY_TOKEN_FILE", "AWS_ROLE_ARN", "AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "GOOGLE_APPLICATION_CREDENTIALS"]:
+                for key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_WEB_IDENTITY_TOKEN_FILE", "AWS_ROLE_ARN", "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", "AWS_CONTAINER_CREDENTIALS_FULL_URI", "AWS_CONTAINER_AUTHORIZATION_TOKEN", "AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE", "AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "GOOGLE_APPLICATION_CREDENTIALS"]:
                     process_env.pop(key, None)
-                process_env.update(AWS_CONFIG_FILE=str(auth / "aws-config"), AWS_PROFILE="bluepeass", AWS_EC2_METADATA_DISABLED="true", BLUEPEASS_AUTH_DIR=str(auth))
+                _write_config(auth / "aws-shared-credentials", "")
+                process_env.update(AWS_CONFIG_FILE=str(auth / "aws-config"), AWS_SHARED_CREDENTIALS_FILE=str(auth / "aws-shared-credentials"), AWS_PROFILE="bluepeass", AWS_EC2_METADATA_DISABLED="true", BLUEPEASS_AUTH_DIR=str(auth))
             print(f"[*] Hardening {adapter.provider} {target}: running all compliance/perimeter checks.", flush=True)
             stop = threading.Event()
             refresh_errors = []
