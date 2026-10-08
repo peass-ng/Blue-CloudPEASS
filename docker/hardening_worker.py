@@ -65,6 +65,12 @@ def main():
         # opens a direct database connection.
         initialized = subprocess.run([*steampipe, "query", "select schema_name from information_schema.schemata", "--output", "json"], capture_output=True, text=True, timeout=120)
         (output / "schemas.log").write_text(initialized.stdout + initialized.stderr)
+        if initialized.returncode:
+            raise RuntimeError("Steampipe connection initialization failed; provider coverage is unavailable.")
+        if not args.self_test:
+            schemas = {row.get("schema_name") for row in json.loads(initialized.stdout).get("rows", [])}
+            if args.provider not in schemas:
+                raise RuntimeError("Steampipe did not initialize the selected provider schema. Check plugin configuration and use a native CPU architecture; emulation can break plugin-manager detection.")
         if args.self_test:
             mod = runtime / "self-test"
             mod.mkdir()

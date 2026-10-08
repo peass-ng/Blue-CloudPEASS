@@ -358,6 +358,11 @@ def run_hardening(args, adapter, target):
 def _run_hardening(args, adapter, target):
     if args is None or args.hardening == "off":
         return _empty("disabled", "Hardening disabled.")
+    deadline = os.environ.get("BLUEPEASS_HARDENING_DEADLINE")
+    if deadline and float(deadline) <= time.monotonic():
+        # Queued native targets must finish promptly after the earlier audit
+        # consumes the execution budget, rather than making more API probes.
+        return _empty("error", "Execution budget exhausted before this target's hardening audit.")
     evidence = adapter.probe() if args.hardening == "auto" else []
     if args.hardening == "auto" and not any(item.get("allowed") for item in evidence):
         result = _empty("skipped", "No successful configuration read; request the documented audit read permissions.")
@@ -365,8 +370,8 @@ def _run_hardening(args, adapter, target):
         return result
     native = getattr(args, "hardening_runtime", "docker") == "native"
     timeout = args.hardening_timeout
-    if os.environ.get("BLUEPEASS_HARDENING_DEADLINE"):
-        timeout = min(timeout, max(0, int(float(os.environ["BLUEPEASS_HARDENING_DEADLINE"]) - time.monotonic())))
+    if deadline:
+        timeout = min(timeout, max(0, int(float(deadline) - time.monotonic())))
     if timeout < 1:
         return _empty("error", "Execution budget exhausted before this target's hardening audit.")
     if native and not all(shutil.which(tool) for tool in ["steampipe", "powerpipe"]):

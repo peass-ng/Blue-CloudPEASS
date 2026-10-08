@@ -307,7 +307,8 @@ def test_native_worker_keeps_selected_credentials_and_cleans_runtime(monkeypatch
 def test_exhausted_hosted_budget_does_not_start_native_worker(monkeypatch):
     monkeypatch.setenv("BLUEPEASS_HARDENING_DEADLINE", "0")
     monkeypatch.setattr(hardening, "_run_native_worker", lambda *a, **k: pytest.fail("No execution budget"))
-    result = hardening.run_hardening(options(hardening="on", hardening_runtime="native"), SimpleNamespace(), "target")
+    adapter = SimpleNamespace(probe=lambda: pytest.fail("Queued target probed after the deadline"))
+    result = hardening.run_hardening(options(hardening_runtime="native"), adapter, "target")
     assert result["status"] == "error"
     assert "budget exhausted" in result["reason"]
 
