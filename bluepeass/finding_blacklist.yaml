@@ -1,0 +1,49 @@
+version: 1
+rules:
+  - id: aws-service-linked-unused-role
+    provider: aws
+    sections: [principals_inactive, principals_with_unused_permissions]
+    identifier_patterns: ["arn:*:iam::*:role/aws-service-role/*"]
+    reason: AWS service-linked roles are managed by their service; IAM inactivity alone is not a removal recommendation.
+  - id: aws-identity-center-unused-role
+    provider: aws
+    sections: [principals_inactive, principals_with_unused_permissions]
+    identifier_patterns: ["arn:*:iam::*:role/aws-reserved/sso.amazonaws.com/*AWSReservedSSO_*"]
+    reason: Identity Center generates these roles; review assignments and permission sets rather than reporting the generated IAM role as unused.
+  - id: aws-managed-unused-policy
+    provider: aws
+    sections: [unused_custom_definitions]
+    identifier_patterns: ["arn:*:iam::aws:policy/*"]
+    reason: AWS-managed policies are not customer-managed policy cleanup findings.
+  - id: gcp-predefined-unused-role
+    provider: gcp
+    sections: [unused_custom_definitions]
+    identifier_patterns: ["roles/*"]
+    reason: Predefined Google roles are not unused customer-defined roles.
+  - id: kubernetes-default-unused-role
+    provider: kubernetes
+    sections: [unused_custom_definitions]
+    identifier_patterns: ["clusterroles/cluster/system:*", "ClusterRole/cluster/system:*"]
+    reason: Default system ClusterRoles are not unused custom role cleanup findings.
+  - id: azure-builtin-unused-role
+    provider: azure
+    sections: [unused_custom_definitions]
+    attribute_patterns:
+      role_type: [BuiltInRole]
+    reason: Azure built-in role definitions are not unused customer-defined roles.
+  - id: aws-managed-role-hardening-inactivity
+    provider: aws
+    sections: [hardening]
+    control_patterns: ["aws_compliance.control.iam_role_unused_*"]
+    identifier_patterns:
+      - "arn:*:iam::*:role/aws-service-role/*"
+      - "arn:*:iam::*:role/aws-reserved/sso.amazonaws.com/*AWSReservedSSO_*"
+    statuses: [FAIL, MANUAL]
+    reason: Service-linked and Identity Center roles are provider-managed; this inactivity check is not an actionable IAM role removal finding.
+  - id: aws-managed-policy-hardening-inactivity
+    provider: aws
+    sections: [hardening]
+    control_patterns: ["aws_compliance.control.iam_policy_unused", "aws_compliance.control.iam_custom_policy_unused"]
+    identifier_patterns: ["arn:*:iam::aws:policy/*"]
+    statuses: [FAIL, MANUAL]
+    reason: Unattached AWS-managed policies are not customer policy cleanup findings.

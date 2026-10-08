@@ -12,6 +12,7 @@ from bluepeass.hardening import KubernetesCredentials, add_hardening_arguments, 
 from bluepeass.normalize import normalize_k8s_cluster
 from bluepeass.report import Target, atomic_write_json, build_report
 from bluepeass.hardening_report import publish_hardening_report
+from bluepeass.finding_filters import filter_raw_scope, print_filter_summary
 
 
 def _print_section(label: str, values: list, max_items: int, formatter) -> None:
@@ -76,6 +77,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
 
+    result = filter_raw_scope(result, "k8s")
+    print_filter_summary(result)
     findings = result["findings"]
     print(f"Blue K8sPEASS — context: {result['context'] or '<unknown>'}")
     print("Inventory: " + ", ".join(f"{kind}={count}" for kind, count in result["inventory"].items()))

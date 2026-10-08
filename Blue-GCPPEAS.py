@@ -46,6 +46,7 @@ from bluepeass.report import Target, atomic_write_json, build_report
 from bluepeass.hardening_report import publish_hardening_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_gcp_scope
+from bluepeass.finding_filters import filter_raw_scope, print_filter_summary
 from bluepeass.hardening import GcpCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from bluepeass.progress_pool import SlotStageProgress
 
@@ -1439,6 +1440,7 @@ def get_principal_reported_unused_permissions(
 
 def print_human(results: list[dict], *, max_items: int) -> None:
     for proj in results:
+        print_filter_summary(proj)
         scope_type = proj.get("scope_type")
         scope = proj.get("scope")
         label = scope if scope_type != "project" else scope.split("/", 1)[1] if isinstance(scope, str) else scope
@@ -2716,6 +2718,7 @@ def main() -> int:
     else:
         scope_type, scope = scope_items[0]
         results = [analyze_scope(scope_type, scope, show_progress=True)]
+    results = [filter_raw_scope(result, "gcp") for result in results]
 
     for result in results:
         scope = result.get("scope", "")

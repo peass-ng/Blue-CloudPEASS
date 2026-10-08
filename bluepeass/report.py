@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional
 from bluepeass.hardening_report import group_hardening_targets
+from bluepeass.finding_filters import filter_normalized_findings, aggregate_filter_metadata
 
 
 SCHEMA_VERSION = 1
@@ -59,6 +60,7 @@ def build_report(
     extra_summary: Optional[dict] = None,
 ) -> dict:
     errors = errors or []
+    targets = [{**target, "data": filter_normalized_findings(target["data"], provider)} if isinstance(target.get("data"), dict) else target for target in targets]
     summary = {
         "total_targets": len(targets),
         "top_level_errors": len(errors),
@@ -97,4 +99,8 @@ def build_report(
         report["errors"] = errors
     if hardening is not None:
         report["hardening"] = hardening
+    filtering = aggregate_filter_metadata([(target.get("data") or {}).get("finding_filters") for target in targets] + ([hardening.get("finding_filters")] if hardening else []))
+    if filtering["suppressed"]:
+        report["finding_filters"] = filtering
+        summary["suppressed_finding_records"] = filtering["suppressed"]
     return report

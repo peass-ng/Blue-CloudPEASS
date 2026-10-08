@@ -64,6 +64,12 @@ With hardening enabled, `--out-json` uses report schema version 2. Grouped resul
 
 `--hardening-out-dir` saves grouped `hardening.json` and `hardening.md` alongside unchanged native benchmark exports. Native exports can contain infrastructure details; retained files use private permissions. Native workers honor `BLUEPEASS_HARDENING_DEADLINE` when a managed execution environment provides a remaining-time budget.
 
+### Known non-actionable findings
+
+[bluepeass/finding_blacklist.yaml](bluepeass/finding_blacklist.yaml) contains the versioned blacklist applied before console, Markdown, and JSON reporting. Rules match a provider and finding section plus explicit resource/identity patterns or control IDs; hardening rules can also limit the matching statuses. Add reviewed edge cases to this file and restart the scanner or rebuild the hosted image to load them.
+
+The initial rules remove inactive/unused cleanup findings for AWS service-linked and Identity Center generated roles, unattached AWS-managed policies, predefined GCP roles, Azure roles explicitly typed `BuiltInRole`, and default Kubernetes system ClusterRoles. The corresponding AWS hardening inactivity checks exclude failed/manual assessments for those provider-managed resources. Customer-defined resources with similar display names remain eligible. Actual role grants and external trusts stay available; execution/query errors remain visible. Rule IDs, reasons, and suppressed record counts appear in `finding_filters`, with a compact console/Markdown explanation. Native benchmark exports remain unfiltered for diagnosis.
+
 ### Credentials and scope
 
 - **AWS:** Hardening receives the resolved boto3 session, including explicit access keys/session tokens, selected profiles, default credential-chain identities, and the credentials of each `--assume-roles` target. Every target scans all AWS regions; denied or disabled services remain visible as coverage errors/skips.
@@ -72,6 +78,8 @@ With hardening enabled, `--out-json` uses report schema version 2. Grouped resul
 - **Kubernetes:** The already authenticated Python client is materialized into a temporary kubeconfig, supporting kubeconfig/exec helpers, in-cluster credentials, direct bearer tokens, client certificates, and the configured CA/TLS settings. Authentication helpers run on the host. Local API endpoints are reached through `host.docker.internal` while retaining their TLS server name. Snapshot-only `--input-json` analysis never starts a live hardening scan.
 
 AWS and Azure credential files refresh from their selected credential objects during an audit. Explicit temporary credentials still expire at their original expiry. GCP obtains a fresh token from the selected service-account, captured gcloud account/impersonation setting, or ADC credential before hardening starts, and refreshes it between suites. Kubernetes exec/in-cluster token refresh follows the selected Python client's credential hook. Credential expiry is a coverage failure; supplying unrelated default credentials is never a fallback.
+
+Azure `auto` checks whether its cached login can obtain an ARM token before selecting it, and falls back to device-code when no usable login exists. An installed Azure CLI supplies its active account, including encrypted/WAM caches and `AZURE_CONFIG_DIR`; `--tenant-id` is honored, and ARM/Graph acquisitions remain bound to the selected principal. Explicit `--auth-method device-code` and `client-secret` retain their selected authentication mode. Device-code prompts show the verification URL and code using the SDK's three-argument callback. Missing Graph consent/read permissions are reported as incomplete directory coverage after successful ARM authentication, while subscription checks continue. This addresses [Azure authentication issue #4](https://github.com/peass-ng/Blue-CloudPEASS/issues/4).
 
 ```bash
 # Explicit keys, profiles, and assumed target roles retain their existing meaning.

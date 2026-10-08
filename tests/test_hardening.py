@@ -191,7 +191,7 @@ def test_azure_cache_can_use_existing_cli_login_when_silent_acquisition_fails(mo
     module = load_script("azure_cache_fallback_test", "Blue-AzurePEAS.py")
     selected = SimpleNamespace(get_token=lambda *a, **k: SimpleNamespace(token="selected-token", expires_on=9999999999))
     monkeypatch.setattr(module.shutil, "which", lambda name: "/usr/bin/az")
-    monkeypatch.setattr(module, "AzureCliCredential", lambda: selected)
+    monkeypatch.setattr(module, "AzureCliCredential", lambda **kwargs: selected)
     credential = module.AzureMsalTokenCacheCredential()
     monkeypatch.setattr(credential, "_load", lambda: None)
     credential._app = SimpleNamespace(get_accounts=lambda: [{}], acquire_token_silent=lambda *a, **k: None)
@@ -203,14 +203,14 @@ def test_azure_cache_rejects_a_different_cli_principal_for_graph(monkeypatch):
     module = load_script("azure_cache_identity_test", "Blue-AzurePEAS.py")
     monkeypatch.setattr(module.shutil, "which", lambda name: "/usr/bin/az")
     monkeypatch.setattr(module, "_jwt_claims", lambda token: {"tid": "tenant", "oid": token})
-    monkeypatch.setattr(module, "AzureCliCredential", lambda: SimpleNamespace(get_token=lambda *a, **k: SimpleNamespace(token="different-principal")))
+    monkeypatch.setattr(module, "AzureCliCredential", lambda **kwargs: SimpleNamespace(get_token=lambda scope, **k: SimpleNamespace(token="selected-principal" if "management" in scope else "different-principal")))
     credential = module.AzureMsalTokenCacheCredential()
     monkeypatch.setattr(credential, "_load", lambda: None)
     credential._app = SimpleNamespace(get_accounts=lambda: [{}], acquire_token_silent=lambda scopes, **kwargs: {"access_token": "selected-principal", "expires_on": 9999999999} if "management" in scopes[0] else None)
     credential.get_token("https://management.azure.com/.default")
     with pytest.raises(RuntimeError, match="refusing to switch identities"):
         credential.get_token("https://graph.microsoft.com/.default")
-    assert credential._cli is None
+    assert credential._cli is not None
 
 
 def test_azure_arm_only_still_creates_graph_connection_with_explicit_tenant(tmp_path):

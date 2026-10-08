@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import re
 from urllib.parse import quote, urlsplit
+from bluepeass.finding_filters import filter_hardening_audit, aggregate_filter_metadata
 
 
 ACTION_STATUSES = {"FAIL", "MANUAL", "ERROR"}
@@ -71,6 +72,7 @@ def group_hardening_targets(targets, provider):
         audit = (target.get("data") or {}).get("hardening")
         if not isinstance(audit, dict):
             continue
+        audit = filter_hardening_audit(audit, provider)
         target_id = str(target.get("target_id", "unknown"))
         identity = (_provider(provider), target.get("target_type", "scope"), target_id, target.get("label"))
         digest = hashlib.sha256(_serialized(identity).encode()).hexdigest()[:16]
@@ -85,6 +87,8 @@ def group_hardening_targets(targets, provider):
             "controls": [{key: control[key] for key in ("control_id", "suite", "rows") if key in control} for control in audit.get("controls", [])],
             "finding_ids": set(), "error_ids": [],
         }
+        if audit.get("finding_filters"):
+            scope["finding_filters"] = audit["finding_filters"]
         for name in ("reason", "exports_directory"):
             if name in audit:
                 scope[name] = audit[name]
@@ -168,7 +172,7 @@ def group_hardening_targets(targets, provider):
     status = "completed" if complete else "partial"
     if len(states) == 1 and next(iter(states)) in {"disabled", "skipped", "unavailable", "error"}:
         status = next(iter(states))
-    return {
+    report = {
         "schema_version": 2, "engine": "steampipe-powerpipe", "status": status,
         "services": ordered_services, "targets": scoped_targets, "errors": errors,
         "versions": {name: sorted(values) for name, values in sorted(versions.items())},
@@ -178,6 +182,11 @@ def group_hardening_targets(targets, provider):
                     "resource_evaluations": sum(by_status.values()), "by_status": dict(sorted(by_status.items())),
                     "controls": controls_attempted, "execution_errors": len(errors), "coverage_complete": complete},
     }
+    filtering = aggregate_filter_metadata([scope.get("finding_filters") for scope in scoped_targets])
+    if filtering["suppressed"]:
+        report["finding_filters"] = filtering
+        report["summary"]["suppressed_finding_records"] = filtering["suppressed"]
+    return report
 
 
 def _md(value):
@@ -205,6 +214,11 @@ def render_hardening_markdown(report, *, show_passed=False):
              f"**Coverage:** {_md(report['status'])} · **Targets:** {summary['targets']} · **Affected findings:** {summary['affected_findings']} · **Affected assets:** {summary['affected_assets']}", ""]
     if summary["by_status"]:
         lines += ["**Resource evaluations:** " + ", ".join(f"{_md(status)}={count}" for status, count in summary["by_status"].items()), ""]
+    if report.get("finding_filters", {}).get("suppressed"):
+        filtering = report["finding_filters"]
+        lines += [f"**Known non-actionable finding records suppressed:** {filtering['suppressed']}", ""]
+        lines += [f"- {_md(identifier)}: {item['count']} — {_md(item['reason'])}" for identifier, item in filtering["by_rule"].items()]
+        lines.append("")
     scopes = {scope["scan_id"]: scope for scope in report["targets"]}
     errors = {error["error_id"]: error for error in report["errors"]}
     associated_errors = set()

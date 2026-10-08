@@ -3,6 +3,7 @@ import boto3
 import fnmatch
 import argparse
 import sys
+from bluepeass.finding_filters import filter_aws_raw_report, print_filter_summary
 import signal
 import random
 
@@ -177,8 +178,18 @@ def print_results(
         "role_permissions": role_permissions or {},
         "group_memberships": group_memberships or [],
     }
+    result = filter_aws_raw_report(result)
+    unused_roles = result["unused_roles"]
+    unused_perms = result["unused_permissions"]
+    unused_custom_policies = result["unused_custom_policies"]
+    print_filter_summary(result)
 
     print(f"Interesting permissions in {colored(account_id, 'yellow')} ({colored(profile, 'blue')}): ")
+    if result.get("retained_role_grants"):
+        print(f"{colored('Roles with flagged permissions', 'yellow', attrs=['bold'])}:")
+        for arn, permissions in result["retained_role_grants"].items():
+            print(f"  - `{arn}`")
+            print_permissions(permissions, verbose=verbose)
 
     if unused_custom_policies:
         print(f"{colored('Unused customer-managed policies', 'yellow', attrs=['bold'])}:")

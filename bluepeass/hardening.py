@@ -26,6 +26,7 @@ import urllib.request
 import uuid
 import sys
 from bluepeass.hardening_report import group_hardening_targets, render_hardening_markdown
+from bluepeass.finding_filters import filter_hardening_audit
 
 
 DEFAULT_IMAGE = "blue-cloudpeass-hardening:local"
@@ -439,7 +440,7 @@ def _run_hardening(args, adapter, target):
                 result = _empty("error", "Hardening worker produced no report. Check the selected runtime and preinstalled tools.")
                 result["errors"].append({"error": completed.stderr[-2000:]})
             else:
-                result = normalize_results(json.loads(result_path.read_text()), adapter.provider, str(target))
+                result = filter_hardening_audit(normalize_results(json.loads(result_path.read_text()), adapter.provider, str(target)), adapter.provider)
             if refresh_errors:
                 result["errors"].extend(refresh_errors)
                 result["status"] = "partial"
@@ -461,7 +462,7 @@ def _run_hardening(args, adapter, target):
             partial_path = output / "result.json"
             if partial_path.exists():
                 try:
-                    result = normalize_results(json.loads(partial_path.read_text()), adapter.provider, str(target))
+                    result = filter_hardening_audit(normalize_results(json.loads(partial_path.read_text()), adapter.provider, str(target)), adapter.provider)
                     result["status"] = "partial"
                     result["coverage"].update(complete=False, preflight=evidence)
                     result["errors"].append({"error": "Hardening exceeded its time limit; completed suite results are retained."})
