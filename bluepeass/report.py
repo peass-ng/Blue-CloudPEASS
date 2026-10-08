@@ -5,6 +5,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional
+from bluepeass.hardening_report import group_hardening_targets
 
 
 SCHEMA_VERSION = 1
@@ -67,26 +68,26 @@ def build_report(
     if extra_summary:
         summary.update(extra_summary)
 
-    audits = [target.get("data", {}).get("hardening") for target in targets if isinstance(target.get("data"), dict)]
-    audits = [audit for audit in audits if isinstance(audit, dict)]
-    if audits:
-        states: dict[str, int] = {}
-        status_counts: dict[str, int] = {}
-        hardening_errors = 0
-        for audit in audits:
-            state = audit.get("status", "unknown")
-            states[state] = states.get(state, 0) + 1
-            hardening_errors += len(audit.get("errors", []))
-            for status, count in audit.get("summary", {}).get("by_status", {}).items():
-                status_counts[status] = status_counts.get(status, 0) + count
-        summary["hardening"] = {"targets": len(audits), "states": states, "by_status": status_counts, "execution_errors": hardening_errors,
-                                "coverage_complete": all(audit.get("coverage", {}).get("complete", False) for audit in audits)}
-        summary["target_errors"] += hardening_errors
-        summary["errors"] += hardening_errors
+    hardening = group_hardening_targets(targets, provider)
+    if hardening is not None:
+        summary["hardening"] = hardening["summary"]
+        summary["target_errors"] += len(hardening["errors"])
+        summary["errors"] += len(hardening["errors"])
+        # Findings live once at report level, where accounts can share a check.
+        # Keep per-target references/coverage without mutating caller objects.
+        scopes = iter(hardening["targets"])
+        compact_targets = []
+        for target in targets:
+            if isinstance((target.get("data") or {}).get("hardening"), dict):
+                scope = next(scopes)
+                compact_targets.append({**target, "data": {**target["data"], "hardening": {"scan_id": scope["scan_id"], "finding_ids": scope["finding_ids"]}}})
+            else:
+                compact_targets.append(target)
+        targets = compact_targets
 
     report = {
         "tool": TOOL_NAME,
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": 2 if hardening is not None else SCHEMA_VERSION,
         "provider": provider,
         "generated_at": utc_now_iso(),
         "targets": targets,
@@ -94,4 +95,6 @@ def build_report(
     }
     if errors:
         report["errors"] = errors
+    if hardening is not None:
+        report["hardening"] = hardening
     return report

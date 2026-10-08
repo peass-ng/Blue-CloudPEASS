@@ -19,6 +19,7 @@ from botocore.exceptions import ClientError, NoCredentialsError
 from time import sleep
 from scripts.permission_risk_classifier import candidate_actions, classify_all
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_aws_account
 from bluepeass.hardening import AwsCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
@@ -2394,8 +2395,8 @@ def main(
     if slot_progress:
         slot_progress.close()
 
-    for result in all_results:
-        print_hardening(result.get("hardening"), target=result.get("account_id", "unknown"), show_passed=bool(hardening_args and hardening_args.hardening_show_passed))
+    if hardening_args is not None:
+        publish_hardening_report(hardening_args, [Target(target_type="account", target_id=str(result.get("account_id", "unknown")), label=result.get("profile"), data={"hardening": result.get("hardening")}).to_dict() for result in all_results], "aws")
 
 
     if out_json_path:

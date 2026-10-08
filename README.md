@@ -51,12 +51,18 @@ All scanners accept:
 | `--hardening-timeout SECONDS` | Total time limit per target, including both compliance and perimeter. Default: 1800. |
 | `--hardening-out-dir DIRECTORY` | Retain native benchmark exports and a normalized hardening report per target. |
 | `--hardening-show-passed` | Also print passed and non-applicable results. All result statuses are retained in JSON regardless. |
+| `--hardening-out-markdown PATH` | Write a prepared hardening report as Markdown (`.md` or `.txt`), combining all accounts/projects/subscriptions/clusters in the scan. |
+| `--hardening-runtime native` | Use preinstalled Steampipe/Powerpipe in a managed worker image. The default runtime remains Docker. |
 
 Preflight is evidence of some configuration read access, **not proof of complete access**. AWS probes VPC and bucket enumeration; GCP tests instance, bucket, and cluster list permissions; Azure reads resource groups; Kubernetes probes Pods and Services. Empty successful reads also qualify. IAM-only access can still produce the original report. Denied probes, unavailable Docker, missing images, expired tokens, query errors, and timeouts are reported explicitly. A successful command does not imply that every hardening check completed.
 
 Coverage includes the complete `all_controls` catalog for each provider and all top-level perimeter suites for AWS, Azure, and GCP. Running the underlying controls once avoids repeating the same checks across every compliance framework. Findings retain the originating suite, control ID/title/description, upstream severity when supplied, resource, dimensions, status, evidence, and control-reference URL in the console. Severity is `unknown` when upstream supplies none. Findings are not filtered by the IAM `--risk-levels` or truncated by `--max-items`.
 
-The console prints every failure, manual review, and execution error. `--out-json` adds `data.hardening` to each audited target, including all PASS/FAIL/MANUAL/SKIP/ERROR rows, attempted controls, zero-result controls, coverage gaps, and mod versions. Empty results are listed separately from successful checks. Native exports can contain infrastructure details; retained files use private permissions.
+Hardening output is organized as **service → finding → assets**. Each control appears once across all scanned targets; every affected asset is listed beneath it with its account/project/cluster, regional or namespace scope, status, and evidence. The Markdown console report uses service headings, finding headings, and asset tables; `--hardening-out-markdown` saves the same prepared report. PASS/SKIP assessments remain in JSON and can also be displayed with `--hardening-show-passed`.
+
+With hardening enabled, `--out-json` uses report schema version 2. Grouped results live at `hardening.services[].findings[].assets[].observations[]`, and target `data.hardening` entries reference their scan and finding IDs. The account/project/cluster scopes remain separate, so identical resource names in different accounts are distinct assets. Different statuses, evidence, regions, and audit identities remain separate observations under the asset. Findings are grouped by provider and full control ID, preserving distinct checks even when their titles match. Execution errors, attempted/empty controls, exclusions, preflight evidence, and mod versions remain available in `hardening.targets` and `hardening.errors`.
+
+`--hardening-out-dir` saves grouped `hardening.json` and `hardening.md` alongside unchanged native benchmark exports. Native exports can contain infrastructure details; retained files use private permissions. Native workers honor `BLUEPEASS_HARDENING_DEADLINE` when a managed execution environment provides a remaining-time budget.
 
 ### Credentials and scope
 

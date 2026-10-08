@@ -43,6 +43,7 @@ except Exception as exc:
 
 from scripts.permission_risk_classifier import classify_all
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_gcp_scope
 from bluepeass.hardening import GcpCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
@@ -2758,8 +2759,7 @@ def main() -> int:
         atomic_write_json(args.out_json, report)
 
     print_human(results, max_items=args.max_items)
-    for result in results:
-        print_hardening(result.get("hardening"), target=result.get("scope", "unknown"), show_passed=args.hardening_show_passed)
+    publish_hardening_report(args, [Target(target_type="project", target_id=str(result.get("scope", "unknown")), label=str(result.get("scope", "")).split("/")[-1], data={"hardening": result.get("hardening")}).to_dict() for result in results], "gcp")
     return 0
 
 

@@ -268,8 +268,78 @@ def test_console_does_not_truncate_failures_or_errors(capsys):
     result = hardening.normalize_results(export(*[{"resource": str(i), "status": "alarm", "reason": "evidence"} for i in range(25)], error="Denied"), "aws", "target")
     hardening.print_hardening(result, target="target")
     output = capsys.readouterr().out
-    assert output.count("[FAIL]") == 25
-    assert "[ERROR]" in output
+    assert output.count("| FAIL |") == 25
+    assert "Checks that could not complete" in output
+    assert output.count("#### Fixture") == 1
+
+
+def test_native_worker_keeps_selected_credentials_and_cleans_runtime(monkeypatch):
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "host-role")
+    monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", "/host/credentials.json")
+    monkeypatch.setattr(hardening.shutil, "which", lambda cmd: "/usr/bin/" + cmd)
+    adapter = SimpleNamespace(provider="kubernetes", probe=lambda: [{"allowed": True}],
+        write=lambda root: hardening._write_config(root / "kubernetes.spc", 'config_path = "/input/kubeconfig.json"'))
+    seen = []
+    def execute(command, *, env, timeout):
+        auth = Path(command[command.index("--input-dir") + 1])
+        output = Path(command[command.index("--output-dir") + 1])
+        runtime = Path(command[command.index("--work-dir") + 1])
+        seen.append(runtime)
+        runtime.mkdir()
+        assert str(auth / "kubeconfig.json") in (auth / "kubernetes.spc").read_text()
+        assert "AWS_ACCESS_KEY_ID" not in env
+        assert "GOOGLE_APPLICATION_CREDENTIALS" not in env
+        assert env["AWS_EC2_METADATA_DISABLED"] == "true"
+        (output / "result.json").write_text(json.dumps(export({"resource": "pod", "status": "alarm", "reason": "configuration"})))
+        return SimpleNamespace(returncode=0, stderr="")
+    monkeypatch.setattr(hardening, "_run_native_worker", execute)
+    result = hardening.run_hardening(options(hardening_runtime="native"), adapter, "cluster")
+    assert result["summary"]["by_status"] == {"FAIL": 1}
+    assert not seen[0].exists()
+    assert hardening.os.environ["AWS_ACCESS_KEY_ID"] == "host-role"
+
+
+def test_exhausted_hosted_budget_does_not_start_native_worker(monkeypatch):
+    monkeypatch.setenv("BLUEPEASS_HARDENING_DEADLINE", "0")
+    monkeypatch.setattr(hardening, "_run_native_worker", lambda *a, **k: pytest.fail("No execution budget"))
+    result = hardening.run_hardening(options(hardening="on", hardening_runtime="native"), SimpleNamespace(), "target")
+    assert result["status"] == "error"
+    assert "budget exhausted" in result["reason"]
+
+
+def test_native_timeout_retains_results_of_completed_suites(monkeypatch):
+    monkeypatch.setattr(hardening.shutil, "which", lambda cmd: "/usr/bin/" + cmd)
+    adapter = SimpleNamespace(provider="aws", probe=lambda: [{"allowed": True}], write=lambda root: None)
+    def execute(command, **kwargs):
+        output = Path(command[command.index("--output-dir") + 1])
+        (output / "result.json").write_text(json.dumps(export({"resource": "bucket", "status": "alarm", "reason": "configuration"})))
+        raise hardening.subprocess.TimeoutExpired("worker", 1)
+    monkeypatch.setattr(hardening, "_run_native_worker", execute)
+    result = hardening.run_hardening(options(hardening_runtime="native"), adapter, "account")
+    assert result["status"] == "partial"
+    assert result["summary"]["by_status"] == {"FAIL": 1}
+    assert not result["coverage"]["complete"]
+    assert any("retained" in error["error"] for error in result["errors"])
+
+
+def test_native_timeout_terminates_descendants(monkeypatch):
+    process = SimpleNamespace(pid=4321, returncode=-15)
+    calls = []
+    def communicate(**kwargs):
+        if not calls:
+            calls.append("timeout")
+            raise hardening.subprocess.TimeoutExpired("worker", 1)
+        return "", ""
+    process.communicate = communicate
+    def popen(command, **kwargs):
+        assert kwargs["start_new_session"] is True
+        return process
+    monkeypatch.setattr(hardening.subprocess, "Popen", popen)
+    monkeypatch.setattr(hardening.os, "killpg", lambda pid, sig: calls.append((pid, sig)))
+    with pytest.raises(hardening.subprocess.TimeoutExpired):
+        hardening._run_native_worker(["worker"], env={}, timeout=1)
+    assert (4321, hardening.signal.SIGTERM) in calls
+    assert (4321, hardening.signal.SIGKILL) in calls
 
 
 def test_report_summary_includes_hardening_coverage_errors():

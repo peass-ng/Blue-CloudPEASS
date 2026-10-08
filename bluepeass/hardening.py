@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import tempfile
 import threading
@@ -23,10 +24,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+import sys
+from bluepeass.hardening_report import group_hardening_targets, render_hardening_markdown
 
 
 DEFAULT_IMAGE = "blue-cloudpeass-hardening:local"
 PLUGIN_VERSIONS = {"aws": "1.34.0", "azure": "1.15.0", "azuread": "1.9.0", "gcp": "1.13.1", "kubernetes": "1.7.0"}
+_NATIVE_LOCK = threading.Lock()
 
 
 def add_hardening_arguments(parser):
@@ -36,6 +40,8 @@ def add_hardening_arguments(parser):
     group.add_argument("--hardening-timeout", type=int, default=1800, help="Total hardening time limit per target in seconds (default: 1800).")
     group.add_argument("--hardening-out-dir", help="Keep native benchmark exports and the normalized hardening report in this directory.")
     group.add_argument("--hardening-show-passed", action="store_true", help="Also print PASS and SKIP hardening results; all results are always retained in JSON.")
+    group.add_argument("--hardening-out-markdown", help="Write the grouped hardening Markdown report (.md or .txt), combining all targets.")
+    group.add_argument("--hardening-runtime", choices=["docker", "native"], default="docker", help="Use Docker (default) or preinstalled native tools in a managed worker image.")
 
 
 def validate_hardening_arguments(parser, args):
@@ -315,7 +321,41 @@ def normalize_results(payload, provider, target):
             "versions": {r["mod"]: r["version"] for r in runs}}
 
 
+def _run_native_worker(command, *, env, timeout):
+    # PostgreSQL and plugin processes must also stop if a managed worker times
+    # out. A new session lets us terminate the entire audit process group.
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               text=True, env=env, start_new_session=True)
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+            process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.communicate()
+        except ProcessLookupError:
+            process.communicate()
+        finally:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        raise
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
 def run_hardening(args, adapter, target):
+    if args is None or args.hardening == "off" or getattr(args, "hardening_runtime", "docker") != "native":
+        return _run_hardening(args, adapter, target)
+    # Native workers share a process namespace; keep their databases/CPU budgets
+    # separate by completing one account at a time. Docker workers are isolated.
+    with _NATIVE_LOCK:
+        return _run_hardening(args, adapter, target)
+
+
+def _run_hardening(args, adapter, target):
     if args is None or args.hardening == "off":
         return _empty("disabled", "Hardening disabled.")
     evidence = adapter.probe() if args.hardening == "auto" else []
@@ -323,7 +363,15 @@ def run_hardening(args, adapter, target):
         result = _empty("skipped", "No successful configuration read; request the documented audit read permissions.")
         result["coverage"]["preflight"] = evidence
         return result
-    if not shutil.which("docker"):
+    native = getattr(args, "hardening_runtime", "docker") == "native"
+    timeout = args.hardening_timeout
+    if os.environ.get("BLUEPEASS_HARDENING_DEADLINE"):
+        timeout = min(timeout, max(0, int(float(os.environ["BLUEPEASS_HARDENING_DEADLINE"]) - time.monotonic())))
+    if timeout < 1:
+        return _empty("error", "Execution budget exhausted before this target's hardening audit.")
+    if native and not all(shutil.which(tool) for tool in ["steampipe", "powerpipe"]):
+        return _empty("unavailable", "Native hardening requires preinstalled Steampipe and Powerpipe.")
+    if not native and not shutil.which("docker"):
         result = _empty("unavailable", "Docker is required for hardening. Build Dockerfile.hardening or use --hardening off.")
         result["coverage"]["preflight"] = evidence
         return result
@@ -334,18 +382,31 @@ def run_hardening(args, adapter, target):
         auth.mkdir(mode=0o700)
         output.mkdir(mode=0o700)
         try:
-            adapter.write(auth)
-            for path in auth.iterdir():
-                path.chmod(0o600)
+            def write_auth():
+                adapter.write(auth)
+                if native:
+                    for path in auth.glob("*.spc"):
+                        _write_config(path, path.read_text().replace("/input/", str(auth) + "/"))
+                for path in auth.iterdir():
+                    path.chmod(0o600)
+            write_auth()
             uid, gid = os.getuid(), os.getgid()
-            if uid == 0:
+            if uid == 0 and not native:
                 uid = gid = 9193
                 for path in [root, auth, output, *auth.iterdir()]:
                     os.chown(path, uid, gid)
             command = ["docker", "run", "--rm", "--pull=never", "--name", name, "--user", f"{uid}:{gid}", "--cap-drop=ALL", "--security-opt=no-new-privileges", "--add-host=host.docker.internal:host-gateway",
                        "--mount", f"type=bind,src={auth},dst=/input,readonly", "--mount", f"type=bind,src={output},dst=/output",
                        "--env", "AWS_CONFIG_FILE=/input/aws-config", "--env", "AWS_PROFILE=bluepeass", "--env", "AWS_EC2_METADATA_DISABLED=true",
-                       args.hardening_image, "--provider", adapter.provider, "--timeout", str(args.hardening_timeout)]
+                       args.hardening_image, "--provider", adapter.provider, "--timeout", str(timeout)]
+            process_env = None
+            if native:
+                worker = Path(__file__).resolve().parent.parent / "docker" / "hardening_worker.py"
+                command = [sys.executable, str(worker), "--provider", adapter.provider, "--timeout", str(timeout), "--input-dir", str(auth), "--output-dir", str(output), "--work-dir", str(root / "runtime")]
+                process_env = dict(os.environ)
+                for key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_WEB_IDENTITY_TOKEN_FILE", "AWS_ROLE_ARN", "AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "GOOGLE_APPLICATION_CREDENTIALS"]:
+                    process_env.pop(key, None)
+                process_env.update(AWS_CONFIG_FILE=str(auth / "aws-config"), AWS_PROFILE="bluepeass", AWS_EC2_METADATA_DISABLED="true", BLUEPEASS_AUTH_DIR=str(auth))
             print(f"[*] Hardening {adapter.provider} {target}: running all compliance/perimeter checks.", flush=True)
             stop = threading.Event()
             refresh_errors = []
@@ -353,20 +414,23 @@ def run_hardening(args, adapter, target):
             def refresh():
                 while not stop.wait(120):
                     try:
-                        adapter.write(auth)
+                        write_auth()
                     except Exception as exc:
                         refresh_errors.append({"error": "Credential refresh failed: " + _safe_error(exc)})
 
             refresher = threading.Thread(target=refresh, daemon=True)
             refresher.start()
             try:
-                completed = subprocess.run(command, capture_output=True, text=True, timeout=args.hardening_timeout + 180)
+                if native:
+                    completed = _run_native_worker(command, env=process_env, timeout=timeout + 15)
+                else:
+                    completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout + 180)
             finally:
                 stop.set()
                 refresher.join(timeout=30)
             result_path = output / "result.json"
             if not result_path.exists():
-                result = _empty("error", "Hardening container produced no report. Check Docker and the prebuilt image.")
+                result = _empty("error", "Hardening worker produced no report. Check the selected runtime and preinstalled tools.")
                 result["errors"].append({"error": completed.stderr[-2000:]})
             else:
                 result = normalize_results(json.loads(result_path.read_text()), adapter.provider, str(target))
@@ -382,16 +446,29 @@ def run_hardening(args, adapter, target):
                 for path in output.glob("*.json"):
                     shutil.copyfile(path, destination / path.name)
                     (destination / path.name).chmod(0o600)
-                _write_private(destination / "hardening.json", result)
+                grouped = group_hardening_targets([{"target_id": str(target), "data": {"hardening": result}}], adapter.provider)
+                _write_private(destination / "hardening.json", grouped)
+                _write_config(destination / "hardening.md", render_hardening_markdown(grouped, show_passed=args.hardening_show_passed))
                 result["exports_directory"] = str(destination)
             return result
         except subprocess.TimeoutExpired:
-            return _empty("error", "Hardening exceeded its time limit; the container was stopped.")
+            partial_path = output / "result.json"
+            if partial_path.exists():
+                try:
+                    result = normalize_results(json.loads(partial_path.read_text()), adapter.provider, str(target))
+                    result["status"] = "partial"
+                    result["coverage"].update(complete=False, preflight=evidence)
+                    result["errors"].append({"error": "Hardening exceeded its time limit; completed suite results are retained."})
+                    return result
+                except (OSError, ValueError):
+                    pass
+            return _empty("error", "Hardening exceeded its time limit; the worker was stopped.")
         except Exception as exc:
             return _empty("error", "Hardening setup failed: " + _safe_error(exc))
         finally:
             try:
-                subprocess.run(["docker", "rm", "--force", name], capture_output=True, timeout=30)
+                if not native:
+                    subprocess.run(["docker", "rm", "--force", name], capture_output=True, timeout=30)
             except (OSError, subprocess.TimeoutExpired):
                 pass
 
@@ -399,27 +476,9 @@ def run_hardening(args, adapter, target):
 def print_hardening(result, *, target, show_passed=False):
     if not result:
         return
-    print(f"\nInfrastructure hardening — {target}: {result['status']}")
-    if result.get("reason"):
-        print("  " + result["reason"])
-    counts = result.get("summary", {}).get("by_status", {})
-    if counts:
-        print("  " + ", ".join(f"{status}={count}" for status, count in sorted(counts.items())))
-    for finding in result.get("findings", []):
-        if not show_passed and finding["status"] in {"PASS", "SKIP"}:
-            continue
-        print(f"  [{finding['status']}] {finding['title']}\n    Resource: {finding['resource']}\n    {finding['reason']}\n    Control: {finding['control_id']}")
-        if finding.get("dimensions"):
-            print("    Scope: " + ", ".join(f"{key}={value}" for key, value in finding["dimensions"].items()))
-        if finding.get("severity") not in {None, "unknown"}:
-            print("    Severity: " + finding["severity"])
-        print("    Reference: " + finding["reference_url"])
-    for error in result.get("errors", []):
-        print(f"  [ERROR] {error.get('control_id', error.get('suite', error.get('mod', 'runner')))}: {error.get('error')}")
-    for control in result.get("coverage", {}).get("excluded_controls", []):
-        print(f"  [SKIP] {control['control_id']}: {control['reason']}")
-    if result.get("exports_directory"):
-        print("  Native exports: " + result["exports_directory"])
+    provider = next((row.get("provider") for row in result.get("findings", []) if row.get("provider")), "unknown")
+    grouped = result if "services" in result else group_hardening_targets([{"target_id": str(target), "data": {"hardening": result}}], provider)
+    print("\n" + render_hardening_markdown(grouped, show_passed=show_passed), end="")
 
 
 def attach_hardening(data, result):

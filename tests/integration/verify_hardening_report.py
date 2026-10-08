@@ -17,17 +17,25 @@ def verify(directory):
                 "k8s": {"kubernetes-compliance": 769}}
     for provider, counts in expected.items():
         report = json.loads((directory / (provider + ".json")).read_text())
-        audits = [target["data"]["hardening"] for target in report["targets"] if "hardening" in target.get("data", {})]
+        grouped = report.get("hardening")
+        audits = grouped["targets"] if grouped else [target["data"]["hardening"] for target in report["targets"] if "hardening" in target.get("data", {})]
         assert audits, provider + ": no hardening target"
         for audit in audits:
             assert dict(collections.Counter(c["suite"] for c in audit["controls"])) == counts, provider + ": some suites/controls were not attempted"
-            assert audit["findings"], provider + ": no resource findings"
-            assert not any("relation " in e["error"] and "does not exist" in e["error"] for e in audit["errors"]), provider + ": missing connection schema"
-            assert not any("credential cannot be nil" in e["error"] or "no valid token for audience" in e["error"] for e in audit["errors"]), provider + ": credential adapter failure"
+            if grouped:
+                rows = [{**finding, **observation, "resource": asset["resource"]}
+                        for service in grouped["services"] for finding in service["findings"]
+                        for asset in finding["assets"] for observation in asset["observations"] if observation["scan_id"] == audit["scan_id"]]
+                errors = [e for e in grouped["errors"] if e["scan_id"] == audit["scan_id"]]
+            else:
+                rows, errors = audit["findings"], audit["errors"]
+            assert rows, provider + ": no resource findings"
+            assert not any("relation " in e["error"] and "does not exist" in e["error"] for e in errors), provider + ": missing connection schema"
+            assert not any("credential cannot be nil" in e["error"] or "no valid token for audience" in e["error"] for e in errors), provider + ": credential adapter failure"
             if provider == "k8s":
-                assert not audit["errors"], "Unexpected Kubernetes execution error"
+                assert not errors, "Unexpected Kubernetes execution error"
                 for control in ["deployment_container_privilege_disabled", "deployment_non_root_container", "deployment_immutable_container_filesystem"]:
-                    statuses = {f["dimensions"].get("deployment_name"): f["status"] for f in audit["findings"] if f["control_id"].endswith("." + control)}
+                    statuses = {f["dimensions"].get("deployment_name"): f["status"] for f in rows if f["control_id"].endswith("." + control)}
                     assert statuses["needs-hardening"] == "FAIL", control
                     assert statuses["hardened"] == "PASS", control
                 excluded = audit["coverage"]["excluded_controls"]

@@ -11,6 +11,7 @@ from bluepeass.k8s import analyze_snapshot, fetch_snapshot, read_audit_log, _new
 from bluepeass.hardening import KubernetesCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from bluepeass.normalize import normalize_k8s_cluster
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
 
 
 def _print_section(label: str, values: list, max_items: int, formatter) -> None:
@@ -124,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
             result["hardening"] = run_hardening(args, KubernetesCredentials(api), str(result["context"]))
         finally:
             api.close()
-        print_hardening(result["hardening"], target=result["context"], show_passed=args.hardening_show_passed)
+        publish_hardening_report(args, [Target(target_type="cluster", target_id=str(result["context"]), label=result["context"], data={"hardening": result["hardening"]}).to_dict()], "k8s")
 
     if args.out_json:
         report = build_report(

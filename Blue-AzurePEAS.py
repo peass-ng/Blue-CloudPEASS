@@ -42,6 +42,7 @@ except Exception as e:  # pragma: no cover
 
 from bluepeass.progress import StageProgress
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
 from bluepeass.normalize import normalize_azure_management_groups, normalize_azure_subscription
 from bluepeass.hardening import AzureCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from scripts.permission_risk_classifier import RISK_LEVELS, RISK_ORDER, classify_all
@@ -2502,7 +2503,7 @@ def main() -> None:
     hardening_by_subscription = {}
     for sid, _ in subscriptions:
         hardening_by_subscription[sid] = run_hardening(args, AzureCredentials(credential, sid, current_identity.get("tid")), sid)
-        print_hardening(hardening_by_subscription[sid], target=sid, show_passed=args.hardening_show_passed)
+    publish_hardening_report(args, [Target(target_type="subscription", target_id=sid, label=name, data={"hardening": hardening_by_subscription[sid]}).to_dict() for sid, name in subscriptions], "azure")
 
     if args.out_json:
         targets: list[dict] = []

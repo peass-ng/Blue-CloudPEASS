@@ -16,13 +16,19 @@ def main():
     parser.add_argument("--provider", choices=["aws", "azure", "gcp", "kubernetes"])
     parser.add_argument("--timeout", type=int, default=1800)
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--input-dir", default="/input")
+    parser.add_argument("--output-dir", default="/output")
+    parser.add_argument("--work-dir", help="Private runtime directory managed by the caller (native workers).")
     args = parser.parse_args()
     if not args.provider and not args.self_test:
         parser.error("--provider is required")
-    output = pathlib.Path("/output")
+    output = pathlib.Path(args.output_dir)
+    auth = pathlib.Path(args.input_dir)
+    os.environ["BLUEPEASS_AUTH_DIR"] = str(auth)
     output.mkdir(exist_ok=True)
     result = {"runs": [], "excluded_controls": [], "errors": []}
-    runtime = pathlib.Path(tempfile.mkdtemp(prefix="bluepeass-"))
+    runtime = pathlib.Path(args.work_dir) if args.work_dir else pathlib.Path(tempfile.mkdtemp(prefix="bluepeass-"))
+    runtime.mkdir(mode=0o700, exist_ok=True)
     os.environ["USER"] = "bluepeass"
     os.environ["PIPES_INSTALL_DIR"] = str(runtime / "pipes")
     # Docker runs as the host UID so private bind mounts remain private. Give
@@ -38,7 +44,7 @@ def main():
     for path in (install / "config").glob("*.spc"):
         path.unlink()
     if not args.self_test:
-        for path in pathlib.Path("/input").glob("*.spc"):
+        for path in auth.glob("*.spc"):
             shutil.copyfile(path, install / "config" / path.name)
     os.environ["STEAMPIPE_INSTALL_DIR"] = str(install)
     os.environ["STEAMPIPE_CONFIG_PATH"] = str(install / "config")
@@ -82,7 +88,7 @@ control "failure" {
             if not args.self_test:
                 # In particular, refresh the static GCP access token between
                 # long suites without copying another account's default cache.
-                for path in pathlib.Path("/input").glob("*.spc"):
+                for path in auth.glob("*.spc"):
                     destination = install / "config" / path.name
                     if path.read_bytes() != destination.read_bytes():
                         temporary = destination.with_suffix(".spc.tmp")
@@ -97,7 +103,7 @@ control "failure" {
             # The RBAC scanner never reads Secret objects. Keep the same contract
             # for hardening; the omitted metadata check is reported explicitly.
             if args.provider == "kubernetes":
-                version_path = pathlib.Path("/input/kubernetes-version.json")
+                version_path = auth / "kubernetes-version.json"
                 version = json.loads(version_path.read_text()) if version_path.exists() else {}
                 minor = re.sub(r"\D.*", "", str(version.get("minor", "")))
                 removed_psp = str(version.get("major")) == "1" and bool(minor) and int(minor) >= 25
@@ -139,6 +145,7 @@ control "failure" {
         except (OSError, subprocess.TimeoutExpired):
             # The dedicated container's exit also terminates remaining workers.
             pass
+        shutil.rmtree(runtime, ignore_errors=True)
     return 0
 
 
