@@ -85,7 +85,7 @@ def filter_aws_raw_report(raw):
             rule = matching_rule("aws", section, identifier) if eligible else None
             if rule:
                 counts[rule["id"]] += 1
-                if field == "unused_roles" and isinstance(entry, dict) and entry.get("permissions"):
+                if field in {"unused_roles", "unused_permissions"} and isinstance(entry, dict) and entry.get("permissions"):
                     # Legacy inputs may keep grant evidence only on the unused
                     # role entry. Preserve grants while removing its inactivity.
                     result["role_permissions"] = {**result.get("role_permissions", {}), identifier: entry["permissions"]}
