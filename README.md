@@ -31,7 +31,7 @@ Permission levels follow the shared [severity policy](docs/permission-severity-p
 
 The four scanners also run read-only infrastructure configuration checks using **Steampipe + Powerpipe**. The existing IAM/RBAC audits and authentication options remain available. Hardening runs separately and does not enable cloud APIs, create cloud resources, or apply remediation.
 
-Build the bundled hardening image once. It includes pinned versions of Steampipe, Powerpipe, the AWS/Azure/Entra/GCP/Kubernetes plugins, and the compliance/perimeter mods; no mod downloads or image pulls occur during an audit:
+Build the bundled hardening image before the first audit, and rebuild it after updating this checkout so it contains the current query corrections and catalog. It includes pinned versions of Steampipe, Powerpipe, the AWS/Azure/Entra/GCP/Kubernetes plugins, and the compliance/perimeter mods; no mod downloads or image pulls occur during an audit:
 
 ```bash
 docker build -f Dockerfile.hardening -t blue-cloudpeass-hardening:local .
@@ -106,6 +106,8 @@ Ask the infrastructure owner for a dedicated, time-limited audit identity in **e
 | Kubernetes | A dedicated identity with `get`, `list`, and `watch` on workloads (including `podtemplates`), RBAC, networking, storage, ConfigMaps, service accounts, quotas, and admission configuration. The built-in `view` role omits RBAC reads. Start with the explicit auditor role from the linked page and add PodTemplate reads required by the bundled mod; `tests/integration/kubernetes-auditor.yaml` provides the tested resource allowlist. Retain the exclusion of Secret values, Pod logs/exec, impersonation, and writes. |
 
 Sources: [AWS permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/aws-security/aws-permissions-for-a-pentest.html), [GCP permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/gcp-security/gcp-permissions-for-a-pentest.html), [Azure permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/azure-security/az-permissions-for-a-pentest.html), [Kubernetes permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/kubernetes-permissions-for-a-pentest.html).
+
+AWS credential age and MFA controls also need an existing [IAM credential report](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html). Ask the account owner to generate it before the audit with `aws iam generate-credential-report` for each account in scope. Generating the report requires `iam:GenerateCredentialReport`; the auditor needs `iam:GetCredentialReport` to read it. Hardening does not generate this report automatically. A missing report remains a coverage error rather than a security finding.
 
 Kubernetes hardening preserves the existing **no Secret-object reads** contract: the upstream Secret namespace check is excluded and appears in coverage. Checks examining Secret references in workload definitions still run. PodSecurityPolicy checks are marked non-applicable on Kubernetes 1.25+ because that API was removed. Host files and hidden managed control-plane settings cannot be assumed audited from API configuration alone. Resource readiness, replica counts, and other operational recommendations are also present in the upstream catalog and should be reviewed in context.
 
