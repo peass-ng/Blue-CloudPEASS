@@ -82,13 +82,20 @@ def test_custom_azure_configuration_directory_is_respected(azure, monkeypatch, t
     assert azure.AzureMsalTokenCacheCredential()._cache_path == str(tmp_path / "msal_token_cache.json")
 
 
-def test_denied_graph_reads_keep_a_valid_arm_subscription_report(azure, monkeypatch, tmp_path, capsys):
+@pytest.mark.parametrize("arm_only", [False, True])
+def test_denied_graph_reads_keep_a_valid_arm_subscription_report(azure, monkeypatch, tmp_path, capsys, arm_only):
     output = tmp_path / "report.json"
-    monkeypatch.setattr(sys, "argv", ["Blue-AzurePEAS.py", "--subscription", "subscription", "--hardening", "off", "--no-scan-management-groups", "--out-json", str(output)])
+    argv = ["Blue-AzurePEAS.py", "--subscription", "subscription", "--hardening", "off", "--no-scan-management-groups", "--out-json", str(output)]
+    if arm_only:
+        argv += ["--arm-token", "arm-token"]
+        monkeypatch.setattr(azure, "_ensure_token_scopes", lambda *a, **k: None)
+    monkeypatch.setattr(sys, "argv", argv)
     credential = SimpleNamespace(get_token=lambda *a, **k: SimpleNamespace(token="arm-token"))
     monkeypatch.setattr(azure, "_build_credential", lambda args: credential)
     monkeypatch.setattr(azure, "_jwt_claims", lambda token: {"tid": "tenant", "oid": "auditor"})
     def denied_graph(credential):
+        if arm_only:
+            pytest.fail("ARM-only audit attempted a Graph request")
         raise RuntimeError("Graph permission check failed (403): missing admin consent")
     monkeypatch.setattr(azure, "_graph_permissions_check", denied_graph)
     monkeypatch.setattr(azure, "SubscriptionClient", lambda credential: SimpleNamespace(subscriptions=SimpleNamespace(list=lambda: [{"subscription_id": "subscription", "display_name": "Fixture"}])))
@@ -102,4 +109,4 @@ def test_denied_graph_reads_keep_a_valid_arm_subscription_report(azure, monkeypa
     report = json.loads(output.read_text())
     assert report["summary"]["successful_subscriptions"] == 1
     assert report["errors"][0]["where"] == "graph_permission_check"
-    assert "ARM authentication succeeded" in capsys.readouterr().out
+    assert ("ARM-only credentials" if arm_only else "ARM authentication succeeded") in capsys.readouterr().out

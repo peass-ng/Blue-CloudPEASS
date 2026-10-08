@@ -2154,7 +2154,8 @@ def main() -> None:
     args = ap.parse_args()
     validate_hardening_arguments(ap, args)
 
-    if args.hardening != "off" and args.arm_token and not args.graph_token:
+    arm_only = bool(args.arm_token and not args.graph_token)
+    if arm_only:
         # ARM-only read credentials can still audit subscription infrastructure.
         # Keep unavailable directory reads visible in the hardening coverage.
         args.resolve_principals = False
@@ -2217,7 +2218,7 @@ def main() -> None:
         print(f"{colored('[-] ', 'red')}Azure authentication failed: {e}")
         sys.exit(1)
 
-    graph_access_error = None
+    graph_access_error = {"where": "graph_permission_check", "error": "No Graph token supplied; directory audit omitted while ARM subscription checks continue."} if arm_only else None
     if args.resolve_principals or args.scan_entra or args.scan_entra_recommendations or args.scan_pim_alerts:
         try:
             _graph_permissions_check(credential)
