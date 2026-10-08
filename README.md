@@ -108,26 +108,6 @@ docker run --rm --user "$(id -u):$(id -g)" \
 
 For a dedicated local cluster, `tests/integration/kubernetes-hardening.yaml` creates both configurations requiring hardening and hardened counterparts across several workload kinds. `tests/integration/kubernetes-auditor.yaml` adds a read-only service account that has no Secret-object permission. Apply these only to a disposable local cluster, audit that context, and delete the fixtures afterward. `tests/integration/verify_hardening_report.py` verifies the expected catalogs and known Kubernetes findings from private live reports.
 
-## Blue-K8sPEAS.py (Kubernetes)
-
-Read-only RBAC and service-account audit using direct Kubernetes API calls through the Python client. It uses the current kubeconfig context by default, accepts `--kubeconfig` and `--context`, and supports in-cluster credentials or `--server` with `--token-file`. **`kubectl` is not required.** A kubeconfig that specifies an `exec` credential plugin can still invoke that configured authentication helper; use in-cluster credentials or a token file to avoid external executables entirely. The scan lists Roles, ClusterRoles, their bindings, service accounts, and workloads. It **never lists Secret objects**; it analyzes RBAC rules granting access to Secrets without reading the Secrets themselves. Service accounts also inherit grants to `system:serviceaccounts`, their namespace group, and `system:authenticated`. Namespace-scoped RoleBindings remain scoped to their namespace.
-
-It flags sensitive grants (wildcards, RBAC changes, impersonation, Secret access, token creation, pod execution and workload modification), broad or anonymous bindings, cloud workload identity annotations, workloads running with flagged service accounts, and principals that can create workloads using a flagged service account in the same namespace. It also reports custom role definitions with no bindings, service accounts with no listed workloads, and dangling role references. The JSON report includes all declared grants, role definitions, source attribution, inventory, and coverage errors in the shared catalog-based report format.
-
-```bash
-python3 Blue-K8sPEAS.py --context minikube --out-json k8s-report.json
-python3 Blue-K8sPEAS.py --server https://k8s.example:6443 --token-file ./token --ca-cert ./ca.crt
-python3 Blue-K8sPEAS.py --in-cluster --out-json k8s-report.json
-python3 Blue-K8sPEAS.py --risk-levels medium,high,critical --max-items 30
-python3 Blue-K8sPEAS.py --audit-log /path/to/kube-audit.jsonl --min-unused-days 90 --out-json k8s-report.json
-```
-
-The scanner needs `list` access to `roles`, `clusterroles`, `rolebindings`, and `clusterrolebindings` for core RBAC analysis. For all checks, it also needs `list` access to `serviceaccounts`, `pods`, `deployments`, `daemonsets`, `statefulsets`, `jobs`, and `cronjobs` across namespaces. It does not need permission to list or get Secrets. Each resource is fetched separately; denied reads appear in report coverage. A missing binding list disables unused-role conclusions, and a missing workload list disables service-account workload-reference conclusions. The command returns exit code 1 when any core RBAC list is missing.
-
-Kubernetes RBAC has no per-permission last-used API. With `--audit-log`, the tool reports grants and principals **not observed** in the supplied JSON-lines audit events during the lookback window. This is a lead for review, not proof of unused access: audit policy, retention, gaps, and other authorizers affect what appears in the log. An unbound role is unused *as an RBAC grant*, while a service account without a listed workload can still be used externally. RBAC grants are declared permissions, not a live authorization decision: other authorizers, admission, and resource-specific constraints may also apply. API discovery identifies cluster-scoped resources, including custom resources, so ordinary cluster-resource rules are excluded from namespaced RoleBinding grants; the scanner uses a built-in resource list if discovery fails. Group membership outside the built-in service-account groups cannot be resolved from the Kubernetes API.
-
-The scope and activity checks follow the Kubernetes [RBAC reference](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) and [API discovery](https://kubernetes.io/docs/reference/using-api/api-concepts/).
-
 ## Install
 
 ```bash
@@ -742,5 +722,30 @@ python3 Blue-AzurePEAS.py --subscription <SUB> --no-resolve-principals
 # JSON output
 python3 Blue-AzurePEAS.py --subscription <SUB> --out-json /tmp/azure.json
 ```
+
+</details>
+
+---
+
+<details>
+<summary><b>Blue-K8sPEAS.py (Kubernetes)</b></summary>
+
+Read-only RBAC and service-account audit using direct Kubernetes API calls through the Python client. It uses the current kubeconfig context by default, accepts `--kubeconfig` and `--context`, and supports in-cluster credentials or `--server` with `--token-file`. **`kubectl` is not required.** A kubeconfig that specifies an `exec` credential plugin can still invoke that configured authentication helper; use in-cluster credentials or a token file to avoid external executables entirely. The scan lists Roles, ClusterRoles, their bindings, service accounts, and workloads. It **never lists Secret objects**; it analyzes RBAC rules granting access to Secrets without reading the Secrets themselves. Service accounts also inherit grants to `system:serviceaccounts`, their namespace group, and `system:authenticated`. Namespace-scoped RoleBindings remain scoped to their namespace.
+
+It flags sensitive grants (wildcards, RBAC changes, impersonation, Secret access, token creation, pod execution and workload modification), broad or anonymous bindings, cloud workload identity annotations, workloads running with flagged service accounts, and principals that can create workloads using a flagged service account in the same namespace. It also reports custom role definitions with no bindings, service accounts with no listed workloads, and dangling role references. The JSON report includes all declared grants, role definitions, source attribution, inventory, and coverage errors in the shared catalog-based report format.
+
+```bash
+python3 Blue-K8sPEAS.py --context minikube --out-json k8s-report.json
+python3 Blue-K8sPEAS.py --server https://k8s.example:6443 --token-file ./token --ca-cert ./ca.crt
+python3 Blue-K8sPEAS.py --in-cluster --out-json k8s-report.json
+python3 Blue-K8sPEAS.py --risk-levels medium,high,critical --max-items 30
+python3 Blue-K8sPEAS.py --audit-log /path/to/kube-audit.jsonl --min-unused-days 90 --out-json k8s-report.json
+```
+
+The scanner needs `list` access to `roles`, `clusterroles`, `rolebindings`, and `clusterrolebindings` for core RBAC analysis. For all checks, it also needs `list` access to `serviceaccounts`, `pods`, `deployments`, `daemonsets`, `statefulsets`, `jobs`, and `cronjobs` across namespaces. It does not need permission to list or get Secrets. Each resource is fetched separately; denied reads appear in report coverage. A missing binding list disables unused-role conclusions, and a missing workload list disables service-account workload-reference conclusions. The command returns exit code 1 when any core RBAC list is missing.
+
+Kubernetes RBAC has no per-permission last-used API. With `--audit-log`, the tool reports grants and principals **not observed** in the supplied JSON-lines audit events during the lookback window. This is a lead for review, not proof of unused access: audit policy, retention, gaps, and other authorizers affect what appears in the log. An unbound role is unused *as an RBAC grant*, while a service account without a listed workload can still be used externally. RBAC grants are declared permissions, not a live authorization decision: other authorizers, admission, and resource-specific constraints may also apply. API discovery identifies cluster-scoped resources, including custom resources, so ordinary cluster-resource rules are excluded from namespaced RoleBinding grants; the scanner uses a built-in resource list if discovery fails. Group membership outside the built-in service-account groups cannot be resolved from the Kubernetes API.
+
+The scope and activity checks follow the Kubernetes [RBAC reference](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) and [API discovery](https://kubernetes.io/docs/reference/using-api/api-concepts/).
 
 </details>
