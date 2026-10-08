@@ -1,0 +1,453 @@
+version: 1
+rules:
+  - id: aws-service-linked-unused-role
+    provider: aws
+    sections: [principals_inactive, principals_with_unused_permissions]
+    identifier_patterns: ["arn:*:iam::*:role/aws-service-role/*"]
+    reason: AWS service-linked roles are managed by their service; IAM inactivity alone is not a removal recommendation.
+  - id: aws-identity-center-unused-role
+    provider: aws
+    sections: [principals_inactive, principals_with_unused_permissions]
+    identifier_patterns: ["arn:*:iam::*:role/aws-reserved/sso.amazonaws.com/*AWSReservedSSO_*"]
+    reason: Identity Center generates these roles; review assignments and permission sets rather than reporting the generated IAM role as unused.
+  - id: aws-managed-unused-policy
+    provider: aws
+    sections: [unused_custom_definitions]
+    identifier_patterns: ["arn:*:iam::aws:policy/*"]
+    reason: AWS-managed policies are not customer-managed policy cleanup findings.
+  - id: gcp-predefined-unused-role
+    provider: gcp
+    sections: [unused_custom_definitions]
+    identifier_patterns: ["roles/*"]
+    reason: Predefined Google roles are not unused customer-defined roles.
+  - id: kubernetes-default-unused-role
+    provider: kubernetes
+    sections: [unused_custom_definitions]
+    identifier_patterns: ["clusterroles/cluster/system:*", "ClusterRole/cluster/system:*"]
+    reason: Default system ClusterRoles are not unused custom role cleanup findings.
+  - id: azure-builtin-unused-role
+    provider: azure
+    sections: [unused_custom_definitions]
+    attribute_patterns:
+      role_type: [BuiltInRole]
+    reason: Azure built-in role definitions are not unused customer-defined roles.
+  - id: aws-managed-role-hardening-inactivity
+    provider: aws
+    sections: [hardening]
+    control_patterns: ["aws_compliance.control.iam_role_unused_*"]
+    identifier_patterns:
+      - "arn:*:iam::*:role/aws-service-role/*"
+      - "arn:*:iam::*:role/aws-reserved/sso.amazonaws.com/*AWSReservedSSO_*"
+    statuses: [FAIL, MANUAL]
+    reason: Service-linked and Identity Center roles are provider-managed; this inactivity check is not an actionable IAM role removal finding.
+  - id: aws-managed-policy-hardening-inactivity
+    provider: aws
+    sections: [hardening]
+    control_patterns: ["aws_compliance.control.iam_policy_unused", "aws_compliance.control.iam_custom_policy_unused"]
+    identifier_patterns: ["arn:*:iam::aws:policy/*"]
+    statuses: [FAIL, MANUAL]
+    reason: Unattached AWS-managed policies are not customer policy cleanup findings.
+  - id: aws-policy-mandatory-role-attachment
+    provider: aws
+    sections: [hardening]
+    control_patterns:
+      - aws_compliance.control.iam_managed_policy_attached_to_role
+      - aws_compliance.control.iam_custom_managed_policy_attached_to_role
+    reason: Policies need not be attached to a role; customer policies can validly be attached to users/groups, and attaching every stock AWS policy would violate least privilege. Actual unused customer policy and excessive-grant checks remain.
+  - id: aws-lambda-customer-vpc-not-required
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.lambda_function_in_vpc, aws_perimeter.control.lambda_function_in_vpc]
+    reason: Lambda already executes in an isolated AWS-managed network. Customer VPC attachment is an outbound connectivity choice, not evidence that a function has public ingress. Function policy and URL exposure checks remain.
+  - id: aws-platform-encryption-not-disabled
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.lambda_function_encryption_enabled, aws_compliance.control.log_group_encryption_at_rest_enabled]
+    reason: These queries incorrectly describe absent customer KMS keys as absent encryption. Lambda environment variables and CloudWatch Logs are encrypted by the platform by default.
+  - id: aws-disabled-kms-key-not-unused
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.kms_cmk_unused]
+    reason: The query infers unused solely from Disabled state. Disabled keys can be intentionally retained for encrypted historical data; disabling a key is not evidence that it can be removed.
+  - id: aws-guardduty-archive-not-remediation
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.guardduty_finding_archived]
+    reason: Archiving an active GuardDuty finding does not remediate it. Requiring all findings to be archived is not a security hardening assessment; severity and detector checks remain.
+  - id: aws-interface-count-not-security
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.ec2_instance_not_use_multiple_enis, aws_compliance.control.eks_cluster_no_multiple_security_groups]
+    reason: Multiple interfaces or security groups are supported topology choices. Their count alone establishes no unsafe access; effective ingress and IAM checks remain.
+  - id: aws-ecs-operational-counts
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.ecs_cluster_no_active_services_count, aws_compliance.control.ecs_cluster_no_registered_container_instance]
+    reason: Task-only ECS clusters need no active service, and Fargate clusters need no registered EC2 container instance. These runtime counts are not hardening failures.
+  - id: azure-retired-log-analytics-agent
+    provider: azure
+    sections: [hardening]
+    control_patterns:
+      - azure_compliance.control.arc_compute_machine_linux_log_analytics_agent_installed
+      - azure_compliance.control.arc_compute_machine_windows_log_analytics_agent_installed
+      - azure_compliance.control.compute_vm_log_analytics_agent_installed
+      - azure_compliance.control.compute_vm_log_analytics_agent_installed_windows
+      - azure_compliance.control.compute_vm_scale_set_log_analytics_agent_installed
+      - azure_compliance.control.securitycenter_automatic_provisioning_monitoring_agent_on
+    reason: These require the retired MMA/OMS Log Analytics agent or its legacy auto-provisioning. Missing a retired agent is not a finding against an AMA deployment; diagnostic and monitoring checks remain.
+  - id: azure-retired-qualys-requirement
+    provider: azure
+    sections: [hardening]
+    control_patterns: [azure_compliance.control.compute_vm_vulnerability_assessment_solution_enabled]
+    reason: The pinned query requires both MDE and the retired built-in Qualys extension. Microsoft Defender Vulnerability Management replaces that solution; absence of the retired extension cannot support this assessment.
+  - id: azure-legacy-log-profile-requirements
+    provider: azure
+    sections: [hardening]
+    control_patterns:
+      - azure_compliance.control.log_profile_enabled_for_all_subscription
+      - azure_compliance.control.monitor_log_profile_enabled_for_all_categories
+      - azure_compliance.control.monitor_log_profile_enabled_for_all_regions
+      - azure_compliance.control.monitor_log_profile_retention_365_days
+    reason: These assess only legacy Activity Log profiles, which Azure replaces with diagnostic settings. They cannot infer missing logging or retention on a modern deployment. Modern diagnostic-setting and category assessments remain; destination retention needs its own applicable assessment.
+  - id: azure-vmss-logging-wrong-query
+    provider: azure
+    sections: [hardening]
+    control_patterns: [azure_compliance.control.compute_vm_scale_set_logging_enabled]
+    reason: The pinned VMSS logging query actually checks antimalware signature auto-upgrades on ordinary VMs. Its resource type, result, and title disagree; the correctly named antimalware check remains.
+  - id: azure-local-auth-enabling-not-hardening
+    provider: azure
+    sections: [hardening]
+    control_patterns: [azure_compliance.control.eventgrid_topic_local_auth_enabled]
+    reason: The query flags disabled key-based authentication on Event Grid domains as unsafe. Entra-only authentication is valid hardening, and the query also targets a different resource type than its title.
+  - id: azure-aks-arbitrary-capacity
+    provider: azure
+    sections: [hardening]
+    control_patterns: [azure_compliance.control.kubernetes_cluster_max_pod_50]
+    reason: An arbitrary minimum of 50 pods per node is capacity planning, not a security requirement. Lower intentionally configured pod density is not a hardening failure.
+  - id: azure-aks-cni-vendor-choice
+    provider: azure
+    sections: [hardening]
+    control_patterns: [azure_compliance.control.kubernetes_cluster_network_plugin_azure]
+    reason: A supported network plugin choice alone does not establish unsafe networking. Network policy and actual access restrictions remain independently checked.
+  - id: azure-all-users-mfa-wrong-scope
+    provider: azure
+    sections: [hardening]
+    control_patterns: [azure_compliance.control.ad_all_user_mfa_enabled]
+    reason: The query checks includeRoles rather than all users and does not require an enforced policy. It can both reject a valid All-users policy and falsely certify a disabled role-scoped policy; other MFA assessments and coverage errors remain.
+  - id: gcp-experimental-alpha-not-required
+    provider: gcp
+    sections: [hardening]
+    control_patterns: [gcp_compliance.control.kubernetes_cluster_kubernetes_alpha_enabled]
+    reason: Requiring GKE alpha features is unsafe advice. Alpha clusters are experimental, expire after 30 days, cannot be upgraded, and do not receive security updates.
+  - id: gcp-gke-client-cert-wrong-assessment
+    provider: gcp
+    sections: [hardening]
+    control_patterns: [gcp_compliance.control.kubernetes_cluster_client_certificate_authentication_enabled]
+    reason: A cluster CA certificate is not proof of client-certificate authentication. Requiring long-lived client credentials is not a valid failure against OAuth-authenticated GKE access.
+  - id: gcp-metadata-presence-not-security
+    provider: gcp
+    sections: [hardening]
+    control_patterns: [gcp_compliance.control.compute_instance_with_custom_metadata]
+    reason: The presence of any custom metadata proves no security setting. Project inheritance and specific SSH/serial-port/OS Login controls provide the relevant assessments.
+  - id: gcp-auto-subnets-not-required
+    provider: gcp
+    sections: [hardening]
+    control_patterns: [gcp_compliance.control.compute_network_auto_create_subnetwork_enabled]
+    reason: Custom-mode networks intentionally disable automatic subnet creation. Auto mode is not a security requirement or evidence of hardening.
+  - id: gcp-serverless-vpc-connector-not-required
+    provider: gcp
+    sections: [hardening]
+    control_patterns: [gcp_compliance.control.cloudfunction_function_vpc_connector_enabled]
+    reason: A VPC connector is an outbound connectivity option, not evidence of authenticated or private ingress. It is unnecessary for functions using managed service endpoints, and direct VPC egress is a supported alternative.
+  - id: gcp-all-ports-wrong-query
+    provider: gcp
+    sections: [hardening]
+    control_patterns: [gcp_compliance.control.restrict_firewall_rule_world_open_tcp_udp_all_ports]
+    reason: The pinned all-ports query is an exact copy of the RDP-only query and cannot support its title. The correctly named RDP check and perimeter all-ports assessment remain.
+  - id: gcp-disabled-firewall-rule
+    provider: gcp
+    sections: [hardening]
+    control_patterns:
+      - gcp_compliance.control.compute_firewall_*
+      - gcp_compliance.control.restrict_firewall_*
+      - gcp_perimeter.control.vpc_firewall_*
+    attribute_patterns:
+      dimensions.bluepeass_firewall_disabled: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: A disabled GCP firewall rule does not affect traffic and is not currently exposing its ports. Enabled or unknown rule state remains assessed; other effective rules are independent findings.
+  - id: gcp-error-detail-masking-contradiction
+    provider: gcp
+    sections: [hardening]
+    control_patterns: [gcp_compliance.control.sql_instance_sql_3625_trace_database_flag_off]
+    reason: SQL Server trace flag 3625 masks error details for non-sysadmins. Requiring it to be off contradicts the protective on assessment; the on check remains.
+  - id: kubernetes-token-automount-enabling
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.pod_service_account_token_enabled]
+    reason: Requiring automatic service-account token mounting contradicts least privilege and the disabled-token control. The query also reads a last-applied annotation instead of the live specification.
+  - id: kubernetes-container-port-not-privilege
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.*_container_privilege_port_mapped]
+    reason: An internal containerPort at or below 1024 does not prove root execution, host exposure, or privilege escalation. Effective privilege, host-port, and service exposure controls remain.
+  - id: kubernetes-context-presence-not-security
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.*_container_security_context_exists]
+    reason: An empty container securityContext passes this presence test, while secure inherited Pod settings fail it. Actual effective security settings are assessed by the dedicated privilege, identity, capability, filesystem, and seccomp controls.
+  - id: aws-default-security-group-cleanup
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.vpc_security_group_unused, aws_compliance.control.vpc_security_group_associated_to_eni]
+    attribute_patterns:
+      dimensions.bluepeass_security_group_name: [default]
+    statuses: [FAIL, MANUAL]
+    reason: AWS requires the default security group to exist in its VPC; it cannot be deleted or required to have an ENI just to satisfy cleanup checks. Unsafe default-group rules remain assessed.
+  - id: aws-default-network-acl-cleanup
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.vpc_network_acl_unused]
+    attribute_patterns:
+      dimensions.bluepeass_default_network_acl: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: The default network ACL must remain in its VPC even when no subnet currently uses it. Its network rules remain assessed.
+  - id: aws-requester-managed-interface-cleanup
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.ec2_network_interface_unused]
+    attribute_patterns:
+      dimensions.bluepeass_requester_managed: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: Requester-managed service ENIs have a service-owned lifecycle and are not customer interface cleanup findings. Public-access and security-group checks remain.
+  - id: aws-cloudfront-oac-replaces-oai
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.cloudfront_distribution_origin_access_identity_enabled]
+    attribute_patterns:
+      dimensions.bluepeass_origin_access_control: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: An origin with OAC does not also require the legacy OAI. OAC's signing settings and effective bucket access are separate assessments.
+  - id: aws-cloudfront-default-domain-certificate
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.cloudfront_distribution_use_custom_ssl_certificate]
+    attribute_patterns:
+      dimensions.bluepeass_custom_domain_count: ["0"]
+    statuses: [FAIL, MANUAL]
+    reason: A distribution using only its cloudfront.net domain validly uses the AWS-managed default certificate. A custom certificate is needed for custom aliases, not for the default hostname.
+  - id: aws-managed-secret-rotation
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.secretsmanager_secret_automatic_rotation_lambda_enabled]
+    attribute_patterns:
+      dimensions.bluepeass_owning_service: [rds, redshift, docdb]
+    statuses: [FAIL, MANUAL]
+    reason: These service-owned secrets can use service-managed rotation rather than a customer Lambda rotation function. Actual rotation-enabled and credential-age assessments remain.
+  - id: aws-dead-letter-queue-recursion
+    provider: aws
+    sections: [hardening]
+    control_patterns: [aws_compliance.control.sqs_queue_dead_letter_queue_configured]
+    attribute_patterns:
+      dimensions.bluepeass_dead_letter_queue: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: A queue already serving as another queue's dead-letter target does not itself require another DLQ to complete an infinite DLQ chain. Normal source-queue redrive and queue access checks remain.
+  - id: azure-cmk-satisfies-encryption
+    provider: azure
+    sections: [hardening]
+    control_patterns: [azure_compliance.control.storage_account_encryption_at_rest_using_mmk]
+    attribute_patterns:
+      dimensions.bluepeass_key_source: [Microsoft.Keyvault]
+    statuses: [FAIL, MANUAL]
+    reason: A customer-managed key is a valid encryption alternative to a Microsoft-managed key. Encryption and CMK-specific checks remain independently assessed.
+  - id: kubernetes-bootstrap-default-service
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.service_default_namespace_used]
+    attribute_patterns:
+      dimensions.namespace: [default]
+      dimensions.bluepeass_resource_name: [kubernetes]
+    statuses: [FAIL, MANUAL]
+    reason: Kubernetes installs its API Service in the default namespace. This bootstrap resource is not a customer workload namespace-placement issue.
+  - id: kubernetes-bootstrap-root-ca
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.config_map_default_namespace_used]
+    attribute_patterns:
+      dimensions.namespace: [default]
+      dimensions.bluepeass_resource_name: [kube-root-ca.crt]
+    statuses: [FAIL, MANUAL]
+    reason: Kubernetes automatically publishes the cluster CA ConfigMap in each namespace. Its existence in default is not a customer namespace-placement finding.
+  - id: kubernetes-bootstrap-default-service-account
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.service_account_default_namespace_used]
+    attribute_patterns:
+      dimensions.namespace: [default]
+      dimensions.service_account_name: [default]
+    statuses: [FAIL, MANUAL]
+    reason: Kubernetes automatically creates the default service account. Actual bindings, workload use, and token mounting remain assessed.
+  - id: kubernetes-stock-cluster-admin-definition
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.role_with_wildcards_used]
+    attribute_patterns:
+      dimensions.role_name: [cluster-admin]
+    statuses: [FAIL, MANUAL]
+    reason: The built-in cluster-admin ClusterRole is defined to grant all permissions. Its existence is not a custom wildcard-role finding; who is bound to that role remains audited.
+  - id: kubernetes-inherited-non-root-settings
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.*_non_root_container]
+    attribute_patterns:
+      dimensions.bluepeass_non_root_configured: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: A positive effective runAsUser or inherited runAsNonRoot setting establishes non-root configuration even when the container-level runAsNonRoot field is absent. Explicit root overrides remain findings.
+  - id: kubernetes-immutable-image-digest
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.*_container_image_pull_policy_always]
+    attribute_patterns:
+      dimensions.bluepeass_image_digest_pinned: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: A complete sha256-pinned image reference is immutable. Requiring Always solely to avoid mutable-tag cache drift adds no such protection; mutable images remain assessed.
+  - id: kubernetes-suspended-deployment-replica-target
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.deployment_replica_minimum_3]
+    attribute_patterns:
+      dimensions.bluepeass_desired_replicas: ["0"]
+    statuses: [FAIL, MANUAL]
+    reason: A deployment explicitly configured with zero desired replicas is suspended; a generic running replica minimum is not an actionable finding for that desired state.
+  - id: kubernetes-effective-command-settings
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns:
+      - kubernetes_compliance.control.*_container_argument_namespace_lifecycle_enabled
+      - kubernetes_compliance.control.*_container_argument_service_account_enabled
+      - kubernetes_compliance.control.*_container_argument_node_restriction_enabled
+      - kubernetes_compliance.control.*_container_argument_service_account_lookup_enabled
+      - kubernetes_compliance.control.*_container_argument_kube_controller_manager_root_ca_file_configured
+      - kubernetes_compliance.control.*_container_argument_kube_controller_manager_service_account_private_key_file_configured
+      - kubernetes_compliance.control.*_container_argument_service_account_key_file_appropriate
+    attribute_patterns:
+      dimensions.bluepeass_cli_setting_secure: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: These queries require an exact flag spelling, a single admission plugin, or a .pem filename. Effective defaults, comma-separated plugin lists, command/args flags, and valid .crt/.key/.pub file paths can satisfy the setting. Explicit disabled or missing required settings remain findings.
+  - id: kubernetes-effective-seccomp-profile
+    provider: kubernetes
+    sections: [hardening]
+    control_patterns: [kubernetes_compliance.control.*_default_seccomp_profile_enabled]
+    attribute_patterns:
+      dimensions.bluepeass_seccomp_configured: ["true"]
+    statuses: [FAIL, MANUAL]
+    reason: RuntimeDefault or an explicitly configured Localhost seccomp profile can be inherited or set per container. A missing Pod-level RuntimeDefault field alone does not mean seccomp is disabled. Custom profile contents require host-level review; unconfined or unknown effective profiles remain findings.
+  - id: duplicate-aws-perimeter-ec2-instance-in-vpc
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.ec2_instance_in_vpc
+    duplicate_of: aws_compliance.control.ec2_instance_in_vpc
+    reason: The reviewed SQL is identical to aws_compliance.control.ec2_instance_in_vpc.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-ecs-service-not-publicly-accessible
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.ecs_service_not_publicly_accessible
+    duplicate_of: aws_compliance.control.ecs_service_not_publicly_accessible
+    reason: The reviewed SQL is identical to aws_compliance.control.ecs_service_not_publicly_accessible.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-eks-cluster-endpoint-prohibit-public-access
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.eks_cluster_endpoint_prohibit_public_access
+    duplicate_of: aws_compliance.control.eks_cluster_endpoint_restrict_public_access
+    reason: The reviewed SQL is identical to aws_compliance.control.eks_cluster_endpoint_restrict_public_access.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-emr-cluster-master-nodes-no-public-ip
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.emr_cluster_master_nodes_no_public_ip
+    duplicate_of: aws_compliance.control.emr_cluster_master_nodes_no_public_ip
+    reason: The reviewed SQL is identical to aws_compliance.control.emr_cluster_master_nodes_no_public_ip.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-es-domain-in-vpc
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.es_domain_in_vpc
+    duplicate_of: aws_compliance.control.es_domain_in_vpc
+    reason: The reviewed SQL is identical to aws_compliance.control.es_domain_in_vpc.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-rds-db-instance-prohibit-public-access
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.rds_db_instance_prohibit_public_access
+    duplicate_of: aws_compliance.control.rds_db_instance_prohibit_public_access
+    reason: The reviewed SQL is identical to aws_compliance.control.rds_db_instance_prohibit_public_access.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-redshift-cluster-prohibit-public-access
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.redshift_cluster_prohibit_public_access
+    duplicate_of: aws_compliance.control.redshift_cluster_prohibit_public_access
+    reason: The reviewed SQL is identical to aws_compliance.control.redshift_cluster_prohibit_public_access.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-s3-public-access-block-bucket
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.s3_public_access_block_bucket
+    duplicate_of: aws_compliance.control.s3_public_access_block_bucket
+    reason: The reviewed SQL is identical to aws_compliance.control.s3_public_access_block_bucket.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-sagemaker-model-in-vpc
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.sagemaker_model_in_vpc
+    duplicate_of: aws_compliance.control.sagemaker_model_in_vpc
+    reason: The reviewed SQL is identical to aws_compliance.control.sagemaker_model_in_vpc.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-aws-perimeter-sagemaker-notebook-instance-in-vpc
+    provider: aws
+    sections:
+    - hardening
+    control_patterns:
+    - aws_perimeter.control.sagemaker_notebook_instance_in_vpc
+    duplicate_of: aws_compliance.control.sagemaker_notebook_instance_in_vpc
+    reason: The reviewed SQL is identical to aws_compliance.control.sagemaker_notebook_instance_in_vpc.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.
+  - id: duplicate-azure-compliance-securitycenter-additional-email-configured
+    provider: azure
+    sections:
+    - hardening
+    control_patterns:
+    - azure_compliance.control.securitycenter_additional_email_configured
+    duplicate_of: azure_compliance.control.securitycenter_email_configured
+    reason: The reviewed SQL is identical to azure_compliance.control.securitycenter_email_configured.
+      Collapse only identical resource/status/evidence/scope observations when that
+      canonical result exists; conflicting or missing results remain.

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from bluepeass.finding_filters import filtered_normalizer
 
 import fnmatch
 from datetime import datetime, timezone
@@ -286,6 +287,7 @@ def _aws_principal_entry(
     return d
 
 
+@filtered_normalizer("aws")
 def normalize_aws_account(raw: dict[str, Any]) -> dict[str, Any]:
     """
     Normalize Blue-AWSPEAS JSON into the common schema used across providers.
@@ -329,6 +331,23 @@ def normalize_aws_account(raw: dict[str, Any]) -> dict[str, Any]:
     for arn, perms in (raw.get("role_permissions") or {}).items():
         if isinstance(perms, dict):
             permissions_by_principal[str(arn)] = _compact_permissions(perms)
+
+    # Activity exclusions do not erase the role's actual permission evidence.
+    for arn, perms in (raw.get("retained_role_grants") or {}).items():
+        if not isinstance(perms, dict):
+            continue
+        compact = _compact_permissions(perms)
+        entry = _aws_principal_entry(
+            principal_type="role", principal_id=str(arn), principal_label=str(arn),
+            flagged_permissions=compact.get("flagged_perms"),
+            flagged_permission_sources=compact.get("flagged_perm_sources"),
+            perm_catalog=perm_catalog, perm_items=perm_items,
+            role_catalog=role_catalog, role_items=role_items,
+            principal_catalog=principal_catalog, principal_items=principal_items,
+            group_catalog=group_catalog, group_items=group_items,
+        )
+        if entry.get("flagged_permissions"):
+            principals_flagged.append(entry)
 
     # Unused roles
     for arn, data in (raw.get("unused_roles") or {}).items():
@@ -680,6 +699,7 @@ def _gcp_member_to_type_and_id(member: str) -> tuple[str, str]:
     return t, ident
 
 
+@filtered_normalizer("gcp")
 def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
     scope = str(raw.get("scope") or "")
     scope_type = str(raw.get("scope_type") or "")
@@ -1072,6 +1092,7 @@ def normalize_gcp_scope(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@filtered_normalizer("azure")
 def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
     scope_id = raw.get("subscription_id") or raw.get("subscriptionId") or raw.get("id") or ""
     scope_name = raw.get("subscription_name") or raw.get("subscriptionName") or raw.get("name")
@@ -1427,6 +1448,7 @@ def normalize_azure_subscription(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@filtered_normalizer("azure")
 def normalize_azure_management_groups(raw: dict[str, Any]) -> dict[str, Any]:
     perm_catalog: dict[str, int] = {}
     perm_items: list[dict[str, Any]] = []
@@ -1472,6 +1494,7 @@ def normalize_azure_management_groups(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@filtered_normalizer("k8s")
 def normalize_k8s_cluster(raw: dict[str, Any]) -> dict[str, Any]:
     """Put Kubernetes RBAC grants into the shared catalog-based report shape."""
     permission_ids: dict[str, int] = {}

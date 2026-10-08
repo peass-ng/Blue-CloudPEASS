@@ -43,8 +43,11 @@ except Exception as exc:
 
 from scripts.permission_risk_classifier import classify_all
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_gcp_scope
+from bluepeass.finding_filters import filter_raw_scope, print_filter_summary
+from bluepeass.hardening import GcpCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from bluepeass.progress_pool import SlotStageProgress
 
 
@@ -106,11 +109,16 @@ def _get_access_token_from_gcloud() -> Optional[str]:
     return None
 
 
-def _get_access_token_from_google_auth_default() -> Optional[str]:
+def _get_access_token_from_google_auth_default(token_refresher=None) -> Optional[str]:
     try:
         creds, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
         req = google.auth.transport.requests.Request()
         creds.refresh(req)
+        if token_refresher is not None:
+            def refresh():
+                creds.refresh(google.auth.transport.requests.Request())
+                return creds.token
+            token_refresher.append(refresh)
         return getattr(creds, "token", None)
     except Exception:
         return None
@@ -136,15 +144,33 @@ def _get_access_token_from_service_account_json(sa_json: str) -> str:
     return token
 
 
-def get_access_token_auto(*, sa_json: Optional[str]) -> str:
+def get_access_token_auto(*, sa_json: Optional[str], token_refresher=None) -> str:
     if sa_json:
+        if token_refresher is not None:
+            token_refresher.append(lambda: _get_access_token_from_service_account_json(sa_json))
         return _get_access_token_from_service_account_json(sa_json)
 
     token = _get_access_token_from_gcloud()
     if token:
+        if token_refresher is not None:
+            # Bind refresh to the chosen CLI account and impersonation setting,
+            # so another terminal changing gcloud defaults cannot change identity.
+            try:
+                account = run_text(["gcloud", "config", "get-value", "account"])
+                impersonation = run_text(["gcloud", "config", "get-value", "auth/impersonate_service_account"])
+                if not account or account == "(unset)":
+                    raise ValueError("No named gcloud account available for refresh")
+                command = ["gcloud", "auth", "print-access-token", "--account", account]
+                if impersonation and impersonation != "(unset)":
+                    command += ["--impersonate-service-account", impersonation]
+                token_refresher.append(lambda: run_text(command))
+            except Exception:
+                # Preserve a successfully selected token even when its source
+                # cannot be refreshed, and never fall back to another identity.
+                token_refresher.append(lambda: token)
         return token
 
-    token = _get_access_token_from_google_auth_default()
+    token = _get_access_token_from_google_auth_default(token_refresher)
     if token:
         return token
 
@@ -1414,6 +1440,7 @@ def get_principal_reported_unused_permissions(
 
 def print_human(results: list[dict], *, max_items: int) -> None:
     for proj in results:
+        print_filter_summary(proj)
         scope_type = proj.get("scope_type")
         scope = proj.get("scope")
         label = scope if scope_type != "project" else scope.split("/", 1)[1] if isinstance(scope, str) else scope
@@ -1664,6 +1691,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description="Find GCP IAM least-privilege opportunities using Recommender + Cloud Asset Inventory (uses your current gcloud login)."
     )
+    add_hardening_arguments(ap)
     scope_group = ap.add_mutually_exclusive_group()
     scope_group.add_argument("--project", action="append", help="Project ID to analyze (repeatable).")
     scope_group.add_argument("--organization", help="Organization ID to analyze (e.g., 1234567890).")
@@ -1729,6 +1757,7 @@ def main() -> int:
         help="Skip external trust scan (public, cross-project service accounts, workload identity federation, external domains).",
     )
     args = ap.parse_args()
+    validate_hardening_arguments(ap, args)
     
     # Parse and validate risk levels
     valid_risk_levels = ['low', 'medium', 'high', 'critical']
@@ -1739,7 +1768,8 @@ def main() -> int:
             return 2
 
     try:
-        token = get_access_token_auto(sa_json=args.sa_json)
+        token_refresher = []
+        token = get_access_token_auto(sa_json=args.sa_json, token_refresher=token_refresher if args.hardening != "off" else None)
     except Exception as exc:
         print(_err(f"Authentication error: {exc}"), file=sys.stderr)
         return 2
@@ -2688,6 +2718,12 @@ def main() -> int:
     else:
         scope_type, scope = scope_items[0]
         results = [analyze_scope(scope_type, scope, show_progress=True)]
+    results = [filter_raw_scope(result, "gcp") for result in results]
+
+    for result in results:
+        scope = result.get("scope", "")
+        if scope.startswith("projects/"):
+            result["hardening"] = run_hardening(args, GcpCredentials(token, scope.split("/", 1)[1], quota_project, token_refresher[0] if token_refresher else None), scope)
 
     if args.out_json:
         targets: list[dict] = []
@@ -2710,7 +2746,7 @@ def main() -> int:
                     target_type=target_type,
                     target_id=str(scope) if scope else "<unknown>",
                     label=str(label) if label else None,
-                    data=normalize_gcp_scope(r),
+                    data=attach_hardening(normalize_gcp_scope(r), r.get("hardening")),
                 ).to_dict()
             )
 
@@ -2726,6 +2762,7 @@ def main() -> int:
         atomic_write_json(args.out_json, report)
 
     print_human(results, max_items=args.max_items)
+    publish_hardening_report(args, [Target(target_type="project", target_id=str(result.get("scope", "unknown")), label=str(result.get("scope", "")).split("/")[-1], data={"hardening": result.get("hardening")}).to_dict() for result in results], "gcp")
     return 0
 
 

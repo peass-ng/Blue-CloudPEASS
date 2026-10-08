@@ -1,0 +1,17 @@
+{
+  "aws": [
+    {"mod": "aws-compliance", "version": "v1.13.0", "benchmarks": ["all_controls"]},
+    {"mod": "aws-perimeter", "version": "v1.0.1", "benchmarks": ["public_access", "shared_access", "network_access"]}
+  ],
+  "azure": [
+    {"mod": "azure-compliance", "version": "v2.5.2", "benchmarks": ["all_controls"]},
+    {"mod": "azure-perimeter", "version": "v1.0.0", "benchmarks": ["public_access", "network_access"]}
+  ],
+  "gcp": [
+    {"mod": "gcp-compliance", "version": "v1.3.2", "benchmarks": ["all_controls"]},
+    {"mod": "gcp-perimeter", "version": "v1.0.0", "benchmarks": ["iam_policy_public_access", "iam_policy_shared_access", "network_access"]}
+  ],
+  "kubernetes": [
+    {"mod": "kubernetes-compliance", "version": "v1.1.0", "benchmarks": ["all_controls"]}
+  ]
+}

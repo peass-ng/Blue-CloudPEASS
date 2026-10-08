@@ -7,9 +7,12 @@ import argparse
 import json
 import sys
 
-from bluepeass.k8s import analyze_snapshot, fetch_snapshot, read_audit_log
+from bluepeass.k8s import analyze_snapshot, fetch_snapshot, read_audit_log, _new_api
+from bluepeass.hardening import KubernetesCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from bluepeass.normalize import normalize_k8s_cluster
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
+from bluepeass.finding_filters import filter_raw_scope, print_filter_summary
 
 
 def _print_section(label: str, values: list, max_items: int, formatter) -> None:
@@ -22,6 +25,7 @@ def _print_section(label: str, values: list, max_items: int, formatter) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read-only Kubernetes RBAC and service-account audit")
+    add_hardening_arguments(parser)
     parser.add_argument("--context", help="Kubeconfig context to scan (default: current context)")
     parser.add_argument("--kubeconfig", help="Path to kubeconfig (default: KUBECONFIG or ~/.kube/config)")
     parser.add_argument("--in-cluster", action="store_true", help="Use the pod's mounted service-account credentials")
@@ -35,6 +39,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--risk-levels", default="high,critical", help="Comma-separated levels to flag: low,medium,high,critical")
     parser.add_argument("--max-items", type=int, default=20, help="Maximum findings to print per section")
     args = parser.parse_args(argv)
+    validate_hardening_arguments(parser, args)
     levels = {level.strip() for level in args.risk_levels.lower().split(",")}
     if not levels or not levels <= {"low", "medium", "high", "critical"}:
         parser.error("--risk-levels must contain only low,medium,high,critical")
@@ -51,6 +56,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.in_cluster and (args.context or args.kubeconfig):
         parser.error("--in-cluster cannot be combined with kubeconfig options")
 
+    api = None
     try:
         if args.input_json:
             with open(args.input_json, encoding="utf-8") as stream:
@@ -58,16 +64,21 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(snapshot, dict):
                 raise ValueError("snapshot must be a JSON object")
         else:
-            snapshot = fetch_snapshot(
+            api, label = _new_api(
                 context=args.context, kubeconfig=args.kubeconfig,
                 in_cluster=args.in_cluster, server=args.server,
                 token_file=args.token_file, ca_cert=args.ca_cert,
             )
+            snapshot = fetch_snapshot(api=api, context=label)
         result = analyze_snapshot(snapshot, levels, audit_events=read_audit_log(args.audit_log) if args.audit_log else None, min_unused_days=args.min_unused_days)
     except (OSError, ValueError, RuntimeError) as exc:
+        if api is not None:
+            api.close()
         print(f"Error: {exc}", file=sys.stderr)
         return 2
 
+    result = filter_raw_scope(result, "k8s")
+    print_filter_summary(result)
     findings = result["findings"]
     print(f"Blue K8sPEASS — context: {result['context'] or '<unknown>'}")
     print("Inventory: " + ", ".join(f"{kind}={count}" for kind, count in result["inventory"].items()))
@@ -112,10 +123,17 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("Unused individual permissions: unavailable without audit activity data.")
 
+    if api is not None:
+        try:
+            result["hardening"] = run_hardening(args, KubernetesCredentials(api), str(result["context"]))
+        finally:
+            api.close()
+        publish_hardening_report(args, [Target(target_type="cluster", target_id=str(result["context"]), label=result["context"], data={"hardening": result["hardening"]}).to_dict()], "k8s")
+
     if args.out_json:
         report = build_report(
             provider="k8s",
-            targets=[Target(target_type="cluster", target_id=str(result["context"] or "unknown"), label=result["context"], data=normalize_k8s_cluster(result)).to_dict()],
+            targets=[Target(target_type="cluster", target_id=str(result["context"] or "unknown"), label=result["context"], data=attach_hardening(normalize_k8s_cluster(result), result.get("hardening"))).to_dict()],
             extra_summary={"principals_flagged": len(findings["principals_flagged"]), "coverage_complete": not result["coverage"]["missing"] and result["coverage"]["api_discovery_available"] and not result["errors"]},
         )
         try:

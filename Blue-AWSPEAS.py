@@ -3,6 +3,7 @@ import boto3
 import fnmatch
 import argparse
 import sys
+from bluepeass.finding_filters import filter_aws_raw_report, print_filter_summary
 import signal
 import random
 
@@ -19,8 +20,10 @@ from botocore.exceptions import ClientError, NoCredentialsError
 from time import sleep
 from scripts.permission_risk_classifier import candidate_actions, classify_all
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
 from bluepeass.progress import StageProgress
 from bluepeass.normalize import normalize_aws_account
+from bluepeass.hardening import AwsCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from bluepeass.progress_pool import SlotStageProgress
 
 
@@ -175,8 +178,18 @@ def print_results(
         "role_permissions": role_permissions or {},
         "group_memberships": group_memberships or [],
     }
+    result = filter_aws_raw_report(result)
+    unused_roles = result["unused_roles"]
+    unused_perms = result["unused_permissions"]
+    unused_custom_policies = result["unused_custom_policies"]
+    print_filter_summary(result)
 
     print(f"Interesting permissions in {colored(account_id, 'yellow')} ({colored(profile, 'blue')}): ")
+    if result.get("retained_role_grants"):
+        print(f"{colored('Roles with flagged permissions', 'yellow', attrs=['bold'])}:")
+        for arn, permissions in result["retained_role_grants"].items():
+            print(f"  - `{arn}`")
+            print_permissions(permissions, verbose=verbose)
 
     if unused_custom_policies:
         print(f"{colored('Unused customer-managed policies', 'yellow', attrs=['bold'])}:")
@@ -1735,6 +1748,7 @@ def process_account(
     *,
     progress_cb=None,
     show_progress=True,
+    hardening_args=None,
 ):
     """Process a single AWS account. Returns (success, result, errors) tuple."""
     global MAX_PERMS_TO_PRINT
@@ -2215,6 +2229,9 @@ def process_account(
         if permission_errors and result and isinstance(result, dict):
             result["permission_errors"] = permission_errors
 
+        if result and hardening_args is not None:
+            result["hardening"] = run_hardening(hardening_args, AwsCredentials(session), account_id)
+
         if progress_cb:
             progress_cb("done")
         return (True, result, permission_errors)
@@ -2255,6 +2272,7 @@ def main(
     max_parallel_accounts=10,
     *,
     out_json_path=None,
+    hardening_args=None,
 ):
     global MAX_PERMS_TO_PRINT
 
@@ -2347,6 +2365,7 @@ def main(
                         risk_levels,
                         progress_cb=cb2,
                         show_progress=not multi,
+                        hardening_args=hardening_args,
                     )
                 finally:
                     if slot_progress:
@@ -2387,6 +2406,9 @@ def main(
     if slot_progress:
         slot_progress.close()
 
+    if hardening_args is not None:
+        publish_hardening_report(hardening_args, [Target(target_type="account", target_id=str(result.get("account_id", "unknown")), label=result.get("profile"), data={"hardening": result.get("hardening")}).to_dict() for result in all_results], "aws")
+
 
     if out_json_path:
         targets: list[dict] = []
@@ -2400,7 +2422,7 @@ def main(
                     target_type="account",
                     target_id=str(account_id),
                     label=str(profile) if profile else None,
-                    data=normalize_aws_account(r),
+                    data=attach_hardening(normalize_aws_account(r), r.get("hardening")),
                 ).to_dict()
             )
         report = build_report(
@@ -2425,6 +2447,7 @@ HELP = "Find AWS unused principals and permissions in one or several AWS account
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=HELP)
+    add_hardening_arguments(parser)
     parser.add_argument("--profile", help="AWS profile to check")
     parser.add_argument("-v", "--verbose", default=False, help="Get info about why a permission is sensitive or useful for privilege escalation.", action="store_true")
     parser.add_argument("--no-access-analyzer", default=False, help="Disable AWS Access Analyzer (will not report unused resources/permissions, but will still list all principals and their sensitive permissions)", action="store_true")
@@ -2472,6 +2495,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    validate_hardening_arguments(parser, args)
 
     def _expand_csv_values(values):
         out = []
@@ -2574,4 +2598,5 @@ if __name__ == "__main__":
         risk_levels,
         max_parallel_accounts=int(args.max_parallel_accounts),
         out_json_path=args.out_json,
+        hardening_args=args,
     )

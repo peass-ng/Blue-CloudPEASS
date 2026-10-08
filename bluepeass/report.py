@@ -5,6 +5,8 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional
+from bluepeass.hardening_report import group_hardening_targets
+from bluepeass.finding_filters import filter_normalized_findings, aggregate_filter_metadata
 
 
 SCHEMA_VERSION = 1
@@ -58,6 +60,7 @@ def build_report(
     extra_summary: Optional[dict] = None,
 ) -> dict:
     errors = errors or []
+    targets = [{**target, "data": filter_normalized_findings(target["data"], provider)} if isinstance(target.get("data"), dict) else target for target in targets]
     summary = {
         "total_targets": len(targets),
         "top_level_errors": len(errors),
@@ -67,9 +70,26 @@ def build_report(
     if extra_summary:
         summary.update(extra_summary)
 
+    hardening = group_hardening_targets(targets, provider)
+    if hardening is not None:
+        summary["hardening"] = hardening["summary"]
+        summary["target_errors"] += len(hardening["errors"])
+        summary["errors"] += len(hardening["errors"])
+        # Findings live once at report level, where accounts can share a check.
+        # Keep per-target references/coverage without mutating caller objects.
+        scopes = iter(hardening["targets"])
+        compact_targets = []
+        for target in targets:
+            if isinstance((target.get("data") or {}).get("hardening"), dict):
+                scope = next(scopes)
+                compact_targets.append({**target, "data": {**target["data"], "hardening": {"scan_id": scope["scan_id"], "finding_ids": scope["finding_ids"]}}})
+            else:
+                compact_targets.append(target)
+        targets = compact_targets
+
     report = {
         "tool": TOOL_NAME,
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": 2 if hardening is not None else SCHEMA_VERSION,
         "provider": provider,
         "generated_at": utc_now_iso(),
         "targets": targets,
@@ -77,5 +97,10 @@ def build_report(
     }
     if errors:
         report["errors"] = errors
+    if hardening is not None:
+        report["hardening"] = hardening
+    filtering = aggregate_filter_metadata([(target.get("data") or {}).get("finding_filters") for target in targets] + ([hardening.get("finding_filters")] if hardening else []))
+    if filtering["suppressed"]:
+        report["finding_filters"] = filtering
+        summary["suppressed_finding_records"] = filtering["suppressed"]
     return report
-

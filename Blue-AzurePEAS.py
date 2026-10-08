@@ -7,11 +7,12 @@ import base64
 import fnmatch
 import json
 import os
+import shutil
 import sys
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Optional
 
@@ -23,11 +24,15 @@ import msal
 try:
     from azure.core.credentials import AccessToken
     from azure.core.exceptions import HttpResponseError
-    from azure.identity import ClientSecretCredential, DeviceCodeCredential
+    from azure.identity import AzureCliCredential, ClientSecretCredential, DeviceCodeCredential
     from azure.mgmt.authorization import AuthorizationManagementClient
     from azure.mgmt.monitor import MonitorManagementClient
-    from azure.mgmt.resource import ResourceManagementClient
-    from azure.mgmt.resource import SubscriptionClient
+    try:
+        from azure.mgmt.resource import ResourceManagementClient, SubscriptionClient
+    except ImportError:
+        # azure-mgmt-resource 24+ split subscription operations into a package.
+        from azure.mgmt.resource.resources import ResourceManagementClient
+        from azure.mgmt.subscription import SubscriptionClient
 except Exception as e:  # pragma: no cover
     raise SystemExit(
         "Missing/invalid Azure dependencies. Install with:\n"
@@ -37,7 +42,10 @@ except Exception as e:  # pragma: no cover
 
 from bluepeass.progress import StageProgress
 from bluepeass.report import Target, atomic_write_json, build_report
+from bluepeass.hardening_report import publish_hardening_report
+from bluepeass.finding_filters import filter_raw_scope, print_filter_summary
 from bluepeass.normalize import normalize_azure_management_groups, normalize_azure_subscription
+from bluepeass.hardening import AzureCredentials, add_hardening_arguments, validate_hardening_arguments, run_hardening, print_hardening, attach_hardening
 from scripts.permission_risk_classifier import RISK_LEVELS, RISK_ORDER, classify_all
 
 REQUIRED_GRAPH_SCOPES_ANY = {
@@ -60,8 +68,9 @@ SECURITY_ASSESSMENTS_API_VERSION = "2020-01-01"
 
 class AzureMsalTokenCacheCredential:
     """
-    Use the Azure CLI MSAL token cache (~/.azure/msal_token_cache.json) WITHOUT invoking `az`.
-    This keeps the script SDK/HTTP-only while letting users reuse `az login` sessions.
+    Prefer the active Azure CLI login, with a readable MSAL cache fallback
+    when the CLI cannot acquire a token. Bind all token
+    audiences to the identity selected by the first successful token.
     """
 
     def __init__(
@@ -70,13 +79,17 @@ class AzureMsalTokenCacheCredential:
         cache_path: Optional[str] = None,
         client_id: str = AZURE_PUBLIC_CLIENT_ID,
         authority: str = "https://login.microsoftonline.com/organizations",
+        tenant_id: Optional[str] = None,
     ) -> None:
-        self._cache_path = cache_path or os.path.expanduser("~/.azure/msal_token_cache.json")
+        self._cache_path = cache_path or os.path.join(os.path.expanduser(os.getenv("AZURE_CONFIG_DIR") or "~/.azure"), "msal_token_cache.json")
         self._client_id = client_id
-        self._authority = authority
+        self._authority = "https://login.microsoftonline.com/" + tenant_id if tenant_id else authority
+        self._tenant_id = tenant_id
         self._cache = msal.SerializableTokenCache()
         self._app: Optional[msal.PublicClientApplication] = None
         self._loaded = False
+        self._cli = None
+        self._identity = None
 
     def _load(self) -> None:
         if self._loaded:
@@ -93,15 +106,44 @@ class AzureMsalTokenCacheCredential:
         self._loaded = True
 
     def get_token(self, *scopes: str, **kwargs: Any) -> AccessToken:
-        self._load()
-        assert self._app is not None
-        accounts = self._app.get_accounts()
-        if not accounts:
-            raise RuntimeError("No accounts found in Azure CLI token cache. Run `az login` or use device-code/client-secret auth.")
-        result = self._app.acquire_token_silent(list(scopes), account=accounts[0])
-        if not result or "access_token" not in result:
-            raise RuntimeError(f"Failed to acquire token silently from Azure CLI cache: {result}")
-        return AccessToken(result["access_token"], int(result.get("expires_on") or 0))
+        if self._cli is not None:
+            return self._bind_identity(self._cli.get_token(*scopes, **kwargs))
+        cli_error = None
+        # az chooses the active account and handles encrypted/WAM caches. The
+        # first entry of a raw multi-account MSAL cache need not be that account.
+        if shutil.which("az"):
+            try:
+                candidate = AzureCliCredential(tenant_id=self._tenant_id or "")
+                token = self._bind_identity(candidate.get_token(*scopes, **kwargs))
+                self._cli = candidate
+                return token
+            except Exception as exc:
+                if self._identity is not None:
+                    raise
+                cli_error = exc
+        try:
+            self._load()
+            assert self._app is not None
+            accounts = self._app.get_accounts()
+            if not accounts:
+                raise RuntimeError("No accounts found in Azure CLI token cache.")
+            result = self._app.acquire_token_silent(list(scopes), account=accounts[0])
+            if not result or "access_token" not in result:
+                raise RuntimeError("Cannot acquire a token silently from the Azure CLI cache.")
+        except Exception:
+            if cli_error is not None:
+                raise cli_error
+            raise
+        return self._bind_identity(AccessToken(result["access_token"], int(result.get("expires_on") or 0)))
+
+    def _bind_identity(self, token):
+        claims = _jwt_claims(token.token)
+        identity = (claims.get("tid"), claims.get("oid"))
+        if all(identity):
+            if self._identity is not None and identity != self._identity:
+                raise RuntimeError("Azure cache authentication changed tenant or principal; refusing to switch identities.")
+            self._identity = identity
+        return token
 
 
 def _jwt_exp(token: str) -> Optional[int]:
@@ -316,7 +358,7 @@ def _flagged_only(perms_by_level: dict[str, list[str]], flagged_levels: set[str]
 
 
 def _build_credential(args) -> Any:
-    # Avoid `AzureCliCredential` to ensure we don't shell out to the `az` CLI.
+    # Cache auth may use the SDK's host CLI helper when direct MSAL cache reads fail.
     auth_method = (getattr(args, "auth_method", None) or "auto").strip().lower()
     if auth_method not in ("auto", "client-secret", "device-code", "az-cache"):
         raise ValueError("Invalid --auth-method. Use one of: auto, client-secret, device-code, az-cache")
@@ -324,21 +366,28 @@ def _build_credential(args) -> Any:
     if getattr(args, "arm_token", None):
         return StaticTokenCredential(arm_token=args.arm_token, graph_token=getattr(args, "graph_token", None))
 
-    if args.client_id and args.tenant_id and args.client_secret:
-        return ClientSecretCredential(tenant_id=args.tenant_id, client_id=args.client_id, client_secret=args.client_secret)
-
     env_tid = os.getenv("AZURE_TENANT_ID")
     env_cid = os.getenv("AZURE_CLIENT_ID")
     env_sec = os.getenv("AZURE_CLIENT_SECRET")
-    if auth_method in ("auto", "client-secret") and env_tid and env_cid and env_sec:
-        return ClientSecretCredential(tenant_id=env_tid, client_id=env_cid, client_secret=env_sec)
+    if auth_method in ("auto", "client-secret"):
+        tenant_id = args.tenant_id or env_tid
+        client_id = args.client_id or env_cid
+        client_secret = args.client_secret or env_sec
+        if tenant_id and client_id and client_secret:
+            return ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
+        if args.client_id or args.client_secret or auth_method == "client-secret":
+            raise ValueError("client-secret auth requires --tenant-id/--client-id/--client-secret (or corresponding AZURE_* env vars).")
 
     if auth_method in ("auto", "az-cache") and not args.no_az_token_cache:
         try:
-            return AzureMsalTokenCacheCredential()
+            cached = AzureMsalTokenCacheCredential(tenant_id=args.tenant_id or env_tid)
+            # The credential is lazy: constructing it doesn't establish whether
+            # a login exists. Select it only after a successful ARM acquisition.
+            cached.get_token("https://management.azure.com/.default")
+            return cached
         except Exception:
             if auth_method == "az-cache":
-                raise
+                raise RuntimeError("az-cache authentication could not obtain an ARM token. Run `az login --tenant <tenant-id>` or use --auth-method device-code/client-secret.") from None
 
     if auth_method == "client-secret":
         raise ValueError("client-secret auth selected but missing --tenant-id/--client-id/--client-secret (or env vars).")
@@ -349,10 +398,9 @@ def _build_credential(args) -> Any:
     tenant_id = args.tenant_id or os.getenv("AZURE_TENANT_ID") or "organizations"
     client_id = args.device_client_id or AZURE_PUBLIC_CLIENT_ID
 
-    def prompt_callback(dc):
-        msg = dc.get("message") if isinstance(dc, dict) else None
-        if msg:
-            print(msg)
+    def prompt_callback(verification_uri, user_code, expires_on):
+        # azure-identity passes three arguments, rather than an MSAL flow dict.
+        print(f"To sign in, open {verification_uri} and enter code {user_code}. Expires at {expires_on}.", flush=True)
 
     return DeviceCodeCredential(tenant_id=tenant_id, client_id=client_id, prompt_callback=prompt_callback)
 
@@ -1039,6 +1087,7 @@ class ManagementGroupScanResult:
     management_groups_scanned: int
     unused_custom_roles: list[dict]
     errors: list[dict]
+    finding_filters: Optional[dict] = None
 
 
 @dataclass
@@ -1599,6 +1648,7 @@ def scan_subscription(
                 {
                     "role_definition_id": rid,
                     "role_name": rdd.get("role_name") or rdd.get("roleName"),
+                    "role_type": rdd.get("role_type") or rdd.get("roleType"),
                     "description": rdd.get("description"),
                     "assignable_scopes": rdd.get("assignable_scopes") or rdd.get("assignableScopes"),
                     "permission_patterns_by_risk": perms_by_level,
@@ -1991,7 +2041,7 @@ def _print_mg_stdout(res: ManagementGroupScanResult, *, max_items: int) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="Find Azure RBAC risky permissions and inactive principals (best-effort). Uses Azure SDKs, not the `az` CLI."
+        description="Find Azure RBAC risky permissions and inactive principals (best-effort). Azure SDKs perform the audit; cached-login auth can use the Azure CLI."
     )
     scope = ap.add_mutually_exclusive_group(required=True)
     scope.add_argument("--subscription", action="append", help="Subscription ID or name to analyze (repeatable).")
@@ -2100,7 +2150,19 @@ def main() -> None:
     )
 
     ap.add_argument("--out-json", help="Write full JSON results to this path (stdout stays human-readable).")
+    add_hardening_arguments(ap)
     args = ap.parse_args()
+    validate_hardening_arguments(ap, args)
+
+    arm_only = bool(args.arm_token and not args.graph_token)
+    if arm_only:
+        # ARM-only read credentials can still audit subscription infrastructure.
+        # Keep unavailable directory reads visible in the hardening coverage.
+        args.resolve_principals = False
+        args.scan_entra = False
+        args.scan_entra_recommendations = False
+        args.scan_pim_alerts = False
+        print("[*] ARM-only credentials: directory resolution is unavailable; auditing subscription configuration and reporting Graph coverage gaps.")
 
     if args.only_iam_recommendations:
         # Keep the run fast and focused on IAM recommendations.
@@ -2152,11 +2214,20 @@ def main() -> None:
             "upn": mgmt_claims.get("upn") or mgmt_claims.get("preferred_username"),
             "tid": mgmt_claims.get("tid"),
         }
-        if args.resolve_principals or args.scan_entra or args.scan_entra_recommendations or args.scan_pim_alerts:
-            _graph_permissions_check(credential)
     except Exception as e:
         print(f"{colored('[-] ', 'red')}Azure authentication failed: {e}")
         sys.exit(1)
+
+    graph_access_error = {"where": "graph_permission_check", "error": "No Graph token supplied; directory audit omitted while ARM subscription checks continue."} if arm_only else None
+    if args.resolve_principals or args.scan_entra or args.scan_entra_recommendations or args.scan_pim_alerts:
+        try:
+            _graph_permissions_check(credential)
+        except Exception as e:
+            # ARM authentication succeeded. Missing Graph consent/directory
+            # reads must not reject the valid subscription audit as unauthenticated.
+            graph_access_error = {"where": "graph_permission_check", "error": str(e)}
+            args.resolve_principals = args.scan_entra = args.scan_entra_recommendations = args.scan_pim_alerts = False
+            print(f"[!] ARM authentication succeeded; Microsoft Graph reads are unavailable: {e}. Continuing with subscription checks; directory coverage is incomplete.")
 
     sub_client = SubscriptionClient(credential)
     try:
@@ -2227,7 +2298,7 @@ def main() -> None:
     sp = StageProgress(total=len(subscriptions), desc="Analyzing subscriptions", unit="subscription", tqdm_factory=tqdm, stages=stages)
 
     all_results: list[SubscriptionScanResult] = []
-    all_errors: list[dict] = []
+    all_errors: list[dict] = [graph_access_error] if graph_access_error else []
 
     # Tenant-wide IAM posture items (best-effort) + cached guest user list to avoid per-subscription Graph calls.
     tenant_iam: Optional[TenantIamScanResult] = None
@@ -2323,7 +2394,7 @@ def main() -> None:
     def worker(task_id: int, sid: str, name: Optional[str]) -> Optional[SubscriptionScanResult]:
         cb = sp.make_callback(task_id)
         try:
-            return scan_subscription(
+            result = scan_subscription(
                 credential=credential,
                 subscription_id=sid,
                 subscription_name=name,
@@ -2345,6 +2416,13 @@ def main() -> None:
                 current_identity=current_identity,
                 stage_cb=cb,
             )
+            filtered = filter_raw_scope(asdict(result), "azure")
+            result.inactive_principals = filtered["inactive_principals"]
+            result.unused_custom_roles = filtered["unused_custom_roles"]
+            if filtered.get("finding_filters"):
+                result.stats = {**result.stats, "finding_filters": filtered["finding_filters"],
+                                "inactive_principals": len(result.inactive_principals), "unused_custom_roles": len(result.unused_custom_roles)}
+            return result
         except Exception as e:
             all_errors.append({"subscription_id": sid, "error": str(e)})
             return None
@@ -2364,6 +2442,7 @@ def main() -> None:
 
     all_results.sort(key=lambda r: (r.subscription_name or "", r.subscription_id))
     for r in all_results:
+        print_filter_summary({"finding_filters": r.stats.get("finding_filters")})
         _print_subscription_stdout(r, flagged_levels=flagged_levels, max_items=args.max_items)
 
     if tenant_iam:
@@ -2458,7 +2537,16 @@ def main() -> None:
             unused_custom_roles=unused_mg_custom_roles,
             errors=mg_errors,
         )
+        filtered = filter_raw_scope({"unused_custom_roles": mg_result.unused_custom_roles}, "azure")
+        mg_result.unused_custom_roles = filtered["unused_custom_roles"]
+        mg_result.finding_filters = filtered.get("finding_filters")
+        print_filter_summary(filtered)
         _print_mg_stdout(mg_result, max_items=args.max_items)
+
+    hardening_by_subscription = {}
+    for sid, _ in subscriptions:
+        hardening_by_subscription[sid] = run_hardening(args, AzureCredentials(credential, sid, current_identity.get("tid")), sid)
+    publish_hardening_report(args, [Target(target_type="subscription", target_id=sid, label=name, data={"hardening": hardening_by_subscription[sid]}).to_dict() for sid, name in subscriptions], "azure")
 
     if args.out_json:
         targets: list[dict] = []
@@ -2468,7 +2556,7 @@ def main() -> None:
                     target_type="subscription",
                     target_id=r.subscription_id,
                     label=r.subscription_name,
-                    data=normalize_azure_subscription(
+                    data=attach_hardening(normalize_azure_subscription(
                         {
                             "subscription_id": r.subscription_id,
                             "subscription_name": r.subscription_name,
@@ -2482,9 +2570,16 @@ def main() -> None:
                             "iam_recommendations": r.iam_recommendations,
                             "errors": r.errors,
                         }
-                    ),
+                    ), hardening_by_subscription.get(r.subscription_id)),
                 ).to_dict()
             )
+
+        represented = {target["target_id"] for target in targets}
+        for sid, name in subscriptions:
+            if sid not in represented:
+                data = attach_hardening(normalize_azure_subscription({"subscription_id": sid, "subscription_name": name}), hardening_by_subscription[sid])
+                data["provider_raw"]["iam_audit_failed"] = True
+                targets.append(Target(target_type="subscription", target_id=sid, label=name, data=data).to_dict())
 
         if tenant_iam is not None:
             targets.append(
@@ -2530,6 +2625,7 @@ def main() -> None:
                             "management_groups_scanned": mg_result.management_groups_scanned,
                             "unused_custom_roles": mg_result.unused_custom_roles,
                             "errors": mg_result.errors,
+                            "finding_filters": mg_result.finding_filters,
                         }
                     ),
                 ).to_dict()

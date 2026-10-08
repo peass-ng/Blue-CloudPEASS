@@ -1,0 +1,170 @@
+# Dedicated local validation namespace; no Secret objects or external targets.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bluepeass-validation
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: workload
+  namespace: bluepeass-validation
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: needs-hardening
+  namespace: bluepeass-validation
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: needs-hardening}
+  template:
+    metadata:
+      labels: {app: needs-hardening}
+    spec:
+      containers:
+        - name: busybox
+          image: busybox:1.37
+          command: [sleep, "3600"]
+          securityContext:
+            runAsUser: 0
+            privileged: true
+            allowPrivilegeEscalation: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hardened
+  namespace: bluepeass-validation
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: hardened}
+  template:
+    metadata:
+      labels: {app: hardened}
+    spec:
+      serviceAccountName: workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: busybox
+          image: busybox:1.37
+          command: [sleep, "3600"]
+          securityContext:
+            privileged: false
+            runAsNonRoot: true
+            runAsUser: 10000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          resources:
+            requests: {cpu: 10m, memory: 8Mi}
+            limits: {cpu: 100m, memory: 32Mi}
+          readinessProbe:
+            exec: {command: ["/bin/true"]}
+          livenessProbe:
+            exec: {command: ["/bin/true"]}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: needs-hardening-daemon
+  namespace: bluepeass-validation
+spec:
+  selector:
+    matchLabels: {app: needs-hardening-daemon}
+  template:
+    metadata:
+      labels: {app: needs-hardening-daemon}
+    spec:
+      containers:
+        - name: busybox
+          image: busybox:1.37
+          command: [sleep, "3600"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stateful
+  namespace: bluepeass-validation
+spec:
+  clusterIP: None
+  selector: {app: stateful}
+  ports: [{port: 8080}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stateful
+  namespace: bluepeass-validation
+spec:
+  serviceName: stateful
+  replicas: 1
+  selector:
+    matchLabels: {app: stateful}
+  template:
+    metadata:
+      labels: {app: stateful}
+    spec:
+      containers:
+        - name: busybox
+          image: busybox:1.37
+          command: [sleep, "3600"]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scheduled
+  namespace: bluepeass-validation
+spec:
+  schedule: "0 * * * *"
+  suspend: true
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: busybox
+              image: busybox:1.37
+              command: ["/bin/true"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hardened-default-deny
+  namespace: bluepeass-validation
+spec:
+  podSelector:
+    matchLabels: {app: hardened}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: overly-broad
+  namespace: bluepeass-validation
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: workload-broad-access
+  namespace: bluepeass-validation
+subjects:
+  - kind: ServiceAccount
+    name: workload
+    namespace: bluepeass-validation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: overly-broad

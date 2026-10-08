@@ -1,0 +1,12 @@
+.git
+__pycache__
+.pytest_cache
+*.pyc
+.venv
+*.json
+!bluepeass/hardening_catalog.json
+*.yaml
+*.yml
+*.png
+*.csv
+*.log
