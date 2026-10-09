@@ -54,10 +54,6 @@ def main():
     started = time.monotonic()
     try:
         steampipe = ["steampipe", "--install-dir", str(install)]
-        plugins = subprocess.run([*steampipe, "plugin", "list", "--output", "json"], capture_output=True, text=True, timeout=30)
-        (output / "plugins.log").write_text(plugins.stdout + plugins.stderr)
-        if plugins.returncode or json.loads(plugins.stdout).get("failed"):
-            raise RuntimeError("A selected Steampipe plugin is unavailable; the image and connection versions must match.")
         startup = subprocess.run([*steampipe, "service", "start", "--database-listen=local"], capture_output=True, text=True, timeout=120)
         (output / "startup.log").write_text(startup.stdout + startup.stderr)
         if startup.returncode:
@@ -68,6 +64,13 @@ def main():
         (output / "schemas.log").write_text(initialized.stdout + initialized.stderr)
         if initialized.returncode:
             raise RuntimeError("Steampipe connection initialization failed; provider coverage is unavailable.")
+        # `plugin list` starts a database and waits for connection schemas. On a
+        # cold Lambda worker that work can exceed the inventory's 30s timeout.
+        # Initialize explicitly with the startup budget before checking plugins.
+        plugins = subprocess.run([*steampipe, "plugin", "list", "--output", "json"], capture_output=True, text=True, timeout=30)
+        (output / "plugins.log").write_text(plugins.stdout + plugins.stderr)
+        if plugins.returncode or json.loads(plugins.stdout).get("failed"):
+            raise RuntimeError("A selected Steampipe plugin is unavailable; the image and connection versions must match.")
         if not args.self_test:
             schemas = {row.get("schema_name") for row in json.loads(initialized.stdout).get("rows", [])}
             if args.provider not in schemas:
