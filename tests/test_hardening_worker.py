@@ -29,13 +29,13 @@ def test_cold_startup_and_failed_initialization(monkeypatch, tmp_path, failure):
             code = int(failure == 'startup')
             started = not code
         elif 'query' in command:
-            assert started
+            assert started and ready
             code = int(failure == 'schema')
-            ready = not code
             data = json.dumps({'rows': []})
         elif 'list' in command:
-            if not ready:
+            if not started:
                 raise worker.subprocess.TimeoutExpired(command, 30)
+            ready = failure != 'plugin'
             data = json.dumps({'failed': {'missing-plugin': {}} if failure == 'plugin' else {}})
         elif command[0] == 'powerpipe':
             assert ready
@@ -87,3 +87,38 @@ def test_writable_shared_memory_leaves_postgres_unchanged(monkeypatch, tmp_path)
     monkeypatch.setattr(worker.os, 'access', lambda path, mode: True)
     worker.prepare_postgres_memory(tmp_path)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_provider_schema_snapshot_is_taken_after_materialization(monkeypatch, tmp_path):
+    monkeypatch.syspath_prepend(str(Path('docker').resolve()))
+    spec = importlib.util.spec_from_file_location('provider_worker', 'docker/hardening_worker.py')
+    worker = importlib.util.module_from_spec(spec); spec.loader.exec_module(worker)
+    output, runtime = tmp_path / 'output', tmp_path / 'runtime'
+    monkeypatch.setattr(worker.shutil, 'copytree', lambda source, target: (target / 'config').mkdir(parents=True))
+    monkeypatch.setattr(worker.os, 'environ', {})
+    monkeypatch.setattr(worker.argparse.ArgumentParser, 'parse_args', lambda self: SimpleNamespace(
+        self_test=False, provider='aws', timeout=1800, input_dir=str(tmp_path), output_dir=str(output), work_dir=str(runtime)))
+    original_read = Path.read_text
+    def read(path, *args, **kwargs):
+        if str(path) == '/opt/bluepeass/catalog.json':
+            return json.dumps({'aws':[{'mod':'fixture','version':'fixture','benchmarks':['all'],'directory':str(tmp_path)}]})
+        return original_read(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'read_text', read)
+    monkeypatch.setattr(worker, 'prepare_query_context', lambda *args: [])
+    loaded, ran = False, False
+    def execute(command, **kwargs):
+        nonlocal loaded, ran
+        data = '{}'
+        if 'list' in command:
+            loaded = True
+        elif 'query' in command:
+            data = json.dumps({'rows':[{'schema_name':'aws'}] if loaded else []})
+        elif command[0] == 'powerpipe':
+            ran = True
+            Path(command[command.index('--export')+1]).write_text('{}')
+        return SimpleNamespace(returncode=0, stdout=data, stderr='')
+    monkeypatch.setattr(worker.subprocess, 'run', execute)
+    worker.main()
+    assert ran
+    result = json.loads((output/'result.json').read_text())
+    assert not result['errors'] and len(result['runs']) == 1
