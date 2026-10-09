@@ -62,6 +62,17 @@ def fixtures(root):
     add("default_domain", aws, "cloudfront_distribution_use_custom_ssl_certificate", [cf], {"bluepeass_custom_domain_count": {"oac": 0, "open": 1, "sdk_default": 0, "sdk_alias": 1}})
     queues = table("aws_sqs_queue", ["queue_arn", "title", "redrive_policy"], [("source", "source", {"deadLetterTargetArn": "dlq"}), ("dlq", "dlq", None), ("customer", "customer", None)])
     add("dead_letter_target", aws, "sqs_queue_dead_letter_queue_configured", [queues], {"bluepeass_dead_letter_queue": {"source": False, "dlq": True, "customer": False}})
+    instances = table('aws_ec2_instance', ['arn', 'title', 'instance_id', 'account_id', 'region'], [(name, name, name, 'account', 'eu-west-1') for name in ['high', 'critical', 'clean', 'unscanned', 'pending', 'inactive', 'foreign']])
+    findings = table('aws_inspector2_finding', ['arn', 'finding_account_id', 'region', 'resources', 'status', 'severity'], [('f1', 'account', 'eu-west-1', [{'Id':'high','Type':'AWS_EC2_INSTANCE'}], 'ACTIVE', 'HIGH'), ('f2', 'account', 'eu-west-1', [{'Id':'critical','Type':'AWS_EC2_INSTANCE'}], 'ACTIVE', 'CRITICAL'), ('f3', 'account', 'eu-west-1', [{'Id':'clean','Type':'AWS_EC2_INSTANCE'}], 'CLOSED', 'HIGH'), ('f4', 'account', 'eu-west-1', [{'Id':'clean','Type':'AWS_EC2_INSTANCE'}], 'SUPPRESSED', 'CRITICAL'), ('f5', 'other-account', 'eu-west-1', [{'Id':'foreign','Type':'AWS_EC2_INSTANCE'}], 'ACTIVE', 'HIGH'), ('f6', 'account', 'other-region', [{'Id':'foreign','Type':'AWS_EC2_INSTANCE'}], 'ACTIVE', 'HIGH')])
+    coverage = table('aws_inspector2_coverage', ['source_account_id', 'region', 'resource_id', 'resource_type', 'scan_type', 'scan_status_code', 'last_scanned_at'], [('account', 'eu-west-1', name, 'AWS_EC2_INSTANCE', 'PACKAGE', 'ACTIVE', '2026-10-09') for name in ['clean','foreign']] + [('account', 'eu-west-1', 'pending', 'AWS_EC2_INSTANCE', 'PACKAGE', 'ACTIVE', None), ('account', 'eu-west-1', 'inactive', 'AWS_EC2_INSTANCE', 'PACKAGE', 'INACTIVE', '2026-10-09')])
+    add('inspector_v2_findings_and_scan_coverage', aws, 'ec2_instance_no_high_level_finding_in_inspector_scan', [instances, findings, coverage], {'status':{'high':'alarm', 'critical':'alarm', 'clean':'ok', 'foreign':'ok', 'unscanned':'info', 'pending':'info', 'inactive':'info'}})
+    perimeter = root / 'gcp-perimeter' / 'perimeter' / 'iam_policy_public_access.pp'
+    perimeter_text = perimeter.read_text()
+    template = re.search(r'iam_policy_public_sql\s*=\s*<<-?(\w+)\s*\n(.*?)^\s*\1\s*$', perimeter_text, re.M | re.S)[2]
+    scoped_prefix = json.loads(re.search(r'replace\(local\.iam_policy_public_sql, "with ", ("(?:\\.|[^"\\])*")\)', perimeter_text)[1])
+    image_sql = re.sub(r'\$\{[^\n]+\}', '', template).replace('with ', scoped_prefix).replace('__TABLE_NAME__', 'bluepeass_target_images').replace('__ARN_COLUMN__', 'name')
+    images = table('gcp_compute_image', ['name', 'title', 'source_project', 'iam_policy'], [('owned_public','owned_public','selected-project',{'bindings':[{'members':['allUsers']}]}), ('owned_private','owned_private','selected-project',{'bindings':[{'members':['user:owner@example.test']}]}), ('google_public','google_public','debian-cloud',{'bindings':[{'members':['allUsers']}]})])
+    result.append(('image_policy_target_scope', with_tables(image_sql, [images]), {'status':{'owned_public':'alarm','owned_private':'ok'}}))
     subs = table("azure_subscription", ["subscription_id"], [("one",), ("two",), ("missing",)])
     contacts = table("azure_security_center_contact", ["name", "email", "subscription_id"], [("default", "one@example.test", "one"), ("default", "two@example.test", "two")])
     add("all_subscription_contacts", azure, "securitycenter_email_configured", [subs, contacts], {"status": {"one": "ok", "two": "ok", "missing": "alarm"}})
@@ -84,9 +95,9 @@ def fixtures(root):
 def main():
     with tempfile.TemporaryDirectory(prefix="bluepeass-query-tests-") as work:
         root = Path(work)
-        for provider, mod in [("aws", "aws-compliance"), ("azure", "azure-compliance"), ("gcp", "gcp-compliance")]:
+        for provider, mod in [("aws", "aws-compliance"), ("azure", "azure-compliance"), ("gcp", "gcp-compliance"), ("gcp", "gcp-perimeter")]:
             shutil.copytree("/opt/bluepeass/mods/" + mod, root / mod)
-            prepare_query_context(root / mod, provider)
+            prepare_query_context(root / mod, provider, project='selected-project' if mod == 'gcp-perimeter' else None)
         tests = fixtures(root)
         original = subprocess.run
         def execute(command, **kwargs):
@@ -97,6 +108,8 @@ def main():
                     result = original(["steampipe", "--install-dir", install, "query", sql, "--output", "json"], capture_output=True, text=True, timeout=30)
                     assert result.returncode == 0, (name, result.stderr)
                     rows = json.loads(result.stdout)["rows"]
+                    if name == 'image_policy_target_scope':
+                        assert {row['resource'] for row in rows} == set(expected['status']), rows
                     for field, values in expected.items():
                         actual = {str(row["resource"]): row.get(field) for row in rows}
                         assert all(actual.get(resource) == setting for resource, setting in values.items()), (name, field, actual, values)

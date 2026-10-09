@@ -154,6 +154,7 @@ class GcpCredentials:
         if self.quota_project:
             settings["quota_project"] = self.quota_project
         _write_config(root / "gcp.spc", _connection("gcp", "gcp", **settings))
+        _write_private(root / "query-context.json", {"project": self.project})
 
 
 class AzureCredentials:

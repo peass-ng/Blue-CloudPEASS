@@ -135,7 +135,9 @@ control "failure" {
                 local_mod = runtime / entry["mod"]
                 shutil.copytree(directory, local_mod)
                 directory = local_mod
-                result["query_context"].extend(prepare_query_context(directory, args.provider))
+                context_path = auth / "query-context.json"
+                context = json.loads(context_path.read_text()) if args.provider == "gcp" and context_path.exists() else {}
+                result["query_context"].extend(prepare_query_context(directory, args.provider, **context))
             # The RBAC scanner never reads Secret objects. Keep the same contract
             # for hardening; the omitted metadata check is reported explicitly.
             if args.provider == "kubernetes":
