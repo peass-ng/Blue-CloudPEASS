@@ -6,6 +6,7 @@ than guessing from display names or free-text reasons.
 """
 
 from pathlib import Path
+import json
 import re
 
 
@@ -58,12 +59,70 @@ def _cli_evidence(sql, suffix):
     return _projection(sql, {"bluepeass_cli_setting_secure": expression})
 
 
-def prepare_query_context(directory, provider):
+def _inspector2_sql(sql):
+    """Retain the pinned control's dimensions while replacing its retired API."""
+    dimensions = re.search(r'(\s*\$\{local\.tag_dimensions_sql\}\s*\$\{replace\(local\.common_dimensions_qualifier_sql[^\n]+\})', sql)
+    if 'aws_inspector_finding' not in sql or dimensions is None:
+        raise ValueError('Pinned Inspector Classic query changed')
+    return """    with high_findings as (
+      select f.finding_account_id, f.region, r ->> 'Id' as instance_id,
+        count(distinct f.arn) as finding_count
+      from aws_inspector2_finding as f, jsonb_array_elements(f.resources) as r
+      where f.status = 'ACTIVE' and f.severity in ('HIGH', 'CRITICAL')
+        and r ->> 'Type' = 'AWS_EC2_INSTANCE'
+      group by f.finding_account_id, f.region, r ->> 'Id'
+    ), scanned_instances as (
+      select distinct source_account_id, region, resource_id
+      from aws_inspector2_coverage
+      where resource_type = 'AWS_EC2_INSTANCE' and scan_type = 'PACKAGE'
+        and scan_status_code = 'ACTIVE' and last_scanned_at is not null
+    )
+    select i.arn as resource,
+      case when f.finding_count > 0 then 'alarm'
+           when c.resource_id is null then 'info'
+           else 'ok' end as status,
+      case when f.finding_count > 0 then i.title || ' has ' || f.finding_count || ' active high/critical Inspector findings.'
+           when c.resource_id is null then i.title || ' has no completed active Inspector package scan; vulnerability status needs review.'
+           else i.title || ' has no active high/critical Inspector findings.' end as reason
+""" + dimensions[1] + """
+    from aws_ec2_instance as i
+      left join high_findings as f on f.instance_id = i.instance_id
+        and f.finding_account_id = i.account_id and f.region = i.region
+      left join scanned_instances as c on c.resource_id = i.instance_id
+        and c.source_account_id = i.account_id and c.region = i.region;
+"""
+
+
+def _scope_image_controls(text, project):
+    # A literal source_project predicate is pushed into the plugin's image
+    # project discovery. A source_project=project column comparison is not.
+    # Audit every custom image in this target, without enumerating the public
+    # OS catalog belonging to Google's other projects.
+    prefix = "with bluepeass_target_images as (select * from gcp_compute_image where source_project = '" + str(project).replace("'", "''") + "'), "
+    replacement = json.dumps(prefix).replace('${', '$${').replace('%{', '%%{')
+    applied = []
+    for name in ['compute_image_policy_prohibit_public_access', 'compute_image_policy_shared_access']:
+        pattern = re.compile(r'(^control "' + name + r'"\s*\{.*?)(?=^(?:control|query|benchmark) |\Z)', re.M | re.S)
+        def rewrite(match):
+            body, count = re.subn(r'"__TABLE_NAME__", "gcp_compute_image"', '"__TABLE_NAME__", "bluepeass_target_images"', match[1], count=1)
+            if count != 1:
+                raise ValueError('Pinned image policy query changed: ' + name)
+            body, count = re.subn(r'local\.iam_policy_(?:public|shared_access)_sql', lambda m: 'replace(' + m[0] + ', "with ", ' + replacement + ')', body, count=1)
+            if count != 1:
+                raise ValueError('Pinned image policy SQL template changed: ' + name)
+            applied.append(name)
+            return body
+        text = pattern.sub(rewrite, text)
+    return text, applied
+
+
+def prepare_query_context(directory, provider, project=None):
     transformations = {}
     def evidence(name, **expressions):
         transformations[name] = lambda sql, expressions=expressions: _projection(sql, expressions)
 
     if provider == "aws" and Path(directory).name == "aws-compliance":
+        transformations["ec2_instance_no_high_level_finding_in_inspector_scan"] = _inspector2_sql
         evidence("vpc_security_group_unused", bluepeass_security_group_name="s.group_name")
         evidence("vpc_security_group_associated_to_eni", bluepeass_security_group_name="group_name")
         evidence("vpc_network_acl_unused", bluepeass_default_network_acl="is_default")
@@ -129,6 +188,9 @@ def prepare_query_context(directory, provider):
     for path in Path(directory).rglob("*.pp"):
         text = path.read_text()
         modified = text
+        if provider == "gcp" and Path(directory).name == "gcp-perimeter" and project is not None:
+            modified, scoped = _scope_image_controls(modified, project)
+            applied.extend(scoped)
         if provider == "gcp":
             kind = "control" if Path(directory).name == "gcp-perimeter" else "query"
             for match in list(re.finditer(r'^' + kind + r'\s+"([^"]+)"\s*\{', text, re.M)):
@@ -160,4 +222,8 @@ def prepare_query_context(directory, provider):
     optional = {"pod_template_non_root_container", "pod_template_container_image_pull_policy_always", "pod_template_default_seccomp_profile_enabled"}
     if remaining - optional:
         raise ValueError("Pinned applicability queries changed: " + ", ".join(sorted(remaining - optional)))
+    if provider == 'gcp' and Path(directory).name == 'gcp-perimeter' and project is not None:
+        missing = {'compute_image_policy_prohibit_public_access', 'compute_image_policy_shared_access'} - set(applied)
+        if missing:
+            raise ValueError('Pinned image policy controls changed: ' + ', '.join(sorted(missing)))
     return applied

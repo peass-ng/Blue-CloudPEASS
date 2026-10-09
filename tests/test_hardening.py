@@ -93,6 +93,7 @@ def test_gcp_keeps_token_scope_quota_and_escapes_hcl(tmp_path):
     assert 'project = "selected-project"' in config
     assert 'quota_project = "quota-project"' in config
     assert 'token$${danger}' in config
+    assert json.loads((tmp_path / "query-context.json").read_text()) == {"project": "selected-project"}
 
 
 def test_gcp_refreshes_from_selected_source_before_starting(tmp_path):
