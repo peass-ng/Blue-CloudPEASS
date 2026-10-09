@@ -50,3 +50,40 @@ def test_cold_startup_and_failed_initialization(monkeypatch, tmp_path, failure):
     assert bool(result['errors']) == bool(failure)
     assert len(result['runs']) == (0 if failure else 1)
     assert not runtime.exists()
+
+
+@pytest.mark.parametrize('exit_code', [0, 7])
+def test_postgres_without_shared_memory_preserves_initdb_arguments(monkeypatch, tmp_path, exit_code):
+    import sys
+    import subprocess
+    monkeypatch.syspath_prepend(str(Path('docker').resolve()))
+    spec = importlib.util.spec_from_file_location('memory_worker', 'docker/hardening_worker.py')
+    worker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(worker)
+    install = tmp_path / "private ' runtime"
+    binary = install / 'db' / '14.19.0' / 'postgres' / 'bin' / 'initdb'
+    binary.parent.mkdir(parents=True)
+    arguments = tmp_path / 'arguments.json'
+    binary.write_text(f'#!{sys.executable}\nimport json,pathlib,sys\npathlib.Path({str(arguments)!r}).write_text(json.dumps(sys.argv[1:]))\nsys.exit({exit_code})\n')
+    binary.chmod(0o700)
+    monkeypatch.setattr(worker.os.path, 'isdir', lambda path: False)
+    worker.prepare_postgres_memory(install)
+    supplied = ['--pgdata=' + str(install / 'db' / '14.19.0' / 'data'), "literal ' $ argument"]
+    response = subprocess.run([str(binary), *supplied], capture_output=True)
+    assert response.returncode == exit_code
+    assert json.loads(arguments.read_text()) == supplied
+    config = install / 'db' / '14.19.0' / 'data' / 'postgresql.conf.d' / 'bluepeass-memory.conf'
+    assert config.exists() == (exit_code == 0)
+    if not exit_code:
+        assert config.read_text() == 'dynamic_shared_memory_type=mmap\n'
+
+
+def test_writable_shared_memory_leaves_postgres_unchanged(monkeypatch, tmp_path):
+    monkeypatch.syspath_prepend(str(Path('docker').resolve()))
+    spec = importlib.util.spec_from_file_location('unmodified_memory_worker', 'docker/hardening_worker.py')
+    worker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(worker)
+    monkeypatch.setattr(worker.os.path, 'isdir', lambda path: True)
+    monkeypatch.setattr(worker.os, 'access', lambda path, mode: True)
+    worker.prepare_postgres_memory(tmp_path)
+    assert list(tmp_path.iterdir()) == []

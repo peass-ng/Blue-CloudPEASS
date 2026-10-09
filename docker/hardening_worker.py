@@ -5,11 +5,36 @@ import json
 import os
 import pathlib
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
 import time
 from query_context import prepare_query_context
+
+
+def prepare_postgres_memory(install):
+    """Keep PostgreSQL usable when the host supplies no writable /dev/shm.
+
+    initdb detects this and chooses mmap, but Steampipe replaces the generated
+    configuration when starting its service. Preserve that choice in its
+    supported include directory after initdb completes, before service startup.
+    All changes apply to the private runtime copy of PostgreSQL.
+    """
+    if os.path.isdir("/dev/shm") and os.access("/dev/shm", os.W_OK):
+        return
+    for binary in (install / "db").glob("*/postgres/bin/initdb"):
+        original = binary.with_name("initdb.bluepeass-original")
+        binary.rename(original)
+        configuration = binary.parents[2] / "data" / "postgresql.conf.d"
+        binary.write_text(
+            "#!/bin/sh\nset -e\n"
+            + shlex.quote(str(original)) + ' "$@"\n'
+            + "mkdir -p " + shlex.quote(str(configuration)) + "\n"
+            + "printf '%s\\n' 'dynamic_shared_memory_type=mmap' > "
+            + shlex.quote(str(configuration / "bluepeass-memory.conf")) + "\n"
+        )
+        binary.chmod(0o700)
 
 
 def main():
@@ -42,6 +67,7 @@ def main():
     os.environ["POWERPIPE_INSTALL_DIR"] = str(runtime / "powerpipe")
     install = runtime / ".steampipe"
     shutil.copytree("/opt/steampipe", install)
+    prepare_postgres_memory(install)
     for path in (install / "config").glob("*.spc"):
         path.unlink()
     if not args.self_test:
