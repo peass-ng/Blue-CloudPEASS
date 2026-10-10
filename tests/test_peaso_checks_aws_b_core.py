@@ -2,7 +2,7 @@
 import copy
 import pytest
 from peaso.checks import CHECKS, HACKTRICKS
-from peaso.checks import aws_b_core, aws_b_loadbalancing, aws_b_regional, aws_b_cloudfront, aws_b_storage
+from peaso.checks import aws_b_core, aws_b_loadbalancing, aws_b_regional, aws_b_cloudfront, aws_b_storage, aws_b_compute
 from peaso.checks.fixtures import CASES
 from peaso.engine import evaluate_snapshot
 from peaso.snapshot import make_snapshot

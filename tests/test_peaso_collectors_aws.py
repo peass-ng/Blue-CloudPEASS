@@ -165,7 +165,7 @@ def test_timeout_explicit_and_non_read_operation_blocked(sdk, monkeypatch):
     requests = aws.Requests({})
     assert requests.detail(session, "iam", REGION, "get_account_summary")["collection_status"] == "timeout"
     with pytest.raises(aws.ReadFailure, match="non_read_operation"):
-        requests.call(session, "iam", REGION, "generate_credential_report")
+        requests.call(session, "iam", REGION, "create_user", UserName="forbidden")
     assert requests.calls == 1
 
 
@@ -235,12 +235,17 @@ def test_existing_credential_report_no_generation(sdk):
     assert requests.calls == 1
 
 
-def test_existing_credential_report_missing_is_not_collected(sdk):
+def test_credential_report_missing_generation_denial_is_explicit(sdk):
     session, add, _ = sdk
-    add("iam").add_client_error("get_credential_report", "CredentialReportNotPresent", expected_params={})
-    read = aws._credentials_report(aws.Requests({}), session, REGION)
-    assert read.status == "not_collected"
+    iam = add("iam")
+    iam.add_client_error("get_credential_report", "ReportNotPresent", expected_params={})
+    iam.add_client_error("generate_credential_report", "AccessDenied", expected_params={})
+    requests = aws.Requests({})
+    read = aws._credentials_report(requests, session, REGION)
+    assert read.status == "denied"
+    assert read.error["code"] == "AccessDenied"
     assert read.items == []
+    assert requests.evidence_generations == 1
 
 
 def test_call_and_total_resource_budgets(sdk):
@@ -269,7 +274,7 @@ def test_invalid_selected_profile_does_not_fallback(monkeypatch):
         raise RuntimeError("private credential message")
     monkeypatch.setattr(boto3, "Session", session)
     snapshot = aws.collect({"provider": "aws", "scopes": [ACCOUNT], "auth": {"profile": "absent"}}, ["vpc"])
-    assert calls == [{"region_name": REGION, "profile_name": "absent"}]
+    assert calls == [{"region_name": None, "profile_name": "absent"}]
     assert envelope(snapshot, "vpc")["status"] == "unknown"
     assert "private credential" not in json.dumps(snapshot)
 
@@ -347,6 +352,11 @@ def test_s3_native_security_detail_and_absent_policy(sdk):
     s3.add_response("get_bucket_acl", {"Grants": []}, {"Bucket": "audit-bucket"})
     s3.add_response("get_bucket_ownership_controls", {"OwnershipControls": {"Rules": [{"ObjectOwnership": "BucketOwnerEnforced"}]}}, {"Bucket": "audit-bucket"})
     s3.add_response("get_bucket_logging", {}, {"Bucket": "audit-bucket"})
+    s3.add_client_error("get_bucket_lifecycle_configuration", "NoSuchLifecycleConfiguration", expected_params={"Bucket": "audit-bucket"})
+    s3.add_response("get_bucket_notification_configuration", {}, {"Bucket": "audit-bucket"})
+    s3.add_client_error("get_bucket_replication", "ReplicationConfigurationNotFoundError", expected_params={"Bucket": "audit-bucket"})
+    s3.add_client_error("get_object_lock_configuration", "ObjectLockConfigurationNotFoundError", expected_params={"Bucket": "audit-bucket"})
+    s3.add_client_error("get_bucket_tagging", "NoSuchTagSet", expected_params={"Bucket": "audit-bucket"})
     result = aws._buckets(aws.Requests({}), session, REGION)
     assert result.status == "collected"
     assert result.items[0]["Policy"]["collection_status"] == "empty"
@@ -385,6 +395,27 @@ def test_sensitive_value_and_mutation_apis_blocked(sdk):
     assert requests.calls == 0
 
 
+@pytest.mark.parametrize("operation", ["create_user", "delete_user", "attach_role_policy", "put_user_policy", "update_assume_role_policy"])
+def test_mutation_rejected_before_client_side_effects_even_if_allowlist_accidentally_contains_it(monkeypatch, operation):
+    monkeypatch.setattr(aws, "READ_ACTIONS", aws.READ_ACTIONS | {("iam", operation)})
+    requests = aws.Requests({})
+    monkeypatch.setattr(requests, "client", lambda *args: pytest.fail("dangerous SDK client was constructed"))
+    with pytest.raises(aws.ReadFailure, match="non_read_operation"):
+        requests.call(object(), "iam", REGION, operation)
+    assert requests.calls == 0
+    assert requests._cache == {}
+
+
+@pytest.mark.parametrize("service,operation", [("secretsmanager", "get_secret_value"), ("ssm", "get_parameters"), ("s3", "get_object"), ("logs", "get_log_events"), ("ecr", "get_authorization_token")])
+def test_value_api_rejected_before_client_side_effects_even_with_accidental_allowlist_entry(monkeypatch, service, operation):
+    monkeypatch.setattr(aws, "READ_ACTIONS", aws.READ_ACTIONS | {(service, operation)})
+    requests = aws.Requests({})
+    monkeypatch.setattr(requests, "client", lambda *args: pytest.fail("secret/content SDK client was constructed"))
+    with pytest.raises(aws.ReadFailure, match="non_read_operation"):
+        requests.call(object(), service, REGION, operation)
+    assert requests.calls == 0
+
+
 def test_organization_accessible_role_requires_explicit_name_and_verifies_account(sdk):
     session, add, _ = sdk
     target = "999999999999"
@@ -393,11 +424,12 @@ def test_organization_accessible_role_requires_explicit_name_and_verifies_accoun
     sts.add_response("assume_role", assumed_credentials(), {"RoleArn": f"arn:aws:iam::{target}:role/explicit-audit", "RoleSessionName": "peaso-read-only"})
     sts.add_response("get_caller_identity", {"Account": target, "Arn": f"arn:aws:sts::{target}:assumed-role/explicit-audit/peaso-read-only", "UserId": "AROAREVIEWUSER1234567:peaso-read-only"}, {})
     add("organizations").add_response("list_accounts", {"Accounts": [{"Id": ACCOUNT, "State": "ACTIVE"}, {"Id": target, "State": "ACTIVE"}, {"Id": "888888888888", "State": "SUSPENDED"}]}, {})
+    add("ec2").add_response("describe_regions", {"Regions": [{"RegionName": REGION, "OptInStatus": "opt-in-not-required"}]}, {"AllRegions": True})
     add("ec2").add_response("describe_vpcs", {"Vpcs": []}, {})
     snapshot = aws.collect({"provider": "aws", "scopes": [target], "options": {"organization_role_name": "explicit-audit"}}, ["vpc"])
     assert snapshot["scopes"] == [f"{target}/{REGION}"]
     assert snapshot["metadata"]["caller_identities"][0]["Account"] == target
-    assert snapshot["metadata"]["calls"] == 5
+    assert snapshot["metadata"]["calls"] == 6
     assert snapshot["metadata"]["organization_discovery"]["accounts_seen"] == 3
 
 

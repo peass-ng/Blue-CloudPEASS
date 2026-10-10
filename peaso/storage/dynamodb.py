@@ -318,7 +318,14 @@ class DynamoStore:
         return [value for value in self._scan("schedule") if value["enabled"] and value["next_run"] <= now]
 
     def pause_schedule(self, tenant, ident):
-        self.client.update_item(TableName=self.table, Key=attrs(self.key(tenant, "schedule", ident)), UpdateExpression="SET #enabled=:false,last_error=:error ADD #rev :one", ConditionExpression="attribute_exists(PK)", ExpressionAttributeNames={"#enabled": "enabled", "#rev": "rev"}, ExpressionAttributeValues=attrs({":false": False, ":error": "Schedule disabled: identity is no longer eligible", ":one": 1}))
+        try:
+            self.client.update_item(TableName=self.table, Key=attrs(self.key(tenant, "schedule", ident)), UpdateExpression="SET #enabled=:false,last_error=:error ADD #rev :one", ConditionExpression="attribute_exists(PK)", ExpressionAttributeNames={"#enabled": "enabled", "#rev": "rev"}, ExpressionAttributeValues=attrs({":false": False, ":error": "Schedule disabled: identity is no longer eligible", ":one": 1}))
+            return True
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                # A concurrent deletion must not halt other tenants or resurrect a row.
+                return False
+            raise
 
     def trigger_schedule(self, current, limit=1, timeout=900, now=None):
         now = time.time() if now is None else now

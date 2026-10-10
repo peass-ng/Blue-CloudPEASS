@@ -345,9 +345,16 @@ def test_native_service_coverage_and_configuration_fixture():
             return {"name": "host"}
         if url.endswith("/getXpnResources"):
             return {"resources": []}
+        if "cloudidentity.googleapis.com" in url:
+            assert request["params"]["parent"] == "customers/Cfixture"
+            return {"groups": []}
+        if "appengine.googleapis.com" in url:
+            return {"name": "apps/p-one", "id": "p-one", "iap": {"enabled": True}}
         return {"items": []}
-    kinds = sorted(gcp.SUPPORTED_TYPES - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity"})
-    result, transport = snapshot(kinds, resolve)
+    # PAB policy ownership is organization-level, so it is exercised in the
+    # dedicated org-scope fixture rather than asserted as an empty project API.
+    kinds = sorted(gcp.SUPPORTED_TYPES - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity", "principal_access_boundary_policy"})
+    result, transport = snapshot(kinds, resolve, cloud_identity_customers=["Cfixture"])
     assert {c["type"] for c in result["collections"]} == set(kinds)
     assert not any(c["status"] in ("malformed", "unknown") for c in result["collections"])
     assert "do-not-store" not in json.dumps(result)

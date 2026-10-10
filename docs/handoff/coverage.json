@@ -1,0 +1,42 @@
+{
+  "captured_at": "2026-10-10T18:45:48.793973+00:00",
+  "upstream_manifest_sha256": "f4ae580d3219d268b0c78a1062a10ae76d0f70beca20578e619f6358088945b8",
+  "providers": {
+    "aws": {
+      "unique_native_predicates": 154,
+      "ported": 175,
+      "merged": 94,
+      "rejected": 92,
+      "pending": 1975,
+      "out_of_scope": 0
+    },
+    "azure": {
+      "unique_native_predicates": 98,
+      "ported": 77,
+      "merged": 116,
+      "rejected": 412,
+      "pending": 1257,
+      "out_of_scope": 0
+    },
+    "gcp": {
+      "unique_native_predicates": 89,
+      "ported": 113,
+      "merged": 59,
+      "rejected": 47,
+      "pending": 545,
+      "out_of_scope": 0
+    },
+    "k8s": {
+      "unique_native_predicates": 787,
+      "ported": 626,
+      "merged": 11,
+      "rejected": 111,
+      "pending": 134,
+      "out_of_scope": 0
+    }
+  },
+  "non_target_providers": {
+    "out_of_scope": 561
+  },
+  "note": "Counts use materialized accepted manifest and native_catalog; unaccepted worker shards are not counted as supported."
+}

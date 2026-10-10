@@ -46,23 +46,40 @@ def mappings_for(check_id, category, control):
     result = {HACKTRICKS: {"control": category, "reference": HACKTRICKS_URL, "assurance": "thematic"}}
     for row in _mappings().get(check_id, []):
         for mapping in row.get("frameworks", []):
-            name = mapping.get("framework_family") or mapping["framework"]
-            # Stable family keys; exact declared names/versions stay in control metadata.
-            if name.upper().startswith(("NIST-800-53", "NIST 800-53")):
-                name = "NIST 800-53"
-            elif name.upper() == "SOC2":
-                name = "SOC 2"
-            elif name.upper() == "PCI":
-                name = "PCI DSS"
-            elif name.upper() == "NIST-CSF":
-                name = "NIST CSF"
-            elif name.upper() == "ISO27001":
-                name = "ISO 27001"
+            name = family_name(mapping)
             entry = result.setdefault(name, {"controls": [], "assurance": "upstream reference mapping; predicate scope may be narrower"})
             control_mapping = deepcopy(mapping)
             if control_mapping not in entry.setdefault("controls", []):
                 entry["controls"].append(control_mapping)
     return result
+
+
+def family_name(mapping):
+    name = mapping.get("framework_family") or mapping["framework"]
+    if name.upper().startswith(("NIST-800-53", "NIST 800-53")):
+        return "NIST 800-53"
+    return {"SOC2": "SOC 2", "PCI": "PCI DSS", "NIST-CSF": "NIST CSF", "ISO27001": "ISO 27001"}.get(name.upper(), name)
+
+
+def framework_names_for(check_id):
+    from . import HACKTRICKS
+    runtime = _runtime()
+    if runtime and "framework_lookup" in runtime:
+        return list(runtime["framework_lookup"].get(check_id, {}).get("names", [HACKTRICKS]))
+    names = [HACKTRICKS]
+    for row in _mappings().get(check_id, []):
+        for mapping in row["frameworks"]:
+            name = family_name(mapping)
+            if name not in names:
+                names.append(name)
+    return names
+
+
+def framework_ids_for(check_id):
+    runtime = _runtime()
+    if runtime and "framework_lookup" in runtime:
+        return list(runtime["framework_lookup"].get(check_id, {}).get("ids", []))
+    return sorted({mapping["framework_id"] for row in _mappings().get(check_id, []) for mapping in row["frameworks"]})
 
 
 def coverage():
@@ -121,13 +138,23 @@ def raw_framework_catalog(data):
 
 
 def runtime_metadata(data):
-    from . import CHECKS
+    from . import CHECKS, HACKTRICKS
     from collections import Counter
     totals = Counter(r["disposition"] for r in data["checks"])
     fields = ("check_id", "repository", "source", "revision", "license", "disposition", "frameworks", "official_docs")
     mappings = {cid: [{key: row[key] for key in fields if key in row} for row in rows] for cid, rows in raw_mappings(data).items()}
+    lookup = {}
+    for cid, rows in mappings.items():
+        names, ids = [HACKTRICKS], set()
+        for row in rows:
+            for mapping in row["frameworks"]:
+                name = family_name(mapping)
+                if name not in names:
+                    names.append(name)
+                ids.add(mapping["framework_id"])
+        lookup[cid] = {"names": names, "ids": sorted(ids)}
     manual = manual_requirements(data)
-    return {"schema_version": "1.1", "mappings": mappings, "frameworks": raw_framework_catalog(data), "manual_requirements": manual,
+    return {"schema_version": "1.1", "mappings": mappings, "framework_lookup": lookup, "frameworks": raw_framework_catalog(data), "manual_requirements": manual,
         "coverage": {"native_checks": len(CHECKS), "upstream_total": len(data["checks"]),
             "upstream": {key: totals[key] for key in ("ported", "merged", "rejected", "pending", "out_of_scope")},
             "supported_upstream": totals["ported"] + totals["merged"],
@@ -136,15 +163,19 @@ def runtime_metadata(data):
             "limitations": "Unported target references remain pending; other providers are explicitly out of scope. Reference tags are not certification."}}
 
 
-def manual_requirements(data=None):
+def manual_requirements(data=None, *, provider=None, ids=None):
     if data is None:
         runtime = _runtime()
         if runtime is not None:
-            return deepcopy(runtime.get("manual_requirements", []))
+            rows = runtime.get("manual_requirements", [])
+            selected = [row for row in rows if (provider is None or row["provider"] == provider) and (ids is None or row["id"] in ids)]
+            return deepcopy(selected)
         data = manifest()
     output = []
     for row in data["checks"]:
         if row.get("review_classification") != "manual_attestation":
+            continue
+        if provider is not None and row["provider"] != provider or ids is not None and row["check_id"] not in ids:
             continue
         requirement = row["manual_requirement"]
         dependencies = row.get("dependencies", [])
@@ -157,3 +188,10 @@ def manual_requirements(data=None):
             "status": "MANUAL", "source": row["source"], "revision": row["revision"], "license": row["license"],
             "frameworks": deepcopy(row["frameworks"]), "reason": row["reason"], "automated": False})
     return output
+
+
+def manual_requirement_ids(provider=None):
+    runtime = _runtime()
+    if runtime is not None:
+        return {row["id"] for row in runtime.get("manual_requirements", []) if provider is None or row["provider"] == provider}
+    return {row["id"] for row in manual_requirements(provider=provider)}

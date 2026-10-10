@@ -31,11 +31,13 @@ class Check:
 
     @property
     def frameworks(self):
-        return list(self.mapping)
+        from .catalog import framework_names_for
+        return framework_names_for(self.id)
 
     @property
     def framework_ids(self):
-        return sorted({control["framework_id"] for value in self.mapping.values() for control in value.get("controls", [])})
+        from .catalog import framework_ids_for
+        return framework_ids_for(self.id)
 
     @property
     def mapping(self):
@@ -515,3 +517,4 @@ from . import aws_b_regional  # noqa: E402,F401
 from . import gcp_ports_services  # noqa: E402,F401
 from . import aws_b_cloudfront  # noqa: E402,F401
 from . import aws_a_regional, azure_ports_defender, k8s_ports_cluster  # noqa: E402,F401
+from . import aws_b_storage  # noqa: E402,F401

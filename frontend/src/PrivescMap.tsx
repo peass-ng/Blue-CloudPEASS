@@ -57,7 +57,8 @@ import "@xyflow/react/dist/style.css";
 const INITIAL_CAP = 150,
   CAP_STEP = 150,
   MEMBER_CAP = 40,
-  FOCUS_DEPTH = 2;
+  FOCUS_DEPTH = 2,
+  VIRTUALIZE_AT = 100;
 // Node card geometry (shared by ELK, React Flow and the minimap).
 const NODE_W = 300,
   AGG_W = 330,
@@ -460,7 +461,8 @@ export function PrivescMap({
         "elk.spacing.nodeNode": "22",
         "elk.layered.spacing.nodeNodeBetweenLayers": "170",
         "elk.layered.spacing.edgeNodeBetweenLayers": "40",
-        "elk.separateConnectedComponents": "true",
+        // One layering for every component so all admin targets share the last column.
+        "elk.separateConnectedComponents": "false",
         "elk.spacing.componentComponent": "60",
         "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
         "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
@@ -666,14 +668,29 @@ export function PrivescMap({
     },
     [layout, index],
   );
+  // Expanding/collapsing an aggregate keeps it centred instead of re-anchoring.
+  const keepInView = useRef("");
   useEffect(() => {
     if (!layout || layingOut || !flow.current) return;
     const targets = hl ? [...hl.nodes].filter((id) => layout.pos[id]) : [];
-    const id = requestAnimationFrame(() => readableView(targets));
+    const kept = keepInView.current;
+    keepInView.current = "";
+    const id = requestAnimationFrame(() => {
+      const p = kept && !targets.length ? layout.pos[kept] : undefined;
+      if (p && flow.current) {
+        void flow.current.setCenter(p.x + AGG_W / 2, p.y + NODE_H / 2, {
+          zoom: Math.max(READABLE_ZOOM, flow.current.getZoom()),
+          duration: 0,
+        });
+        return;
+      }
+      readableView(targets);
+    });
     return () => cancelAnimationFrame(id);
   }, [layout, layingOut, hl, readableView, sidebarOpen]);
 
   const toggleExpand = useCallback((id: string) => {
+    keepInView.current = id;
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -949,7 +966,8 @@ export function PrivescMap({
                   nodesConnectable={false}
                   edgesReconnectable={false}
                   deleteKeyCode={null}
-                  onlyRenderVisibleElements
+                  // Virtualise only large maps; small ones keep every node in the DOM.
+                  onlyRenderVisibleElements={flowNodes.length > VIRTUALIZE_AT}
                   minZoom={0.05}
                   maxZoom={2}
                   onNodeClick={(_, n) => {

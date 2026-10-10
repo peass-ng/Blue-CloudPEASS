@@ -128,6 +128,18 @@ def test_dynamodb_deadline_and_entitlement_expiry(store):
     assert store.get_entitlement("alice") is None
 
 
+def test_pause_schedule_is_tenant_scoped_and_safe_after_deletion(store):
+    connector = store.add_connector("alice", {"provider": "aws"}, "ciphertext")
+    schedule = store.add_schedule("alice", {"connector_id": connector["id"], "interval_hours": 168}, 1000)
+    assert store.pause_schedule("bob", schedule["id"]) is False
+    assert store.schedules("alice")[0]["enabled"] is True
+    assert store.pause_schedule("alice", schedule["id"]) is True
+    assert store.schedules("alice")[0]["enabled"] is False
+    store.delete_schedule("alice", schedule["id"])
+    assert store.pause_schedule("alice", schedule["id"]) is False
+    assert store.schedules("alice") == [] and store.schedules("bob") == []
+
+
 def test_s3_artifacts_private_encryption_and_tenant_references():
     with moto.mock_aws():
         client = boto3.client("s3", region_name="us-east-1")

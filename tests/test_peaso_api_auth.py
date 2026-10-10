@@ -53,6 +53,20 @@ def test_disabled_identity_rejected_even_with_cached_paid(cognito_settings):
     auth.store.get_entitlement.assert_not_called()
 
 
+def test_deleted_identity_rejected_before_paid_cache(cognito_settings):
+    auth, key, claims = jwt_auth(cognito_settings)
+    auth.store = Mock()
+    auth.store.get_entitlement.return_value = True
+    deleted = RuntimeError("inert private provider error")
+    deleted.response = {"Error": {"Code": "UserNotFoundException"}}
+    auth.cognito.admin_get_user.side_effect = deleted
+    with pytest.raises(HTTPException) as error:
+        auth.authenticate("Bearer " + jwt.encode(claims, key, algorithm="RS256"))
+    assert error.value.status_code == 401
+    assert "private provider" not in error.value.detail
+    auth.store.get_entitlement.assert_not_called()
+
+
 @pytest.mark.parametrize("change", [{"iss": "https://evil.invalid"}, {"aud": "other-client"}, {"exp": 1}, {"token_use": "access"}, {"iat": int(time.time()) + 3600}])
 def test_cognito_invalid_issuer_audience_expiry_use(cognito_settings, change):
     auth, key, claims = jwt_auth(cognito_settings)

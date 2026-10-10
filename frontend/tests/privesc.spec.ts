@@ -32,6 +32,11 @@ async function openDemoMap(page: Page) {
   await expect(page.locator(".react-flow__node").first()).toBeVisible({ timeout: 30000 });
   await expect(page.getByText("Laying out escalation paths…")).toHaveCount(0, { timeout: 30000 });
 }
+// The initial view is anchored on admin targets at a readable zoom; fit the
+// whole (small) demo map before clicking nodes that may sit outside it.
+async function fitAll(page: Page) {
+  await page.getByRole("button", { name: "Fit view", exact: true }).click();
+}
 const node = (page: Page, id: string) =>
   page.locator(`.react-flow__node[data-id="${id}"]`);
 const sidebar = (page: Page) =>
@@ -63,6 +68,7 @@ test("privesc map renders principals, aggregates and admin scopes", async ({
 
 test("aggregate nodes expand and collapse on click", async ({ page }) => {
   await openDemoMap(page);
+  await fitAll(page);
   const before = await page.locator(".react-flow__node").count();
   await node(page, AGG).click();
   await expect(node(page, "arn:aws:iam::111111111111:role/ec2-web-0")).toBeVisible();
@@ -129,6 +135,7 @@ test("edge card shows technique summary, permissions and HackTricks source", asy
   page,
 }) => {
   await openDemoMap(page);
+  await fitAll(page);
   const edge = page.locator('.react-flow__edge[aria-label^="bob-ci to lambda-exec-role"]');
   await expect(edge.locator(".react-flow__edge-text")).toHaveText("2 techniques");
   await edge.locator(".react-flow__edge-textbg").click();

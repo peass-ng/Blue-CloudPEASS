@@ -47,6 +47,10 @@ ENDPOINTS = {
     "api_management": ("Microsoft.ApiManagement/service", "2024-05-01"),
     "search_service": ("Microsoft.Search/searchServices", "2023-11-01"),
     "managed_identity": ("Microsoft.ManagedIdentity/userAssignedIdentities", "2023-01-31"),
+    "container_registry": ("Microsoft.ContainerRegistry/registries", "2023-07-01"),
+    "cosmos_account": ("Microsoft.DocumentDB/databaseAccounts", "2024-05-15"),
+    "databricks_workspace": ("Microsoft.Databricks/workspaces", "2024-05-01"),
+    "kusto_cluster": ("Microsoft.Kusto/clusters", "2024-04-13"),
     "resource_group": ("resourcegroups", "2021-04-01"),
 }
 AUTHORIZATION = {

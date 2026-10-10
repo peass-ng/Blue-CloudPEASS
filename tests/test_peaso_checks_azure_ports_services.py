@@ -332,3 +332,26 @@ def test_managed_identity_federation_metadata_preserves_issuer_subject_audiences
     collection = next(row for row in snapshot["collections"] if row["type"] == "managed_identity_federated_credential")
     assert collection["status"] == "collected"
     assert collection["items"][0]["properties"]["issuer"] == "https://issuer.example"
+
+
+@pytest.mark.parametrize("mode,expected", [("empty", "empty"), ("denied", "denied")])
+def test_managed_identity_federation_complete_empty_and_denied_are_distinct(mode, expected):
+    identity = "/subscriptions/sub/resourceGroups/g/providers/Microsoft.ManagedIdentity/userAssignedIdentities/identity"
+    calls = []
+    class FederatedApi:
+        tenant = "tenant-a"
+        def request(self, url, body=None, audience=ARM):
+            calls.append((url, body))
+            if body:
+                return {"data": []}
+            if "/federatedIdentityCredentials?" in url:
+                if mode == "denied":
+                    raise AzureReadError("403", 403)
+                return {"value": []}
+            return {"value": [{"id": identity, "properties": {"principalId": "principal"}}]}
+    snapshot = collect({"scopes": ["sub"]}, ["managed_identity_federated_credential"], transport=FederatedApi())
+    collection = next(row for row in snapshot["collections"] if row["type"] == "managed_identity_federated_credential")
+    assert collection["status"] == expected and collection["items"] == []
+    if mode == "denied":
+        assert collection["error"]["code"] == "403"
+    assert all(not any(operation in url.lower() for operation in ("create", "update", "listkeys", "secrets")) for url, _ in calls)

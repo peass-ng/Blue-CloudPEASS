@@ -62,6 +62,7 @@ def _failure(exc):
 _SECRET_FIELDS = {"SecretAccessKey", "SessionToken", "Token", "WebIdentityToken", "SecretString", "SecretBinary", "Password", "MasterUserPassword", "PreSharedKey", "CustomerGatewayConfiguration", "ClientSecret", "clientSecret", "PrivateKey", "Base32StringSeed", "QRCodePNG", "aws_secret_access_key", "aws_session_token", "aws_access_key_id", "Credentials", "Environment", "UserData", "Code", "ResponseMetadata", "NextToken", "Marker", "ContinuationToken", "NextContinuationToken"}
 _LABEL_CONTAINERS = {"Tags", "tags", "TagSet", "tagSet", "TagList", "tagList", "Labels", "labels", "Annotations", "annotations"}
 _ENVIRONMENT_CONTAINERS = {"environment", "environmentVariables", "EnvironmentVariables"}
+_PROHIBITED_VALUE_OPERATIONS = {"get_secret_value", "batch_get_secret_value", "get_object", "get_log_events", "filter_log_events", "get_parameter", "get_parameters", "get_parameters_by_path", "get_password_data", "get_authorization_token"}
 
 
 def _credential_label(label):
@@ -159,7 +160,10 @@ class Requests:
             return self._clients[key]
 
     def call(self, session, service, region, operation, *, _cache_refresh=False, **arguments):
-        if (service, operation) not in READ_ACTIONS:
+        credential_exchange = service == "sts" and operation == "assume_role"
+        evidence_generation = service == "iam" and operation == "generate_credential_report"
+        readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_"))
+        if operation in _PROHIBITED_VALUE_OPERATIONS or (service, operation) not in READ_ACTIONS or not (readonly_name or credential_exchange or evidence_generation):
             raise ReadFailure("not_collected", "non_read_operation")
         key = (id(session), service, region, operation, json.dumps(arguments, sort_keys=True))
         with self._lock:
@@ -1115,9 +1119,8 @@ def _load_metadata_extension():
         if kind in SPECS and SPECS[kind] != spec:
             raise ValueError("AWS extension cannot replace existing service specification")
     actions = set(getattr(extension, "READ_ACTIONS", set()))
-    prohibited = {"get_secret_value", "batch_get_secret_value", "get_object", "get_log_events", "filter_log_events", "get_parameter", "get_parameters", "get_parameters_by_path"}
     for service, operation in actions | {(s, o) for s, o, expression in specs.values()}:
-        if operation in prohibited or not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")):
+        if operation in _PROHIBITED_VALUE_OPERATIONS or not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")):
             raise ValueError("AWS extension includes a prohibited operation")
     SPECS.update(specs)
     READ_ACTIONS.update(actions)

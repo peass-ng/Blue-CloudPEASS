@@ -40,7 +40,8 @@ ENDPOINTS = {
     "resourcequota": ("/api/v1/resourcequotas", True),
     "limitrange": ("/api/v1/limitranges", True),
 }
-TYPES = tuple(ENDPOINTS) + ("network_interface", "admission_configuration", "api_discovery", "securitycontextconstraint")
+TYPES = tuple(ENDPOINTS) + ("network_interface", "admission_configuration", "api_discovery", "securitycontextconstraint",
+                           "component_configuration", "file_metadata", "secret_metadata", "configmap_metadata", "podsecuritypolicy")
 
 # Only configuration declarations needed for reviewed component predicates are
 # preserved. Shell text, arbitrary argv and credential values remain redacted.
@@ -55,6 +56,34 @@ CONFIG_FLAGS = frozenset(("anonymous-auth", "profiling", "authorization-mode", "
     "root-ca-file", "service-account-key-file", "service-account-lookup", "enable-admission-plugins",
     "disable-admission-plugins", "feature-gates", "terminated-pod-gc-threshold", "tls-cipher-suites",
     "request-timeout", "streaming-connection-idle-timeout", "encryption-provider-config", "basic-auth-file", "token-auth-file"))
+
+CONFIGURATION_PATHS = ("authentication.anonymous.enabled", "authentication.x509.clientCAFile", "authorization.mode",
+    "readOnlyPort", "makeIPTablesUtilChains", "rotateCertificates", "serverTLSBootstrap", "eventRecordQPS",
+    "streamingConnectionIdleTimeout", "tlsCipherSuites", "tlsCertFile", "tlsPrivateKeyFile", "protectKernelDefaults")
+
+
+def _configuration_metadata(value):
+    if not isinstance(value, dict):
+        raise ValueError("component configuration metadata must be an object")
+    output = {}
+    for path in CONFIGURATION_PATHS:
+        parts, current = path.split("."), value
+        for part in parts:
+            if not isinstance(current, dict) or part not in current:
+                break
+            current = current[part]
+        else:
+            if isinstance(current, (dict, list)) and path != "tlsCipherSuites":
+                raise ValueError("component metadata scalar is malformed")
+            if path == "tlsCipherSuites" and (not isinstance(current, list) or any(not isinstance(x, str) or not x.startswith("TLS_") for x in current)):
+                raise ValueError("component cipher metadata is malformed")
+            if path.endswith(("File", "KeyFile")) and (not isinstance(current, str) or not re.fullmatch(r"/[A-Za-z0-9_./-]+", current)):
+                raise ValueError("component file metadata must be a simple absolute path")
+            target = output
+            for part in parts[:-1]:
+                target = target.setdefault(part, {})
+            target[parts[-1]] = copy.deepcopy(current)
+    return output
 
 
 def _component_config(value):
@@ -306,6 +335,10 @@ def _sanitize(value):
         if component is not None:
             result["_component_config"] = component
     for key, child in value.items():
+        normalized_key = re.sub(r"[^a-z0-9]", "", str(key).lower())
+        if (normalized_key != "automountserviceaccounttoken" and normalized_key.endswith(("password", "token", "privatekey", "clientsecret", "secretvalue"))) or normalized_key in (
+            "apikey", "credentials", "stringdata", "privatekeydata"):
+            continue
         if key in ("managedFields",):
             continue
         if key == "annotations" and isinstance(child, dict):
@@ -315,7 +348,7 @@ def _sanitize(value):
                 "azure.workload.identity/client-id", "azure.workload.identity/tenant-id",
                 "k8s.v1.cni.cncf.io/networks", "k8s.v1.cni.cncf.io/network-status",
                 "kubernetes.io/ingress.class", "kubernetes.io/psp", "iam.amazonaws.com/permitted",
-                "iam.amazonaws.com/role", "openshift.io/scc", "openshift.io/required-scc")}
+                "iam.amazonaws.com/role", "openshift.io/scc", "openshift.io/required-scc", "kubernetes.io/service-account.name")}
         elif key == "env" and isinstance(child, list):
             result[key] = [{"name": entry.get("name"), **({"valueFrom": _sanitize(entry["valueFrom"])} if "valueFrom" in entry else {"value_redacted": True})} for entry in child if isinstance(entry, dict)]
         elif key in ("command", "args"):
@@ -400,6 +433,33 @@ def collect(connector, requirements=None, *, api=None):
         cluster = _cluster_id(api, auth)
         jobs = []
         actual = wanted | ({"pod", "node"} if "network_interface" in wanted else set())
+        for imported_kind in sorted(actual.intersection({"component_configuration", "file_metadata", "secret_metadata", "configmap_metadata", "podsecuritypolicy"})):
+            def supplied(imported_kind=imported_kind):
+                entries = options.get("metadata_evidence", {}).get(imported_kind)
+                if entries is None:
+                    raise AzureReadError("manual_metadata_source_required")
+                if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
+                    raise ValueError("metadata evidence must be an object list")
+                output = []
+                for index, entry in enumerate(entries):
+                    if any(field in entry for field in ("data", "stringData", "contents", "private_key", "token", "password")):
+                        raise ValueError("metadata evidence cannot contain values or host file contents")
+                    if imported_kind == "file_metadata":
+                        item = {key: entry[key] for key in ("path", "uid", "gid", "mode", "node", "platform", "_coverage") if key in entry}
+                    elif imported_kind in ("secret_metadata", "configmap_metadata"):
+                        item = {"metadata": _sanitize(entry.get("metadata", {}))}
+                    elif imported_kind == "component_configuration":
+                        if entry.get("component") not in COMPONENTS:
+                            raise ValueError("component metadata subject unsupported")
+                        item = {"component": entry["component"], "configuration": _configuration_metadata(entry.get("configuration", {}))}
+                    else:
+                        item = _sanitize(entry)
+                    item["id"] = f"k8s://{quote(cluster, safe='')}/{imported_kind}/supplied-{index}"
+                    item["provenance"] = {"cluster_id": cluster, "source": "operator-supplied metadata", "runtime_verified": False,
+                        "namespace": item.get("metadata", {}).get("namespace", "_cluster")}
+                    output.append(item)
+                yield output
+            jobs.append((imported_kind, scopes[0], "kubernetes", supplied))
         if actual.intersection({"api_discovery", "securitycontextconstraint"}):
             def discovery():
                 document = reader.call(api.get_json, "/apis")
