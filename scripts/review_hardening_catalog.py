@@ -3,8 +3,8 @@ from fnmatch import fnmatchcase
 import sys
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent.parent))
 from bluepeass.finding_filters import blacklist_rules
-sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent.parent/'docker'))
-from query_context import prepare_query_context
+sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent.parent/'scripts'))
+from hardening_catalog_context import prepare_query_context
 parser=argparse.ArgumentParser(description='Review the complete pinned benchmark catalog and SQL hashes')
 parser.add_argument('--mods-root',required=True,type=pathlib.Path)
 parser.add_argument('--out-json',type=pathlib.Path)

@@ -1,0 +1,139 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Dedicated HackTricks CSPM configuration-only customer audit role; no credential values or writes.",
+  "Parameters": {
+    "ExternalId": {
+      "Type": "String",
+      "MinLength": 32,
+      "MaxLength": 256,
+      "AllowedPattern": "peaso-[A-Za-z0-9_-]+",
+      "Description": "Unique external ID generated server-side for this tenant connector"
+    }
+  },
+  "Resources": {
+    "AuditRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Sub": "PeasoCspmReadOnly-${AWS::StackName}"
+        },
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "arn:aws:iam::202533532952:role/hacktricks-cspm-collector"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": {
+                    "Ref": "ExternalId"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "CspmConfigurationReadOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cloudtrail:DescribeTrails",
+                    "cloudtrail:GetEventSelectors",
+                    "cloudtrail:GetTrailStatus",
+                    "cloudwatch:DescribeAlarms",
+                    "config:DescribeConfigurationRecorderStatus",
+                    "config:DescribeConfigurationRecorders",
+                    "config:DescribeDeliveryChannels",
+                    "dynamodb:DescribeTable",
+                    "dynamodb:ListTables",
+                    "ec2:DescribeInstances",
+                    "ec2:DescribeInternetGateways",
+                    "ec2:DescribeNatGateways",
+                    "ec2:DescribeNetworkAcls",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DescribeRouteTables",
+                    "ec2:DescribeSecurityGroups",
+                    "ec2:DescribeSubnets",
+                    "ec2:DescribeVolumes",
+                    "ec2:DescribeVpcEndpoints",
+                    "ec2:DescribeVpcPeeringConnections",
+                    "ec2:DescribeVpcs",
+                    "ecr:DescribeRepositories",
+                    "ecr:GetLifecyclePolicy",
+                    "ecr:GetRepositoryPolicy",
+                    "eks:DescribeCluster",
+                    "eks:ListClusters",
+                    "elasticloadbalancing:DescribeListeners",
+                    "elasticloadbalancing:DescribeLoadBalancerAttributes",
+                    "elasticloadbalancing:DescribeLoadBalancers",
+                    "elasticloadbalancing:DescribeTargetGroups",
+                    "elasticloadbalancing:DescribeTargetHealth",
+                    "guardduty:GetDetector",
+                    "guardduty:ListDetectors",
+                    "iam:GetAccessKeyLastUsed",
+                    "iam:GetAccountAuthorizationDetails",
+                    "iam:GetAccountPasswordPolicy",
+                    "iam:GetAccountSummary",
+                    "iam:GetCredentialReport",
+                    "iam:GetLoginProfile",
+                    "iam:GetPolicy",
+                    "iam:ListAccessKeys",
+                    "iam:ListMFADevices",
+                    "kms:DescribeKey",
+                    "kms:GetKeyPolicy",
+                    "kms:GetKeyRotationStatus",
+                    "kms:ListKeys",
+                    "lambda:GetFunctionUrlConfig",
+                    "lambda:GetPolicy",
+                    "lambda:ListFunctions",
+                    "logs:DescribeLogGroups",
+                    "rds:DescribeDBClusters",
+                    "rds:DescribeDBInstances",
+                    "rds:DescribeDBSnapshotAttributes",
+                    "rds:DescribeDBSnapshots",
+                    "s3:GetAccountPublicAccessBlock",
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketLocation",
+                    "s3:GetBucketLogging",
+                    "s3:GetBucketOwnershipControls",
+                    "s3:GetBucketPolicy",
+                    "s3:GetBucketPolicyStatus",
+                    "s3:GetBucketPublicAccessBlock",
+                    "s3:GetBucketVersioning",
+                    "s3:GetEncryptionConfiguration",
+                    "s3:ListAllMyBuckets",
+                    "secretsmanager:ListSecrets",
+                    "sns:GetTopicAttributes",
+                    "sns:ListTopics",
+                    "sqs:GetQueueAttributes",
+                    "sqs:ListQueues"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "RoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AuditRole",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

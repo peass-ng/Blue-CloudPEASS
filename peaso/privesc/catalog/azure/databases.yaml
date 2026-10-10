@@ -1,0 +1,58 @@
+# Azure managed database (MySQL / PostgreSQL / SQL) control-plane -> database admin techniques (declarative only).
+# Source: hacktricks-cloud az-mysql-privesc.md (+ postgresql/sql pages, appended below) (rev a53b46392c; working-tree copy read).
+
+- id: azure-mysql-flexible-admin-password-reset
+  provider: azure
+  service: databases
+  title: Reset the MySQL Flexible Server administrator password
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-mysql-privesc.md#microsoftdbformysqlflexibleserversread--microsoftdbformysqlflexibleserverswrite--microsoftdbformysqlflexibleserversdelete
+  source_revision: a53b46392c
+  summary: The source can obtain the MySQL server administrator account.
+  requires:
+    all_of:
+      - action: Microsoft.DBforMySQL/flexibleServers/write
+        scope: "{target.scope}"
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: "MySQL server admin of {target.scope}"
+  conditions:
+    - id: password_auth_enabled
+      description: MySQL password authentication must be enabled and the server reachable (firewall rule / private endpoint).
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Use Entra-only authentication and restrict flexibleServers/write.
+  references:
+    - https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-manage-server-cli
+  notes: Reset is disruptive to existing clients.
+
+- id: azure-mysql-flexible-entra-admin-write
+  provider: azure
+  service: databases
+  title: Set the MySQL Flexible Server Entra administrator
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-mysql-privesc.md#microsoftdbformysqlflexibleserversread-microsoftdbformysqlflexibleserverswrite-microsoftmanagedidentityuserassignedidentitiesassignaction-microsoftdbformysqlflexibleserversadministratorswrite--microsoftdbformysqlflexibleserversadministratorsread
+  source_revision: a53b46392c
+  summary: The source can obtain Entra administrator on the MySQL server.
+  requires:
+    all_of:
+      - action: Microsoft.DBforMySQL/flexibleServers/administrators/write
+        scope: "{target.scope}"
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: "MySQL server admin of {target.scope}"
+  conditions:
+    - id: server_has_uami
+      description: The server needs a user-assigned identity for Entra auth; if none, flexibleServers/write plus userAssignedIdentities/assign/action are also needed.
+  blockers: []
+  confidence: derived
+  severity: high
+  mitigation: Restrict administrators/write and monitor Entra admin changes.
+  references:
+    - https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad
+  notes: ""

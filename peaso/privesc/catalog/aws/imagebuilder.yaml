@@ -1,0 +1,34 @@
+# AWS EC2 Image Builder privilege escalation techniques.
+# Source: hacktricks-cloud aws-ec2-image-builder-privesc/README.md.
+
+- id: aws-imagebuilder-component-version-hijack
+  provider: aws
+  service: imagebuilder
+  title: Publish a newer component version consumed by a wildcard recipe and run the pipeline
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-image-builder-privesc/README.md#imagebuildercreatecomponent--imagebuilderstartimagepipelineexecution
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the infrastructure instance-profile role of an Image Builder pipeline whose recipe references an account-owned component by a version wildcard.
+  requires:
+    all_of:
+      - action: imagebuilder:CreateComponent
+        resource: "{target.consumer_input_arn}"
+      - action: imagebuilder:StartImagePipelineExecution
+        resource: "{target.attached_resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: imagebuilder
+      attached_resource_covered_by: imagebuilder:StartImagePipelineExecution
+      consumer_input_writable_via: imagebuilder:CreateComponent
+    scope: same_account
+    aggregate_as: "Image Builder infrastructure roles of pipelines with wildcard components in {account}"
+  conditions:
+    - id: unpinned_component
+      description: The recipe must reference the component with a wildcard (x.x.x, 1.x.x, 1.2.x) or an unpinned build; a fully pinned build ARN is not affected.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Pin component build versions in recipes and restrict imagebuilder:CreateComponent for consumed component names.
+  references: []
+  notes: No iam:PassRole is needed. Scheduled pipelines also pick up the new version without StartImagePipelineExecution (delayed).

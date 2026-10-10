@@ -1,0 +1,41 @@
+# AWS Service Catalog privilege escalation techniques.
+# Source: hacktricks-cloud aws-service-catalog-privesc/README.md (rev a53b46392c).
+# Uses {target.resource_arn} and via_resource_type (see header of lambda.yaml).
+
+- id: aws-servicecatalog-createprovisioningartifact-provisionproduct
+  provider: aws
+  service: servicecatalog
+  title: Add a product version and provision it under the launch-constraint role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-service-catalog-privesc/README.md#servicecatalogcreateprovisioningartifact--servicecatalogprovisionproduct
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the launch-constraint role of products it can modify and provision.
+  requires:
+    all_of:
+      - action: servicecatalog:CreateProvisioningArtifact
+        resource: "{target.resource_arn}"
+      - action: servicecatalog:ProvisionProduct
+        resource: "{target.resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: servicecatalog.amazonaws.com
+      via_resource_type: servicecatalog_product
+    scope: same_account
+    aggregate_as: "Service Catalog launch-constraint roles in {account}"
+  conditions:
+    - id: product_owned
+      description: The product must be owned by (not merely shared into) the account so artifacts can be added.
+    - id: portfolio_end_user
+      description: The source must be an end user (principal association) of a portfolio containing the product with a launch constraint.
+    - id: template_url
+      description: The source needs a template location (S3 or GitHub) the service accepts.
+    - id: resource_constraints
+      description: Launch-role permission boundaries or template/resource constraints may limit what the role can create.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict servicecatalog:CreateProvisioningArtifact to catalog administrators and keep launch-constraint roles least-privileged.
+  references:
+    - https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html
+  notes: No iam:PassRole is needed by the end user. The launch role may also trust cloudformation.amazonaws.com depending on configuration; the evaluator should take the role from the launch constraint rather than from the trust policy alone.

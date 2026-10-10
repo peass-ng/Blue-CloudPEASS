@@ -1,0 +1,77 @@
+# Entra ID HackTricks techniques reviewed and intentionally NOT modelled as
+# principal -> principal privilege-escalation edges. Source rev a53b46392c.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#pim-application-permissions
+  technique: PrivilegedAccess.ReadWrite.AzureAD / PrivilegedAccess.ReadWrite.AzureResources
+  reason: Legacy PIM (iteration 2) permissions on retired APIs; current directory-role PIM schedule APIs require RoleManagement.ReadWrite.Directory, modelled in azure-entraid-graph-rolemanagement-readwrite-directory.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#sensitive-graph-permissions
+  technique: AuditLog.Read.All / RoleManagement.Read.Directory
+  reason: Read-only enumeration of sign-in/audit data and role assignments; no privilege gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#sensitive-graph-permissions
+  technique: User.ReadWrite.All (password reset)
+  reason: Does not grant password reset or role assignment (HackTricks and Graph docs agree); its attribute-write ability is modelled in azure-entraid-dynamic-group-attribute-control.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryapplicationsallpropertiesupdate
+  technique: applications/allProperties/update - redirect URI / requested-permission changes
+  reason: Token interception via added redirect URI requires victim interaction and an exploitable auth flow (code redemption needs client secret/PKCE); requested permissions still need fresh consent. The credential-update part of allProperties/update is modelled in azure-entraid-app-credentials-update.
+- source: src/pentesting-cloud/azure-security/az-unauthenticated-enum-and-initial-entry/az-oauth-apps-phishing.md#entra-id-applications-admin
+  technique: Application admin / owner adds redirect URIs or requested permissions
+  reason: Same as above - phishing/consent dependent, no deterministic principal edge.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#applications-privilege-escalation
+  technique: Applications Privilege Escalation (enumeration of app API permissions)
+  reason: Explanatory/enumeration section; the underlying credential-injection edge is modelled by the application/service-principal credential entries.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryserviceprincipalssynchronizationcredentialsmanage
+  technique: servicePrincipals/synchronizationCredentials/manage
+  reason: Manages provisioning-connector credentials, not the service principal's own sign-in credentials; impact depends on the external connector target and yields no Entra principal.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryserviceprincipalsdisable-and-enable
+  technique: servicePrincipals/disable and enable
+  reason: Availability/DoS or re-enabling a principal whose credentials are already controlled; grants no new identity by itself.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryserviceprincipalsgetpasswordsinglesignoncredentials--microsoftdirectoryserviceprincipalsmanagepasswordsinglesignoncredentials
+  technique: servicePrincipals get/managePasswordSingleSignOnCredentials
+  reason: Reads/sets credentials for third-party password-SSO applications; access is to external apps, not to an Entra or Azure principal.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectorydevicesregisteredownersupdate
+  technique: devices/registeredOwners/update and devices/registeredUsers/update
+  reason: Directory metadata only; does not grant device or identity access by itself (HackTricks notes this).
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectorydevicelocalcredentialspasswordread
+  technique: deviceLocalCredentials/password/read (Windows LAPS)
+  reason: Credential read for local device administrator accounts; no Entra/Azure principal target kind (device-plane lateral movement).
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectorybitlockerkeyskeyread
+  technique: bitlockerKeys/key/read
+  reason: Data access (volume unlock); no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/az-conditional-access-policies-mfa-bypass.md#policyreadall--policyreadwriteconditionalaccess
+  technique: Policy.Read.All + Policy.ReadWrite.ConditionalAccess
+  reason: Weakens or disables Conditional Access (defense evasion); grants no principal's privileges. Belongs to Least Privilege / Exposure.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/az-conditional-access-policies-mfa-bypass.md#conditional-access-policies-bypasses
+  technique: Conditional Access condition bypasses (device platform/user-agent, locations, client apps, cloud apps)
+  reason: Authentication-control bypass for an already-compromised credential; no new principal privileges.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/az-conditional-access-policies-mfa-bypass.md#other-az-mfa-bypasses
+  technique: Phone-call MFA voicemail (ring tone) and compliant-device / PRT MFA bypasses
+  reason: MFA bypass for existing credentials, configuration-dependent and partly legacy; not a permission-based escalation edge.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/az-conditional-access-policies-mfa-bypass.md#tooling
+  technique: AzureAppsSweep / roadrecon / MFASweep / ROPCI / donkeytoken
+  reason: Tooling for CA/MFA gap testing; no privilege edge.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/dynamic-groups.md#dynamic-groups-enumeration
+  technique: Dynamic group enumeration
+  reason: Enumeration only; escalation is modelled in entraid_groups.yaml.
+- source: src/pentesting-cloud/azure-security/az-basic-information/README.md#global-administrator
+  technique: Global Administrator elevates to User Access Administrator at root scope
+  reason: Already modelled as azure-authorization-elevateaccess-global-admin in catalog/azure/authorization.yaml; not duplicated.
+- source: src/pentesting-cloud/azure-security/az-persistence/README.md#oauth-application
+  technique: Register an app and request high-impact application permissions with admin consent
+  reason: Requires an administrator who can already grant those permissions (covered by role/Graph entries); otherwise persistence/phishing only.
+- source: src/pentesting-cloud/azure-security/az-unauthenticated-enum-and-initial-entry/az-oauth-apps-phishing.md#app-consent-permissions
+  technique: Admin consent by Application / Cloud Application Administrator (servicePrincipals/managePermissionGrantsForAll.microsoft-application-admin, servicePrincipals/appRoleAssignedTo/update)
+  reason: These roles can consent/assign app roles for APIs other than Microsoft Graph / Azure AD Graph; the gain is API data access (e.g. non-Graph app roles), with no Entra/Azure principal target kind. Same roles' credential-injection edges are modelled.
+- source: src/pentesting-cloud/azure-security/az-unauthenticated-enum-and-initial-entry/az-oauth-apps-phishing.md#2-types-of-attacks
+  technique: Consent phishing
+  reason: Initial access via user consent; no in-tenant permission edge.
+- source: src/pentesting-cloud/azure-security/az-persistence/README.md#federation---token-signing-certificate
+  technique: AD FS token-signing certificate replacement
+  reason: Requires on-premises Domain Admin / AD FS server control; on-prem to cloud pivot outside the Entra snapshot.
+- source: src/pentesting-cloud/azure-security/az-services/intune.md#cloud---on-prem
+  technique: Intune Administrator / Global Administrator deploys scripts to managed devices
+  reason: Code execution on managed devices (device plane); no Entra/Azure principal target kind. Candidate for a future device target kind.
+- source: src/pentesting-cloud/azure-security/az-lateral-movement-cloud-on-prem/az-cloud-sync.md#principals-generated
+  technique: Directory Synchronization Accounts role / sync service accounts
+  reason: Hybrid sync abuse requires compromising the sync server; Microsoft now lists only onPremisesSynchronization/standard/read for the role and historical paths may not apply. Hybrid lateral-movement pages are out of the Entra-only snapshot.
+- source: src/pentesting-cloud/azure-security/az-basic-information/az-federation-abuse.md#scoping-and-risks-of-fic-subject-types
+  technique: Over-broad federated identity credential subjects (GitHub OIDC)
+  reason: The source is an external CI identity, not a tenant principal; FIC creation by tenant principals is covered by the credential-update entries.

@@ -1,0 +1,356 @@
+{
+  "kubernetes-compliance.control.deployment_container_privilege_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "related_native_checks": [
+      "k8s.deployment.no_privileged"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.deployment_non_root_container": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. Requires resolved runAsNonRoot=true and rejects explicit UID0; unlike the SQL reference, Pod inheritance is respected.",
+    "related_native_checks": [
+      "k8s.deployment.non_root"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.deployment_host_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.deployment.no_host_network"
+    ],
+    "reason": "Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.deployment_container_host_port_not_specified": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. HostPort0 is allowed per current Pod Security Standards; the SQL reference matches mere hostPort text and is broader.",
+    "related_native_checks": [
+      "k8s.deployment.no_host_ports"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.daemonset_container_privilege_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "related_native_checks": [
+      "k8s.daemonset.no_privileged"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.daemonset_non_root_container": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. Requires resolved runAsNonRoot=true and rejects explicit UID0; unlike the SQL reference, Pod inheritance is respected.",
+    "related_native_checks": [
+      "k8s.daemonset.non_root"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.daemonset_host_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.daemonset.no_host_network"
+    ],
+    "reason": "Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.daemonset_container_host_port_not_specified": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. HostPort0 is allowed per current Pod Security Standards; the SQL reference matches mere hostPort text and is broader.",
+    "related_native_checks": [
+      "k8s.daemonset.no_host_ports"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.statefulset_container_privilege_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "related_native_checks": [
+      "k8s.statefulset.no_privileged"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.statefulset_non_root_container": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. Requires resolved runAsNonRoot=true and rejects explicit UID0; unlike the SQL reference, Pod inheritance is respected.",
+    "related_native_checks": [
+      "k8s.statefulset.non_root"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.statefulset_host_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.statefulset.no_host_network"
+    ],
+    "reason": "Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.statefulset_container_host_port_not_specified": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. HostPort0 is allowed per current Pod Security Standards; the SQL reference matches mere hostPort text and is broader.",
+    "related_native_checks": [
+      "k8s.statefulset.no_host_ports"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.replicaset_container_privilege_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "related_native_checks": [
+      "k8s.replicaset.no_privileged"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.replicaset_non_root_container": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. Requires resolved runAsNonRoot=true and rejects explicit UID0; unlike the SQL reference, Pod inheritance is respected.",
+    "related_native_checks": [
+      "k8s.replicaset.non_root"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.replicaset_host_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.replicaset.no_host_network"
+    ],
+    "reason": "Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.replicaset_container_host_port_not_specified": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. HostPort0 is allowed per current Pod Security Standards; the SQL reference matches mere hostPort text and is broader.",
+    "related_native_checks": [
+      "k8s.replicaset.no_host_ports"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.job_container_privilege_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "related_native_checks": [
+      "k8s.job.no_privileged"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.job_non_root_container": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. Requires resolved runAsNonRoot=true and rejects explicit UID0; unlike the SQL reference, Pod inheritance is respected.",
+    "related_native_checks": [
+      "k8s.job.non_root"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.job_host_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.job.no_host_network"
+    ],
+    "reason": "Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.job_container_host_port_not_specified": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. HostPort0 is allowed per current Pod Security Standards; the SQL reference matches mere hostPort text and is broader.",
+    "related_native_checks": [
+      "k8s.job.no_host_ports"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.cronjob_container_privilege_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "related_native_checks": [
+      "k8s.cronjob.no_privileged"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.cronjob_non_root_container": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. Requires resolved runAsNonRoot=true and rejects explicit UID0; unlike the SQL reference, Pod inheritance is respected.",
+    "related_native_checks": [
+      "k8s.cronjob.non_root"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.cronjob_host_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.cronjob.no_host_network"
+    ],
+    "reason": "Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. ",
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.cronjob_container_host_port_not_specified": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native Pod-template adaptation; includes init/ephemeral containers, strict missing/malformed/denied handling and Pod-level securityContext inheritance. HostPort0 is allowed per current Pod Security Standards; the SQL reference matches mere hostPort text and is broader.",
+    "related_native_checks": [
+      "k8s.cronjob.no_host_ports"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.pod_container_host_port_not_specified": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Native adapted Pod Security Standards predicate: nil/absent/zero hostPort is allowed; nonzero hostPort is flagged, including init/ephemeral containers. Reference SQL text-match overstates hostPort0; native malformed or denied evidence remains UNKNOWN.",
+    "related_native_checks": [
+      "k8s.pod.no_host_ports"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.service_account_token_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Native ServiceAccount-level default automount control; omitted API field defaults true, Pod overrides are not inferred, no Secret reads.",
+    "related_native_checks": [
+      "k8s.serviceaccount.disable_automount"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/security/service-accounts/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_cpu_limit": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native namespace ResourceQuota relation with complete same-scope inventory, quantity validation, and no cross-namespace matches; scoped quotas are MANUAL, missing/denied inventory UNKNOWN, and no quota in complete inventory FAIL. Does not claim sizing or admission enforcement.",
+    "related_native_checks": [
+      "k8s.namespace.quota_limits_cpu"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_cpu_request": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native namespace ResourceQuota relation with complete same-scope inventory, quantity validation, and no cross-namespace matches; scoped quotas are MANUAL, missing/denied inventory UNKNOWN, and no quota in complete inventory FAIL. Does not claim sizing or admission enforcement.",
+    "related_native_checks": [
+      "k8s.namespace.quota_requests_cpu"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_memory_limit": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native namespace ResourceQuota relation with complete same-scope inventory, quantity validation, and no cross-namespace matches; scoped quotas are MANUAL, missing/denied inventory UNKNOWN, and no quota in complete inventory FAIL. Does not claim sizing or admission enforcement.",
+    "related_native_checks": [
+      "k8s.namespace.quota_limits_memory"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_memory_request": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native defensive adaptation has different default/inheritance/container-kind/scoped-quota semantics; upstream predicate is not claimed migrated. Reviewed native namespace ResourceQuota relation with complete same-scope inventory, quantity validation, and no cross-namespace matches; scoped quotas are MANUAL, missing/denied inventory UNKNOWN, and no quota in complete inventory FAIL. Does not claim sizing or admission enforcement.",
+    "related_native_checks": [
+      "k8s.namespace.quota_requests_memory"
+    ],
+    "official_docs": [
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/"
+    ],
+    "review_notes": "Native facts only; missing/denied/malformed UNKNOWN. PodSecurityPolicy removed API and unobservable host/control-plane options are unsupported."
+  }
+}

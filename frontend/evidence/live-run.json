@@ -1,0 +1,7 @@
+{
+  "scan_id": "838c6059f1494d438973a72d91412342",
+  "connector_id": "93e3715cbfce44899d882118924deaa9",
+  "input_mode": "demo",
+  "backend": "http://127.0.0.1:8001",
+  "date": "2026-10-10T17:23:45.876Z"
+}

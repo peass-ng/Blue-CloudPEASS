@@ -1,0 +1,333 @@
+{
+  "prowler.aws.ec2_ebs_volume_encryption": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.ebs.encryption"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.rds_instance_storage_encrypted": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.encryption"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.rds_instance_deletion_protection": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.deletion_protection"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.rds_instance_backup_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.backups"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.cloudtrail_multi_region_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "related_native_checks": [
+      "aws.cloudtrail.multi_region",
+      "aws.cloudtrail.logging"
+    ],
+    "reason": "Pinned upstream evaluates logging trail existence per region, with single-region alternatives. Individual native multi-region/logging predicates are related but not equivalent; regional inventory join remains unported."
+  },
+  "prowler.aws.cloudtrail_log_file_validation_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.cloudtrail.log_validation"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.iam_no_root_access_key": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.no_root_keys"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.iam_root_mfa_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.root_mfa"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.iam_user_mfa_enabled_console_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.console_mfa"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.s3_bucket_object_versioning": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.s3.versioning"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.aws.s3_bucket_server_access_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.s3.access_logging"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.gcp.cloudstorage_bucket_uniform_bucket_level_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.storage.uniform_access"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.gcp.cloudsql_instance_automated_backups": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.sql.backups"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.storage_secure_transfer_required_is_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.storage_account_key_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.no_shared_key"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.storage_default_to_entra_authorization_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.default_oauth"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.storage_account_public_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.no_public_network"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.storage_default_network_access_rule_is_denied": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.storage_ensure_minimum_tls_version_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.minimum_tls"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.aks_cluster_local_accounts_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.aks.no_local_accounts"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.aks_cluster_rbac_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.aks.rbac"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.azure.keyvault_rbac_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.vault.rbac"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.kubernetes.core_minimize_privileged_containers": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.pod.no_privileged_containers"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.kubernetes.core_minimize_allowPrivilegeEscalation_containers": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.pod.no_privilege_escalation"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.kubernetes.core_readonly_root_filesystem_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.pod.read_only_root"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "prowler.kubernetes.core_minimize_hostpath_volume_mounts": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.pod.no_hostpath"
+    ],
+    "reason": "Reviewed native configuration predicate; evaluate collected resource fields, include denied/missing/malformed as UNKNOWN, and preserve upstream framework tags without certification claims."
+  },
+  "aws-compliance.query.ebs_volume_encryption_at_rest_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.ebs.encryption"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "aws-compliance.query.rds_db_instance_encryption_at_rest_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.rds.encryption"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "aws-compliance.query.rds_db_cluster_encryption_at_rest_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.rds.cluster_encryption"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "aws-compliance.query.rds_db_instance_prohibit_public_access": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.rds.no_public_endpoint"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "aws-compliance.query.rds_db_instance_deletion_protection_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.rds.deletion_protection"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "aws-compliance.query.rds_db_cluster_deletion_protection_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.rds.cluster_deletion_protection"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "aws-compliance.query.cloudtrail_trail_validation_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.cloudtrail.log_validation"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "gcp-compliance.query.storage_bucket_uniform_access_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.storage.uniform_access"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "gcp-compliance.query.sql_instance_automated_backups_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.sql.backups"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "gcp-compliance.query.kubernetes_cluster_shielded_nodes_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gke.shielded_nodes"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "gcp-compliance.query.kubernetes_cluster_private_nodes_configured": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gke.private_nodes"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "gcp-compliance.query.kubernetes_cluster_legacy_abac_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gke.no_legacy_abac"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "azure-compliance.query.storage_account_blob_public_access_disabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.no_blob_public_access"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "azure-compliance.query.storage_account_min_tls_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.minimum_tls"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "azure-compliance.query.storage_account_public_network_access_disabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.no_public_network"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "azure-compliance.query.storage_account_default_to_oauth_authentication": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_oauth"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "azure-compliance.query.storage_account_shared_key_access_disabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.no_shared_key"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "azure-compliance.query.kubernetes_instance_rbac_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.aks.rbac"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "kubernetes-compliance.query.pod_container_capabilities_drop_all": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.pod.drop_capabilities"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "kubernetes-compliance.query.pod_volume_host_path": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.pod.no_hostpath"
+    ],
+    "reason": "Reviewed query uses equivalent native configuration predicate; framework controls sharing this query merge into one evaluation and retain every control ID. Unavailable facts remain UNKNOWN."
+  },
+  "prowler.aws.eks_control_plane_logging_all_types_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.eks.control_plane_logging"
+    ],
+    "reason": "Default upstream configuration requires all five documented EKS control-plane log types; native strict evaluator checks api/audit/authenticator/controllerManager/scheduler once and reports UNKNOWN for missing or denied cluster logging."
+  }
+}

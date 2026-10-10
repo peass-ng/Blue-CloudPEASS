@@ -1,0 +1,219 @@
+# Azure Function App-specific privilege escalation techniques (declarative only).
+# Generic Microsoft.Web/sites techniques are in app_services.yaml and also apply to Function Apps.
+# Source: hacktricks-cloud az-functions-app-privesc.md / az-app-services-privesc.md
+# (rev a53b46392c; working-tree copy read, no relevant uncommitted changes in technique content).
+# Placeholder {target.host_resource.content_storage}: the storage account referenced by the app's
+# AzureWebJobsStorage / WEBSITE_CONTENTAZUREFILECONNECTIONSTRING / WEBSITE_RUN_FROM_PACKAGE settings.
+
+- id: azure-functions-content-storage-write
+  provider: azure
+  service: functions
+  title: Write access to a Function App's backing content storage
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#storage-backed-deployment-content
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Function App's managed identities.
+  requires:
+    all_of: []
+    any_of:
+      - - action: Microsoft.Storage/storageAccounts/listkeys/action
+          scope: "{target.host_resource.content_storage}"
+      - - action: Microsoft.Storage/storageAccounts/fileServices/fileshares/files/write
+          data_action: true
+          scope: "{target.host_resource.content_storage}"
+        - action: Microsoft.Storage/storageAccounts/fileServices/writeFileBackupSemantics/action
+          data_action: true
+          scope: "{target.host_resource.content_storage}"
+      - - action: Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write
+          data_action: true
+          scope: "{target.host_resource.content_storage}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+      azure_site_kind: functionapp
+    scope: any
+    aggregate_as: "Managed identities of Function App {target.host_resource}"
+  conditions:
+    - id: content_location_matches
+      description: The writable share/container must be the one the app actually loads code from; blob package paths only take effect after a restart.
+    - id: shared_key_access_enabled
+      description: The listkeys path requires shared key access to be enabled on the storage account.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Use a dedicated storage account per Function App, disable shared key access, and restrict data-plane write roles on it.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings
+  notes: The storage account behind a Function App is often in another resource group; edge depends on resolving the app settings.
+
+- id: azure-functions-host-listkeys-master-key
+  provider: azure
+  service: functions
+  title: List Function App host keys (master key)
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#microsoftwebsiteshostlistkeysaction-and-microsoftwebsitesslotshostlistkeysaction
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Function App's managed identities.
+  requires:
+    all_of:
+      - action: Microsoft.Web/sites/host/listkeys/action
+        scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+      azure_site_kind: functionapp
+    scope: inherited_scope
+    aggregate_as: "Managed identities of Function App {target.host_resource}"
+  conditions:
+    - id: admin_endpoint_reachable
+      description: The app's admin endpoint must be reachable from the source's network.
+  blockers:
+    - azure_deny_assignment
+  confidence: derived
+  severity: high
+  mitigation: Restrict host/listkeys/action and restrict network access to the Function App.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-functions/function-keys-how-to
+  notes: The master key authorizes the Functions administration API, including file management. The slot variant is in app_services.yaml.
+
+- id: azure-functions-masterkey-read
+  provider: azure
+  service: functions
+  title: Read the Function App master key
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#microsoftwebsitesfunctionsmasterkeyread
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Function App's managed identities.
+  requires:
+    all_of:
+      - action: Microsoft.Web/sites/functions/masterkey/read
+        scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+      azure_site_kind: functionapp
+    scope: inherited_scope
+    aggregate_as: "Managed identities of Function App {target.host_resource}"
+  conditions:
+    - id: secret_storage_files
+      description: HackTricks reports this route only works when AzureWebJobsSecretStorageType=Files.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict functions/masterkey/read and use the Blob secret repository.
+  references: []
+  notes: ""
+
+- id: azure-functions-admin-token-read
+  provider: azure
+  service: functions
+  title: Obtain a Functions runtime admin token
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#microsoftwebsitesfunctionstokenread
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Function App's managed identities.
+  requires:
+    all_of:
+      - action: Microsoft.Web/sites/functions/token/read
+        scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+      azure_site_kind: functionapp
+    scope: inherited_scope
+    aggregate_as: "Managed identities of Function App {target.host_resource}"
+  conditions:
+    - id: admin_token_reaches_code_change
+      description: HackTricks confirms key retrieval and admin invocation with the token; whether it yields code change or identity use depends on plan/configuration.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict functions/token/read.
+  references:
+    - https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-functions-admin-token
+  notes: ""
+
+- id: azure-functions-hostruntime-vfs-write
+  provider: azure
+  service: functions
+  title: Modify Function App files through the host runtime VFS
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#microsoftwebsiteshostruntimevfswrite
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Function App's managed identities.
+  requires:
+    all_of:
+      - action: Microsoft.Web/sites/hostruntime/vfs/write
+        scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+      azure_site_kind: functionapp
+    scope: inherited_scope
+    aggregate_as: "Managed identities of Function App {target.host_resource}"
+  conditions: []
+  blockers:
+    - azure_deny_assignment
+  confidence: derived
+  severity: high
+  mitigation: Restrict hostruntime/vfs/write.
+  references: []
+  notes: Not applicable when the app runs from a read-only package.
+
+- id: azure-functions-functions-write
+  provider: azure
+  service: functions
+  title: Create or update a function definition
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#replace-a-functions-code-with-microsoftwebsitesfunctionswrite
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Function App's managed identities.
+  requires:
+    all_of:
+      - action: Microsoft.Web/sites/functions/write
+        scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+      azure_site_kind: functionapp
+    scope: inherited_scope
+    aggregate_as: "Managed identities of Function App {target.host_resource}"
+  conditions:
+    - id: writable_content
+      description: Not applicable when the app runs from a read-only package.
+  blockers:
+    - azure_deny_assignment
+  confidence: derived
+  severity: high
+  mitigation: Restrict Microsoft.Web/sites/functions/write.
+  references: []
+  notes: ""
+
+- id: azure-functions-config-list-storage-key
+  provider: azure
+  service: functions
+  title: Read app settings exposing the content storage connection string
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#microsoftwebsitesconfiglistaction
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Function App's managed identities.
+  requires:
+    all_of:
+      - action: Microsoft.Web/sites/config/list/action
+        scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+      azure_site_kind: functionapp
+    scope: inherited_scope
+    aggregate_as: "Managed identities of Function App {target.host_resource}"
+  conditions:
+    - id: key_based_storage_connection
+      description: Only when the content storage setting contains an account key (not identity-based connections).
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Use identity-based storage connections and restrict config/list/action.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference#connecting-to-host-storage-with-an-identity
+  notes: The publishing-credential path of config/list/action is modelled in app_services.yaml.

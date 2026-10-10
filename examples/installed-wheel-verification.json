@@ -1,0 +1,33 @@
+{
+  "installed_outside_checkout": true,
+  "network_calls": 0,
+  "bundled_providers": [
+    "aws",
+    "gcp",
+    "azure",
+    "k8s"
+  ],
+  "representative_classification": {
+    "aws": "critical",
+    "gcp": "critical",
+    "azure": "critical"
+  },
+  "offline_reports": {
+    "aws": {
+      "resources": 10,
+      "findings": 41
+    },
+    "gcp": {
+      "resources": 5,
+      "findings": 29
+    },
+    "azure": {
+      "resources": 5,
+      "findings": 28
+    },
+    "k8s": {
+      "resources": 7,
+      "findings": 65
+    }
+  }
+}

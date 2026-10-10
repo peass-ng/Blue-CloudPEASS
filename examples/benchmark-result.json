@@ -1,0 +1,16 @@
+{
+  "python": "3.13.11",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "resources": 30000,
+  "checks": [
+    "aws.ec2.imdsv2"
+  ],
+  "categories": [
+    "hardening"
+  ],
+  "seconds": 2.155007,
+  "resources_per_second": 13921,
+  "findings": 30000,
+  "cloud_calls": 0,
+  "limitations": "One applicable native predicate and scope; this does not measure live collection, all rules, graphs, or report rendering."
+}

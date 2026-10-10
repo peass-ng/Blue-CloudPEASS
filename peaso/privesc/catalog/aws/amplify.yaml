@@ -1,0 +1,34 @@
+# AWS Amplify privilege escalation techniques.
+# Source: hacktricks-cloud aws-amplify-privesc/README.md.
+
+- id: aws-amplify-updateapp-startjob
+  provider: aws
+  service: amplify
+  title: Change an Amplify app build specification and start a build
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md#amplifyupdateapp-amplifystartjob
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the IAM service role attached to an Amplify app whose build it can reconfigure and run.
+  requires:
+    all_of:
+      - action: amplify:UpdateApp
+        resource: "{target.attached_resource_arn}"
+      - action: amplify:StartJob
+        resource: "{target.attached_resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: amplify
+      attached_resource_covered_by: amplify:UpdateApp
+    scope: same_account
+    aggregate_as: "Service roles of Amplify apps covered by amplify:UpdateApp in {account}"
+  conditions:
+    - id: app_has_service_role
+      description: The app must have an IAM service role configured (trusting amplify.amazonaws.com); otherwise builds run without AWS permissions.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: high
+  mitigation: Restrict amplify:UpdateApp/UpdateBranch and StartJob; keep Amplify service roles least-privileged.
+  references:
+    - https://docs.aws.amazon.com/amplify/latest/userguide/how-to-service-role-amplify-console.html
+  notes: StartJob Resource is the branch ARN (app ARN prefix); the evaluator should treat app-ARN wildcards as covering branches. amplify:UpdateBranch can be an equivalent build-spec change path. Severity critical when the attached role is admin-equivalent.

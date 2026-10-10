@@ -1,0 +1,33 @@
+# AWS Organizations privilege escalation techniques.
+# Source: hacktricks-cloud aws-organizations-prinvesc/README.md.
+
+- id: aws-organizations-management-to-member-accounts
+  provider: aws
+  service: organizations
+  title: Assume the organization access role in member accounts from the management account
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-organizations-prinvesc/README.md#from-management-account-to-children-accounts
+  source_revision: a53b46392c
+  summary: A management-account principal can obtain the privileges of the cross-account admin role (OrganizationAccountAccessRole by default) in member accounts that trust the management account.
+  requires:
+    all_of:
+      - action: sts:AssumeRole
+        resource: "{target.arn}"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_principal_of_source: true
+    scope: org
+    aggregate_as: "Organization access roles in member accounts"
+  conditions:
+    - id: role_exists
+      description: OrganizationAccountAccessRole is created automatically only for accounts created through Organizations; invited accounts have it only if added manually.
+    - id: source_in_management_account
+      description: The source must live in the management account that the member-account role trusts.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Keep the management account free of workloads, limit who can assume roles from it, and replace the default role with narrowly trusted roles.
+  references:
+    - https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access-cross-account-role.html
+  notes: SCPs never apply to the management account but do apply to the assumed role in member accounts. Overlaps with aws-sts-assumerole-trusted; kept so the org edge is labelled distinctly.

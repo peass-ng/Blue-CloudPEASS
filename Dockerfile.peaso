@@ -1,0 +1,32 @@
+FROM node:22-bookworm-slim AS frontend
+WORKDIR /build
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+FROM python:3.12-slim-bookworm AS runtime
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PEASO_STATE_DIR=/var/lib/peaso/state PEASO_IDENTITY_DIR=/var/lib/peaso/identity
+WORKDIR /app
+COPY pyproject.toml ./
+COPY peaso/ ./peaso/
+COPY bluepeass/ ./bluepeass/
+COPY scripts/ ./scripts/
+COPY risk_rules/ ./risk_rules/
+RUN pip install --no-cache-dir . && groupadd -g 10001 peaso && useradd -u 10001 -g 10001 --no-create-home peaso
+ENTRYPOINT ["python", "-m", "peaso.server.bootstrap"]
+
+FROM runtime AS collector
+RUN pip install --no-cache-dir '.[cloud,hosted]'
+USER 10001:10001
+CMD ["python", "-m", "peaso.worker", "collector"]
+
+FROM runtime AS analyzer
+USER 10001:10001
+CMD ["python", "-m", "peaso.worker", "analyzer"]
+
+FROM runtime AS api
+RUN pip install --no-cache-dir '.[hosted]'
+COPY --from=frontend /build/dist /app/peaso/frontend_dist/
+ENV PEASO_BIND=0.0.0.0 PEASO_INITIALIZE=1
+CMD ["python", "-m", "peaso.server"]

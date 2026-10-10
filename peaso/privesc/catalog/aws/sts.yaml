@@ -1,0 +1,65 @@
+# AWS STS / IAM Roles Anywhere privilege escalation techniques.
+# Source: hacktricks-cloud aws-sts-privesc/README.md.
+
+- id: aws-sts-assumerole-trusted
+  provider: aws
+  service: sts
+  title: Assume a role whose trust policy allows the source
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/README.md#stsassumerole
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of every role whose trust policy allows the source (or its account) and that its identity policy lets it assume.
+  requires:
+    all_of:
+      - action: sts:AssumeRole
+        resource: "{target.arn}"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_principal_of_source: true
+    scope: any
+    aggregate_as: "Roles assumable by the source"
+  conditions:
+    - id: trust_names_principal_directly
+      description: For a same-account trust that names the source principal ARN directly, the identity-policy sts:AssumeRole grant is not required. Trusts naming only the account root require it; cross-account always requires it.
+    - id: trust_conditions
+      description: Trust conditions such as sts:ExternalId, aws:MultiFactorAuthPresent, sts:SourceIdentity, aws:PrincipalOrgID or aws:SourceIp may block the assumption.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Trust specific principal ARNs (not account roots or "*"), add aws:PrincipalOrgID / ExternalId / MFA conditions, and limit sts:AssumeRole Resources.
+  references:
+    - https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic-cross-account.html
+  notes: Severity is critical only when an assumable role is admin-equivalent. Role chaining is handled by the evaluator through repeated edges.
+
+- id: aws-rolesanywhere-updatetrustanchor
+  provider: aws
+  service: rolesanywhere
+  title: Replace the CA of an IAM Roles Anywhere trust anchor
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/README.md#rolesanywhereupdatetrustanchor--replace-the-trusted-ca-and-mint-role-sessions
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of every role in an enabled Roles Anywhere profile that accepts certificates from a trust anchor whose CA the source can replace.
+  requires:
+    all_of:
+      - action: rolesanywhere:UpdateTrustAnchor
+        resource: "{target.trust_anchor_arn}"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: rolesanywhere.amazonaws.com
+      rolesanywhere_profile_includes_target: true
+    scope: same_account
+    aggregate_as: "Roles reachable through Roles Anywhere trust anchors covered by rolesanywhere:UpdateTrustAnchor in {account}"
+  conditions:
+    - id: trust_conditions_on_cert_attributes
+      description: Role trust conditions on aws:PrincipalTag/x509Subject/* or a specific trust-anchor ARN must be satisfiable by a certificate the source issues; usually they are.
+    - id: anchor_and_profile_enabled
+      description: The trust anchor and the profile must be enabled (enabling them needs rolesanywhere:EnableTrustAnchor / EnableProfile).
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict rolesanywhere:UpdateTrustAnchor/CreateTrustAnchor to administrators and pin aws:SourceArn of the trust anchor plus certificate-subject conditions in role trusts.
+  references:
+    - https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html
+  notes: "Requires placeholder {target.trust_anchor_arn}: the trust anchor whose certificates the target role's profile accepts. Profile session policies / managed policies can further reduce the obtained permissions."

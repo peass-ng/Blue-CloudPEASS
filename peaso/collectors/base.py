@@ -1,0 +1,170 @@
+"""Bounded read-only provider adapters. No evaluator has access to these clients."""
+from __future__ import annotations
+import json
+from datetime import date, datetime
+from urllib.parse import urlencode, urlsplit, quote
+from peaso.snapshot import canonical, digest, make_snapshot, resource_id
+
+# Types are stable across the wire; payloads retain their provider-native fields.
+TYPES = {
+    "aws": ["iam_user", "iam_group", "iam_role", "iam_policy", "bucket", "vpc", "subnet", "security_group", "instance", "route_table"],
+    "gcp": ["iam_policy", "bucket", "network", "subnetwork", "firewall", "instance"],
+    "azure": ["role_assignment", "role_definition", "storage_account", "vnet", "nsg", "nic", "vm"],
+    "k8s": ["role", "clusterrole", "rolebinding", "clusterrolebinding", "serviceaccount", "pod", "service", "networkpolicy", "namespace"],
+}
+
+
+def _json(value):
+    return json.loads(json.dumps(value, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else str(x)))
+
+
+def _error_status(exc):
+    code = str(getattr(exc, "code", ""))
+    response = getattr(exc, "response", {})
+    if isinstance(response, dict):
+        code = str(response.get("Error", {}).get("Code", code))
+    text = str(exc).lower()
+    if isinstance(exc, (TimeoutError,)) or "timeout" in text or "timed out" in text:
+        return "timeout", {"kind": type(exc).__name__, "code": code or "read_timeout"}
+    if isinstance(exc, ValueError):
+        return "malformed", {"kind": type(exc).__name__, "code": "malformed_response"}
+    denied = any(x in (code + " " + text).lower() for x in ("403", "401", "accessdenied", "unauthorized", "forbidden", "permission_denied"))
+    return "denied" if denied else "unknown", {"kind": type(exc).__name__, "code": code or ("permission_denied" if denied else "read_failed")}
+
+
+class Budget:
+    def __init__(self, options):
+        self.max_pages = _bound(options.get("max_pages", 10), "max_pages", 1, 100)
+        self.max_items = _bound(options.get("max_resources", 10000), "max_resources", 1, 100000)
+        self.max_calls = _bound(options.get("max_calls", 200), "max_calls", 1, 10000)
+        self.calls = 0
+
+    def call(self, operation, *args, **kwargs):
+        if self.calls >= self.max_calls:
+            raise RuntimeError("collection call budget exhausted")
+        self.calls += 1
+        return operation(*args, **kwargs)
+
+
+def _bound(value, name, minimum, maximum):
+    if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
+        raise ValueError(f"{name} must be an integer between {minimum} and {maximum}")
+    return value
+
+
+class Collector:
+    def __init__(self, provider, scopes, options):
+        self.provider, self.scopes = provider, scopes
+        self.budget = Budget(options)
+        inventories = options.get("inventories", TYPES[provider])
+        if not isinstance(inventories, list) or any(x not in TYPES[provider] for x in inventories):
+            raise ValueError("inventories must be a list of supported resource types")
+        self.wanted = set(inventories)
+        self.collections = []
+        self.total_items = 0
+
+    def collect(self, kind, scope, service, fetch):
+        if kind not in self.wanted:
+            return
+        items = {}
+        status, error = "collected", None
+        try:
+            pages = iter(fetch())
+            for page_index, page in enumerate(pages):
+                if page_index >= self.budget.max_pages:
+                    status, error = "partial", {"code": "page_limit"}
+                    break
+                if not isinstance(page, list) or any(not isinstance(item, dict) for item in page):
+                    status, error = "partial" if items else "malformed", {"code": "malformed_response"}
+                    break
+                for item in page:
+                    rid = resource_id(self.provider, kind, scope, item)
+                    if rid in items:
+                        continue
+                    if self.total_items >= self.budget.max_items:
+                        status, error = "partial", {"code": "resource_limit"}
+                        break
+                    items[rid] = _json(item)
+                    self.total_items += 1
+                if status == "partial":
+                    break
+        except Exception as exc:
+            unavailable, error = _error_status(exc)
+            status = "partial" if items else unavailable
+        if not items and status == "collected":
+            status = "empty"
+        envelope = {"type": kind, "scope": scope, "service": service, "status": status, "items": list(items.values())}
+        if error:
+            envelope["error"] = error
+        self.collections.append(envelope)
+
+    def fail_remaining(self, exc):
+        status, error = _error_status(exc)
+        existing = {(c["type"], c["scope"]) for c in self.collections}
+        for scope in self.scopes:
+            for kind in sorted(self.wanted):
+                if (kind, scope) not in existing:
+                    self.collections.append({"type": kind, "scope": scope, "service": kind, "status": status, "items": [], "error": error})
+
+    def finish(self):
+        return make_snapshot(self.provider, self.scopes, self.collections,
+            metadata={"collection": "read-only", "calls": self.budget.calls, "max_calls": self.budget.max_calls,
+                      "max_pages": self.budget.max_pages, "max_resources": self.budget.max_items,
+                      "omitted_inventories": sorted(set(TYPES[self.provider]) - self.wanted)})
+
+
+def _aws_pages(collector, client, operation, key, **kwargs):
+    # SDK manual pagination imposes the same total budget as all other providers.
+    model = client.meta.service_model.operation_model(client.meta.method_to_api_mapping[operation])
+    input_members = model.input_shape.members if model.input_shape else {}
+    token, seen = None, set()
+    for _ in range(collector.budget.max_pages):
+        arguments = dict(kwargs)
+        if "MaxResults" in input_members:
+            arguments["MaxResults"] = min(100, collector.budget.max_items)
+        if token:
+            arguments["Marker" if "Marker" in input_members else "NextToken"] = token
+        result = collector.budget.call(getattr(client, operation), **arguments)
+        batch = result.get(key)
+        if not isinstance(batch, list):
+            raise ValueError("malformed AWS list response")
+        yield batch
+        token = result.get("Marker") or result.get("NextToken") or result.get("ContinuationToken")
+        if not token:
+            return
+        if token in seen:
+            raise ValueError("repeated pagination token")
+        seen.add(token)
+    raise RuntimeError("page budget exhausted")
+
+
+def _http_pages(collector, url, read, *, key="items", next_key="nextPageToken", query=None, token_query="pageToken", transform=None):
+    origin = urlsplit(url)
+    seen, current = set(), url
+    for _ in range(collector.budget.max_pages):
+        # Do not send bearer tokens to a different host supplied by a nextLink.
+        parsed = urlsplit(current)
+        if parsed.scheme != "https" or parsed.netloc != origin.netloc:
+            raise ValueError("unsafe pagination origin")
+        response = collector.budget.call(read, current)
+        if not isinstance(response, dict):
+            raise ValueError("malformed JSON response")
+        items = response.get(key, [])
+        if transform:
+            items = transform(items)
+        if not isinstance(items, list):
+            raise ValueError("malformed list response")
+        yield items
+        token = response.get(next_key) or (response.get("metadata") or {}).get("continue")
+        if not token:
+            return
+        if token in seen:
+            raise ValueError("repeated pagination token")
+        seen.add(token)
+        if next_key == "nextLink":
+            current = token
+        else:
+            separator = "&" if "?" in url else "?"
+            current = url + separator + urlencode({token_query: token})
+    raise RuntimeError("page budget exhausted")
+

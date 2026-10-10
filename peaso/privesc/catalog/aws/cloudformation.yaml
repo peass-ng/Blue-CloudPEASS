@@ -1,0 +1,257 @@
+# AWS CloudFormation privilege escalation techniques.
+# Source: hacktricks-cloud aws-cloudformation-privesc/ (README.md and sub-page).
+
+- id: aws-cloudformation-passrole-createstack
+  provider: aws
+  service: cloudformation
+  title: Create a stack with a passed CloudFormation service role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#iampassrole-cloudformationcreatestack
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of passable roles trusting cloudformation.amazonaws.com by deploying a template it controls with that service role.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: cloudformation:CreateStack
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: cloudformation.amazonaws.com
+    scope: same_account
+    aggregate_as: "Roles trusting cloudformation.amazonaws.com in {account}"
+  conditions:
+    - id: passrole_condition_key
+      description: iam:PassedToService / cloudformation:RoleArn conditions may restrict this.
+    - id: template_location
+      description: The template must be supplied from S3 (HTTPS URL) or inline; an S3 location readable by CloudFormation is needed.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict iam:PassRole on CloudFormation service roles and use the cloudformation:RoleArn condition key.
+  references:
+    - https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-servicerole.html
+  notes: The sub-page iam-passrole-cloudformation-createstack-and-cloudformation-describestacks.md describes the same edge (DescribeStacks only helps read outputs). Severity critical because CloudFormation service roles are frequently admin-equivalent.
+
+- id: aws-cloudformation-passrole-updatestack
+  provider: aws
+  service: cloudformation
+  title: Update a stack with a passed CloudFormation service role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#iampassrole-cloudformationupdatestack-and-where-needed-cloudformationsetstackpolicy
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of passable roles trusting cloudformation.amazonaws.com by updating an existing stack with a template it controls and that role.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: cloudformation:UpdateStack
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: cloudformation.amazonaws.com
+    scope: same_account
+    aggregate_as: "Roles trusting cloudformation.amazonaws.com in {account}"
+  conditions:
+    - id: stack_policy
+      description: A stack policy denying updates may require cloudformation:SetStackPolicy (or a temporary override policy on the update).
+    - id: passrole_condition_key
+      description: iam:PassedToService / cloudformation:RoleArn conditions may restrict this.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict iam:PassRole on CloudFormation service roles and use the cloudformation:RoleArn condition key.
+  references: []
+  notes: Needs at least one existing stack covered by cloudformation:UpdateStack.
+
+- id: aws-cloudformation-updatestack-attached-role
+  provider: aws
+  service: cloudformation
+  title: Update a stack that already has a service role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#cloudformationupdatestack-and-where-needed-cloudformationsetstackpolicy
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service role stored on an existing stack by updating that stack with a template it controls.
+  requires:
+    all_of:
+      - action: cloudformation:UpdateStack
+        resource: "{target.attached_resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: cloudformation
+      attached_resource_covered_by: cloudformation:UpdateStack
+    scope: same_account
+    aggregate_as: "Service roles of stacks covered by cloudformation:UpdateStack in {account}"
+  conditions:
+    - id: stack_policy
+      description: A stack policy denying updates may require cloudformation:SetStackPolicy.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict cloudformation:UpdateStack to deployment pipelines; use stack policies and cloudformation:RoleArn conditions.
+  references: []
+  notes: Stacks without a stored service role run with the caller's own permissions and are not targets.
+
+- id: aws-cloudformation-passrole-changeset
+  provider: aws
+  service: cloudformation
+  title: Create and execute a change set with a passed service role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#iampassrole-cloudformationcreatechangeset-cloudformationexecutechangeset-and-where-needed-cloudformationsetstackpolicy
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of passable roles trusting cloudformation.amazonaws.com by creating and executing a change set with that role.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: cloudformation:CreateChangeSet
+        resource: "*"
+      - action: cloudformation:ExecuteChangeSet
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: cloudformation.amazonaws.com
+    scope: same_account
+    aggregate_as: "Roles trusting cloudformation.amazonaws.com in {account}"
+  conditions:
+    - id: stack_policy
+      description: Updating an existing stack with a deny stack policy may require cloudformation:SetStackPolicy.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict iam:PassRole on CloudFormation service roles and use the cloudformation:RoleArn condition key.
+  references: []
+  notes: A CREATE-type change set can create a new stack, so no existing stack is required.
+
+- id: aws-cloudformation-changeset-attached-role
+  provider: aws
+  service: cloudformation
+  title: Create and execute a change set on a stack that already has a service role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#cloudformationcreatechangeset-cloudformationexecutechangeset-and-where-needed-cloudformationsetstackpolicy
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service role stored on an existing stack by creating and executing a change set with a template it controls.
+  requires:
+    all_of:
+      - action: cloudformation:CreateChangeSet
+        resource: "{target.attached_resource_arn}"
+      - action: cloudformation:ExecuteChangeSet
+        resource: "{target.attached_resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: cloudformation
+      attached_resource_covered_by: cloudformation:CreateChangeSet
+    scope: same_account
+    aggregate_as: "Service roles of stacks covered by cloudformation:CreateChangeSet in {account}"
+  conditions:
+    - id: stack_policy
+      description: A deny stack policy may require cloudformation:SetStackPolicy.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict change-set creation and execution to deployment pipelines.
+  references: []
+  notes: ""
+
+- id: aws-cloudformation-passrole-stackset
+  provider: aws
+  service: cloudformation
+  title: Create or update a self-managed StackSet with a passed administration role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#iampassrole-cloudformationcreatestackset--cloudformationupdatestackset
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the StackSet execution roles in the accounts the passed administration role can assume, by deploying a template it controls through a self-managed StackSet.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+    any_of:
+      - - action: cloudformation:CreateStackSet
+          resource: "*"
+        - action: cloudformation:CreateStackInstances
+          resource: "*"
+      - - action: cloudformation:UpdateStackSet
+          resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: cloudformation.amazonaws.com
+    scope: org
+    aggregate_as: "StackSet administration roles trusting cloudformation.amazonaws.com (and execution roles they reach)"
+  conditions:
+    - id: execution_roles_reached_transitively
+      description: The passed role is the administration role; the real gain is the execution role (default AWSCloudFormationStackSetExecutionRole) in each target account that trusts that administration role. The evaluator should follow the administration role's sts:AssumeRole edges.
+    - id: service_managed_stacksets
+      description: Service-managed StackSets do not use a passed role and are not covered by this entry.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole on StackSet administration roles and limit which execution roles trust them.
+  references:
+    - https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html
+  notes: The target node is the administration role; execution roles are reached through a follow-on sts:AssumeRole edge.
+
+- id: aws-cloudformation-updatestackset-attached
+  provider: aws
+  service: cloudformation
+  title: Update an existing self-managed StackSet
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#cloudformationupdatestackset
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the execution roles of an existing StackSet's stack instances by updating its template.
+  requires:
+    all_of:
+      - action: cloudformation:UpdateStackSet
+        resource: "{target.attached_resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: cloudformation-stackset
+      attached_resource_covered_by: cloudformation:UpdateStackSet
+    scope: org
+    aggregate_as: "Execution roles of StackSets covered by cloudformation:UpdateStackSet"
+  conditions:
+    - id: stackset_permission_model
+      description: For self-managed StackSets the targets are the execution roles in member accounts; for service-managed StackSets the targets are the service-created execution roles in OU accounts (update from the management or delegated-admin account).
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict cloudformation:UpdateStackSet to the StackSet administrators.
+  references: []
+  notes: attached_to_service value cloudformation-stackset means the StackSet's administration/execution roles.
+
+- id: aws-cloudformation-nested-template-s3-poisoning
+  provider: aws
+  service: cloudformation
+  title: Replace a mutable nested-stack template object in S3
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#s3putobject-on-a-nested-stack-template--delayed-cloudformation-role-escalation
+  source_revision: a53b46392c
+  summary: The source can obtain (on a later legitimate update) the privileges of the service role of a stack whose nested-stack TemplateURL points to an S3 object the source can overwrite.
+  requires:
+    all_of:
+      - action: s3:PutObject
+        resource: "{target.consumer_input_arn}"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: cloudformation
+      consumer_input_writable_via: s3:PutObject
+    scope: same_account
+    aggregate_as: "Service roles of stacks with writable nested templates in {account}"
+  conditions:
+    - id: delayed_trigger
+      description: A later parent-stack operation must actually update the nested stack; the source does not control the trigger.
+    - id: bucket_controls
+      description: Bucket policy, Object Lock, versioned URLs and KMS key policy must not prevent replacement.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Use immutable/versioned template URLs and separate template-publishing permissions from deployment.
+  references: []
+  notes: "Requires placeholder {target.consumer_input_arn}: the S3 object ARN referenced as the nested TemplateURL. Gaining the role's privileges for the source's own principal needs a follow-on step (e.g. the poisoned template granting the source access)."

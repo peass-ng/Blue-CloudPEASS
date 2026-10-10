@@ -1,0 +1,31 @@
+{
+  "provider": "azure",
+  "python": "3.13.11",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "categories": [
+    "hardening",
+    "exposure",
+    "least_privilege",
+    "iam_graph",
+    "network"
+  ],
+  "check_count": 30,
+  "resources": 4912,
+  "findings": 8609,
+  "by_status": {
+    "EMPTY": 20,
+    "PASS": 49,
+    "FAIL": 19,
+    "UNKNOWN": 88,
+    "NOT_APPLICABLE": 4840,
+    "MANUAL": 3593
+  },
+  "cold_seconds": 1.829215,
+  "warm_seconds": 1.360559,
+  "serialization_seconds": 0.149466,
+  "report_json_bytes": 40720709,
+  "cloud_calls": 0,
+  "input_unchanged": true,
+  "cold_warm_report_equal": true,
+  "limitations": "Current full native evaluation of saved real inventory; excludes cloud collection and Markdown rendering. Expanded catalog may differ from earlier QA run."
+}

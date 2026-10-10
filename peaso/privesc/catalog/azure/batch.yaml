@@ -1,0 +1,73 @@
+# Azure Batch techniques (declarative only).
+# Source: hacktricks-cloud az-batch-privesc.md (rev a53b46392c; working-tree copy read).
+# Pool identities are user-assigned only; {target.host_resource} is the Batch account owning the pool.
+
+- id: azure-batch-shared-key-task-submission
+  provider: azure
+  service: batch
+  title: Batch shared key allows task submission to pools with managed identities
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-batch-privesc.md#microsoftbatchbatchaccountslistkeysaction
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of user-assigned identities attached to the Batch account's pools.
+  requires:
+    all_of: []
+    any_of:
+      - - action: Microsoft.Batch/batchAccounts/listkeys/action
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Batch/batchAccounts/regeneratekeys/action
+          scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Batch/batchAccounts/pools
+      managed_identity_type: user_assigned
+    scope: inherited_scope
+    aggregate_as: "Pool identities of Batch account {target.host_resource}"
+  conditions:
+    - id: shared_key_auth_mode
+      description: allowedAuthenticationModes must include SharedKey.
+    - id: pool_has_nodes
+      description: An existing pool with the identity must have (or be able to allocate) compute nodes.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Remove SharedKey from allowedAuthenticationModes and restrict listkeys/regeneratekeys.
+  references:
+    - https://learn.microsoft.com/en-us/azure/batch/managed-identity-pools
+  notes: regeneratekeys also disrupts legitimate key users.
+
+- id: azure-batch-job-task-submission
+  provider: azure
+  service: batch
+  title: Submit Batch jobs/tasks via data actions to pools with managed identities
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-batch-privesc.md#azure-batch-job-and-task-data-actions
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of user-assigned identities attached to the Batch account's pools.
+  requires:
+    all_of: []
+    any_of:
+      - - action: Microsoft.Batch/batchAccounts/jobs/write
+          data_action: true
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Batch/batchAccounts/jobSchedules/write
+          data_action: true
+          scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Batch/batchAccounts/pools
+      managed_identity_type: user_assigned
+    scope: inherited_scope
+    aggregate_as: "Pool identities of Batch account {target.host_resource}"
+  conditions:
+    - id: pool_has_nodes
+      description: An existing pool with the identity must have (or be able to allocate) compute nodes.
+    - id: task_can_reach_imds
+      description: Task user isolation and network configuration must allow tasks to request the pool identity token.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Limit Azure Batch Job Submitter assignments and keep pool identities least-privileged.
+  references:
+    - https://learn.microsoft.com/en-us/azure/batch/batch-role-based-access-control
+  notes: HackTricks cites the jobs/* and jobSchedules/* wildcards of the built-in role; the exact narrowest data action for task add is not stated on the page.

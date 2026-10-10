@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-10",
+  "provider": "aws",
+  "profile": "naxusai-admin",
+  "regions": ["us-east-1"],
+  "requested_inventory": ["instance"],
+  "checks": ["aws.ec2.imdsv2"],
+  "cloud_calls": 2,
+  "aws_account_status": "collected",
+  "instance_status": "empty",
+  "finding_statuses": {"EMPTY": 1},
+  "read_only": true,
+  "limitations": "The selected region had no instances. Successful read access and honest empty coverage are established; no live instance security predicate was validated by this smoke test."
+}

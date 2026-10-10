@@ -1,0 +1,37 @@
+# AWS Transfer Family privilege escalation techniques.
+# Source: hacktricks-cloud aws-transfer-family-privesc/README.md (rev a53b46392c).
+# Uses {target.resource_arn} and via_resource_type (see header of lambda.yaml).
+
+- id: aws-transfer-importsshpublickey
+  provider: aws
+  service: transfer
+  title: Import an SSH key for an existing service-managed Transfer user
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-transfer-family-privesc/README.md#transferimportsshpublickey--impersonate-a-service-managed-user
+  source_revision: a53b46392c
+  summary: The source can obtain the S3/EFS file-access privileges of the IAM role configured on a service-managed Transfer Family user.
+  requires:
+    all_of:
+      - action: transfer:ImportSshPublicKey
+        resource: "{target.resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: transfer.amazonaws.com
+      via_resource_type: transfer_user
+    scope: same_account
+    aggregate_as: "Roles of service-managed Transfer Family users in {account}"
+  conditions:
+    - id: service_managed_identity
+      description: The server must use service-managed identities (custom identity providers authenticate elsewhere) with SFTP enabled.
+    - id: network_reachability
+      description: The source needs a network path to the server's public or VPC endpoint.
+    - id: session_policy_and_home_directory
+      description: Access is limited to the file operations the role allows, further narrowed by the user's session policy and logical home directory; no AWS API credentials are obtained.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: medium
+  mitigation: Restrict transfer:ImportSshPublicKey to Transfer administrators, scope user roles and session policies to the user's own prefix, and alert on key imports.
+  references:
+    - https://docs.aws.amazon.com/transfer/latest/APIReference/API_ImportSshPublicKey.html
+  notes: Bounded impact - the role is used by the Transfer service for file operations only, so this is data-plane access via another principal's role rather than full role assumption.

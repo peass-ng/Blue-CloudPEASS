@@ -6,11 +6,11 @@ Blue Cloud PEASS helps blue teams and auditors quickly find risky IAM privileges
 
 ## License
 
-Original Blue Cloud PEASS project code is licensed under the **GNU Affero General Public License, version 3 only** (`SPDX-License-Identifier: AGPL-3.0-only`). See [LICENSE](LICENSE) for the full, unchanged license text, matching the AGPL v3 license used by the pinned Steampipe and Powerpipe tools.
+Original Blue Cloud PEASS project code is licensed under the **GNU Affero General Public License, version 3 only** (`SPDX-License-Identifier: AGPL-3.0-only`). See [LICENSE](LICENSE) for the full, unchanged license text.
 
 Commercial use and paid hosting are permitted under this license, subject to its conditions. Operators of modified versions that users interact with over a network must prominently offer the corresponding source of the running version at no charge as required by section 13, including applicable build and installation scripts. The [source repository](https://github.com/peass-ng/Blue-CloudPEASS) is public; a hosted deployment must provide an appropriate source offer for the version it actually runs.
 
-Third-party dependencies, imported data, and assets retain their respective licenses and notices. In particular, the bundled Turbot provider plugins and compliance/perimeter mods remain Apache-2.0 licensed. This project license grants no rights to third-party trademarks or services and does not resolve Turbot's separate [product terms](https://turbot.com/legal/terms) or [trademark policy](https://turbot.com/legal/trademark) for a commercial hosted deployment.
+Third-party dependencies, imported reference data, and assets retain their respective licenses and notices. This project license grants no rights to third-party trademarks or services.
 
 ## What this repo does
 
@@ -27,104 +27,33 @@ Third-party dependencies, imported data, and assets retain their respective lice
 
 Permission levels follow the shared [severity policy](docs/permission-severity-policy.md), with [per-permission source evidence](docs/permission-severity-audit.csv).
 
-## Infrastructure hardening audits
+## Native snapshot security engine
 
-The four scanners also run read-only infrastructure configuration checks using **Steampipe + Powerpipe**. The existing IAM/RBAC audits and authentication options remain available. Hardening runs separately and does not enable cloud APIs, create cloud resources, or apply remediation.
-
-Build the bundled hardening image before the first audit, and rebuild it after updating this checkout so it contains the current query corrections and catalog. It includes pinned versions of Steampipe, Powerpipe, the AWS/Azure/Entra/GCP/Kubernetes plugins, and the compliance/perimeter mods; no mod downloads or image pulls occur during an audit:
+`peaso` collects provider configuration through bounded read-only adapters, stores an immutable content-addressed snapshot, and evaluates native checks without cloud calls. The one-shot CLI supports scan, collect, evaluate, full JSON/Markdown reports, differences, and provider/category/check/framework selection. Install it with `python3 -m pip install -e '.[cloud,test]'`.
 
 ```bash
-docker build -f Dockerfile.hardening -t blue-cloudpeass-hardening:local .
-python3 -m pip install -r requirements.txt
+peaso scan --provider aws --demo --snapshot-output /tmp/aws-snapshot.json -o /tmp/aws-report.json
+peaso evaluate /tmp/aws-snapshot.json --format markdown -o /tmp/aws-report.md
+peaso scan --provider aws --profile auditor --scopes 111111111111 --categories hardening exposure least_privilege
+peaso scan --provider gcp --scopes audit-project --auth-file /path/to/private-gcp-auth.json
+peaso scan --provider azure --scopes subscription-id --auth-file /path/to/private-azure-auth.json
+peaso scan --provider k8s --context audit-cluster --scopes '*'
+peaso catalog
 ```
 
-Docker is required **for hardening**, while the existing Python IAM/RBAC audits still work without it. The container runs as your local user, with reduced Linux capabilities, an isolated temporary database, and temporary resolved credentials. Your credential directories and the Docker socket are not mounted into the hardening container. Build the image on the same machine as the Docker daemon: credential mounts require a local Docker daemon.
+Inventory statuses distinguish complete, empty, partial, denied, timed-out, malformed, unknown, and deliberately uncollected reads. Every native security check maps to HackTricks Cloud Best Practices, with thematic framework references. An empty or denied inventory is never a security pass. Network maps retain observed structural relationships, while IAM maps show declared grants, trust and binding evidence; neither map claims effective access, proven reachability, or an executable escalation path.
 
-All scanners accept:
+The existing IAM/RBAC scanner scripts remain available and delegate configuration review to the native snapshot engine. `--hardening off` keeps only the existing IAM audit; `--hardening auto` and `on` run native checks with the selected scanner credentials. `--hardening-show-passed`, `--hardening-out-dir` and `--hardening-out-markdown` retain native output. Legacy image/runtime/timeout flags and the external database/tool runtime have been removed.
 
-| Option | Behavior |
-|---|---|
-| `--hardening auto` | Default. Launch all applicable suites when at least one configuration preflight read succeeds. |
-| `--hardening on` | Attempt all suites without the preflight gate, useful with restricted audit identities. |
-| `--hardening off` | Run only the existing IAM/RBAC audit; make no hardening preflight calls. |
-| `--hardening-image IMAGE` | Use a previously built image. Default: `blue-cloudpeass-hardening:local`. |
-| `--hardening-timeout SECONDS` | Total time limit per target, including both compliance and perimeter. Default: 1800. |
-| `--hardening-out-dir DIRECTORY` | Retain native benchmark exports and a normalized hardening report per target. |
-| `--hardening-show-passed` | Also print passed and non-applicable results. All result statuses are retained in JSON regardless. |
-| `--hardening-out-markdown PATH` | Write a prepared hardening report as Markdown (`.md` or `.txt`), combining all accounts/projects/subscriptions/clusters in the scan. |
-| `--hardening-runtime native` | Use preinstalled Steampipe/Powerpipe in a managed worker image. The default runtime remains Docker. |
+Upstream hardening catalogs are reference provenance only. The native check catalog and per-check fixture tests define actual coverage; unported references remain explicitly unsupported. There is no claim that all upstream controls were migrated. See [engine contracts, commands, validation and limitations](docs/peaso-engine.md) and [wire integration contract](docs/peaso-engine-contract.md).
 
-Preflight is evidence of some configuration read access, **not proof of complete access**. AWS probes VPC and bucket enumeration; GCP tests instance, bucket, and cluster list permissions; Azure reads resource groups; Kubernetes probes Pods and Services. Empty successful reads also qualify. IAM-only access can still produce the original report. Denied probes, unavailable Docker, missing images, expired tokens, query errors, and timeouts are reported explicitly. A successful command does not imply that every hardening check completed.
+### Read access
 
-Coverage includes the complete `all_controls` catalog for each provider and all top-level perimeter suites for AWS, Azure, and GCP. Running the underlying controls once avoids repeating the same checks across every compliance framework. Findings retain the originating suite, control ID/title/description, upstream severity when supplied, resource, dimensions, status, evidence, and control-reference URL in the console. Severity is `unknown` when upstream supplies none. Findings are not filtered by the IAM `--risk-levels` or truncated by `--max-items`.
+Use a dedicated time-limited audit identity in every account, project, subscription, tenant and cluster being reviewed. Native collectors do not create resources, enable services, generate IAM credential reports, create Access Analyzers, or apply remediation. The legacy AWS IAM scanner can create Access Analyzers unless `--no-access-analyzer` is supplied; use that flag for a fully read-only legacy audit.
 
-Hardening output is organized as **service → finding → assets**. Each control appears once across all scanned targets; every affected asset is listed beneath it with its account/project/cluster, regional or namespace scope, status, and evidence. The Markdown console report uses service headings, finding headings, and asset tables; `--hardening-out-markdown` saves the same prepared report. PASS/SKIP assessments remain in JSON and can also be displayed with `--hardening-show-passed`.
+AWS needs relevant List/Get/Describe access. GCP needs the selected projects' configuration, IAM, Cloud Asset and activity reads; unavailable APIs and permissions stay in coverage. Azure ARM Reader does not grant Microsoft Graph access, so directory reads need separate consent and permissions. Kubernetes inventory needs get/list on the requested RBAC/workload/network resource types; Secret values, Pod exec/logs and writes are excluded. Existing `tests/integration/kubernetes-auditor.yaml` is a read-only example role.
 
-With hardening enabled, `--out-json` uses report schema version 2. Grouped results live at `hardening.services[].findings[].assets[].observations[]`, and target `data.hardening` entries reference their scan and finding IDs. The account/project/cluster scopes remain separate, so identical resource names in different accounts are distinct assets. Different statuses, evidence, regions, and audit identities remain separate observations under the asset. Findings are grouped by provider and full control ID, preserving distinct checks even when their titles match. Execution errors, attempted/empty controls, exclusions, preflight evidence, and mod versions remain available in `hardening.targets` and `hardening.errors`.
-
-`--hardening-out-dir` saves grouped `hardening.json` and `hardening.md` alongside unchanged native benchmark exports. Native exports can contain infrastructure details; retained files use private permissions. Native workers honor `BLUEPEASS_HARDENING_DEADLINE` when a managed execution environment provides a remaining-time budget. The native runtime needs a Linux environment that supports PostgreSQL process management. The hosted tool runs audits in isolated ECS/Fargate containers: the tested Lambda sandbox rejects PostgreSQL parent-death signals. Workers without writable `/dev/shm` retain PostgreSQL’s file-backed shared-memory setting in their private runtime configuration.
-
-### Known non-actionable findings
-
-[bluepeass/finding_blacklist.yaml](bluepeass/finding_blacklist.yaml) contains the versioned blacklist applied before console, Markdown, and JSON reporting. Rules match a provider and finding section plus explicit resource/identity patterns or control IDs; hardening rules can also limit the matching statuses. Add reviewed edge cases to this file and restart the scanner or rebuild the hosted image to load them.
-
-The [catalog review](docs/hardening-catalog-review.md) and [per-control matrix](docs/hardening-catalog-review.csv) cover all 2,247 definitions in the seven pinned compliance/perimeter mods. The broader blacklist removes invalid assessments and obsolete agent requirements, uses query evidence for resource-specific exceptions, and collapses only identical results from reviewed duplicate queries. `query_context` records the applicability evidence and pinned query corrections used by the runtime. Unknown deployment intent and read failures remain visible.
-
-The initial rules remove inactive/unused cleanup findings for AWS service-linked and Identity Center generated roles, unattached AWS-managed policies, predefined GCP roles, Azure roles explicitly typed `BuiltInRole`, and default Kubernetes system ClusterRoles. The corresponding AWS hardening inactivity checks exclude failed/manual assessments for those provider-managed resources. Customer-defined resources with similar display names remain eligible. Actual role grants and external trusts stay available; execution/query errors remain visible. Rule IDs, reasons, and suppressed record counts appear in `finding_filters`, with a compact console/Markdown explanation. Native benchmark exports remain unfiltered for diagnosis.
-
-### Credentials and scope
-
-- **AWS:** Hardening receives the resolved boto3 session, including explicit access keys/session tokens, selected profiles, default credential-chain identities, and the credentials of each `--assume-roles` target. Every target scans all AWS regions; denied or disabled services remain visible as coverage errors/skips.
-- **GCP:** The token selected by the existing service-account JSON, gcloud, or ADC/metadata flow is passed with the selected project and quota project. Organization/all-projects modes audit each enumerated project independently.
-- **Azure:** The selected credential object provides ARM and, when available, Graph tokens. Client-secret, device-code, Azure MSAL cache, and direct `--arm-token`/`--graph-token` authentication use the same selected identity. Direct ARM-only credentials continue the subscription audit without directory resolution; unavailable Graph checks appear in coverage. Hardening results remain in JSON even if a subscription's IAM worker fails.
-- **Kubernetes:** The already authenticated Python client is materialized into a temporary kubeconfig, supporting kubeconfig/exec helpers, in-cluster credentials, direct bearer tokens, client certificates, and the configured CA/TLS settings. Authentication helpers run on the host. Local API endpoints are reached through `host.docker.internal` while retaining their TLS server name. Snapshot-only `--input-json` analysis never starts a live hardening scan.
-
-AWS and Azure credential files refresh from their selected credential objects during an audit. Explicit temporary credentials still expire at their original expiry. GCP obtains a fresh token from the selected service-account, captured gcloud account/impersonation setting, or ADC credential before hardening starts, and refreshes it between suites. Kubernetes exec/in-cluster token refresh follows the selected Python client's credential hook. Credential expiry is a coverage failure; supplying unrelated default credentials is never a fallback.
-
-Azure `auto` checks whether its cached login can obtain an ARM token before selecting it, and falls back to device-code when no usable login exists. An installed Azure CLI supplies its active account, including encrypted/WAM caches and `AZURE_CONFIG_DIR`; `--tenant-id` is honored, and ARM/Graph acquisitions remain bound to the selected principal. Explicit `--auth-method device-code` and `client-secret` retain their selected authentication mode. Device-code prompts show the verification URL and code using the SDK's three-argument callback. Missing Graph consent/read permissions are reported as incomplete directory coverage after successful ARM authentication, while subscription checks continue. This addresses [Azure authentication issue #4](https://github.com/peass-ng/Blue-CloudPEASS/issues/4).
-
-```bash
-# Explicit keys, profiles, and assumed target roles retain their existing meaning.
-python3 Blue-AWSPEAS.py --profile auditor --no-access-analyzer --out-json aws-report.json
-python3 Blue-AWSPEAS.py --profile auditor --assume-roles arn:aws:iam::111111111111:role/AuditRole --out-json aws-report.json
-python3 Blue-GCPPEAS.py --sa-json /path/to/auditor.json --all-projects --quota-project audit-project --out-json gcp-report.json
-python3 Blue-AzurePEAS.py --auth-method client-secret --all-subscriptions --out-json azure-report.json
-python3 Blue-K8sPEAS.py --context audit-cluster --out-json k8s-report.json
-# Retain every native benchmark export, including error/skip details.
-python3 Blue-K8sPEAS.py --context audit-cluster --hardening-out-dir ./hardening-exports
-```
-
-### Read access to request
-
-Ask the infrastructure owner for a dedicated, time-limited audit identity in **every account, project/subscription, tenant, and cluster in scope**, plus API/VPN connectivity. These recommendations follow HackTricks Cloud's permissions-for-a-pentest pages:
-
-| Platform | Read baseline |
-|---|---|
-| AWS | `ReadOnlyAccess` in each account, or the narrower `SecurityAudit` with additional service-specific reads as gaps appear. Cross-account scans require `sts:AssumeRole` and trust in each target role. Use existing Access Analyzers with read permissions, or `--no-access-analyzer` for an audit without analyzer creation. |
-| GCP | `roles/viewer`, `roles/resourcemanager.folderViewer`, and `roles/resourcemanager.organizationViewer` at the required scopes. Add `roles/iam.securityReviewer` and the existing scanner's Cloud Asset/Recommender/logging read permissions. The owner must enable the APIs required by the services being audited and authorize the quota project. |
-| Azure | Azure `Reader` over each subscription and Entra `Global Reader` over each tenant for a user identity. Application identities require the appropriate Microsoft Graph application read permissions and admin consent; ARM Reader alone does not grant Graph access. Narrower `Security Reader` may leave service configuration gaps. |
-| Kubernetes | A dedicated identity with `get`, `list`, and `watch` on workloads (including `podtemplates`), RBAC, networking, storage, ConfigMaps, service accounts, quotas, and admission configuration. The built-in `view` role omits RBAC reads. Start with the explicit auditor role from the linked page and add PodTemplate reads required by the bundled mod; `tests/integration/kubernetes-auditor.yaml` provides the tested resource allowlist. Retain the exclusion of Secret values, Pod logs/exec, impersonation, and writes. |
-
-Sources: [AWS permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/aws-security/aws-permissions-for-a-pentest.html), [GCP permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/gcp-security/gcp-permissions-for-a-pentest.html), [Azure permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/azure-security/az-permissions-for-a-pentest.html), [Kubernetes permissions](https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/kubernetes-permissions-for-a-pentest.html).
-
-AWS credential age and MFA controls also need an existing [IAM credential report](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html). Ask the account owner to generate it before the audit with `aws iam generate-credential-report` for each account in scope. Generating the report requires `iam:GenerateCredentialReport`; the auditor needs `iam:GetCredentialReport` to read it. Hardening does not generate this report automatically. A missing report remains a coverage error rather than a security finding.
-
-Kubernetes hardening preserves the existing **no Secret-object reads** contract: the upstream Secret namespace check is excluded and appears in coverage. Checks examining Secret references in workload definitions still run. PodSecurityPolicy checks are marked non-applicable on Kubernetes 1.25+ because that API was removed. Host files and hidden managed control-plane settings cannot be assumed audited from API configuration alone. Resource readiness, replica counts, and other operational recommendations are also present in the upstream catalog and should be reviewed in context.
-
-The bundled Kubernetes mod includes a compatibility fix for an upstream `runAsUser` query that otherwise returns a NULL status when both the Pod and container specify UIDs of at least 10000. Removed PodSecurityPolicy admission checks and removed insecure-serving flags are also excluded on server versions where those features no longer exist; the exclusions appear in coverage. There are 742 applicable pinned controls on a Kubernetes 1.25+ cluster.
-
-### Local integration validation
-
-The image has an offline engine/parser fixture that exercises PASS, FAIL, MANUAL, SKIP, and an intentional query error:
-
-```bash
-mkdir -p /tmp/bluepeass-smoke
-docker run --rm --user "$(id -u):$(id -g)" \
-  --mount type=bind,src=/tmp/bluepeass-smoke,dst=/output \
-  blue-cloudpeass-hardening:local --self-test --timeout 120
-```
-
-For a dedicated local cluster, `tests/integration/kubernetes-hardening.yaml` creates both configurations requiring hardening and hardened counterparts across several workload kinds. `tests/integration/kubernetes-auditor.yaml` adds a read-only service account that has no Secret-object permission. Apply these only to a disposable local cluster, audit that context, and delete the fixtures afterward. `tests/integration/verify_hardening_report.py` verifies the expected catalogs and known Kubernetes findings from private live reports.
+A pre-existing AWS credential report can supply age/MFA evidence. Missing report or activity data is unknown coverage, not proof of inactive or safe access. See the native catalog for each check's exact prerequisites.
 
 ## Install
 

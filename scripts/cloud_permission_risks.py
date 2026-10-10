@@ -46,7 +46,7 @@ def _parse_rules_yaml(yaml_text: Optional[str], provider: str, source: str) -> d
     if not yaml_text:
         return {}
     try:
-        data = yaml.safe_load(yaml_text) or {}
+        data = yaml.load(yaml_text, Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader)) or {}
     except Exception as e:
         print(f"Warning: Couldn't parse {source} risk rules for {provider}: {e}")
         return {}

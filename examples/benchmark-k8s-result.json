@@ -1,0 +1,16 @@
+{
+  "python": "3.13.11",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "resources": 10000,
+  "checks": [
+    "k8s.deployment.no_privileged",
+    "k8s.deployment.non_root",
+    "k8s.deployment.no_host_network",
+    "k8s.deployment.no_host_ports"
+  ],
+  "findings": 40000,
+  "seconds": 1.775213,
+  "resources_per_second": 5633,
+  "cloud_calls": 0,
+  "limitations": "Four applicable Deployment template checks in one scope; excludes live collection, graph building and rendering."
+}
