@@ -126,3 +126,37 @@ def test_boundary_policies_and_bindings_remain_native_metadata_conditions():
         transport=FixtureTransport(resolve)).collect()
     assert collection(result, "policy_binding", "organizations/123")["items"][0]["condition"]["expression"] == "false"
     assert collection(result, "principal_access_boundary_policy", "organizations/123")["items"][0]["details"]["rules"]
+
+
+def test_workspace_directory_reads_only_explicit_metadata_and_paginates_with_selected_identity():
+    def resolve(request):
+        url, params = request["url"], request["params"]
+        assert request["method"] == "GET" and url.startswith("https://admin.googleapis.com/admin/directory/v1/")
+        assert "fields" in params and "password" not in params["fields"]
+        if url.endswith("/users"):
+            assert params["customer"] == "C123" and params["viewType"] == "admin_view"
+            if params.get("pageToken"):
+                return {"users": [{"id": "2", "customerId": "C123", "primaryEmail": "b@example.org", "isAdmin": False, "isDelegatedAdmin": True}]}
+            return {"users": [{"id": "1", "customerId": "C123", "primaryEmail": "a@example.org", "isAdmin": True, "isDelegatedAdmin": False}], "nextPageToken": "next"}
+        if url.endswith("/roles"):
+            return {"items": [{"roleId": "r", "roleName": "delegated", "isSuperAdminRole": False,
+                "rolePrivileges": [{"privilegeName": "USERS_RETRIEVE", "serviceId": "directory"}]}]}
+        return {"items": [{"roleAssignmentId": "a", "roleId": "r", "assignedTo": "2", "scopeType": "CUSTOMER",
+            "condition": "resource.name != ''"}]}
+    reader = FixtureTransport(resolve)
+    result = GCPCollector(connector(["workspace_user", "workspace_role", "workspace_role_assignment"], workspace_customers=["C123"]),
+        transport=reader).collect()
+    users = collection(result, "workspace_user")["items"]
+    assert len(users) == 2 and users[0]["isAdmin"] is True and users[1]["isDelegatedAdmin"] is True
+    assert collection(result, "workspace_role")["items"][0]["rolePrivileges"][0]["privilegeName"] == "USERS_RETRIEVE"
+    assert collection(result, "workspace_role_assignment")["items"][0]["condition"]
+    assert len(reader.requests) == 4
+
+
+def test_workspace_api_denial_stays_denied_without_enablement_or_consent():
+    from peaso.collectors.gcp import ReadError
+    reader = FixtureTransport(lambda request: (_ for _ in ()).throw(ReadError("denied", "api_error", http_status=403)))
+    result = GCPCollector(connector(["workspace_user", "workspace_role", "workspace_role_assignment"], workspace_customers=["C123"]),
+        transport=reader).collect()
+    assert all(row["status"] == "denied" for row in result["collections"])
+    assert all(request["method"] == "GET" for request in reader.requests)

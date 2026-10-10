@@ -383,7 +383,7 @@ SPECS = {
     "opensearch_domain": ("opensearch", "list_domain_names", "DomainNames"),
     "dynamodb_table": ("dynamodb", "list_tables", "TableNames"),
 }
-GLOBAL_TYPES = {"aws_account", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "bucket", "s3_account_public_access_block", "organization_account", "scp_policy"}
+GLOBAL_TYPES = {"aws_account", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "bucket", "s3_account_public_access_block", "organization_account", "organization_parent", "scp_policy"}
 AWS_TYPES = sorted(set(SPECS) | GLOBAL_TYPES)
 FETCHERS = {}
 ENRICHERS = {}
@@ -432,7 +432,7 @@ _NATIVE_IDS = {
     "eks_cluster": "name", "lambda_function": "FunctionArn", "ecr_repository": "repositoryArn",
     "log_group": "logGroupName", "cloudwatch_alarm": "AlarmArn", "secret": "ARN",
     "sns_topic": "TopicArn", "sqs_queue": "QueueUrl", "rest_api": "id", "http_api": "ApiId",
-    "opensearch_domain": "DomainName", "dynamodb_table": "TableName", "organization_account": "Id", "scp_policy": "Id",
+    "opensearch_domain": "DomainName", "dynamodb_table": "TableName", "organization_account": "Id", "organization_parent": "ChildId", "scp_policy": "Id",
 }
 
 
@@ -763,6 +763,50 @@ def _scp_policies(requests, session, region, account):
     return ReadResult(items, "collected" if items else "empty")
 
 
+def _organization_parents(requests, session, region, account):
+    """Observed account/OU parent edges only, with explicit path completeness."""
+    child, path, seen, items = account, [account], {account}, []
+    failure = None
+    while True:
+        read = requests.pages(session, "organizations", region, "list_parents", "Parents", ChildId=child)
+        if read.status not in {"collected", "empty"}:
+            # The provider's typed not-in-use response is known absence, unlike
+            # denied visibility. Never infer root from an arbitrary empty list.
+            if not items and (read.error or {}).get("code") == "AWSOrganizationsNotInUseException":
+                return ReadResult([], "empty", {"code": "AWSOrganizationsNotInUseException"})
+            failure = ReadFailure((read.error or {}).get("cause_status", read.status), (read.error or {}).get("code", "organization_parent_visibility_incomplete"))
+            break
+        if len(read.items) != 1 or not isinstance(read.items[0], dict):
+            failure = ReadFailure("malformed", "missing_or_ambiguous_organization_parent")
+            break
+        parent = read.items[0]
+        parent_id, parent_type = parent.get("Id"), parent.get("Type")
+        valid = isinstance(parent_id, str) and parent_type in {"ROOT", "ORGANIZATIONAL_UNIT"}
+        valid = valid and bool(re.fullmatch(r"r-[a-z0-9]+" if parent_type == "ROOT" else r"ou-[a-z0-9]+-[a-z0-9]+", parent_id))
+        if not valid:
+            failure = ReadFailure("malformed", "malformed_organization_parent")
+            break
+        if parent_id in seen:
+            failure = ReadFailure("malformed", "organization_parent_cycle")
+            break
+        seen.add(parent_id)
+        path.append(parent_id)
+        items.append({**parent, "ChildId": child, "ParentId": parent_id,
+            "ParentType": parent_type, "ParentPath": list(path)})
+        if parent_type == "ROOT":
+            break
+        child = parent_id
+    for item in items:
+        item["InheritanceComplete"] = failure is None
+        item["ParentCollection"] = {"collection_status": "collected" if failure is None else failure.status,
+            "complete": failure is None}
+        if failure:
+            item["ParentCollection"]["error"] = {"code": failure.code}
+    if failure:
+        return ReadResult(items, "partial" if items else failure.status, {"code": failure.code, "cause_status": failure.status})
+    return ReadResult(items, "collected" if items else "empty")
+
+
 def _identity(requests, session, region, expected=None):
     identity = requests.call(session, "sts", region, "get_caller_identity")
     account, arn = identity.get("Account"), identity.get("Arn")
@@ -1018,6 +1062,8 @@ def collect(connector, requirements=None):
             if org_inventory is not None and account == base_account:
                 return org_inventory
             return requests.pages(session, "organizations", region, "list_accounts", "Accounts")
+        if kind == "organization_parent":
+            return _organization_parents(requests, session, region, account)
         if kind == "scp_policy":
             return _scp_policies(requests, session, region, account)
         return ReadResult([], "not_collected", {"code": "unsupported_inventory"})
@@ -1033,6 +1079,9 @@ def collect(connector, requirements=None):
         read = _single(requests, session, region, service, operation, **args) if expression is None else requests.pages(session, service, region, operation, expression, **args)
         try:
             read.items = _enrich(requests, session, region, kind, read.items)
+            if kind == "log_group":
+                for item in read.items:
+                    item["_provenance"] = {"operation": "logs:DescribeLogGroups", "native_response_complete": True}
             if kind in ENRICHERS:
                 read.items = ENRICHERS[kind](requests, session, region, read.items)
         except Exception as exc:
@@ -1061,7 +1110,7 @@ def collect(connector, requirements=None):
                 except Exception as exc:
                     failure = _failure(exc)
                     read = ReadResult([], failure.status, {"code": failure.code})
-                append(kind, f"{identity['Account']}/{region}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"], region)
+                append(kind, f"{identity['Account']}/{region}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "organization_parent", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"], region)
             for region_offset in range(0, len(regions), region_workers):
                 jobs = []
                 for session, identity in scope_batch:

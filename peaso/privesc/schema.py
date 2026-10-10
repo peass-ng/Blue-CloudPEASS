@@ -468,7 +468,7 @@ def validate_entry(entry, *, expected_provider=None, hacktricks_root=None):
     if not isinstance(target, dict):
         errors.append(f"{where}: target must be a mapping")
     else:
-        unknown = set(target) - {"kind", "selector", "scope", "aggregate_as"}
+        unknown = set(target) - {"kind", "selector", "scope", "aggregate_as", "include_service_managed"}
         if unknown:
             errors.append(f"{where}: unknown target fields {sorted(unknown)}")
         kind = target.get("kind")
@@ -503,6 +503,8 @@ def validate_entry(entry, *, expected_provider=None, hacktricks_root=None):
             errors.append(f"{where}: target scope must be one of {SCOPES}")
         if "aggregate_as" in target and not isinstance(target["aggregate_as"], str):
             errors.append(f"{where}: aggregate_as must be a string")
+        if "include_service_managed" in target and not isinstance(target["include_service_managed"], bool):
+            errors.append(f"{where}: include_service_managed must be a boolean")
         if kind in ENTITY_KINDS and isinstance(requires, dict):
             used = set().union(*(_placeholders(v) for r in _requirements(requires) for k, v in r.items() if k != "notes"))
             allowed = ENTITY_TARGET_PLACEHOLDERS.get(kind, {"target.scope"})

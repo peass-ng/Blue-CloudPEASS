@@ -1,0 +1,104 @@
+{
+  "aws-compliance.control.ecr_repository_image_scan_on_push_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.ecr.effective_scan_configuration"
+    ],
+    "reason": "The source joins registry scanning on account/region and accepts any scan-frequency rule without applying RepositoryFilters to the repository. A registry with a production-* rule falsely passes development repositories with scanOnPush=false. Official ECR rules have repository filters; corrected native matching is separate, not an incomplete-source rejection.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_GetRegistryScanningConfiguration.html",
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_ScanningRepositoryFilter.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecr.pp#L7",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ea77004af073061b68f570bd8d10a1f4e56c03537fcb89dc809694d496c24f41",
+      "query_id": "ecr_repository_image_scan_on_push_enabled"
+    }
+  },
+  "aws-compliance.control.ecr_repository_lifecycle_policy_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecr.lifecycle_rules"
+    ],
+    "reason": "Exact source value/presence predicate reviewed against native API strings and lifecycle response. All four tag mutability modes are preserved; only IMMUTABLE satisfies the all-tags policy. Known absent lifecycle policy fails; denied/malformed metadata remains UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_Repository.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecr.pp#L42",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "288258c9c41e62cb70ddec71a0e6cebae9cad560ce7ca44c266b836bbb6c8a8a",
+      "query_id": "ecr_repository_lifecycle_policy_configured"
+    }
+  },
+  "aws-compliance.control.ecr_repository_tag_immutability_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecr.all_tags_immutable"
+    ],
+    "reason": "Exact source value/presence predicate reviewed against native API strings and lifecycle response. All four tag mutability modes are preserved; only IMMUTABLE satisfies the all-tags policy. Known absent lifecycle policy fails; denied/malformed metadata remains UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_Repository.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecr.pp#L30",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "056821caba32831c461ead441aeff84ab71ff1c33fb3e0c1f55a8e3e91b47527",
+      "query_id": "ecr_repository_tag_immutability_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecr_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.ecr.effective_scan_configuration"
+    ],
+    "reason": "The source joins registry scanning on account/region and accepts any scan-frequency rule without applying RepositoryFilters to the repository. A registry with a production-* rule falsely passes development repositories with scanOnPush=false. Official ECR rules have repository filters; corrected native matching is separate, not an incomplete-source rejection.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_GetRegistryScanningConfiguration.html",
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_ScanningRepositoryFilter.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecr.pp#L21",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ea77004af073061b68f570bd8d10a1f4e56c03537fcb89dc809694d496c24f41",
+      "query_id": "ecr_repository_image_scan_on_push_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecr_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecr.all_tags_immutable"
+    ],
+    "reason": "Exact source value/presence predicate reviewed against native API strings and lifecycle response. All four tag mutability modes are preserved; only IMMUTABLE satisfies the all-tags policy. Known absent lifecycle policy fails; denied/malformed metadata remains UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_Repository.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecr.pp#L34",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "056821caba32831c461ead441aeff84ab71ff1c33fb3e0c1f55a8e3e91b47527",
+      "query_id": "ecr_repository_tag_immutability_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecr_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecr.lifecycle_rules"
+    ],
+    "reason": "Exact source value/presence predicate reviewed against native API strings and lifecycle response. All four tag mutability modes are preserved; only IMMUTABLE satisfies the all-tags policy. Known absent lifecycle policy fails; denied/malformed metadata remains UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_Repository.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecr.pp#L47",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "288258c9c41e62cb70ddec71a0e6cebae9cad560ce7ca44c266b836bbb6c8a8a",
+      "query_id": "ecr_repository_lifecycle_policy_configured"
+    }
+  }
+}

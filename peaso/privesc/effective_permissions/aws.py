@@ -174,7 +174,8 @@ class AwsModel(Model):
             node = self._principal(item, "aws_role", scope, item.get("RoleName"), "RolePolicyList")
             if not node:
                 continue
-            node.attrs["instance_profiles"] = [p.get("Arn") for p in as_list(item.get("InstanceProfileList")) if isinstance(p, dict)]
+            node.attrs["instance_profiles"] = ([p.get("Arn") for p in as_list(item.get("InstanceProfileList")) if isinstance(p, dict)]
+                                               if "InstanceProfileList" in item else None)
             node.attrs["path"] = item.get("Path", "/")
             self.roles_by_name[(node.scope, item.get("RoleName"))] = node
             self._index_trust(node, _doc(item.get("AssumeRolePolicyDocument")))
@@ -199,7 +200,7 @@ class AwsModel(Model):
         # Workload attachments (hosts of a role), when collected.
         profile_roles = {}
         for role in self.principals.values():
-            for profile in role.attrs.get("instance_profiles", []):
+            for profile in role.attrs.get("instance_profiles") or []:
                 profile_roles.setdefault(profile, []).append(role.id)
         for scope, item in items(snap, "lambda_function"):
             role = item.get("Role")
@@ -754,6 +755,18 @@ class AwsModel(Model):
         return refs, None
 
     # --------------------------------------------------------------- targets
+    SERVICE_MANAGED_PATHS = ("/aws-service-role/",)
+
+    def service_managed(self, node):
+        """Service-linked roles (/aws-service-role/) are assumable only by their own service and cannot be passed,
+        assumed or have their trust/permissions edited by customers. (/aws-reserved/ Identity Center roles stay:
+        they are reachable through the Identity Center SAML provider.)"""
+        if node.kind != "aws_role":
+            return False
+        path = str(node.attrs.get("path") or "")
+        arn = str(node.id)
+        return any(p in path or p in arn for p in self.SERVICE_MANAGED_PATHS)
+
     def targets(self, kind):
         if kind in ("aws_role", "aws_user", "aws_group"):
             return [n for n in self.principals.values() if n.kind == kind]
@@ -812,7 +825,14 @@ class AwsModel(Model):
                     out[rid] = None if conf == "derived" and not public else ("conditional", "trust_condition") if conf != "derived" else None
             return out
         if key == "has_instance_profile":
-            return {rid: None for rid, n in candidates.items() if bool(n.attrs.get("instance_profiles")) == bool(value)}
+            out = {}
+            for rid, n in candidates.items():
+                profiles = n.attrs.get("instance_profiles")
+                if profiles is None:
+                    out[rid] = ("unknown", "instance_profiles_not_collected")
+                elif bool(profiles) == bool(value):
+                    out[rid] = None
+            return out
         if key == "has_login_profile":
             out = {}
             for rid, n in candidates.items():
@@ -842,9 +862,8 @@ class AwsModel(Model):
         if key == "source_attached_policy_covered_by":
             return dict.fromkeys(candidates) if any(self.policies[p].customer_managed for p in source.attrs.get("policy_ids", ())) else {}
         if key == "via_assumable_role_covered_by":
-            if not self._trusting(source):
-                return {}
-            return {rid: ("conditional", "same_assumable_role_not_verified") for rid in candidates}
+            # {source.assumable_role_arn} already restricts the requirement to roles the source can assume.
+            return dict.fromkeys(candidates) if self._assumable(source) else {}
         if key == "assumable_by_pivot_role":
             if pivot is None:
                 return None

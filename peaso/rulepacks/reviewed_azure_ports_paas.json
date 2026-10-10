@@ -1,0 +1,288 @@
+{
+  "azure-compliance.control.cis_v500_2_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.databricks_workspace_no_public_ip_enabled"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to databricks_workspace_no_public_ip_enabled; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.databricks/2024-05-01/workspaces"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "databricks_workspace_no_public_ip_enabled",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 211,
+      "query_sha256": "b5f7422ddd5f58d536fe832ef010435d5471f44ea6ab9d850e7f6c2b64e70c3d",
+      "status_case_sql": "case when (parameters -> 'enableNoPublicIp' -> 'value')::bool then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_2.pp",
+      "control_line": 150,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v500_2_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.databricks_workspace_public_network_access_disabled"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to databricks_workspace_public_network_access_disabled; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.databricks/2024-05-01/workspaces"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "databricks_workspace_public_network_access_disabled",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 232,
+      "query_sha256": "94a46a1f33bf695a8683bd94c3151561091dfba8dcab063dbaee9384a86667a9",
+      "status_case_sql": "case when public_network_access = 'Disabled' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_2.pp",
+      "control_line": 163,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_uses_private_link"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_uses_private_link; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_uses_private_link",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 137,
+      "query_sha256": "6fb254928950ec78fb5453dde52dd0b27fca94a50a1ebfdd93a34d79e5bb16bb",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 460,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_uses_private_link"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_uses_private_link; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_uses_private_link",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 137,
+      "query_sha256": "6fb254928950ec78fb5453dde52dd0b27fca94a50a1ebfdd93a34d79e5bb16bb",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 462,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_uses_private_link"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_uses_private_link; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_uses_private_link",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 137,
+      "query_sha256": "6fb254928950ec78fb5453dde52dd0b27fca94a50a1ebfdd93a34d79e5bb16bb",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 371,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_4_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_uses_private_link"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_uses_private_link; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_uses_private_link",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 137,
+      "query_sha256": "6fb254928950ec78fb5453dde52dd0b27fca94a50a1ebfdd93a34d79e5bb16bb",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 386,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v500_2_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.databricks_workspace_uses_private_endpoint"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to databricks_workspace_uses_private_endpoint; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.databricks/2024-05-01/workspaces"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "databricks_workspace_uses_private_endpoint",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 253,
+      "query_sha256": "49d2187fcc6b3ad72c84031738828e226854590d55fd5213dfa1f609bcaebc59",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_2.pp",
+      "control_line": 176,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_virtual_network_filter_enabled"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_virtual_network_filter_enabled; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_virtual_network_filter_enabled",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 212,
+      "query_sha256": "15c695fcc1a4c31bdf4adf521b384b52eec3fedfcb507a58d315c68feb1f2ffb",
+      "status_case_sql": "case when public_network_access = 'Disabled' then 'ok'\n        when public_network_access = 'Enabled' and is_virtual_network_filter_enabled = 'true' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 447,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_virtual_network_filter_enabled"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_virtual_network_filter_enabled; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_virtual_network_filter_enabled",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 212,
+      "query_sha256": "15c695fcc1a4c31bdf4adf521b384b52eec3fedfcb507a58d315c68feb1f2ffb",
+      "status_case_sql": "case when public_network_access = 'Disabled' then 'ok'\n        when public_network_access = 'Enabled' and is_virtual_network_filter_enabled = 'true' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 448,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_virtual_network_filter_enabled"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_virtual_network_filter_enabled; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_virtual_network_filter_enabled",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 212,
+      "query_sha256": "15c695fcc1a4c31bdf4adf521b384b52eec3fedfcb507a58d315c68feb1f2ffb",
+      "status_case_sql": "case when public_network_access = 'Disabled' then 'ok'\n        when public_network_access = 'Enabled' and is_virtual_network_filter_enabled = 'true' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 357,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_4_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.cosmosdb_account_virtual_network_filter_enabled"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to cosmosdb_account_virtual_network_filter_enabled; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/2024-05-15/databaseaccounts"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "cosmosdb_account_virtual_network_filter_enabled",
+      "query_path": "regulatory_compliance/cosmosdb.pp",
+      "query_line": 212,
+      "query_sha256": "15c695fcc1a4c31bdf4adf521b384b52eec3fedfcb507a58d315c68feb1f2ffb",
+      "status_case_sql": "case when public_network_access = 'Disabled' then 'ok'\n        when public_network_access = 'Enabled' and is_virtual_network_filter_enabled = 'true' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 372,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v400_3_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.databricks_workspace_deployed_in_custom_vnet"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to databricks_workspace_deployed_in_custom_vnet; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.databricks/2024-05-01/workspaces"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "databricks_workspace_deployed_in_custom_vnet",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 55,
+      "query_sha256": "dbf4740ba0f610975aaf52b058823ebab2f2aef493639a592e3763eaafcc0c5a",
+      "status_case_sql": "case when parameters -> 'customVirtualNetworkId' is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_3.pp",
+      "control_line": 45,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  },
+  "azure-compliance.control.cis_v500_2_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.databricks_workspace_deployed_in_custom_vnet"
+    ],
+    "reason": "Individually inspected assigned framework control delegates without arguments to databricks_workspace_deployed_in_custom_vnet; native fields, exact parameter presence/public-network branch/private-approval selector and subscription resource unit are retained. Missing, denied or malformed metadata remains UNKNOWN; no runtime access or effective network claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.databricks/2024-05-01/workspaces"
+    ],
+    "review_notes": "This literal source row is exclusively assigned here after Claude partition transfer; base-control source references belong to the other worker and are not duplicated.",
+    "source_review": {
+      "query_id": "databricks_workspace_deployed_in_custom_vnet",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 55,
+      "query_sha256": "dbf4740ba0f610975aaf52b058823ebab2f2aef493639a592e3763eaafcc0c5a",
+      "status_case_sql": "case when parameters -> 'customVirtualNetworkId' is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_2.pp",
+      "control_line": 46,
+      "arguments": [],
+      "join": "same provider resource id and selected subscription"
+    }
+  }
+}

@@ -90,6 +90,12 @@ Ready manifest hashes match primary content at capture but three files contain l
 
 Current permitted remaining work: isolated authentication, storage, quota and request validation fixes/checks, preserving all supervisor-owned primary sections. Whole-pipeline integration/exports are suspended by directive 9. Overall acceptance still requires a coordinator-approved tested source plus real hosted JWT/cookie auth, isolation, quota/idempotency, scheduled/cancelled transitions, private signed JSON/Markdown/CORS and large graph/finding transport; document actual limits and unverified paid/public signup gates. Those release and integration decisions remain with the coordinator and supervisor owners.
 
+Latest isolated milestone after the initial handoff checkpoint: **46 tests passed** in authentication, hosted repository and new `tests/test_peaso_api_storage_edges.py`. Fixed DynamoDB `pause_schedule` so concurrent deletion returns false without recreating a row or halting other tenants; cross-tenant pause remains ineffective. Added deleted-identity rejection before cached paid lookup, concurrent durable credential-key initialization, conflicting same-key idempotency single charging, immutable encrypted input after connector deletion, rollback of a deliberately aborted job transaction and expired lease publication/renewal rejection. The new pause test is Moto verification; the earlier nine official emulator checks predate it. No engine evaluation or supervisor feature validation was performed in this isolated run.
+
+```sh
+/tmp/peaso-api-venv/bin/python -m pytest tests/test_peaso_api_auth.py tests/test_peaso_api_hosted.py tests/test_peaso_api_storage_edges.py -q
+```
+
 ## Live resources and teardown
 
 This worker created only local resources, no AWS deployment or cloud IAM mutations. Default Docker project `peaso` remains on `127.0.0.1:8000` with `peaso-api-1`, `peaso-collector-1`, `peaso-analyzer-1`, volumes `peaso_state` and `peaso_identity`. Owned completed offline validation scan is `352cd1a27143434fb7952f48d39beb59`; three connector attempts used an inert supplied fixture after a source-manifest build race. They consume the local free reservation one. Preserve for review or clean only proven owned fixtures once the coordinator authorizes cleanup; do not reset an actual user's quota.

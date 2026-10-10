@@ -64,6 +64,19 @@ def csv_boolean(item, field):
     return value == "true"
 
 
+def api_optional(item, field, expected, default, *, operation):
+    """Only a proved complete native response establishes an optional omission."""
+    guard(item)
+    if field in item:
+        return get(item, field, expected)
+    coverage = item.get("_coverage", {}).get(field)
+    if coverage is not None and (not isinstance(coverage, dict) or coverage.get("status") not in {"collected", "empty"}):
+        raise Unavailable("optional fact unavailable: " + field)
+    if get(item, "_provenance.operation", str) != operation or get(item, "_provenance.native_response_complete", bool) is not True:
+        raise Unavailable("optional API omission is not proven: " + field)
+    return default
+
+
 def scope_fixture(kind, items, *, status=None):
     return {"collections": {kind: [{"type": kind, "scope": "123456789012/us-east-1",
         "status": status or ("collected" if items else "empty"), "items": items,

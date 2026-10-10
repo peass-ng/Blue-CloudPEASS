@@ -21,7 +21,7 @@ OAUTH_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 HOSTS = frozenset(f"{s}.googleapis.com" for s in (
     "cloudasset", "cloudresourcemanager", "compute", "storage", "iam", "logging",
     "sqladmin", "container", "cloudkms", "secretmanager", "recommender", "bigquery", "artifactregistry",
-    "run", "cloudfunctions", "cloudidentity", "appengine"))
+    "run", "cloudfunctions", "cloudidentity", "appengine", "admin"))
 SAFE_REASONS = frozenset(("SERVICE_DISABLED", "ACCESS_TOKEN_SCOPE_INSUFFICIENT", "IAM_PERMISSION_DENIED",
     "PERMISSION_DENIED", "UNAUTHENTICATED", "NOT_FOUND", "RESOURCE_EXHAUSTED", "INVALID_ARGUMENT",
     "BILLING_DISABLED", "USER_PROJECT_DENIED", "QUOTA_EXCEEDED", "RATE_LIMIT_EXCEEDED", "UNAVAILABLE"))
@@ -477,7 +477,8 @@ SUPPORTED_TYPES = frozenset({x[0] for x in COMPUTE} | {
     "bucket", "sql_instance", "gke_cluster", "kms_key_ring", "kms_key", "secret", "log_sink",
     "workload_identity_pool", "workload_identity_provider", "workforce_pool", "workforce_provider",
     "bigquery_dataset", "artifact_repository", "cloudrun_service", "function", "group", "group_membership",
-    "principal_access_boundary_policy", "policy_binding", "app_engine_application"})
+    "principal_access_boundary_policy", "policy_binding", "app_engine_application", "workspace_user", "workspace_role",
+    "workspace_role_assignment"})
 DEPENDENCIES = {"service_account_key": {"service_account"}, "workload_identity_provider": {"workload_identity_pool"},
                 "workforce_provider": {"workforce_pool"}, "kms_key": {"kms_key_ring"},
                 "group": {"iam_policy", "organization"}, "group_membership": {"group", "iam_policy", "organization"}}
@@ -1078,6 +1079,8 @@ class GCPCollector:
         self.run_jobs(jobs)
         if self.needed.intersection({"group", "group_membership"}):
             self.directory_groups()
+        if self.needed.intersection({"workspace_user", "workspace_role", "workspace_role_assignment"}):
+            self.workspace_directory()
         if "iam_role" in self.needed:
             role_scopes = {}
             for scope, policy in self.items("iam_policy"):
@@ -1177,6 +1180,50 @@ class GCPCollector:
             for member in collected["items"]:
                 member["membershipCoverage"] = {"status": "collected", "completeTransitiveClosure": True,
                     "semantics": "Cloud Identity membership visibility, not effective cloud permissions"}
+
+    def workspace_directory(self):
+        scope = self.scopes[0] if self.scopes else "directory"
+        customers = self.options.get("workspace_customers", self.options.get("cloud_identity_customers", []))
+        if not isinstance(customers, list) or any(not isinstance(customer, str) or not re.fullmatch(r"C[A-Za-z0-9_-]+|my_customer", customer) for customer in customers):
+            raise ValueError("workspace_customers must contain directory customer IDs")
+        customers = set(customers)
+        for _, organization in self.items("organization"):
+            owner = organization.get("owner", {})
+            customer = organization.get("directoryCustomerId") or (owner.get("directoryCustomerId") if isinstance(owner, dict) else None)
+            if customer and re.fullmatch(r"C[A-Za-z0-9_-]+", str(customer)):
+                customers.add(customer)
+        if not customers:
+            customers = {"my_customer"}
+        def pages(kind):
+            failures = []
+            for customer in sorted(customers):
+                if kind == "workspace_user":
+                    url = "https://admin.googleapis.com/admin/directory/v1/users"
+                    params = {"customer": customer, "projection": "basic", "viewType": "admin_view",
+                        "fields": "users(id,customerId,primaryEmail,isAdmin,isDelegatedAdmin,suspended,archived),nextPageToken"}
+                    key, size_key = "users", "maxResults"
+                elif kind == "workspace_role":
+                    url = f"https://admin.googleapis.com/admin/directory/v1/customer/{customer}/roles"
+                    params = {"fields": "items(roleId,roleName,isSuperAdminRole,isSystemRole,rolePrivileges),nextPageToken"}
+                    key, size_key = "items", "maxResults"
+                else:
+                    url = f"https://admin.googleapis.com/admin/directory/v1/customer/{customer}/roleassignments"
+                    params = {"fields": "items(roleAssignmentId,roleId,assignedTo,scopeType,orgUnitId,condition),nextPageToken"}
+                    key, size_key = "items", "maxResults"
+                try:
+                    for items, request_id in self.pages(url, scope, key=key, params=params, page_size_key=size_key):
+                        transformed = []
+                        for item in items:
+                            identifier = item.get("id") or (item.get("roleId") if kind == "workspace_role" else item.get("roleAssignmentId"))
+                            transformed.append({**item, "name": f"customers/{item.get('customerId', customer)}/{kind}/{identifier}",
+                                "directoryCustomer": item.get("customerId", customer), "scopeSelection": "existing selected identity; read-only Directory API"})
+                        yield transformed, request_id
+                except ReadError as exc:
+                    failures.append(exc)
+            if failures:
+                raise failures[0]
+        for kind in sorted(self.needed.intersection({"workspace_user", "workspace_role", "workspace_role_assignment"})):
+            self.add(kind, scope, "workspace-directory", lambda kind=kind: pages(kind))
 
     def finish(self):
         from peaso.snapshot import make_snapshot

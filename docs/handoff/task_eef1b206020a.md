@@ -28,13 +28,13 @@ Directive 6 supersedes the original bounded defaults: default/all-selected scans
 
 All functions consume native facts and structured indexes; they perform no cloud calls. Positive/negative/manual/non-applicable/missing/denied/malformed fixtures are in shared `fixtures.CASES` and the owned test modules. Source lead owns import activation; inspect `peaso/checks/__init__.py` and `active_reviews.json` before assuming every ready wave is included in runtime metadata.
 
-Ready reviewed shards cover 149 exact assigned references:
+Ready reviewed shards cover 180 exact assigned references:
 
 - `reviewed_aws_b_core.json`: 87 references, including 56 ports/merges, 24 constant manual requirements and seven substantive invalid/intrusive exclusions.
 - `reviewed_aws_b_regional_cloudfront.json`: 37 references.
 - `reviewed_aws_b_storage.json`: 25 references.
 
-New compute/cache/identity source associations have not yet been written. No existing supported review should be overwritten. The source generator accepts explicit `supersedes:<same source ID>` only when replacing an old pending review. All remaining unreviewed rows must stay pending.
+`reviewed_aws_b_compute.json` adds 31 retained references: 25 ports and six substantive invalid-predicate aliases. It excludes every Claude-assigned ID. No existing supported review should be overwritten. The source generator accepts explicit `supersedes:<same source ID>` only when replacing an old pending review. All remaining unreviewed rows must stay pending.
 
 ## Collector plugin
 
@@ -67,7 +67,7 @@ Latest AWS-B-only command:
 .venv/bin/python -m pytest -q tests/test_peaso_checks_aws_b_core.py tests/test_peaso_checks_aws_b_regional.py tests/test_peaso_checks_aws_b_metadata.py
 ```
 
-Result: **109 passed in 1.63 seconds** after the 88-predicate compute wave. Earlier 72-predicate checkpoint: 93 passed. The broader owned defensive core/check/metadata checkpoint passed 163 tests before the compute wave, using in-process isolation of the five defensive categories and empty supervisor catalog plus an evaluator assertion that prevents out-of-scope execution. This isolation does not validate the supervisor feature.
+Result: **111 passed in 0.38 seconds** after the 88-predicate compute wave. Earlier 72-predicate checkpoint: 93 passed. The broader owned defensive core/check/metadata checkpoint passed 163 tests before the compute wave, using in-process isolation of the five defensive categories and empty supervisor catalog plus an evaluator assertion that prevents out-of-scope execution. This isolation does not validate the supervisor feature.
 
 Reproducible defensive isolation:
 
@@ -100,11 +100,11 @@ The live smoke completed in 6.0476 seconds: 28 ACM certificates and one Lambda r
 
 ## Concrete remaining work
 
-1. Close the remaining AWS-B assigned source rows by substantive implementation/review. The three ready shards contain 149 of 1,141 references; most remain pending. Candidate groups are not proof of semantic equivalence.
-2. Map the compute/cache/identity wave to exact source references. Separately document readonly-root `EXISTS` versus universal logic, UID-zero omissions and inverted host-network privileged condition; do not falsely port corrected logic.
+1. Close the remaining retained AWS-B assigned source rows by substantive implementation/review. The four ready shards contain 180 of 774 retained references; most remain pending. Candidate groups are not proof of semantic equivalence.
+2. Validate source lead acceptance of the ready compute/cache/identity review shard. Separately document readonly-root `EXISTS` versus universal logic, UID-zero omissions and inverted host-network privileged condition; do not falsely port corrected logic.
 3. Review parameterized queries with their exact defaults/overrides, especially CloudFront recommended TLS `$1`, retention/version constraints and multi-relation eligibility. Do not merge differing arguments using hashes.
 4. Add remaining read-only facts through this plugin and AWS-A's shared scheduler, not by editing main `aws.py`. Many joins and service families still lack detailed coverage.
-5. Directive 11 ECR imageTagMutability enrichment is the next priority; coordinate with AWS-A main collector to avoid duplicate ownership. Exact new directive details were not yet supplied to this worker beyond this assignment.
+5. Directive 11 ECR imageTagMutability enrichment now preserves raw modes and exclusion filters, avoids extra normal-list reads, and uses a cached detail only when the field is missing. Ensure its successful-detail branch accepts AWS-A's new explicit collection_status=collected and keep no boolean normalization; regression fixture added.
 6. Re-run meaningful owned tests after new changes, source preservation/mapping validation after lead accepts shards, and captured AWS defensive integration. Avoid repeatedly running the entire shared suite without a new reason.
 7. Update this report and `docs/peaso-aws-b-coverage.md` counts as waves are accepted. The coverage guide currently reflects the earlier 72-predicate checkpoint and needs the newest compute-wave update.
 8. Manual scope metadata now supports account/project/subscription/tenant; core currently verifies AWS account dedup only. Add other scope units only with verified identity evidence.
@@ -120,4 +120,6 @@ The live smoke completed in 6.0476 seconds: 28 ACM certificates and one Lambda r
 
 ## Directive 13 ownership transfer
 
-Read `peaso/rulepacks/port_partitions_claude.json`. The new effective assigned set is original `partitions.aws_b.check_ids` minus **every** source ID assigned to any Claude partition; do not edit `claude_*.py`, `reviewed_claude_*.json` or `test_peaso_checks_claude_*.py`. Current retained count: 774. Claude ownership intersects already-written AWS-B review rows; those overlaps are being reported to the registry lead for authoritative accepted-shard reconciliation, not silently overwritten or double-ported. Collector/plugin ownership remains unchanged.
+Read `peaso/rulepacks/port_partitions_claude.json`. The new effective assigned set is original `partitions.aws_b.check_ids` minus **every** source ID assigned to any Claude partition; do not edit `claude_*.py`, `reviewed_claude_*.json` or `test_peaso_checks_claude_*.py`. Current retained count: 774. The 367 transferred IDs do not overlap any of the three existing AWS-B review shards (149 references); all current reviewed work remains under this worker. No duplicate review ownership exists at this checkpoint. Collector/plugin ownership remains unchanged.
+
+Latest combined isolated defensive checkpoint after manual metadata filtering: **179 passed in 1.32 seconds**. Four ready review shards total 180 retained references. Live smoke and no-resource/no-teardown status remain unchanged.

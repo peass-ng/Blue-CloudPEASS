@@ -1,0 +1,1473 @@
+{
+  "azure-compliance.control.cis_v130_8_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_8.pp",
+      "control_line": 65,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_8_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_8.pp",
+      "control_line": 79,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_8_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_8.pp",
+      "control_line": 95,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_8_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_8.pp",
+      "control_line": 109,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_8_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 82,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_8_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 82,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_8_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 82,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 627,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.keyvault_vault_recoverable"
+    ],
+    "reason": "Inspected pinned query keyvault_vault_recoverable and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "keyvault_vault_recoverable",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 551,
+      "query_sha256": "2adff43ecbde253f38c1bc3caaba6e222b4e7eb7b1240bad0c720f282159ef15",
+      "status_case_sql": "case when soft_delete_enabled and purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 596,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 114,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 115,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 146,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 146,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 148,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_4_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 134,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 319,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.storage_account_trusted_microsoft_services_enabled"
+    ],
+    "reason": "Inspected pinned query storage_account_trusted_microsoft_services_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_trusted_microsoft_services_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 910,
+      "query_sha256": "3dc2014fd40d3d78a3b8393a94781ac9c15fb69638ed9220a5bf3b41bdc42aa2",
+      "status_case_sql": "case when network_rule_bypass not like '%AzureServices%' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 335,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 30,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 31,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 34,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 34,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 36,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_4_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 36,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 305,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.https_only"
+    ],
+    "reason": "Inspected pinned query storage_account_secure_transfer_required_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_secure_transfer_required_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 362,
+      "query_sha256": "96efb7cb6aa83b02ee2fdd78293e446f860cc4fd072713a338f096a6fb4b95e0",
+      "status_case_sql": "case when not enable_https_traffic_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 321,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected pinned query storage_account_default_network_access_rule_denied and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_rule_denied",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 383,
+      "query_sha256": "9def2ba0a39bdb15ecfeb674e5e647b2a54895185625321f8d8ece8a12cb1857",
+      "status_case_sql": "case when sa.network_rule_default_action = 'Allow' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 100,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected pinned query storage_account_default_network_access_rule_denied and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_rule_denied",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 383,
+      "query_sha256": "9def2ba0a39bdb15ecfeb674e5e647b2a54895185625321f8d8ece8a12cb1857",
+      "status_case_sql": "case when sa.network_rule_default_action = 'Allow' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 101,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected pinned query storage_account_default_network_access_rule_denied and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_rule_denied",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 383,
+      "query_sha256": "9def2ba0a39bdb15ecfeb674e5e647b2a54895185625321f8d8ece8a12cb1857",
+      "status_case_sql": "case when sa.network_rule_default_action = 'Allow' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 132,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected pinned query storage_account_default_network_access_rule_denied and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_rule_denied",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 383,
+      "query_sha256": "9def2ba0a39bdb15ecfeb674e5e647b2a54895185625321f8d8ece8a12cb1857",
+      "status_case_sql": "case when sa.network_rule_default_action = 'Allow' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 132,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected pinned query storage_account_default_network_access_rule_denied and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_rule_denied",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 383,
+      "query_sha256": "9def2ba0a39bdb15ecfeb674e5e647b2a54895185625321f8d8ece8a12cb1857",
+      "status_case_sql": "case when sa.network_rule_default_action = 'Allow' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 134,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_4_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected pinned query storage_account_default_network_access_rule_denied and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_rule_denied",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 383,
+      "query_sha256": "9def2ba0a39bdb15ecfeb674e5e647b2a54895185625321f8d8ece8a12cb1857",
+      "status_case_sql": "case when sa.network_rule_default_action = 'Allow' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 120,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_4_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.auditing"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_on and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_on",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 284,
+      "query_sha256": "f3abdabe4c931074ef7a5382c078c6efa31d0a437f44f06e431033a040ce210e",
+      "status_case_sql": "case when audit -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 87,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_4_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.auditing"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_on and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_on",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 284,
+      "query_sha256": "f3abdabe4c931074ef7a5382c078c6efa31d0a437f44f06e431033a040ce210e",
+      "status_case_sql": "case when audit -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 91,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_4_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.auditing"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_on and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_on",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 284,
+      "query_sha256": "f3abdabe4c931074ef7a5382c078c6efa31d0a437f44f06e431033a040ce210e",
+      "status_case_sql": "case when audit -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 59,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_4_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.auditing"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_on and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_on",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 284,
+      "query_sha256": "f3abdabe4c931074ef7a5382c078c6efa31d0a437f44f06e431033a040ce210e",
+      "status_case_sql": "case when audit -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 59,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_4_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.auditing"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_on and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_on",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 284,
+      "query_sha256": "f3abdabe4c931074ef7a5382c078c6efa31d0a437f44f06e431033a040ce210e",
+      "status_case_sql": "case when audit -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 55,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_5_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.auditing"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_on and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_on",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 284,
+      "query_sha256": "f3abdabe4c931074ef7a5382c078c6efa31d0a437f44f06e431033a040ce210e",
+      "status_case_sql": "case when audit -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 56,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_4_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Inspected pinned query sql_database_transparent_data_encryption_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_database_transparent_data_encryption_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 428,
+      "query_sha256": "3be6370e01c48cf0410da5a2ce62988f9ca6cc0e88dfa9f380246a963544eb9f",
+      "status_case_sql": "case when transparent_data_encryption ->> 'status' = 'Enabled' or transparent_data_encryption ->> 'state' = 'Enabled' then 'ok'\n          else 'alarm'\n      end",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 101,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_4_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Inspected pinned query sql_database_transparent_data_encryption_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_database_transparent_data_encryption_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 428,
+      "query_sha256": "3be6370e01c48cf0410da5a2ce62988f9ca6cc0e88dfa9f380246a963544eb9f",
+      "status_case_sql": "case when transparent_data_encryption ->> 'status' = 'Enabled' or transparent_data_encryption ->> 'state' = 'Enabled' then 'ok'\n          else 'alarm'\n      end",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 105,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_4_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Inspected pinned query sql_database_transparent_data_encryption_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_database_transparent_data_encryption_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 428,
+      "query_sha256": "3be6370e01c48cf0410da5a2ce62988f9ca6cc0e88dfa9f380246a963544eb9f",
+      "status_case_sql": "case when transparent_data_encryption ->> 'status' = 'Enabled' or transparent_data_encryption ->> 'state' = 'Enabled' then 'ok'\n          else 'alarm'\n      end",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 115,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_4_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Inspected pinned query sql_database_transparent_data_encryption_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_database_transparent_data_encryption_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 428,
+      "query_sha256": "3be6370e01c48cf0410da5a2ce62988f9ca6cc0e88dfa9f380246a963544eb9f",
+      "status_case_sql": "case when transparent_data_encryption ->> 'status' = 'Enabled' or transparent_data_encryption ->> 'state' = 'Enabled' then 'ok'\n          else 'alarm'\n      end",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 115,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_4_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Inspected pinned query sql_database_transparent_data_encryption_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_database_transparent_data_encryption_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 428,
+      "query_sha256": "3be6370e01c48cf0410da5a2ce62988f9ca6cc0e88dfa9f380246a963544eb9f",
+      "status_case_sql": "case when transparent_data_encryption ->> 'status' = 'Enabled' or transparent_data_encryption ->> 'state' = 'Enabled' then 'ok'\n          else 'alarm'\n      end",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 111,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_5_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Inspected pinned query sql_database_transparent_data_encryption_enabled and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_database_transparent_data_encryption_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 428,
+      "query_sha256": "3be6370e01c48cf0410da5a2ce62988f9ca6cc0e88dfa9f380246a963544eb9f",
+      "status_case_sql": "case when transparent_data_encryption ->> 'status' = 'Enabled' or transparent_data_encryption ->> 'state' = 'Enabled' then 'ok'\n          else 'alarm'\n      end",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 112,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_4_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.audit_retention"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_retention_period_90 and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_retention_period_90",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 677,
+      "query_sha256": "076a57a5d4cff67ec5271f453067f3b1d65cff6a51bb756097ce60893d57b7ea",
+      "status_case_sql": "case when (audit -> 'properties' ->> 'retentionDays')::integer = 0 then 'ok'\n        when (audit -> 'properties' ->> 'retentionDays')::integer >= 90 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 114,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_4_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.audit_retention"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_retention_period_90 and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_retention_period_90",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 677,
+      "query_sha256": "076a57a5d4cff67ec5271f453067f3b1d65cff6a51bb756097ce60893d57b7ea",
+      "status_case_sql": "case when (audit -> 'properties' ->> 'retentionDays')::integer = 0 then 'ok'\n        when (audit -> 'properties' ->> 'retentionDays')::integer >= 90 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 118,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_4_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.audit_retention"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_retention_period_90 and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_retention_period_90",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 677,
+      "query_sha256": "076a57a5d4cff67ec5271f453067f3b1d65cff6a51bb756097ce60893d57b7ea",
+      "status_case_sql": "case when (audit -> 'properties' ->> 'retentionDays')::integer = 0 then 'ok'\n        when (audit -> 'properties' ->> 'retentionDays')::integer >= 90 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 129,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_4_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.audit_retention"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_retention_period_90 and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_retention_period_90",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 677,
+      "query_sha256": "076a57a5d4cff67ec5271f453067f3b1d65cff6a51bb756097ce60893d57b7ea",
+      "status_case_sql": "case when (audit -> 'properties' ->> 'retentionDays')::integer = 0 then 'ok'\n        when (audit -> 'properties' ->> 'retentionDays')::integer >= 90 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 129,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_4_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.audit_retention"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_retention_period_90 and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_retention_period_90",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 677,
+      "query_sha256": "076a57a5d4cff67ec5271f453067f3b1d65cff6a51bb756097ce60893d57b7ea",
+      "status_case_sql": "case when (audit -> 'properties' ->> 'retentionDays')::integer = 0 then 'ok'\n        when (audit -> 'properties' ->> 'retentionDays')::integer >= 90 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 125,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_5_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.audit_retention"
+    ],
+    "reason": "Inspected pinned query sql_server_auditing_retention_period_90 and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "sql_server_auditing_retention_period_90",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 677,
+      "query_sha256": "076a57a5d4cff67ec5271f453067f3b1d65cff6a51bb756097ce60893d57b7ea",
+      "status_case_sql": "case when (audit -> 'properties' ->> 'retentionDays')::integer = 0 then 'ok'\n        when (audit -> 'properties' ->> 'retentionDays')::integer >= 90 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 126,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.appservice_web_app_use_https": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_use_https and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 507,
+      "query_sha256": "bfd2f8215a06713b12fec685079b8fb4e6687d05719f8c81d6dc2462e6783d26",
+      "status_case_sql": "case when not https_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 37,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_9_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_use_https and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 507,
+      "query_sha256": "bfd2f8215a06713b12fec685079b8fb4e6687d05719f8c81d6dc2462e6783d26",
+      "status_case_sql": "case when not https_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_9.pp",
+      "control_line": 44,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_9_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_use_https and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 507,
+      "query_sha256": "bfd2f8215a06713b12fec685079b8fb4e6687d05719f8c81d6dc2462e6783d26",
+      "status_case_sql": "case when not https_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_9.pp",
+      "control_line": 44,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_9_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_use_https and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 507,
+      "query_sha256": "bfd2f8215a06713b12fec685079b8fb4e6687d05719f8c81d6dc2462e6783d26",
+      "status_case_sql": "case when not https_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_9.pp",
+      "control_line": 44,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_9_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_use_https and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 507,
+      "query_sha256": "bfd2f8215a06713b12fec685079b8fb4e6687d05719f8c81d6dc2462e6783d26",
+      "status_case_sql": "case when not https_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_9.pp",
+      "control_line": 44,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_9_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_use_https and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 507,
+      "query_sha256": "bfd2f8215a06713b12fec685079b8fb4e6687d05719f8c81d6dc2462e6783d26",
+      "status_case_sql": "case when not https_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 43,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_9_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_use_https and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 507,
+      "query_sha256": "bfd2f8215a06713b12fec685079b8fb4e6687d05719f8c81d6dc2462e6783d26",
+      "status_case_sql": "case when not https_only then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 31,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.appservice_web_app_latest_http_version": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_http_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1276,
+      "query_sha256": "80377da4f5ce495413ed809307e42b90ef67ba5a27a51de74635cbe3493c9d18",
+      "status_case_sql": "case when not (configuration -> 'properties' ->> 'http20Enabled') :: boolean then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 321,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v130_9_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_http_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1276,
+      "query_sha256": "80377da4f5ce495413ed809307e42b90ef67ba5a27a51de74635cbe3493c9d18",
+      "status_case_sql": "case when not (configuration -> 'properties' ->> 'http20Enabled') :: boolean then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_9.pp",
+      "control_line": 142,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_9_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_http_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1276,
+      "query_sha256": "80377da4f5ce495413ed809307e42b90ef67ba5a27a51de74635cbe3493c9d18",
+      "status_case_sql": "case when not (configuration -> 'properties' ->> 'http20Enabled') :: boolean then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_9.pp",
+      "control_line": 142,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_9_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_http_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1276,
+      "query_sha256": "80377da4f5ce495413ed809307e42b90ef67ba5a27a51de74635cbe3493c9d18",
+      "status_case_sql": "case when not (configuration -> 'properties' ->> 'http20Enabled') :: boolean then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_9.pp",
+      "control_line": 142,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_9_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_http_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1276,
+      "query_sha256": "80377da4f5ce495413ed809307e42b90ef67ba5a27a51de74635cbe3493c9d18",
+      "status_case_sql": "case when not (configuration -> 'properties' ->> 'http20Enabled') :: boolean then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_9.pp",
+      "control_line": 142,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_9_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_http_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1276,
+      "query_sha256": "80377da4f5ce495413ed809307e42b90ef67ba5a27a51de74635cbe3493c9d18",
+      "status_case_sql": "case when not (configuration -> 'properties' ->> 'http20Enabled') :: boolean then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 127,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_9_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_http_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1276,
+      "query_sha256": "80377da4f5ce495413ed809307e42b90ef67ba5a27a51de74635cbe3493c9d18",
+      "status_case_sql": "case when not (configuration -> 'properties' ->> 'http20Enabled') :: boolean then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 157,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.appservice_web_app_latest_tls_version": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_tls_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 614,
+      "query_sha256": "3b9f415655871c8f42d8ff2cd1da66d128c93c6011c4543992b5d30c588ccc3b",
+      "status_case_sql": "case when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 86,
+      "arguments": []
+    },
+    "supersedes": "azure-compliance.control.appservice_web_app_latest_tls_version"
+  },
+  "azure-compliance.control.cis_v130_9_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_tls_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 614,
+      "query_sha256": "3b9f415655871c8f42d8ff2cd1da66d128c93c6011c4543992b5d30c588ccc3b",
+      "status_case_sql": "case when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_9.pp",
+      "control_line": 58,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v140_9_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_tls_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 614,
+      "query_sha256": "3b9f415655871c8f42d8ff2cd1da66d128c93c6011c4543992b5d30c588ccc3b",
+      "status_case_sql": "case when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_9.pp",
+      "control_line": 58,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v150_9_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_tls_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 614,
+      "query_sha256": "3b9f415655871c8f42d8ff2cd1da66d128c93c6011c4543992b5d30c588ccc3b",
+      "status_case_sql": "case when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_9.pp",
+      "control_line": 58,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v200_9_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_tls_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 614,
+      "query_sha256": "3b9f415655871c8f42d8ff2cd1da66d128c93c6011c4543992b5d30c588ccc3b",
+      "status_case_sql": "case when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_9.pp",
+      "control_line": 58,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v210_9_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_tls_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 614,
+      "query_sha256": "3b9f415655871c8f42d8ff2cd1da66d128c93c6011c4543992b5d30c588ccc3b",
+      "status_case_sql": "case when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 57,
+      "arguments": []
+    }
+  },
+  "azure-compliance.control.cis_v300_9_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Inspected pinned query appservice_web_app_latest_tls_version and literal no-argument framework-control delegation; source condition, native provider field/array element and scope/eligibility agree with the tested native predicate. Missing or denied data is UNKNOWN rather than an unsafe SQL null default.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Source TLS comparison is less-than1.2, not exact equality:1.2/1.3 pass. TDE excludes master and accepts modern state; audit retention0 is unlimited. Vault conjunction is distinct from separate soft-delete/purge checks. Each inspected source unit is retained, including per-audit-policy rows.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 614,
+      "query_sha256": "3b9f415655871c8f42d8ff2cd1da66d128c93c6011c4543992b5d30c588ccc3b",
+      "status_case_sql": "case when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 73,
+      "arguments": []
+    }
+  }
+}

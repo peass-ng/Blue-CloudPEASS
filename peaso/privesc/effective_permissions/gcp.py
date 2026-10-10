@@ -18,6 +18,8 @@
 """
 from __future__ import annotations
 
+import re
+
 from ..schema import FACTS_NEEDED
 from . import (ANY, AllTargets, Grant, Model, Node, as_list, best, combine, downgrade, glob_match, inventory_status, items,
                unavailable)
@@ -519,7 +521,9 @@ class GcpModel(Model):
             joined = (self.related_k8s or {}).get(resource)
             name = resource.rsplit("/", 1)[-1]
             if joined is None:
-                why = ("conditional", "k8s_snapshot_not_joined")
+                # Every cluster has KSAs (default SAs), but token Secrets are only proven by Secret metadata:
+                # the token_secret variant becomes an unresolved placeholder.
+                why = ("unknown" if variant == "token_secret" else "conditional", "k8s_snapshot_not_joined")
                 label = (f"KSAs with token Secrets in GKE cluster {name}" if variant == "token_secret"
                          else f"KSAs of GKE cluster {name}")
                 out.append(self._ksa_aggregate(variant, resource, label, why))
@@ -570,6 +574,19 @@ class GcpModel(Model):
         return self.targets(kind)
 
     # -------------------------------------------------------------- targets
+    def service_managed(self, node):
+        """Google-managed service agents (service-<n>@gcp-sa-*/...-robot, <n>@cloudservices, legacy
+        <n>@cloudbuild ...) belong to Google; only techniques that select them through attached_to_service
+        (e.g. cloudservices_agent, vertex_custom_code_agent) or include_service_managed target them.
+        Default compute/App Engine SAs are customer-usable and stay."""
+        if node.kind != "gcp_service_account":
+            return False
+        return _google_managed(node.attrs.get("email"))
+
+    def include_service_managed(self, compiled):
+        selector = compiled.get("selector") or {}
+        return super().include_service_managed(compiled) or "attached_to_service" in selector
+
     def targets(self, kind):
         if kind == "k8s_cluster_admin":
             return [self.cluster_entity(r) for r in sorted(self.gke)]
@@ -733,6 +750,21 @@ def _gke_resource(item, scope):
     if not (name and location and project.startswith("projects/")):
         return None
     return f"{project}/locations/{location}/clusters/{name}"
+
+
+_CUSTOMER_SA_DOMAINS = ("developer.gserviceaccount.com", "appspot.gserviceaccount.com")
+
+
+def _google_managed(email):
+    email = str(email or "").lower()
+    local, _, domain = email.partition("@")
+    if not domain.endswith("gserviceaccount.com"):
+        return False
+    if re.fullmatch(r"service-\d+", local) or domain.startswith("gcp-sa-"):
+        return True
+    if domain.endswith(".iam.gserviceaccount.com"):
+        return False  # user-managed: <name>@<project>.iam.gserviceaccount.com
+    return domain not in _CUSTOMER_SA_DOMAINS  # cloudservices, cloudbuild, container-engine-robot, ...
 
 
 def _instance_resource(item, scope):

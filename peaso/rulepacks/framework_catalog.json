@@ -109,6 +109,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.agentcore_data_protection",
+        "aws.a.cloudwatch.log_kms_encryption",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -135,11 +137,11 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 25,
+      "supported_native_checks": 27,
       "source_checks": 226,
-      "pending_source_checks": 199,
+      "pending_source_checks": 196,
       "manual_requirements": 2,
-      "rejected_invalid_predicates": 0,
+      "rejected_invalid_predicates": 1,
       "status": "partially_supported"
     },
     {
@@ -284,6 +286,9 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.cross_account_role_absent",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -312,9 +317,9 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 27,
+      "supported_native_checks": 30,
       "source_checks": 237,
-      "pending_source_checks": 207,
+      "pending_source_checks": 204,
       "manual_requirements": 3,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -329,6 +334,11 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.alarm_actions_enabled",
+        "aws.a.cloudwatch.alarm_state_actions",
+        "aws.a.cloudwatch.cross_account_role_absent",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -361,11 +371,11 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 31,
+      "supported_native_checks": 36,
       "source_checks": 425,
-      "pending_source_checks": 392,
+      "pending_source_checks": 386,
       "manual_requirements": 2,
-      "rejected_invalid_predicates": 0,
+      "rejected_invalid_predicates": 1,
       "status": "partially_supported"
     },
     {
@@ -378,6 +388,9 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.alarm_actions_enabled",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -404,9 +417,9 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 25,
+      "supported_native_checks": 28,
       "source_checks": 240,
-      "pending_source_checks": 215,
+      "pending_source_checks": 212,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -652,6 +665,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -675,9 +689,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 22,
+      "supported_native_checks": 23,
       "source_checks": 89,
-      "pending_source_checks": 67,
+      "pending_source_checks": 66,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -692,6 +706,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.cross_account_role_absent",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -711,9 +727,9 @@
         "aws.rds.encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 18,
+      "supported_native_checks": 20,
       "source_checks": 127,
-      "pending_source_checks": 106,
+      "pending_source_checks": 104,
       "manual_requirements": 3,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -728,6 +744,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -746,9 +764,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 17,
+      "supported_native_checks": 19,
       "source_checks": 76,
-      "pending_source_checks": 59,
+      "pending_source_checks": 57,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -763,6 +781,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -783,9 +803,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 19,
+      "supported_native_checks": 21,
       "source_checks": 96,
-      "pending_source_checks": 77,
+      "pending_source_checks": 75,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -800,6 +820,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.ebs.encryption",
         "aws.elbv2.access_logging",
@@ -822,9 +843,9 @@
         "aws.s3.access_logging",
         "aws.s3.versioning"
       ],
-      "supported_native_checks": 21,
+      "supported_native_checks": 22,
       "source_checks": 88,
-      "pending_source_checks": 67,
+      "pending_source_checks": 66,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -839,6 +860,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
         "aws.a.config.region_recorder_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -858,9 +880,9 @@
         "aws.rds.encryption",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 18,
+      "supported_native_checks": 19,
       "source_checks": 60,
-      "pending_source_checks": 42,
+      "pending_source_checks": 41,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -875,6 +897,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -898,9 +922,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 22,
+      "supported_native_checks": 24,
       "source_checks": 83,
-      "pending_source_checks": 61,
+      "pending_source_checks": 59,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -915,6 +939,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
         "aws.a.config.region_recorder_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.ebs.encryption",
@@ -923,9 +948,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 7,
+      "supported_native_checks": 8,
       "source_checks": 24,
-      "pending_source_checks": 17,
+      "pending_source_checks": 16,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -940,6 +965,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -964,9 +991,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 23,
+      "supported_native_checks": 25,
       "source_checks": 95,
-      "pending_source_checks": 72,
+      "pending_source_checks": 70,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1011,6 +1038,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -1040,11 +1069,11 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 28,
+      "supported_native_checks": 30,
       "source_checks": 333,
-      "pending_source_checks": 303,
+      "pending_source_checks": 300,
       "manual_requirements": 2,
-      "rejected_invalid_predicates": 0,
+      "rejected_invalid_predicates": 1,
       "status": "partially_supported"
     },
     {
@@ -1057,6 +1086,11 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.alarm_actions_enabled",
+        "aws.a.cloudwatch.alarm_state_actions",
+        "aws.a.cloudwatch.cross_account_role_absent",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -1095,11 +1129,11 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 37,
+      "supported_native_checks": 42,
       "source_checks": 561,
-      "pending_source_checks": 521,
+      "pending_source_checks": 515,
       "manual_requirements": 3,
-      "rejected_invalid_predicates": 0,
+      "rejected_invalid_predicates": 1,
       "status": "partially_supported"
     },
     {
@@ -1112,6 +1146,11 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.alarm_actions_enabled",
+        "aws.a.cloudwatch.alarm_state_actions",
+        "aws.a.cloudwatch.cross_account_role_absent",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -1150,11 +1189,11 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 37,
+      "supported_native_checks": 42,
       "source_checks": 560,
-      "pending_source_checks": 520,
+      "pending_source_checks": 514,
       "manual_requirements": 3,
-      "rejected_invalid_predicates": 0,
+      "rejected_invalid_predicates": 1,
       "status": "partially_supported"
     },
     {
@@ -1167,6 +1206,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.ebs.encryption",
@@ -1188,11 +1228,11 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 20,
+      "supported_native_checks": 21,
       "source_checks": 144,
-      "pending_source_checks": 124,
+      "pending_source_checks": 122,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 0,
+      "rejected_invalid_predicates": 1,
       "status": "partially_supported"
     },
     {
@@ -1205,6 +1245,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
         "aws.ecr.lifecycle_policy",
@@ -1226,9 +1267,9 @@
         "aws.rds.enhanced_monitoring",
         "aws.s3.access_logging"
       ],
-      "supported_native_checks": 20,
+      "supported_native_checks": 21,
       "source_checks": 237,
-      "pending_source_checks": 215,
+      "pending_source_checks": 214,
       "manual_requirements": 2,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1243,6 +1284,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -1268,9 +1311,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 24,
+      "supported_native_checks": 26,
       "source_checks": 94,
-      "pending_source_checks": 70,
+      "pending_source_checks": 68,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1285,6 +1328,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -1305,9 +1350,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 19,
+      "supported_native_checks": 21,
       "source_checks": 81,
-      "pending_source_checks": 62,
+      "pending_source_checks": 60,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1322,6 +1367,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -1342,9 +1389,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 19,
+      "supported_native_checks": 21,
       "source_checks": 105,
-      "pending_source_checks": 86,
+      "pending_source_checks": 84,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1359,6 +1406,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -1378,9 +1426,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 18,
+      "supported_native_checks": 19,
       "source_checks": 89,
-      "pending_source_checks": 71,
+      "pending_source_checks": 70,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1395,6 +1443,9 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.alarm_actions_enabled",
+        "aws.a.cloudwatch.alarm_state_actions",
+        "aws.a.cloudwatch.log_kms_encryption",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -1411,9 +1462,9 @@
         "aws.rds.encryption",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 15,
+      "supported_native_checks": 18,
       "source_checks": 247,
-      "pending_source_checks": 232,
+      "pending_source_checks": 229,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1428,6 +1479,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -1444,9 +1497,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 15,
+      "supported_native_checks": 17,
       "source_checks": 98,
-      "pending_source_checks": 83,
+      "pending_source_checks": 81,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1461,6 +1514,9 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.alarm_state_actions",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -1481,9 +1537,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 19,
+      "supported_native_checks": 22,
       "source_checks": 208,
-      "pending_source_checks": 188,
+      "pending_source_checks": 185,
       "manual_requirements": 1,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1498,6 +1554,7 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.cloudtrail.kms_encryption",
         "aws.cloudtrail.log_validation",
@@ -1515,9 +1572,9 @@
         "aws.lambda.function_url_authentication",
         "aws.rds.encryption"
       ],
-      "supported_native_checks": 16,
+      "supported_native_checks": 17,
       "source_checks": 139,
-      "pending_source_checks": 123,
+      "pending_source_checks": 122,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1532,6 +1589,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.cloudtrail.kms_encryption",
         "aws.ebs.encryption",
         "aws.elbv2.access_logging",
@@ -1546,9 +1605,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 13,
+      "supported_native_checks": 15,
       "source_checks": 79,
-      "pending_source_checks": 66,
+      "pending_source_checks": 64,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -1563,6 +1622,9 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.alarm_actions_enabled",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.kms_encryption",
@@ -1592,11 +1654,11 @@
         "aws.sns.kms_encryption",
         "aws.sqs.encryption"
       ],
-      "supported_native_checks": 28,
+      "supported_native_checks": 31,
       "source_checks": 209,
-      "pending_source_checks": 181,
+      "pending_source_checks": 177,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 0,
+      "rejected_invalid_predicates": 1,
       "status": "partially_supported"
     },
     {
@@ -1609,6 +1671,9 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
+        "aws.a.cloudwatch.cross_account_role_absent",
+        "aws.a.cloudwatch.log_kms_encryption",
+        "aws.a.cloudwatch.log_retention_at_least_365",
         "aws.a.config.region_recorder_enabled",
         "aws.a.guardduty.region_enabled",
         "aws.cloudtrail.log_validation",
@@ -1623,9 +1688,9 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 13,
+      "supported_native_checks": 16,
       "source_checks": 171,
-      "pending_source_checks": 158,
+      "pending_source_checks": 155,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -3244,9 +3309,14 @@
         "aws.b.classic_elb.access_logs",
         "aws.b.classic_elb.desync_mode",
         "aws.b.cloudfront.access_logging",
+        "aws.b.codebuild.logs_enabled",
+        "aws.b.codebuild.nonprivileged",
         "aws.b.docdb.seven_day_backups",
         "aws.b.dynamodb.point_in_time_recovery",
+        "aws.b.ecs.no_privileged_containers",
+        "aws.b.ecs.some_logging_configuration",
         "aws.b.eks.audit_log_category",
+        "aws.b.elasticache.automatic_minor_upgrade",
         "aws.b.rds.cluster_event_categories",
         "aws.b.rds.engine_log_exports",
         "aws.b.rds.instance_event_categories",
@@ -3256,11 +3326,11 @@
         "aws.rds.cluster_iam_authentication",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 19,
+      "supported_native_checks": 24,
       "source_checks": 144,
-      "pending_source_checks": 124,
+      "pending_source_checks": 117,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 2,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -3333,9 +3403,9 @@
       ],
       "supported_native_checks": 15,
       "source_checks": 90,
-      "pending_source_checks": 74,
+      "pending_source_checks": 73,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 2,
+      "rejected_invalid_predicates": 3,
       "status": "partially_supported"
     },
     {
@@ -3607,9 +3677,9 @@
       ],
       "supported_native_checks": 19,
       "source_checks": 119,
-      "pending_source_checks": 98,
+      "pending_source_checks": 97,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 3,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -3643,9 +3713,9 @@
       ],
       "supported_native_checks": 18,
       "source_checks": 111,
-      "pending_source_checks": 91,
+      "pending_source_checks": 90,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 3,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -3680,9 +3750,9 @@
       ],
       "supported_native_checks": 19,
       "source_checks": 123,
-      "pending_source_checks": 102,
+      "pending_source_checks": 101,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 3,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -3716,9 +3786,9 @@
       ],
       "supported_native_checks": 18,
       "source_checks": 117,
-      "pending_source_checks": 97,
+      "pending_source_checks": 96,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 3,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -3756,14 +3826,26 @@
         "aws.b.cloudfront.sni",
         "aws.b.cloudfront.viewer_encryption",
         "aws.b.cloudfront.waf_reference",
+        "aws.b.codebuild.logs_enabled",
+        "aws.b.codebuild.nonprivileged",
+        "aws.b.codebuild.s3_log_encryption",
+        "aws.b.cognito.no_guest_identities",
+        "aws.b.cognito.password_policy",
         "aws.b.docdb.deletion_protection",
         "aws.b.docdb.seven_day_backups",
         "aws.b.docdb.storage_encryption",
         "aws.b.dynamodb.point_in_time_recovery",
+        "aws.b.ecs.no_host_pid",
+        "aws.b.ecs.no_privileged_containers",
+        "aws.b.ecs.some_logging_configuration",
         "aws.b.efs.at_rest_encryption",
         "aws.b.efs.customer_managed_key",
         "aws.b.eks.audit_log_category",
         "aws.b.eks.disable_public_endpoint",
+        "aws.b.elasticache.at_rest",
+        "aws.b.elasticache.automatic_failover",
+        "aws.b.elasticache.automatic_minor_upgrade",
+        "aws.b.elasticache.in_transit",
         "aws.b.elbv2.multiple_az",
         "aws.b.inspector.ec2_organization_auto_enable",
         "aws.b.inspector.ecr_organization_auto_enable",
@@ -3793,11 +3875,11 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 61,
+      "supported_native_checks": 73,
       "source_checks": 339,
-      "pending_source_checks": 275,
+      "pending_source_checks": 261,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 5,
+      "rejected_invalid_predicates": 7,
       "status": "partially_supported"
     },
     {
@@ -3864,6 +3946,8 @@
         "aws.b.classic_elb.encrypted_listeners",
         "aws.b.cloudfront.custom_origin_encryption",
         "aws.b.cloudfront.no_sslv3_origin",
+        "aws.b.codebuild.artifact_encryption",
+        "aws.b.codebuild.s3_log_encryption",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
         "aws.b.efs.at_rest_encryption",
@@ -3874,11 +3958,11 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 21,
+      "supported_native_checks": 23,
       "source_checks": 143,
-      "pending_source_checks": 120,
+      "pending_source_checks": 117,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 3,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -3894,6 +3978,8 @@
         "aws.b.classic_elb.cross_zone",
         "aws.b.cloudfront.custom_origin_encryption",
         "aws.b.cloudfront.no_sslv3_origin",
+        "aws.b.codebuild.artifact_encryption",
+        "aws.b.codebuild.s3_log_encryption",
         "aws.b.dynamodb.encryption_type",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
@@ -3901,9 +3987,9 @@
         "aws.eks.secrets_encryption",
         "aws.rds.encryption"
       ],
-      "supported_native_checks": 9,
+      "supported_native_checks": 11,
       "source_checks": 61,
-      "pending_source_checks": 49,
+      "pending_source_checks": 47,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 3,
       "status": "partially_supported"
@@ -3932,6 +4018,7 @@
         "aws.b.classic_elb.encrypted_listeners",
         "aws.b.cloudfront.access_logging",
         "aws.b.cloudfront.viewer_encryption",
+        "aws.b.codebuild.logs_enabled",
         "aws.b.dynamodb.encryption_type",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
@@ -3945,11 +4032,11 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 26,
+      "supported_native_checks": 27,
       "source_checks": 156,
-      "pending_source_checks": 127,
+      "pending_source_checks": 125,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 4,
+      "rejected_invalid_predicates": 5,
       "status": "partially_supported"
     },
     {
@@ -3975,6 +4062,7 @@
         "aws.b.classic_elb.encrypted_listeners",
         "aws.b.cloudfront.access_logging",
         "aws.b.cloudfront.viewer_encryption",
+        "aws.b.codebuild.logs_enabled",
         "aws.b.dynamodb.encryption_type",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
@@ -3985,9 +4073,9 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 22,
+      "supported_native_checks": 23,
       "source_checks": 131,
-      "pending_source_checks": 106,
+      "pending_source_checks": 105,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 4,
       "status": "partially_supported"
@@ -4029,9 +4117,9 @@
       ],
       "supported_native_checks": 24,
       "source_checks": 159,
-      "pending_source_checks": 132,
+      "pending_source_checks": 131,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 4,
+      "rejected_invalid_predicates": 5,
       "status": "partially_supported"
     },
     {
@@ -4132,9 +4220,9 @@
       ],
       "supported_native_checks": 21,
       "source_checks": 122,
-      "pending_source_checks": 99,
+      "pending_source_checks": 98,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 3,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -4170,9 +4258,15 @@
         "aws.b.cloudfront.sni",
         "aws.b.cloudfront.viewer_encryption",
         "aws.b.cloudfront.waf_reference",
+        "aws.b.codebuild.artifact_encryption",
+        "aws.b.codebuild.logs_enabled",
+        "aws.b.codebuild.nonprivileged",
+        "aws.b.codebuild.s3_log_encryption",
         "aws.b.dynamodb.encryption_type",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
+        "aws.b.ecs.no_host_pid",
+        "aws.b.ecs.no_privileged_containers",
         "aws.b.efs.at_rest_encryption",
         "aws.b.eks.disable_public_endpoint",
         "aws.b.elbv2.multiple_az",
@@ -4190,11 +4284,11 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 42,
+      "supported_native_checks": 48,
       "source_checks": 251,
-      "pending_source_checks": 206,
+      "pending_source_checks": 198,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 4,
+      "rejected_invalid_predicates": 6,
       "status": "partially_supported"
     },
     {
@@ -4225,7 +4319,12 @@
         "aws.b.classic_elb.encrypted_listeners",
         "aws.b.cloudfront.access_logging",
         "aws.b.cloudfront.custom_acm_certificate",
+        "aws.b.codebuild.logs_enabled",
+        "aws.b.codebuild.s3_log_encryption",
         "aws.b.dynamodb.point_in_time_recovery",
+        "aws.b.ecs.no_host_pid",
+        "aws.b.ecs.no_privileged_containers",
+        "aws.b.ecs.some_logging_configuration",
         "aws.b.efs.at_rest_encryption",
         "aws.b.efs.customer_managed_key",
         "aws.b.ssm.parameter_secure_type",
@@ -4237,11 +4336,11 @@
         "aws.rds.deletion_protection",
         "aws.rds.encryption"
       ],
-      "supported_native_checks": 29,
+      "supported_native_checks": 34,
       "source_checks": 204,
-      "pending_source_checks": 171,
+      "pending_source_checks": 163,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 5,
+      "rejected_invalid_predicates": 8,
       "status": "partially_supported"
     },
     {
@@ -4266,6 +4365,8 @@
         "aws.b.classic_elb.access_logs",
         "aws.b.classic_elb.cross_zone",
         "aws.b.classic_elb.encrypted_listeners",
+        "aws.b.codebuild.artifact_encryption",
+        "aws.b.codebuild.logs_enabled",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
         "aws.b.efs.at_rest_encryption",
@@ -4276,11 +4377,11 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 21,
+      "supported_native_checks": 23,
       "source_checks": 126,
-      "pending_source_checks": 103,
+      "pending_source_checks": 100,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 3,
+      "rejected_invalid_predicates": 4,
       "status": "partially_supported"
     },
     {
@@ -4307,6 +4408,7 @@
         "aws.b.cloudfront.custom_origin_encryption",
         "aws.b.cloudfront.no_sslv3_origin",
         "aws.b.cloudfront.viewer_encryption",
+        "aws.b.codebuild.nonprivileged",
         "aws.b.dynamodb.encryption_type",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
@@ -4320,9 +4422,9 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 26,
+      "supported_native_checks": 27,
       "source_checks": 149,
-      "pending_source_checks": 121,
+      "pending_source_checks": 120,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 3,
       "status": "partially_supported"
@@ -4355,14 +4457,24 @@
         "aws.b.cloudfront.sni",
         "aws.b.cloudfront.viewer_encryption",
         "aws.b.cloudfront.waf_reference",
+        "aws.b.codebuild.artifact_encryption",
+        "aws.b.codebuild.logs_enabled",
+        "aws.b.codebuild.nonprivileged",
+        "aws.b.codebuild.s3_log_encryption",
         "aws.b.docdb.seven_day_backups",
         "aws.b.docdb.storage_encryption",
         "aws.b.dynamodb.encryption_type",
         "aws.b.dynamodb.kms_description",
         "aws.b.dynamodb.point_in_time_recovery",
+        "aws.b.ecs.no_host_pid",
+        "aws.b.ecs.no_privileged_containers",
+        "aws.b.ecs.some_logging_configuration",
         "aws.b.efs.at_rest_encryption",
         "aws.b.eks.audit_log_category",
         "aws.b.eks.disable_public_endpoint",
+        "aws.b.elasticache.at_rest",
+        "aws.b.elasticache.automatic_minor_upgrade",
+        "aws.b.elasticache.in_transit",
         "aws.b.rds.cluster_event_categories",
         "aws.b.rds.engine_log_exports",
         "aws.b.rds.instance_event_categories",
@@ -4374,11 +4486,11 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 36,
+      "supported_native_checks": 46,
       "source_checks": 253,
-      "pending_source_checks": 213,
+      "pending_source_checks": 201,
       "manual_requirements": 0,
-      "rejected_invalid_predicates": 5,
+      "rejected_invalid_predicates": 7,
       "status": "partially_supported"
     },
     {
@@ -4436,6 +4548,7 @@
         "aws.b.classic_elb.cross_zone",
         "aws.b.classic_elb.encrypted_listeners",
         "aws.b.classic_elb.multiple_az",
+        "aws.b.codebuild.logs_enabled",
         "aws.b.dynamodb.point_in_time_recovery",
         "aws.b.elbv2.multiple_az",
         "aws.b.lambda.reserved_concurrency",
@@ -4444,9 +4557,9 @@
         "aws.rds.deletion_protection",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 20,
+      "supported_native_checks": 21,
       "source_checks": 118,
-      "pending_source_checks": 96,
+      "pending_source_checks": 95,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 3,
       "status": "partially_supported"
@@ -4549,6 +4662,10 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.app.http2",
+        "azure.app.https_only",
+        "azure.app.minimum_tls",
+        "azure.port.keyvault_vault_recoverable",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
         "azure.port.securitycenter_azure_defender_on_for_keyvault",
         "azure.port.securitycenter_azure_defender_on_for_server",
@@ -4556,11 +4673,17 @@
         "azure.port.securitycenter_azure_defender_on_for_sqlservervm",
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_mcas_integration",
-        "azure.port.securitycenter_wdatp_integration"
+        "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
+        "azure.sql.audit_retention",
+        "azure.sql.auditing",
+        "azure.sql.tde_enabled",
+        "azure.storage.default_deny",
+        "azure.storage.https_only"
       ],
-      "supported_native_checks": 8,
+      "supported_native_checks": 18,
       "source_checks": 111,
-      "pending_source_checks": 68,
+      "pending_source_checks": 57,
       "manual_requirements": 35,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4575,6 +4698,10 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.app.http2",
+        "azure.app.https_only",
+        "azure.app.minimum_tls",
+        "azure.port.keyvault_vault_recoverable",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
         "azure.port.securitycenter_azure_defender_on_for_keyvault",
         "azure.port.securitycenter_azure_defender_on_for_server",
@@ -4583,11 +4710,17 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_mcas_integration",
         "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
+        "azure.sql.audit_retention",
+        "azure.sql.auditing",
+        "azure.sql.tde_enabled",
+        "azure.storage.default_deny",
+        "azure.storage.https_only",
         "azure.storage.minimum_tls"
       ],
-      "supported_native_checks": 9,
+      "supported_native_checks": 19,
       "source_checks": 115,
-      "pending_source_checks": 72,
+      "pending_source_checks": 61,
       "manual_requirements": 34,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4602,6 +4735,12 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.app.http2",
+        "azure.app.https_only",
+        "azure.app.minimum_tls",
+        "azure.port.cosmosdb_account_uses_private_link",
+        "azure.port.cosmosdb_account_virtual_network_filter_enabled",
+        "azure.port.keyvault_vault_recoverable",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
         "azure.port.securitycenter_azure_defender_on_for_cosmosdb",
         "azure.port.securitycenter_azure_defender_on_for_database",
@@ -4614,11 +4753,17 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_mcas_integration",
         "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
+        "azure.sql.audit_retention",
+        "azure.sql.auditing",
+        "azure.sql.tde_enabled",
+        "azure.storage.default_deny",
+        "azure.storage.https_only",
         "azure.storage.minimum_tls"
       ],
-      "supported_native_checks": 13,
+      "supported_native_checks": 25,
       "source_checks": 146,
-      "pending_source_checks": 88,
+      "pending_source_checks": 76,
       "manual_requirements": 45,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4633,8 +4778,14 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.app.http2",
+        "azure.app.https_only",
+        "azure.app.minimum_tls",
         "azure.network.load_balancer_standard",
         "azure.network.public_ip_standard",
+        "azure.port.cosmosdb_account_uses_private_link",
+        "azure.port.cosmosdb_account_virtual_network_filter_enabled",
+        "azure.port.keyvault_vault_recoverable",
         "azure.port.redis_cache_no_basic_sku",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
         "azure.port.securitycenter_azure_defender_on_for_cosmosdb",
@@ -4647,12 +4798,18 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_mcas_integration",
         "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
+        "azure.sql.audit_retention",
+        "azure.sql.auditing",
+        "azure.sql.tde_enabled",
+        "azure.storage.default_deny",
+        "azure.storage.https_only",
         "azure.storage.minimum_tls",
         "azure.storage.no_blob_public_access"
       ],
-      "supported_native_checks": 16,
+      "supported_native_checks": 28,
       "source_checks": 154,
-      "pending_source_checks": 92,
+      "pending_source_checks": 80,
       "manual_requirements": 46,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4667,8 +4824,14 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.app.http2",
+        "azure.app.https_only",
+        "azure.app.minimum_tls",
         "azure.network.load_balancer_standard",
         "azure.network.public_ip_standard",
+        "azure.port.cosmosdb_account_uses_private_link",
+        "azure.port.cosmosdb_account_virtual_network_filter_enabled",
+        "azure.port.keyvault_vault_recoverable",
         "azure.port.redis_cache_no_basic_sku",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
         "azure.port.securitycenter_azure_defender_on_for_containers",
@@ -4682,12 +4845,18 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_mcas_integration",
         "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
+        "azure.sql.audit_retention",
+        "azure.sql.auditing",
+        "azure.sql.tde_enabled",
+        "azure.storage.default_deny",
+        "azure.storage.https_only",
         "azure.storage.minimum_tls",
         "azure.storage.no_blob_public_access"
       ],
-      "supported_native_checks": 17,
+      "supported_native_checks": 29,
       "source_checks": 152,
-      "pending_source_checks": 90,
+      "pending_source_checks": 78,
       "manual_requirements": 45,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4702,8 +4871,14 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.app.http2",
+        "azure.app.https_only",
+        "azure.app.minimum_tls",
         "azure.network.load_balancer_standard",
         "azure.network.public_ip_standard",
+        "azure.port.cosmosdb_account_uses_private_link",
+        "azure.port.cosmosdb_account_virtual_network_filter_enabled",
+        "azure.port.keyvault_vault_recoverable",
         "azure.port.redis_cache_no_basic_sku",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
         "azure.port.securitycenter_azure_defender_on_for_cosmosdb",
@@ -4716,12 +4891,18 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_mcas_integration",
         "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
+        "azure.sql.audit_retention",
+        "azure.sql.auditing",
+        "azure.sql.tde_enabled",
+        "azure.storage.default_deny",
+        "azure.storage.https_only",
         "azure.storage.minimum_tls",
         "azure.storage.no_blob_public_access"
       ],
-      "supported_native_checks": 16,
+      "supported_native_checks": 28,
       "source_checks": 162,
-      "pending_source_checks": 96,
+      "pending_source_checks": 84,
       "manual_requirements": 50,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4744,6 +4925,8 @@
         "azure.port.cognitive_account_restrict_public_access",
         "azure.port.data_factory_public_network_access_disabled",
         "azure.port.data_factory_uses_private_link",
+        "azure.port.databricks_workspace_deployed_in_custom_vnet",
+        "azure.port.keyvault_vault_recoverable",
         "azure.port.redis_cache_uses_private_link",
         "azure.port.search_service_public_network_access_disabled",
         "azure.port.search_service_uses_private_link",
@@ -4756,15 +4939,17 @@
         "azure.port.securitycenter_azure_defender_on_for_sqlservervm",
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
         "azure.storage.default_oauth",
+        "azure.storage.https_only",
         "azure.storage.minimum_tls",
         "azure.storage.no_blob_public_access",
         "azure.storage.no_public_network",
         "azure.storage.no_shared_key"
       ],
-      "supported_native_checks": 25,
+      "supported_native_checks": 29,
       "source_checks": 192,
-      "pending_source_checks": 113,
+      "pending_source_checks": 109,
       "manual_requirements": 53,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4779,6 +4964,10 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.port.databricks_workspace_deployed_in_custom_vnet",
+        "azure.port.databricks_workspace_no_public_ip_enabled",
+        "azure.port.databricks_workspace_public_network_access_disabled",
+        "azure.port.databricks_workspace_uses_private_endpoint",
         "azure.port.security_center_defender_for_api_enabled",
         "azure.port.security_center_defender_for_cloudposture_enabled",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
@@ -4790,15 +4979,17 @@
         "azure.port.securitycenter_azure_defender_on_for_sqlservervm",
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.port.securitycenter_wdatp_integration",
+        "azure.port.storage_account_trusted_microsoft_services_enabled",
         "azure.storage.default_oauth",
+        "azure.storage.https_only",
         "azure.storage.minimum_tls",
         "azure.storage.no_blob_public_access",
         "azure.storage.no_public_network",
         "azure.storage.no_shared_key"
       ],
-      "supported_native_checks": 16,
+      "supported_native_checks": 22,
       "source_checks": 155,
-      "pending_source_checks": 97,
+      "pending_source_checks": 91,
       "manual_requirements": 42,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4814,6 +5005,7 @@
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
         "azure.app.cors_no_wildcards",
+        "azure.app.http2",
         "azure.port.apimanagement_service_with_virtual_network",
         "azure.port.app_configuration_private_link_used",
         "azure.port.cognitive_account_encrypted_with_cmk",
@@ -4834,9 +5026,9 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.storage.infrastructure_encryption"
       ],
-      "supported_native_checks": 20,
+      "supported_native_checks": 21,
       "source_checks": 177,
-      "pending_source_checks": 157,
+      "pending_source_checks": 156,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4872,6 +5064,7 @@
       "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
+        "azure.app.minimum_tls",
         "azure.port.app_configuration_encryption_enabled",
         "azure.port.securitycenter_azure_defender_on_for_appservice",
         "azure.port.securitycenter_azure_defender_on_for_keyvault",
@@ -4883,9 +5076,9 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.storage.infrastructure_encryption"
       ],
-      "supported_native_checks": 10,
+      "supported_native_checks": 11,
       "source_checks": 70,
-      "pending_source_checks": 60,
+      "pending_source_checks": 59,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4901,6 +5094,8 @@
       "repository": "turbot/steampipe-mod-azure-compliance",
       "native_check_ids": [
         "azure.app.cors_no_wildcards",
+        "azure.app.http2",
+        "azure.app.https_only",
         "azure.port.apimanagement_service_with_virtual_network",
         "azure.port.app_configuration_private_link_used",
         "azure.port.cognitive_account_encrypted_with_cmk",
@@ -4924,9 +5119,9 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.storage.infrastructure_encryption"
       ],
-      "supported_native_checks": 23,
+      "supported_native_checks": 25,
       "source_checks": 183,
-      "pending_source_checks": 160,
+      "pending_source_checks": 158,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"
@@ -4943,6 +5138,8 @@
       "native_check_ids": [
         "azure.aks.rbac",
         "azure.app.cors_no_wildcards",
+        "azure.app.http2",
+        "azure.app.https_only",
         "azure.port.apimanagement_service_with_virtual_network",
         "azure.port.app_configuration_private_link_used",
         "azure.port.cognitive_account_encrypted_with_cmk",
@@ -4967,9 +5164,9 @@
         "azure.port.securitycenter_azure_defender_on_for_storage",
         "azure.storage.infrastructure_encryption"
       ],
-      "supported_native_checks": 25,
+      "supported_native_checks": 27,
       "source_checks": 239,
-      "pending_source_checks": 166,
+      "pending_source_checks": 164,
       "manual_requirements": 48,
       "rejected_invalid_predicates": 0,
       "status": "partially_supported"

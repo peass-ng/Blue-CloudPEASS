@@ -1,0 +1,535 @@
+{
+  "kubernetes-compliance.control.cis_kube_v120_v100_5_1_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source treats nullable automount settings as non-mounted/OK without joining the ServiceAccount or documented inherited default. A Pod omitting automountServiceAccountToken can still receive credentials from the default enabled ServiceAccount; reject this false-clean inherited-default inference and preserve explicit Pod/ServiceAccount automount review.",
+    "official_docs": [
+      "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
+    ],
+    "replacement_checks": [
+      "k8s.pod.restrict_token_automount",
+      "k8s.serviceaccount.disable_automount"
+    ],
+    "review_notes": {
+      "query": "pod_service_account_token_disabled",
+      "source_path": "query/pod.pp",
+      "source_line": 195,
+      "query_sha256": "973c0cea0bd74eb0c688277843161a9f67183b64ff8f5352b9f924a6a34585e3",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89"
+    }
+  },
+  "kubernetes-compliance.control.cis_v170_5_1_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source treats nullable automount settings as non-mounted/OK without joining the ServiceAccount or documented inherited default. A Pod omitting automountServiceAccountToken can still receive credentials from the default enabled ServiceAccount; reject this false-clean inherited-default inference and preserve explicit Pod/ServiceAccount automount review.",
+    "official_docs": [
+      "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
+    ],
+    "replacement_checks": [
+      "k8s.pod.restrict_token_automount",
+      "k8s.serviceaccount.disable_automount"
+    ],
+    "review_notes": {
+      "query": "pod_service_account_token_disabled",
+      "source_path": "query/pod.pp",
+      "source_line": 195,
+      "query_sha256": "973c0cea0bd74eb0c688277843161a9f67183b64ff8f5352b9f924a6a34585e3",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89"
+    }
+  },
+  "kubernetes-compliance.control.service_account_token_disabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source treats nullable automount settings as non-mounted/OK without joining the ServiceAccount or documented inherited default. A Pod omitting automountServiceAccountToken can still receive credentials from the default enabled ServiceAccount; reject this false-clean inherited-default inference and preserve explicit Pod/ServiceAccount automount review.",
+    "official_docs": [
+      "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
+    ],
+    "replacement_checks": [
+      "k8s.pod.restrict_token_automount",
+      "k8s.serviceaccount.disable_automount"
+    ],
+    "review_notes": {
+      "query": "service_account_token_disabled",
+      "source_path": "query/service_account.pp",
+      "source_line": 1,
+      "query_sha256": "a6a8ce1856f73b1672ce794c73ea02bbf6b5298d0946ff3de1a702cd78b21db6",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89"
+    },
+    "supersedes": "kubernetes-compliance.control.service_account_token_disabled"
+  },
+  "prowler.kubernetes.apiserver_always_pull_images_plugin": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_admission_control_plugin_always_pull_images"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_always_pull_images_plugin/apiserver_always_pull_images_plugin.py",
+      "source_sha256": "a94b9b35198e1e843a01939163c653df9c26d8bd15a77c264b949871cd98ad5e",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_anonymous_requests": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source passes when --anonymous-auth=true is absent, even though the documented API server default permits anonymous authentication unless configuration disables it. Reject this false-clean inference from absence; require explicit captured disabled configuration.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_anonymous_requests/apiserver_anonymous_requests.py",
+      "source_sha256": "9c23083789a94c6fa789a0b9ed2599e045943f519c4aa69cc9f5f1a6888bffb6",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "k8s.ports.pod.container_argument_api_server_anonymous_auth_disabled"
+    ]
+  },
+  "prowler.kubernetes.apiserver_audit_log_maxage_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.reference_apiserver_audit_log_maxage_set"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_audit_log_maxage_set/apiserver_audit_log_maxage_set.py",
+      "source_sha256": "bc5170a98395bca011d20033fcc9536c2048b9187eba334c7307a0d172629f49",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_audit_log_maxbackup_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.reference_apiserver_audit_log_maxbackup_set"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_audit_log_maxbackup_set/apiserver_audit_log_maxbackup_set.py",
+      "source_sha256": "939db395a33a210102d70e6bfcce2b670a48042e0999ce4cb46224b82797ddd8",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_audit_log_maxsize_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.reference_apiserver_audit_log_maxsize_set"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_audit_log_maxsize_set/apiserver_audit_log_maxsize_set.py",
+      "source_sha256": "21da276d48d281d048c569e89e3cd2c8b9fcb73c1610f8aeef0debb0be1a2902",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_audit_log_path_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_audit_log_path_configured"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_audit_log_path_set/apiserver_audit_log_path_set.py",
+      "source_sha256": "30a044ff09b2eb243e21a86e7bb9d6d3d102028d4073035401136149cc07d7dc",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_auth_mode_include_node": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_authorization_mode_node"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_auth_mode_include_node/apiserver_auth_mode_include_node.py",
+      "source_sha256": "21fb0e28644835ddf04aeb108173ac5e6ef7558226813b58ca2f26a7b86cee8d",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_auth_mode_include_rbac": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_authorization_mode_rbac"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_auth_mode_include_rbac/apiserver_auth_mode_include_rbac.py",
+      "source_sha256": "f77ab11ec106dbe8dab500df750c909a541339695bdadf17db06ffafd7ac7d1e",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_auth_mode_not_always_allow": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_authorization_mode_no_always_allow"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_auth_mode_not_always_allow/apiserver_auth_mode_not_always_allow.py",
+      "source_sha256": "51eba541099022cbfa5acabb9e05093540787ceb2a57ceb5a67a471b79083044",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_client_ca_file_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.reference_apiserver_client_ca_file_set"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_client_ca_file_set/apiserver_client_ca_file_set.py",
+      "source_sha256": "c0e84889c53ae8a60678db3447b71f49f8ada5cfdb11b91594ce2c0dd06426f5",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_deny_service_external_ips": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source reports PASS when DenyServiceExternalIPs appears in --disable-admission-plugins, reversing its claimed security effect. Reject the inverted condition and preserve guidance to enable or verify the intended admission policy.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_deny_service_external_ips/apiserver_deny_service_external_ips.py",
+      "source_sha256": "3e833d630b55ec3d4a314a4ae12fd7885d3833d8ca979b4f104989ee3739ea86",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": []
+  },
+  "prowler.kubernetes.apiserver_disable_profiling": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_kube_apiserver_profiling_disabled"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_disable_profiling/apiserver_disable_profiling.py",
+      "source_sha256": "ecb2f554ba133894ed339d787eadd3ec52ea99802cb6404a46bc68463a3c5347",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_encryption_provider_config_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_encryption_providers_configured"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_encryption_provider_config_set/apiserver_encryption_provider_config_set.py",
+      "source_sha256": "4e9054c6b1948d14c8d3795bd80bfcb2db306418f87714e0e95d7236307daf41",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_etcd_cafile_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_etcd_cafile_configured"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_etcd_cafile_set/apiserver_etcd_cafile_set.py",
+      "source_sha256": "22f192a17b020da7c478c954c34b4d07eda0dd272c07629b201e5febf759a6a8",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_etcd_tls_config": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source uses AND for the two missing certificate/key flags, so one supplied field passes while its required pair is absent. Reject this false-positive client TLS completeness claim and retain both-field declaration review.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_etcd_tls_config/apiserver_etcd_tls_config.py",
+      "source_sha256": "e160cf57af926063de70cec4af523d98920b6697a1980a8051aa8bae3c544cd7",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "k8s.ports.pod.container_argument_kube_apiserver_etcd_certfile_and_keyfile_configured"
+    ]
+  },
+  "prowler.kubernetes.apiserver_event_rate_limit": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source sets plugin_set=True when EventRateLimit is NOT in the enable-admission-plugins value, and fails when it is present. Reject this inverted condition with direct present/absent truth counterexamples.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_event_rate_limit/apiserver_event_rate_limit.py",
+      "source_sha256": "ee79ac9bab74c4cfbaef7a23fdded6f92d5b14ab8c5149139579911288575034",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": []
+  },
+  "prowler.kubernetes.apiserver_kubelet_cert_auth": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_kubelet_certificate_authority_configured"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_kubelet_cert_auth/apiserver_kubelet_cert_auth.py",
+      "source_sha256": "57fe7fe0a99192e60ecb0124d83fce9d9c8fd6ce7588948ffb0ab7e539ab768a",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_kubelet_tls_auth": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source uses AND for missing client certificate/key flags, passing a one-field incomplete TLS declaration. Reject that completeness inference and retain the paired-field predicate.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_kubelet_tls_auth/apiserver_kubelet_tls_auth.py",
+      "source_sha256": "44b8fd7b290a0dd783d75e34816541f01c610ebb9ba4bbcc4d92fea9568b5600",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "k8s.ports.pod.container_argument_kubelet_client_certificate_and_key_configured"
+    ]
+  },
+  "prowler.kubernetes.apiserver_namespace_lifecycle_plugin": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_namespace_lifecycle_enabled"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_namespace_lifecycle_plugin/apiserver_namespace_lifecycle_plugin.py",
+      "source_sha256": "8abc1b5147ba8a351d058eefeaa4e502939494ed64e41b2b70d8bb6d05c56bf8",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_no_always_admit_plugin": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_admission_control_plugin_no_always_admit"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_no_always_admit_plugin/apiserver_no_always_admit_plugin.py",
+      "source_sha256": "c328d4cdfd066d5ee8292d1758a33f447bd8d948ca4c676f984f4e3dc73d8c07",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_no_token_auth_file": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_token_auth_file_not_configured"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_no_token_auth_file/apiserver_no_token_auth_file.py",
+      "source_sha256": "0e5ddd25710ae264855a9eb11eb7208e862a9bebd26d8962107e78eff945ff23",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_node_restriction_plugin": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_node_restriction_enabled"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_node_restriction_plugin/apiserver_node_restriction_plugin.py",
+      "source_sha256": "e62c7dff24c50f720909388b1eb677a9f9882ebae970d627f8710a063eacfed9",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_request_timeout_set": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source merely searches request-timeout text and assumes any value is appropriate, without a defined secure bound or duration validation. Reject this presence-to-security claim; preserve workload/version-appropriate timeout review guidance.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_request_timeout_set/apiserver_request_timeout_set.py",
+      "source_sha256": "6e597c4acb91bfef24853e64d9adeb927749e85d78f8e7073d87efaee1fe4140",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": []
+  },
+  "prowler.kubernetes.apiserver_security_context_deny_plugin": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_security_context_deny_enabled"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_security_context_deny_plugin/apiserver_security_context_deny_plugin.py",
+      "source_sha256": "e2aa60329f7137db33d8ef23e2eaa636a19a44fea5589f14fcfacb3afdb99926",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_service_account_key_file_set": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_service_account_key_file_appropriate"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_service_account_key_file_set/apiserver_service_account_key_file_set.py",
+      "source_sha256": "5771edf0e8bc620c239dcd5bef0f820d51f0c3c211e8aff582c1ccc0afd015af",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_service_account_lookup_true": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_service_account_lookup_enabled"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_service_account_lookup_true/apiserver_service_account_lookup_true.py",
+      "source_sha256": "e2975d42ffcb3027cd2f1a5db5260fd1cbf2f373b1fe8e95bd54d0614b70ed93",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_service_account_plugin": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_service_account_enabled"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_service_account_plugin/apiserver_service_account_plugin.py",
+      "source_sha256": "88d85d75fdc5d0c69933ceb83537d51bf418cf5b99b21f05396715d9067381fe",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  },
+  "prowler.kubernetes.apiserver_strong_ciphers_only": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Default source whitelist contains only TLS1.3 ciphers while Kubernetes states TLS1.3 cipher suites are not configurable through tls-cipher-suites. It rejects valid secure TLS1.2 ECDHE configurations and cannot establish the claimed TLS1.3 control. Reject the nonfunctional default and preserve reviewed version/protocol-aware cipher guidance.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_strong_ciphers_only/apiserver_strong_ciphers_only.py",
+      "source_sha256": "462f84fd938becabbd4c67c370127cfc55b6a93b743d78e8db689ddf69242dde",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "k8s.ports.pod.container_strong_kube_apiserver_cryptographic_ciphers"
+    ]
+  },
+  "prowler.kubernetes.apiserver_tls_config": {
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.container_argument_kube_apiserver_tls_cert_file_and_tls_private_key_file_configured"
+    ],
+    "reason": "Reviewed the pinned component selection and captured command predicate: exact fields, token/set comparison and configured reference equality thresholds. Reuse the real native declaration evaluator; unavailable effective defaults/configuration are a separate coverage gap and no host execution is performed.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/"
+    ],
+    "review_notes": {
+      "source_path": "prowler/providers/kubernetes/services/apiserver/apiserver_tls_config/apiserver_tls_config.py",
+      "source_sha256": "76791e0f85353c05fe44e33cfc02beff84a9cffc70b6bbc6d3f61b92b1d8b382",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "scope": "explicit API-server Pod command declarations"
+    }
+  }
+}

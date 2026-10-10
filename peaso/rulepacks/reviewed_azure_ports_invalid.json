@@ -1,0 +1,513 @@
+{
+  "azure-compliance.control.ad_guest_user_reviewed_monthly": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 7,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v130/section_1.pp",
+      "control_line": 70,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_2_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Pinned source requires automatic provisioning of retired Log Analytics/MMA monitoring agent. Microsoft retired MMA inNovember2024 and recommends migration; enabling obsolete autoprovisioning is unsuitable current2026 hardening. Original historicalcontrol provenance retained, not relabeled as supported.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_automatic_provisioning_monitoring_agent_on",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 281,
+      "query_sha256": "b515e9e6b989c598561810cdb6ad6afc0fec28ec44ee192dbb594ea4484fc984",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 174,
+      "arguments": [],
+      "counterexample": {
+        "source_setting": "auto_provision=On",
+        "source_status": "ok",
+        "retirement": "2024-11",
+        "current_review_date": "2026-10-10",
+        "requirement_truth": "retired_agent_not_a_current_required_control"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 455,
+      "query_sha256": "8cb4612c2f128c64c660b3283ed9f04bdbbde57e9d6fa7a3a32fb13bc1af283d",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 188,
+      "arguments": [],
+      "counterexample": {
+        "values": [
+          "Audit"
+        ],
+        "source_count": 1,
+        "disabled_count": 0,
+        "source_status": "alarm",
+        "requirement_truth": "no_disabled_values"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v140/section_1.pp",
+      "control_line": 69,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_2_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Pinned source requires automatic provisioning of retired Log Analytics/MMA monitoring agent. Microsoft retired MMA inNovember2024 and recommends migration; enabling obsolete autoprovisioning is unsuitable current2026 hardening. Original historicalcontrol provenance retained, not relabeled as supported.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_automatic_provisioning_monitoring_agent_on",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 281,
+      "query_sha256": "b515e9e6b989c598561810cdb6ad6afc0fec28ec44ee192dbb594ea4484fc984",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 174,
+      "arguments": [],
+      "counterexample": {
+        "source_setting": "auto_provision=On",
+        "source_status": "ok",
+        "retirement": "2024-11",
+        "current_review_date": "2026-10-10",
+        "requirement_truth": "retired_agent_not_a_current_required_control"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 455,
+      "query_sha256": "8cb4612c2f128c64c660b3283ed9f04bdbbde57e9d6fa7a3a32fb13bc1af283d",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 188,
+      "arguments": [],
+      "counterexample": {
+        "values": [
+          "Audit"
+        ],
+        "source_count": 1,
+        "disabled_count": 0,
+        "source_status": "alarm",
+        "requirement_truth": "no_disabled_values"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_1_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v150/section_1.pp",
+      "control_line": 241,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_2_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Pinned source requires automatic provisioning of retired Log Analytics/MMA monitoring agent. Microsoft retired MMA inNovember2024 and recommends migration; enabling obsolete autoprovisioning is unsuitable current2026 hardening. Original historicalcontrol provenance retained, not relabeled as supported.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_automatic_provisioning_monitoring_agent_on",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 281,
+      "query_sha256": "b515e9e6b989c598561810cdb6ad6afc0fec28ec44ee192dbb594ea4484fc984",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 263,
+      "arguments": [],
+      "counterexample": {
+        "source_setting": "auto_provision=On",
+        "source_status": "ok",
+        "retirement": "2024-11",
+        "current_review_date": "2026-10-10",
+        "requirement_truth": "retired_agent_not_a_current_required_control"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 455,
+      "query_sha256": "8cb4612c2f128c64c660b3283ed9f04bdbbde57e9d6fa7a3a32fb13bc1af283d",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 418,
+      "arguments": [],
+      "counterexample": {
+        "values": [
+          "Audit"
+        ],
+        "source_count": 1,
+        "disabled_count": 0,
+        "source_status": "alarm",
+        "requirement_truth": "no_disabled_values"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_1_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v200/section_1.pp",
+      "control_line": 255,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_14": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 455,
+      "query_sha256": "8cb4612c2f128c64c660b3283ed9f04bdbbde57e9d6fa7a3a32fb13bc1af283d",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 251,
+      "arguments": [],
+      "counterexample": {
+        "values": [
+          "Audit"
+        ],
+        "source_count": 1,
+        "disabled_count": 0,
+        "source_status": "alarm",
+        "requirement_truth": "no_disabled_values"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_15": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Pinned source requires automatic provisioning of retired Log Analytics/MMA monitoring agent. Microsoft retired MMA inNovember2024 and recommends migration; enabling obsolete autoprovisioning is unsuitable current2026 hardening. Original historicalcontrol provenance retained, not relabeled as supported.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_automatic_provisioning_monitoring_agent_on",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 281,
+      "query_sha256": "b515e9e6b989c598561810cdb6ad6afc0fec28ec44ee192dbb594ea4484fc984",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 265,
+      "arguments": [],
+      "counterexample": {
+        "source_setting": "auto_provision=On",
+        "source_status": "ok",
+        "retirement": "2024-11",
+        "current_review_date": "2026-10-10",
+        "requirement_truth": "retired_agent_not_a_current_required_control"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_1_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v210/section_1.pp",
+      "control_line": 256,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_14": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Pinned source requires automatic provisioning of retired Log Analytics/MMA monitoring agent. Microsoft retired MMA inNovember2024 and recommends migration; enabling obsolete autoprovisioning is unsuitable current2026 hardening. Original historicalcontrol provenance retained, not relabeled as supported.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_automatic_provisioning_monitoring_agent_on",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 281,
+      "query_sha256": "b515e9e6b989c598561810cdb6ad6afc0fec28ec44ee192dbb594ea4484fc984",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 246,
+      "arguments": [],
+      "counterexample": {
+        "source_setting": "auto_provision=On",
+        "source_status": "ok",
+        "retirement": "2024-11",
+        "current_review_date": "2026-10-10",
+        "requirement_truth": "retired_agent_not_a_current_required_control"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v300/section_2.pp",
+      "control_line": 272,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Pinned source requires automatic provisioning of retired Log Analytics/MMA monitoring agent. Microsoft retired MMA inNovember2024 and recommends migration; enabling obsolete autoprovisioning is unsuitable current2026 hardening. Original historicalcontrol provenance retained, not relabeled as supported.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "securitycenter_automatic_provisioning_monitoring_agent_on",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 281,
+      "query_sha256": "b515e9e6b989c598561810cdb6ad6afc0fec28ec44ee192dbb594ea4484fc984",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 75,
+      "arguments": [],
+      "counterexample": {
+        "source_setting": "auto_provision=On",
+        "source_status": "ok",
+        "retirement": "2024-11",
+        "current_review_date": "2026-10-10",
+        "requirement_truth": "retired_agent_not_a_current_required_control"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_6_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v400/section_6.pp",
+      "control_line": 261,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_5_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source measures account creation age and accountEnabled, not access-review completion or reviewedDateTime. An enabled guest createdyearsago and reviewedtoday still alarms; a new guestneverreviewed passes. Rejecting wrong measuredcondition, not missingfacts.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/accessreviewinstancedecisionitem?view=graph-rest-1.0"
+    ],
+    "review_notes": "Individually inspected no-argument source delegation; exact source condition and noncustomer synthetic counterexample retained. Not an unsupported-context or missing-facts rejection.",
+    "source_review": {
+      "query_id": "ad_guest_user_reviewed_monthly",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 145,
+      "query_sha256": "7230e4d49610de6c54ac03b6ea32e9cc61cc845e3189567badeb5fd63e13b687",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 266,
+      "arguments": [],
+      "counterexample": {
+        "enabled": true,
+        "created": "2020-01-01T00:00:00Z",
+        "captured_clock": "2026-10-10T00:00:00Z",
+        "actual_reviewedDateTime": "2026-10-09T00:00:00Z",
+        "source_status": "alarm",
+        "requirement_truth": "recently_reviewed"
+      }
+    }
+  }
+}

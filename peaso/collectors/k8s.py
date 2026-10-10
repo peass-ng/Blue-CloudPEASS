@@ -348,7 +348,8 @@ def _sanitize(value):
                 "azure.workload.identity/client-id", "azure.workload.identity/tenant-id",
                 "k8s.v1.cni.cncf.io/networks", "k8s.v1.cni.cncf.io/network-status",
                 "kubernetes.io/ingress.class", "kubernetes.io/psp", "iam.amazonaws.com/permitted",
-                "iam.amazonaws.com/role", "openshift.io/scc", "openshift.io/required-scc", "kubernetes.io/service-account.name")}
+                "iam.amazonaws.com/role", "openshift.io/scc", "openshift.io/required-scc", "kubernetes.io/service-account.name",
+                "kubernetes.io/service-account.uid")}
         elif key == "env" and isinstance(child, list):
             result[key] = [{"name": entry.get("name"), **({"valueFrom": _sanitize(entry["valueFrom"])} if "valueFrom" in entry else {"value_redacted": True})} for entry in child if isinstance(entry, dict)]
         elif key in ("command", "args"):
@@ -405,6 +406,135 @@ def _pages(reader, api, path, kind, cluster, scope, namespaced):
             raise AzureReadError("page_limit")
 
 
+def _metadata_get(api, path, params, representation):
+    """Negotiate metadata-only encodings; never add full-object JSON fallback."""
+    if not hasattr(api, "api_client") or not hasattr(api.api_client, "call_api"):
+        raise AzureReadError("metadata_negotiation_transport_unavailable")
+    accept = "application/json;as=" + representation + ";g=meta.k8s.io;v=v1"
+    try:
+        response = api.api_client.call_api(path, "GET", query_params=list(params.items()),
+            header_params={"Accept": accept}, auth_settings=["BearerToken"], _preload_content=False,
+            _return_http_data_only=True, _request_timeout=30)
+    except Exception as exc:
+        raise AzureReadError("metadata_negotiation_failed", getattr(exc, "status", None)) from None
+    try:
+        # Kubernetes JSON encodes TypeMeta first. Reject a full SecretList before
+        # consuming its object contents when a server violates negotiation.
+        import json
+        prefix = b""
+        for _ in range(32):
+            chunk = response.read(32)
+            prefix += chunk
+            match = re.search(rb'"kind"\s*:\s*"([^"\\]+)"', prefix)
+            if match:
+                if match[1].decode() != representation:
+                    raise AzureReadError("metadata_representation_unsupported")
+                break
+            if not chunk:
+                raise AzureReadError("metadata_representation_malformed")
+        else:
+            raise AzureReadError("metadata_representation_malformed")
+        document = json.loads(prefix + response.read())
+        if not isinstance(document, dict) or document.get("kind") != representation:
+            raise AzureReadError("metadata_representation_malformed")
+        if representation == "PartialObjectMetadataList":
+            # Scrub metadata before it crosses the shared reader boundary;
+            # last-applied annotations can embed the original Secret's data.
+            document = _sanitize(document)
+            for item in document.get("items", []):
+                metadata = item.get("metadata", {}) if isinstance(item, dict) else {}
+                annotations = metadata.get("annotations", {})
+                if isinstance(annotations, dict):
+                    metadata["annotations"] = {key: value for key, value in annotations.items() if key in (
+                        "kubernetes.io/service-account.name", "kubernetes.io/service-account.uid")}
+        return document
+    finally:
+        response.close()
+        response.release_conn()
+
+
+def _metadata_pages(reader, api, path, kind, cluster, scope, namespaced, *, include_type=False):
+    continuation, seen, resource_version = None, set(), None
+    type_catalog = {}
+    for page in count():
+        params = {"limit": reader.page_size}
+        if continuation:
+            params["continue"] = continuation
+        partial = reader.call(_metadata_get, api, path, params, "PartialObjectMetadataList")
+        metadata = partial.get("metadata", {})
+        items = partial.get("items")
+        if not isinstance(metadata, dict) or not isinstance(items, list):
+            raise AzureReadError("metadata_representation_malformed")
+        if resource_version is not None and metadata.get("resourceVersion") != resource_version:
+            raise AzureReadError("metadata_resource_version_changed")
+        resource_version = metadata.get("resourceVersion")
+        for item in items:
+            if not isinstance(item, dict) or set(item) - {"kind", "apiVersion", "metadata"}:
+                raise AzureReadError("metadata_response_contains_full_object")
+        if include_type and items:
+            # Tables without row objects do not always include namespace cells.
+            # Resolve types per namespace, at the partial-list resourceVersion,
+            # so identical names in different namespaces cannot collide.
+            namespaces = {item.get("metadata", {}).get("namespace") for item in items}
+            for namespace in sorted(namespaces):
+                if namespace in type_catalog:
+                    continue
+                if not isinstance(namespace, str):
+                    raise AzureReadError("metadata_namespace_missing")
+                table_path = f"/api/v1/namespaces/{quote(namespace, safe='')}/secrets"
+                table_params = {"limit": reader.page_size, "includeObject": "None", "resourceVersion": resource_version,
+                                "resourceVersionMatch": "Exact"}
+                types, table_seen = {}, set()
+                for table_page in count():
+                    table = reader.call(_metadata_get, api, table_path, table_params, "Table")
+                    if table.get("metadata", {}).get("resourceVersion") != resource_version:
+                        raise AzureReadError("metadata_table_version_mismatch")
+                    columns = table.get("columnDefinitions", [])
+                    if not isinstance(columns, list) or any(not isinstance(column, dict) for column in columns):
+                        raise AzureReadError("metadata_table_malformed")
+                    names = [str(column.get("name", "")).lower() for column in columns]
+                    if "name" not in names or "type" not in names:
+                        raise AzureReadError("secret_type_metadata_unavailable")
+                    for row in table.get("rows", []):
+                        if not isinstance(row, dict) or row.get("object") not in (None, {}) or not isinstance(row.get("cells"), list):
+                            raise AzureReadError("metadata_table_contains_object")
+                        cells = row["cells"]
+                        if len(cells) != len(names) or not isinstance(cells[names.index("type")], str):
+                            raise AzureReadError("metadata_table_malformed")
+                        types[str(cells[names.index("name")])] = cells[names.index("type")]
+                    table_token = table.get("metadata", {}).get("continue")
+                    if not table_token:
+                        break
+                    if not isinstance(table_token, str) or table_token in table_seen:
+                        raise AzureReadError("metadata_table_continuation_malformed")
+                    table_seen.add(table_token)
+                    if reader.budget.max_pages is not None and table_page + 1 >= reader.budget.max_pages:
+                        raise AzureReadError("page_limit")
+                    table_params["continue"] = table_token
+                type_catalog[namespace] = types
+        output = []
+        for item in items:
+            native = _native(item, kind, cluster, scope, namespaced)
+            native["provenance"]["representation"] = "PartialObjectMetadataList"
+            if include_type:
+                name = item["metadata"]["name"]
+                types = type_catalog[item["metadata"]["namespace"]]
+                if name not in types:
+                    raise AzureReadError("secret_type_metadata_incomplete")
+                native["type"] = types[name]
+                native["provenance"]["type_source"] = "Table;includeObject=None"
+            output.append(native)
+        yield output
+        continuation = metadata.get("continue")
+        if not continuation:
+            return
+        if not isinstance(continuation, str) or continuation in seen:
+            raise AzureReadError("metadata_continuation_malformed")
+        seen.add(continuation)
+        if reader.budget.max_pages is not None and page + 1 >= reader.budget.max_pages:
+            raise AzureReadError("page_limit")
+
+
 def collect(connector, requirements=None, *, api=None):
     options, auth = connector.get("options", {}), connector.get("auth", {})
     trusted_scopes = _trusted_scopes(options)
@@ -434,6 +564,13 @@ def collect(connector, requirements=None, *, api=None):
         jobs = []
         actual = wanted | ({"pod", "node"} if "network_interface" in wanted else set())
         for imported_kind in sorted(actual.intersection({"component_configuration", "file_metadata", "secret_metadata", "configmap_metadata", "podsecuritypolicy"})):
+            if imported_kind in ("secret_metadata", "configmap_metadata") and imported_kind not in options.get("metadata_evidence", {}):
+                plural = "secrets" if imported_kind == "secret_metadata" else "configmaps"
+                for scope in scopes:
+                    path = "/api/v1/" + plural if scope == "*" else f"/api/v1/namespaces/{quote(scope, safe='')}/{plural}"
+                    jobs.append((imported_kind, scope, "kubernetes", lambda path=path, scope=scope, imported_kind=imported_kind:
+                        _metadata_pages(reader, api, path, imported_kind, cluster, scope, True, include_type=imported_kind == "secret_metadata")))
+                continue
             def supplied(imported_kind=imported_kind):
                 entries = options.get("metadata_evidence", {}).get(imported_kind)
                 if entries is None:

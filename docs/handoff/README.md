@@ -55,6 +55,7 @@ Directive 13 transfers pending IDs listed in `peaso/rulepacks/port_partitions_cl
 - Supervisor's latest reported full suite: **10971 passed, 4 failed, 1 error**. A fully green suite remains a release gate.
 - AWS owner has received the four collector regressions: selected-profile region bootstrap expectation; non-read operation guard must run before SDK side effects; credential-report missing state/updated generation fixtures; leftover Organizations stub during teardown.
 - GCP owner has received missing fixture stubs/expectations for new group, group-membership and principal-access-boundary facts. Do not fabricate successful empty collection.
+- After the handoff commit, the coordinator independently reran `.venv/bin/python -m pytest -q tests/test_peaso_collectors_aws.py tests/test_peaso_collectors_gcp.py`: **145 passed in 2.98 seconds**. The reported collector regressions above are resolved in this targeted run; the full suite remains unverified. AWS owner subsequently reported 170 targeted tests passed, including parent metadata and guards that reject forbidden operations before client creation even if accidentally placed in an allow-list.
 - Two earlier API e2e failures: `tests/test_peaso_api.py::test_worker_end_to_end_offline_report_and_downloads` (failed status versus completed), and `tests/test_peaso_api.py::test_reachability_uses_owned_scoped_facts_and_rejects_invalid_ports` (409 versus 200). Prior log: `/tmp/peaso-api-all-tests.log`, 2 failed/68 passed. API owner isolated auth/storage run passed 39 tests. Supervisor integration may have changed those results; no later full validation is claimed here.
 - Selected offline reachability owner reported 204 integration tests passed and a 5010-resource selected query around 0.1 seconds; unsupported routing/policy context remains explicitly unknown.
 - Real AWS/Azure/local-kind collections and older CLI round trips passed their stated scoped gates. They are not the new full-default gate. Large Azure UI and Compose artifacts were tested; original QA Compose projects have now been removed.
@@ -70,6 +71,8 @@ The supervisor's previous failing AWS run had only `us-east-1`, 3 collected, 79 
 The exact new unfiltered CLI has not been rerun by this coordinator because its current default executes the supervisor-owned feature. QA is now assigned a direct collector-only full AWS run with `naxusai-admin`, without evaluator calls, to measure regions, collection states, API calls, pagination, resource/network inventory and duration. Label that evidence collector-only; it does not establish exact end-to-end CLI acceptance. New numbers are pending at this handoff.
 
 Directive 11 read-only facts have been routed: Organizations parent records and ECR mutability to AWS; identity federation to Azure; Workspace admin-role metadata to GCP; metadata-only Kubernetes service-account Secret identities to Kubernetes. The Kubernetes collector must never fetch secret values and then redact: supported metadata negotiation must fail closed. Each change needs fixtures and truthful denied/unsupported coverage.
+
+Milestone after the initial handoff: Organizations parent collection and Azure managed-identity federation have fixture evidence. GCP Workspace admin-role metadata and Kubernetes Secret metadata use explicit projections, denial/unsupported semantics and annotation scrubbing before cache. The coordinator independently ran the two new GCP/Kubernetes collection test files: 17 passed in 1.96 seconds. The owner reported a broader 308-test checkpoint. No successful live GCP/GKE run is implied.
 
 ## Hosted deployment state and continuation
 
@@ -115,3 +118,15 @@ assume wiki --exec '/Users/carlospolop/git/Blue-CloudPEASS/.venv/bin/python /Use
 ```
 
 These helpers reject unexpected contents, policies, resources and identity mismatches. Never use wildcard deletion, delete the existing user pool, or destroy application infrastructure to clean tests. Refresh ledger status before any new fixture lifecycle; write the ledger before creation and install a bounded finally/watchdog teardown. The QA task handoff is authoritative for exact resource identifiers and new measurements after this checkpoint.
+
+### New isolated authentication fixture assignment
+
+At 18:59 UTC the API owner was authorized to create one fresh suppressed **free** Cognito fixture using the existing QA helper, solely to verify real JWT and refresh-cookie authentication. Original users cannot be reused because they were deleted. This new lifecycle is planned at this update; check the API handoff and the new private ledger before deciding whether it is live. No existing users, pool/client, billing, entitlements, scanning pipeline or supervisor evaluator may be changed or invoked.
+
+Directory: `.cache/peaso-api-live-auth/task_b13bbe13d50d/`; exact native identity is recorded in `cognito-ledger.json` before/after creation. The shared helper retains its original QA task tag; the API owner owns this separate invocation and must record it in its handoff before creation. The helper has a 40-minute bounded finally cleanup, and the worker must release/clean it immediately after validation. Repeat teardown if needed:
+
+```sh
+assume wiki --exec '/Users/carlospolop/git/Blue-CloudPEASS/.venv/bin/python /Users/carlospolop/git/Blue-CloudPEASS/scripts/peaso_test_resources/cognito_session.py --directory /Users/carlospolop/git/Blue-CloudPEASS/.cache/peaso-api-live-auth/task_b13bbe13d50d --cleanup'
+```
+
+Verify `not_found` for the exact ledger identity and deletion of `hosted-test-identities.json`; never print its token/password values. This fixture does not establish public Turnstile signup or live paid-user acceptance.

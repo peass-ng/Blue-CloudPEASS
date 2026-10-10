@@ -9,6 +9,9 @@ import copy
 import json
 
 SPECS = {
+    "rest_api_stage": ("apigateway", "get_stages", "item"),
+    "http_api_stage": ("apigatewayv2", "get_stages", "Items"),
+    "ecr_registry_scanning_configuration": ("ecr", "get_registry_scanning_configuration", None),
     "rds_event_subscription": ("rds", "describe_event_subscriptions", "EventSubscriptionsList"),
     "rds_proxy": ("rds", "describe_db_proxies", "DBProxies"),
     "rds_cluster_snapshot": ("rds", "describe_db_cluster_snapshots", "DBClusterSnapshots"),
@@ -49,6 +52,8 @@ SPECS = {
     "ssm_service_settings": ("ssm", "get_service_setting", None),
 }
 NATIVE_IDS = {
+    "rest_api_stage": "id", "http_api_stage": "id",
+    "ecr_registry_scanning_configuration": "registryId",
     "rds_event_subscription": "EventSubscriptionArn", "rds_proxy": "DBProxyArn", "rds_cluster_snapshot": "DBClusterSnapshotArn", "rds_certificate": "CertificateIdentifier",
     "acm_certificate": "CertificateArn", "cloudfront_distribution": "ARN", "ecs_cluster": "clusterArn", "ecs_task_definition": "taskDefinitionArn",
     "elasticache_cluster": "ARN", "elasticache_replication_group": "ARN", "memorydb_cluster": "ARN", "dms_replication_instance": "ReplicationInstanceArn",
@@ -61,7 +66,7 @@ NATIVE_IDS = {
 GLOBAL_TYPES = {"cloudfront_distribution", "route53_zone", "route53_health_check"}
 READ_ACTIONS = {(service, operation) for service, operation, expression in SPECS.values()}
 READ_ACTIONS.update({
-    ("acm", "describe_certificate"), ("cloudfront", "get_distribution_config"),
+    ("ecr", "describe_repositories"), ("acm", "describe_certificate"), ("cloudfront", "get_distribution_config"),
     ("ecs", "describe_clusters"), ("ecs", "describe_task_definition"), ("ecs", "list_services"), ("ecs", "describe_services"),
     ("backup", "get_backup_plan"), ("backup", "list_backup_selections"), ("backup", "get_backup_selection"), ("backup", "describe_backup_vault"), ("backup", "get_backup_vault_access_policy"),
     ("lambda", "get_function_concurrency"), ("lambda", "get_function_configuration"),
@@ -129,7 +134,39 @@ def _self_documents(requests, session, region, account):
     return requests.pages(session, "ssm", region, "list_documents", "DocumentIdentifiers", Filters=[{"Key": "Owner", "Values": ["Self"]}])
 
 
-FETCHERS = {"ssm_service_settings": _single_settings, "ssm_document_metadata": _self_documents,
+def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argument):
+    def fetch(requests, session, region, account):
+        from .aws import ReadResult
+        parents = requests.pages(session, service, region, parent_op, parent_expr)
+        if parents.status not in ("collected", "empty"):
+            return ReadResult([], parents.status, parents.error)
+        items, failures = [], []
+        for parent in parents.items:
+            api_id = parent.get(parent_key)
+            if not isinstance(api_id, str):
+                return ReadResult(items, "partial" if items else "malformed", {"code": "malformed_parent_api"})
+            children = requests.pages(session, service, region, "get_stages", child_expr, **{argument: api_id})
+            if children.status not in ("collected", "empty"):
+                failures.append(children)
+            for child in children.items:
+                name = child.get("stageName") if service == "apigateway" else child.get("StageName")
+                if not isinstance(name, str):
+                    return ReadResult(items, "partial" if items else "malformed", {"code": "malformed_stage"})
+                row = _metadata(child)
+                row["ParentApiId"] = api_id
+                row["id"] = f"arn:aws:apigateway:{region}::/apis/{api_id}/stages/{name}"
+                row["_provenance"] = {"source_operation": "get_stages", "parent_api_id": api_id, "read_only": True}
+                items.append(row)
+        if failures:
+            return ReadResult(items, "partial" if items else failures[0].status, failures[0].error)
+        return ReadResult(items, "collected" if items else "empty")
+    return fetch
+
+
+FETCHERS = {
+    "rest_api_stage": _api_stages("apigateway", "get_rest_apis", "items", "id", "item", "restApiId"),
+    "http_api_stage": _api_stages("apigatewayv2", "get_apis", "Items", "ApiId", "Items", "ApiId"),
+    "ssm_service_settings": _single_settings, "ssm_document_metadata": _self_documents,
     "cognito_user_pool": _cognito_pools("cognito-idp", "list_user_pools", "UserPools", 60),
     "cognito_identity_pool": _cognito_pools("cognito-identity", "list_identity_pools", "IdentityPools", 60)}
 
@@ -190,4 +227,49 @@ def _enricher(kind):
     return enrich
 
 
+def _ecr_repository_metadata(requests, session, region, items):
+    output = []
+    for original in items:
+        item = copy.deepcopy(original)
+        coverage = item.setdefault("_coverage", {})
+        if not isinstance(coverage, dict):
+            raise ValueError("malformed resource detail coverage")
+        source_operation = "describe_repositories/list"
+        if "imageTagMutability" not in item:
+            name = item.get("repositoryName")
+            if not isinstance(name, str) or not name:
+                coverage["imageTagMutability"] = {"status": "malformed", "reason": "repository_name_missing"}
+                output.append(_metadata(item))
+                continue
+            details = _detail(requests, session, region, "ecr", "describe_repositories", repositoryNames=[name])
+            if details.get("collection_status") not in (None, "collected", "empty"):
+                for field in ("imageTagMutability", "imageTagMutabilityExclusionFilters"):
+                    coverage[field] = {"status": details["collection_status"], "error": details.get("error", {})}
+                output.append(_metadata(item))
+                continue
+            repositories = details.get("repositories")
+            matches = [row for row in repositories if isinstance(row, dict) and row.get("repositoryName") == name] if isinstance(repositories, list) else []
+            if len(matches) != 1:
+                coverage["imageTagMutability"] = {"status": "malformed", "reason": "repository_configuration_not_unique"}
+                output.append(_metadata(item))
+                continue
+            for field in ("imageTagMutability", "imageTagMutabilityExclusionFilters"):
+                if field in matches[0]:
+                    item[field] = copy.deepcopy(matches[0][field])
+            source_operation = "describe_repositories/detail"
+        mode = item.get("imageTagMutability")
+        coverage["imageTagMutability"] = {"status": "collected" if isinstance(mode, str) else "malformed", "source_operation": source_operation}
+        filters = item.get("imageTagMutabilityExclusionFilters")
+        if filters is None and mode in ("MUTABLE", "IMMUTABLE"):
+            coverage["imageTagMutabilityExclusionFilters"] = {"status": "empty", "reason": "mode_has_no_exclusion_filters", "source_operation": source_operation}
+        elif isinstance(filters, list) and all(isinstance(row, dict) and isinstance(row.get("filterType"), str) and isinstance(row.get("filter"), str) for row in filters):
+            coverage["imageTagMutabilityExclusionFilters"] = {"status": "collected" if filters else "empty", "source_operation": source_operation}
+        else:
+            coverage["imageTagMutabilityExclusionFilters"] = {"status": "unknown" if filters is None else "malformed", "reason": "exclusion_mode_requires_observed_filters"}
+        output.append(_metadata(item))
+    return output
+
+
 ENRICHERS = {kind: _enricher(kind) for kind in ["acm_certificate", "cloudfront_distribution", "ecs_cluster", "ecs_task_definition", "lambda_function", "dynamodb_table", "backup_plan", "backup_vault", "cognito_user_pool", "cognito_identity_pool", "codebuild_project", "mq_broker", "efs_file_system", "ssm_document_metadata", "rest_api", "http_api"]}
+
+ENRICHERS["ecr_repository"] = _ecr_repository_metadata

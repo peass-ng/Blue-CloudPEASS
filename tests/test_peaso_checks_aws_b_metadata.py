@@ -58,3 +58,34 @@ def test_cognito_list_required_page_size_is_supplied():
     result = plugin.FETCHERS["cognito_user_pool"](reads, object(), "us-east-1", "111111111111")
     assert result.status == "empty"
     assert reads.calls[0][2]["MaxResults"] == 60
+
+
+def test_ecr_mutability_modes_and_filters_remain_native_without_boolean_collapse():
+    reads = Reads()
+    modes = ["MUTABLE", "IMMUTABLE", "MUTABLE_WITH_EXCLUSION", "IMMUTABLE_WITH_EXCLUSION"]
+    items = [{"repositoryName": "repo-" + str(i), "imageTagMutability": mode, **({"imageTagMutabilityExclusionFilters": [{"filterType": "WILDCARD", "filter": "stable-*"}]} if "EXCLUSION" in mode else {})} for i, mode in enumerate(modes)]
+    result = plugin.ENRICHERS["ecr_repository"](reads, object(), "us-east-1", items)
+    assert reads.calls == []
+    assert [item["imageTagMutability"] for item in result] == modes
+    assert result[2]["imageTagMutabilityExclusionFilters"] == items[2]["imageTagMutabilityExclusionFilters"]
+    assert all(item["_coverage"]["imageTagMutability"]["status"] == "collected" for item in result)
+
+
+def test_missing_ecr_mutability_detail_is_denied_not_an_invented_mode():
+    reads = Reads()
+    result = plugin.ENRICHERS["ecr_repository"](reads, object(), "us-east-1", [{"repositoryName": "repo"}])
+    assert "imageTagMutability" not in result[0]
+    assert result[0]["_coverage"]["imageTagMutability"]["status"] == "denied"
+    assert reads.calls == [("ecr", "describe_repositories", {"repositoryNames": ["repo"]})]
+
+
+def test_ecr_missing_field_successful_collected_detail_hydrates_raw_mode():
+    class Success(Reads):
+        def detail(self, session, service, region, operation, **arguments):
+            self.calls.append((service, operation, arguments))
+            return {"collection_status": "collected", "repositories": [{"repositoryName": "repo", "imageTagMutability": "IMMUTABLE_WITH_EXCLUSION", "imageTagMutabilityExclusionFilters": [{"filterType": "WILDCARD", "filter": "development-*"}]}]}
+    reads = Success()
+    result = plugin.ENRICHERS["ecr_repository"](reads, object(), "us-east-1", [{"repositoryName": "repo"}])
+    assert result[0]["imageTagMutability"] == "IMMUTABLE_WITH_EXCLUSION"
+    assert result[0]["_coverage"]["imageTagMutability"]["status"] == "collected"
+    assert len(reads.calls) == 1

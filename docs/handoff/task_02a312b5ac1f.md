@@ -131,8 +131,8 @@ Metadata targeted test result: 5 passed. Full synthetic QA checkpoint: 39 passed
 queued just before an incoming primary-evaluation hold was processed; no live
 cloud snapshot/default live scan was executed in that command. Do not run broad
 engine/API evaluation in the primary research checkout under the current hold.
-Syntax check after this handoff: pending immediate next command; no current
-mid-edit owned Python file. Native default/metadata changes are active in other
+Syntax check after this handoff: passed with exit 0; no current mid-edit owned
+Python file. Native default/metadata changes are active in other
 owners' files; old AWS collector tests have obsolete generation/default-region
 assertions and discovery stubs, outside QA ownership and assigned to owners.
 

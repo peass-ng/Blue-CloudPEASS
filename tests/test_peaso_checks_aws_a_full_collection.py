@@ -202,3 +202,38 @@ def test_inherited_scp_parent_cycle_is_malformed_partial_evidence(sdk):
     assert read.status == "partial"
     assert read.error["code"] == "organization_parent_cycle"
     assert read.items[0]["InheritanceComplete"] is False
+
+
+def test_organization_parent_inventory_collects_native_account_ou_root_edges(sdk):
+    session, add = sdk
+    org = add("organizations")
+    org.add_response("list_parents", {"Parents": [{"Id": "ou-abcd-12345678", "Type": "ORGANIZATIONAL_UNIT"}]}, {"ChildId": ACCOUNT})
+    org.add_response("list_parents", {"Parents": [{"Id": "r-abcd", "Type": "ROOT"}]}, {"ChildId": "ou-abcd-12345678"})
+    requests = aws.Requests({})
+    read = aws._organization_parents(requests, session, REGION, ACCOUNT)
+    assert read.status == "collected"
+    assert requests.calls == 2
+    assert [(item["ChildId"], item["ParentId"], item["Type"]) for item in read.items] == [(ACCOUNT, "ou-abcd-12345678", "ORGANIZATIONAL_UNIT"), ("ou-abcd-12345678", "r-abcd", "ROOT")]
+    assert all(item["InheritanceComplete"] is True for item in read.items)
+    assert read.items[-1]["ParentPath"] == [ACCOUNT, "ou-abcd-12345678", "r-abcd"]
+
+
+def test_organization_parent_inventory_denied_ou_keeps_explicit_partial_path(sdk):
+    session, add = sdk
+    org = add("organizations")
+    org.add_response("list_parents", {"Parents": [{"Id": "ou-abcd-12345678", "Type": "ORGANIZATIONAL_UNIT"}]}, {"ChildId": ACCOUNT})
+    org.add_client_error("list_parents", "AccessDeniedException", expected_params={"ChildId": "ou-abcd-12345678"})
+    read = aws._organization_parents(aws.Requests({}), session, REGION, ACCOUNT)
+    assert read.status == "partial"
+    assert read.items[0]["InheritanceComplete"] is False
+    assert read.items[0]["ParentCollection"]["collection_status"] == "denied"
+
+
+def test_organization_parent_inventory_rejects_a_cycle(sdk):
+    session, add = sdk
+    org = add("organizations")
+    org.add_response("list_parents", {"Parents": [{"Id": "ou-abcd-12345678", "Type": "ORGANIZATIONAL_UNIT"}]}, {"ChildId": ACCOUNT})
+    org.add_response("list_parents", {"Parents": [{"Id": "ou-abcd-12345678", "Type": "ORGANIZATIONAL_UNIT"}]}, {"ChildId": "ou-abcd-12345678"})
+    read = aws._organization_parents(aws.Requests({}), session, REGION, ACCOUNT)
+    assert read.status == "partial"
+    assert read.error["code"] == "organization_parent_cycle"

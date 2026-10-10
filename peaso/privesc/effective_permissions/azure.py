@@ -247,7 +247,8 @@ class AzureModel(Model):
         node.attrs.update(object_id=oid, directory=True, upn=item.get("userPrincipalName"), app_id=item.get("appId"),
                           sp_type=item.get("servicePrincipalType"), group_types=item.get("groupTypes"),
                           security_enabled=item.get("securityEnabled"), assignable_to_role=item.get("isAssignableToRole"),
-                          membership_rule=item.get("membershipRule"), user_type=item.get("userType"))
+                          membership_rule=item.get("membershipRule"), user_type=item.get("userType"),
+                          app_owner_org=_low(item.get("appOwnerOrganizationId")))
         node.attrs.setdefault("hosts", [])
         self.principals[oid] = node
 
@@ -637,6 +638,17 @@ class AzureModel(Model):
         return [{"pivot": s} for s in sorted(scopes)]
 
     # --------------------------------------------------------------- targets
+    def service_managed(self, node):
+        """Microsoft first-party service principals (application owned by a Microsoft tenant) are not customer
+        controlled; entries that model them explicitly (blocker microsoft_first_party_sp) keep them."""
+        if node.kind != "azure_service_principal":
+            return False
+        return node.attrs.get("app_owner_org") in MICROSOFT_TENANTS
+
+    def include_service_managed(self, compiled):
+        return super().include_service_managed(compiled) or "microsoft_first_party_sp" in (
+            [b if isinstance(b, str) else (b or {}).get("id") for b in (compiled.get("entry") or {}).get("blockers") or []])
+
     def targets(self, kind):
         if kind in ("azure_user", "azure_service_principal", "azure_managed_identity", "entra_group"):
             return [n for n in self.principals.values() if n.kind == kind]
@@ -856,6 +868,10 @@ class AzureModel(Model):
 
     def scope_within(self, inner, outer):
         return self.covers(outer, inner)[0] if inner.startswith("/") else inner == outer
+
+
+# Tenants owning Microsoft first-party applications (Microsoft Services, Microsoft corp).
+MICROSOFT_TENANTS = {"f8cdef31-a31e-4b4a-93e4-5f571e91255a", "72f988bf-86f1-41af-91ab-2d7cd011db47"}
 
 
 def _subscription(rid):

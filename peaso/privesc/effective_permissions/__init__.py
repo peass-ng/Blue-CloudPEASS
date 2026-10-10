@@ -236,6 +236,16 @@ class Model:
         """Candidate nodes for a target kind."""
         return []
 
+    def service_managed(self, node):
+        """True for identities only their own provider service can use (AWS service-linked roles, Google-managed
+        service agents, Microsoft first-party service principals); excluded from target sets by default."""
+        return False
+
+    def include_service_managed(self, compiled):
+        """True when the entry explicitly targets service-managed identities (target.include_service_managed)."""
+        target = (compiled.get("entry") or {}).get("target") or {}
+        return bool(target.get("include_service_managed"))
+
     def target_variant(self, kind, selector):
         """Discriminator when an entry's selector needs a different candidate inventory of the same kind."""
         return None

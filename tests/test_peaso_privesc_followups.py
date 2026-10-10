@@ -222,7 +222,8 @@ def test_source_assumable_role_arn_placeholder():
     target = role("app", trust_aws(ALICE))
     alice = user("alice", {"Effect": "Allow", "Action": "iam:PutRolePolicy", "Resource": f"arn:aws:iam::{ACCOUNT}:role/app"})
     result = privesc.analyze(aws_snap([alice], [target]), entries=[catalog_entry("aws-iam-modify-assumable-role-policy")])
-    assert reached(result, ALICE) == {f"aws_account_admin:{ACCOUNT}": "conditional"}
+    # The placeholder already restricts the requirement to assumable roles: derived, not "not verified".
+    assert reached(result, ALICE) == {f"aws_account_admin:{ACCOUNT}": "derived"}
     other = user("alice", {"Effect": "Allow", "Action": "iam:PutRolePolicy", "Resource": f"arn:aws:iam::{ACCOUNT}:role/other"})
     assert edges(privesc.analyze(aws_snap([other], [target, role("other", trust_service("ec2.amazonaws.com"))]),
                                  entries=[catalog_entry("aws-iam-modify-assumable-role-policy")]), ALICE) == []
@@ -323,10 +324,11 @@ def _k8s(secrets=None):
     return snapshot("k8s", cols)
 
 
-def test_gcp_token_secret_targets_without_join_are_conditional_aggregate():
+def test_gcp_token_secret_targets_without_join_are_unresolved():
     snap = gcp_snap([{"role": "projects/p1/roles/secrets", "members": ["user:alice@x.com"]}], roles=[SECRETS], extra=[CLUSTER])
     result = privesc.analyze(snap, entries=[TOKEN])
-    assert reached(result, "user:alice@x.com") == {f"gke-ksa:token_secret:{GKE}": "conditional"}
+    got = reached(result, "user:alice@x.com")
+    assert len(got) == 1 and next(iter(got)).startswith("unresolved:k8s_service_account:") and list(got.values()) == ["unknown"]
     assert edges(privesc.analyze(gcp_snap([], roles=[SECRETS], extra=[CLUSTER]), entries=[TOKEN])) == []
 
 
@@ -335,7 +337,11 @@ def test_gcp_token_secret_targets_joined_with_k8s_snapshot():
     result = privesc.analyze(snap, entries=[TOKEN], related_snapshots=[_k8s(secrets=True)])
     assert reached(result, "user:alice@x.com") == {f"k8s:{GKE}:sa:a:builder": "derived"}
     result = privesc.analyze(snap, entries=[TOKEN], related_snapshots=[_k8s()])
-    assert reached(result, "user:alice@x.com") == {f"gke-ksa:token_secret:{GKE}": "unknown"}
+    # Joined snapshot without Secret metadata: not proven, one unresolved placeholder (no members).
+    got = reached(result, "user:alice@x.com")
+    assert list(got.values()) == ["unknown"] and next(iter(got)).startswith("unresolved:k8s_service_account:")
+    node = next(n for n in result["graph"]["nodes"] if n["id"] == next(iter(got)))
+    assert node["label"].startswith("Unresolved: ") and node["underlying_count"] == 0 and node["members"] == []
 
 
 def test_gcp_workspace_super_admin_reaches_org_owner_only():

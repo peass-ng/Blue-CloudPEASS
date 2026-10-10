@@ -83,6 +83,10 @@ def evaluate_check(check_id, item, index=None):
 
 
 def register(id, provider, category, kind, title, severity, control, remediation, *, target="resource", dependencies=None):
+    if provider not in ("aws", "gcp", "azure", "k8s") or category not in ("hardening", "exposure", "least_privilege", "iam_graph", "network"):
+        raise ValueError("native registry accepts supported providers and defensive categories only")
+    if severity not in ("critical", "high", "medium", "low", "info"):
+        raise ValueError("unknown check severity")
     if target not in ("resource", "scope"):
         raise ValueError("check target must be resource or scope")
     if dependencies is not None and (not isinstance(dependencies, (list, tuple)) or not all(isinstance(x, str) for x in dependencies)):
@@ -518,3 +522,6 @@ from . import gcp_ports_services  # noqa: E402,F401
 from . import aws_b_cloudfront  # noqa: E402,F401
 from . import aws_a_regional, azure_ports_defender, k8s_ports_cluster  # noqa: E402,F401
 from . import aws_b_storage  # noqa: E402,F401
+from . import aws_b_compute  # noqa: E402,F401
+from . import azure_ports_paas  # noqa: E402,F401
+from . import azure_ports_common, aws_b_ecr, aws_a_cloudwatch  # noqa: E402,F401

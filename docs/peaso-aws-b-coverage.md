@@ -1,8 +1,8 @@
 # AWS-B native coverage track
 
-This track owns AWS service configuration checks outside the AWS-A IAM/account/Organizations/S3/EC2/VPC/network/KMS/CloudTrail/Config/GuardDuty/SecurityHub/CloudWatch partition. The authoritative source-ID assignment is `peaso/rulepacks/port_partitions.json`; the current AWS-B assignment contains 1,141 references. Candidate groups are review aids, not evidence of equivalent semantics.
+This track owns AWS service configuration checks outside the AWS-A IAM/account/Organizations/S3/EC2/VPC/network/KMS/CloudTrail/Config/GuardDuty/SecurityHub/CloudWatch partition. The authoritative source-ID assignment is `peaso/rulepacks/port_partitions.json`; the original AWS-B assignment contains 1,141 references; directive 13 transfers 367 exact IDs to Claude and retains 774 for this worker. Candidate groups are review aids, not evidence of equivalent semantics.
 
-**Work remains in progress.** There is no claim of exhaustive AWS-B coverage or zero pending references. The implemented first waves contain 72 substantive native predicates in `aws_b_core.py`, `aws_b_loadbalancing.py`, `aws_b_regional.py`, `aws_b_cloudfront.py`, and `aws_b_storage.py`. The first two ready review shards cover 124 exact assigned references; later storage associations await individual source mapping. The source lead approves registry imports and active shards, validates provenance and merges the authoritative runtime catalog.
+**Work remains in progress.** There is no claim of exhaustive AWS-B coverage or zero pending references. The implemented first waves contain 88 substantive native predicates in `aws_b_core.py`, `aws_b_loadbalancing.py`, `aws_b_regional.py`, `aws_b_cloudfront.py`, `aws_b_storage.py`, and `aws_b_compute.py`. The four ready review shards cover 180 exact assigned references; remaining references stay pending until substantive individual review. The source lead approves registry imports and active shards, validates provenance and merges the authoritative runtime catalog.
 
 ## Implemented behavior
 
@@ -28,7 +28,7 @@ The RDS category mismatch is evidenced by the [official event-category documenta
 .venv/bin/python -m pytest -q tests/test_peaso_checks_aws_b_core.py tests/test_peaso_checks_aws_b_regional.py tests/test_peaso_checks_aws_b_metadata.py
 ```
 
-The current AWS-B checkpoint is **93 passed**. Fixtures cover pass/fail/manual/non-applicable states, missing and malformed data, denied details, input purity, engine eligibility, calendar boundaries, exact CORS equality, complete/partial joins, regional presence and cross-account isolation. The metadata suite validates every declared operation against installed official SDK models and confirms secret sentinels never enter returned facts.
+The current AWS-B checkpoint is **111 passed**. Fixtures cover pass/fail/manual/non-applicable states, missing and malformed data, denied details, input purity, engine eligibility, calendar boundaries, exact CORS equality, complete/partial joins, regional presence and cross-account isolation. The metadata suite validates every declared operation against installed official SDK models and confirms secret sentinels never enter returned facts.
 
 Shared core changes for this track include `Check.target=scope`, dependency gating, frozen context, same-account global joins, native resource labels, manual questions and full-default collection planning. A focused isolated defensive run passed 116 tests before the latest service wave. The primary workspace also contains supervisor-owned escalation hooks, which this track does not author, validate or execute. Defensive testing and release export must exclude those hooks without changing the supplied primary files.
 

@@ -20,7 +20,7 @@ import hashlib
 import re
 
 from .effective_permissions import CONF_RANK, Grant, downgrade
-from .evaluator import AllOf
+from .evaluator import UNRESOLVED_PREFIX, AllOf
 
 SUBSET_MIN = 5
 GLOBAL_SCOPES = 10
@@ -231,7 +231,7 @@ class GraphBuilder:
         else:
             per_scope = {}
             for tid, grant in targets.items():
-                if tid.startswith("unknown:"):
+                if tid.startswith(("unknown:", UNRESOLVED_PREFIX)):
                     unknown[tid] = grant
                     continue
                 node = cset.members.get(tid)
@@ -286,6 +286,21 @@ class GraphBuilder:
                             self.node(cset.members[tid])
                             out.append((tid, grant, 1))
         for tid, grant in unknown.items():
+            if tid.startswith(UNRESOLVED_PREFIX):
+                scope = tid[len(UNRESOLVED_PREFIX) + len(cset.id) + 1:] or "*"
+                if self._suppressed(source, scope) and not reach.source_group:
+                    self.suppressed += 1
+                    continue
+                if tid not in self.nodes:
+                    why = cset.unresolved.get(scope) or (grant.conditions[-1] if grant.conditions else "selector_facts_missing")
+                    self.nodes[tid] = {"id": tid, "kind": "aggregate", "type": cset.kind, "provider": self.model.provider,
+                                       "scope": scope, "label": "Unresolved: " + _label(cset.label, scope, None, cset),
+                                       "underlying_count": 0, "members": [], "member_sample": [], "confidence": "unknown",
+                                       "candidate_set": cset.id, "subset": False, "unresolved": True,
+                                       "unresolved_reason": why,
+                                       "facts_needed": _facts_needed(why)}
+                out.append((tid, grant, 0))
+                continue
             scope = tid.split(":", 3)[-1] if tid.count(":") >= 3 else "*"
             if tid not in self.nodes:
                 self.nodes[tid] = {"id": tid, "kind": "aggregate", "type": cset.kind, "provider": self.model.provider,
@@ -334,6 +349,13 @@ class GraphBuilder:
         return {"distinct_paths": len(edges), "multi_technique_edges": len(multi),
                 "max_techniques_per_edge": max((len(e["techniques"]) for e in edges), default=0),
                 "technique_edge_pairs": sum(len(e["techniques"]) for e in edges)}
+
+
+def _facts_needed(why):
+    from .schema import FACTS_NEEDED
+    match = re.match(r"selector_(.+?)_(?:not_evaluated|unknown)$", str(why))
+    key = match.group(1) if match else None
+    return FACTS_NEEDED.get(key) or "facts not in snapshot: " + str(why)
 
 
 def _best_of(grants):

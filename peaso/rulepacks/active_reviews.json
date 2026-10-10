@@ -7,6 +7,7 @@
     "reviewed_gcp.json",
     "reviewed_azure.json",
     "reviewed_k8s.json",
+    "reviewed_accepted_history.json",
     "reviewed_aws_a_account.json",
     "reviewed_k8s_ports_workloads.json",
     "reviewed_gcp_ports_manual.json",
@@ -21,6 +22,10 @@
     "reviewed_aws_a_regional.json",
     "reviewed_azure_ports_defender.json",
     "reviewed_k8s_ports_cluster.json",
-    "reviewed_aws_b_storage.json"
+    "reviewed_aws_b_storage.json",
+    "reviewed_aws_b_compute.json",
+    "reviewed_azure_ports_paas.json",
+    "reviewed_azure_ports_common.json",
+    "reviewed_aws_a_cloudwatch.json"
   ]
 }

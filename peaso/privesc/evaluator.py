@@ -62,13 +62,22 @@ class CReq:
         self.raw, self.key, self.template, self.mode, self.localized = raw, key, template, mode, localized
 
 
-class CandidateSet:
-    """Static candidates of one (kind, static selector) combination."""
-    __slots__ = ("id", "kind", "members", "floor", "by_scope", "label", "unknown_scopes")
+UNRESOLVED_PREFIX = "unresolved:"
 
-    def __init__(self, ident, kind, members, floor, label, unknown_scopes):
+
+class CandidateSet:
+    """Static candidates of one (kind, static selector) combination.
+
+    members only holds targets proven by collected facts. When a selector cannot be evaluated (facts missing) or
+    only yields unknown-confidence matches, those targets are NOT members: `unresolved` maps each scope where they
+    would live to the reason, and reaches point to one "Unresolved: <label>" placeholder per scope instead."""
+    __slots__ = ("id", "kind", "members", "floor", "by_scope", "label", "unknown_scopes", "unresolved", "excluded")
+
+    def __init__(self, ident, kind, members, floor, label, unknown_scopes, unresolved=None, excluded=0):
         self.id, self.kind, self.members, self.floor, self.label = ident, kind, members, floor, label
         self.unknown_scopes = unknown_scopes
+        self.unresolved = unresolved or {}
+        self.excluded = excluded
         self.by_scope = {}
         for node in members.values():
             self.by_scope.setdefault(node.scope, set()).add(node.id)
@@ -199,32 +208,55 @@ class Evaluator:
         kind = compiled["kind"]
         model = self.model
         variant = model.target_variant(kind, compiled["selector"])
-        key = (kind, tuple(sorted((k, repr(v)) for k, v in compiled["static"].items())), variant)
+        managed = model.include_service_managed(compiled)
+        key = (kind, tuple(sorted((k, repr(v)) for k, v in compiled["static"].items())), variant, managed)
         if key in self._csets:
             return self._csets[key]
         members = {n.id: n for n in model.targets_for(kind, compiled["selector"])}
-        floor = {}
+        excluded = 0
+        if not managed:
+            # Service-managed identities (AWS service-linked roles, Google-managed service agents, Microsoft
+            # first-party service principals) cannot be passed, assumed or edited by customers.
+            kept = {tid: n for tid, n in members.items() if not model.service_managed(n)}
+            excluded, members = len(members) - len(kept), kept
+        floor, unresolved_why = {}, {}
         for sel_key, value in sorted(compiled["static"].items()):
             if not members:
                 break
             verdict = model.selector(sel_key, value, members, None)
             if verdict is None:
+                # Facts missing: never expand to every target. The remaining candidates become one unresolved
+                # placeholder per scope (computed after the other selectors had a chance to rule them out).
                 self.note("selector", "*", "not_evaluated", f"selector {sel_key} not evaluated",
-                          "Targets kept with unknown confidence; needs " + FACTS_NEEDED.get(sel_key, "facts not in snapshot"))
+                          "Matching targets reported as one unresolved placeholder per scope (no members); needs "
+                          + FACTS_NEEDED.get(sel_key, "facts not in snapshot"))
                 for tid in members:
-                    floor[tid] = _worse(floor.get(tid), ("unknown", f"selector_{sel_key}_not_evaluated"))
+                    unresolved_why.setdefault(tid, f"selector_{sel_key}_not_evaluated")
                 continue
             members = {tid: n for tid, n in members.items() if tid in verdict}
             for tid, why in verdict.items():
-                if why:
+                if not why:
+                    continue
+                if why[0] == "unknown":
+                    # A match that rests on missing facts is not proven: placeholder, not member.
+                    unresolved_why.setdefault(tid, why[1] or f"selector_{sel_key}_unknown")
+                    self.note("selector", "*", "unresolved", f"selector {sel_key} unresolved ({why[1]})",
+                              "Targets matching only on missing facts reported as one unresolved placeholder per scope; needs "
+                              + FACTS_NEEDED.get(sel_key, "facts not in snapshot"))
+                else:
                     floor[tid] = _worse(floor.get(tid), why)
+        unresolved = {}
+        for tid in [t for t in members if t in unresolved_why]:
+            node = members.pop(tid)
+            floor.pop(tid, None)
+            unresolved.setdefault(node.scope, unresolved_why[tid])
         unknown_scopes = model.unknown_target_scopes(kind)
         for scope, status in unknown_scopes.items():
             self.note("targets", scope, status, f"{kind} inventory {status}",
                       "Targets of this kind in this scope are unknown; techniques reaching them are reported with unknown confidence")
         digest = hashlib.sha1(repr(key).encode()).hexdigest()[:10]
         label = compiled["entry"]["target"].get("aggregate_as") or kind
-        cset = CandidateSet(f"{kind}:{digest}", kind, members, floor, label, unknown_scopes)
+        cset = CandidateSet(f"{kind}:{digest}", kind, members, floor, label, unknown_scopes, unresolved, excluded)
         self._csets[key] = cset
         return cset
 
@@ -269,7 +301,7 @@ class Evaluator:
     def evaluate(self, compiled):
         model = self.model
         cset = self.candidates(compiled)
-        if not cset.members and not cset.unknown_scopes:
+        if not cset.members and not cset.unknown_scopes and not cset.unresolved:
             return []
         model.current_selector = compiled["selector"]
         model.current_entry = compiled["entry"]
@@ -386,10 +418,26 @@ class Evaluator:
             grants.append(got)
         base = combine(*grants)
         members = cset.members
+        placeholders = {}
+        if self.include_unknown and (cset.unknown_scopes or cset.unresolved):
+            # Per-target requirements cannot be checked on a placeholder: the source must at least hold them
+            # on some resource.
+            for req in per_target:
+                got = model.cached_check(source, req.raw, ANY)
+                if got is None:
+                    placeholders = None
+                    break
+            if placeholders is not None:
+                allowed = model.allowed_scopes(compiled["scope"], source)
+                if not compiled["selector"].get("same_as_source"):
+                    placeholders.update({f"unknown:{cset.id}:{s}": downgrade(base, "unknown", f"target_inventory_{st}")
+                                         for s, st in cset.unknown_scopes.items()})
+                placeholders.update({f"{UNRESOLVED_PREFIX}{cset.id}:{s}": downgrade(base, "unknown", why)
+                                     for s, why in cset.unresolved.items() if allowed is None or s in allowed})
+        placeholders = placeholders or {}
         if not members:
-            # Inventory unavailable: one unknown reach to the "unknown targets" placeholder.
-            return {f"unknown:{cset.id}:{s}": downgrade(base, "unknown", f"target_inventory_{st}")
-                    for s, st in cset.unknown_scopes.items()} if self.include_unknown else None
+            # Inventory unavailable or selector facts missing: placeholder reaches only.
+            return placeholders or None
         current = AllTargets(base)
         for req in self._steps(per_target):
             if isinstance(req, tuple):
@@ -411,7 +459,7 @@ class Evaluator:
             else:
                 candidates = members.values() if isinstance(current, AllTargets) else [members[t] for t in current]
                 if not candidates:
-                    return None
+                    return placeholders or None
                 got = model.check_targets(source, req.raw, req.template, candidates, localized=req.localized)
             if isinstance(got, AllTargets):
                 if isinstance(current, AllTargets):
@@ -424,28 +472,34 @@ class Evaluator:
                 else:
                     current = {t: combine(g, got[t]) for t, g in current.items() if t in got}
             if not current:
-                return None
+                return placeholders or None
         scope_rule = compiled["scope"]
-        unknown = {}
-        if self.include_unknown and cset.unknown_scopes and not compiled["selector"].get("same_as_source"):
-            unknown = {f"unknown:{cset.id}:{s}": downgrade(base, "unknown", f"target_inventory_{st}")
-                       for s, st in cset.unknown_scopes.items()}
+        unknown = dict(placeholders)
         if isinstance(current, AllTargets) and not compiled["dynamic"]:
             # Symbolic "every candidate" result: graph.py aggregates without materialising members.
             return AllOf(current.grant, model.allowed_scopes(scope_rule, source), unknown)
         if isinstance(current, AllTargets):
             current = {tid: current.grant for tid in members}
+        unresolved = {}
         for key, value in compiled["dynamic"].items():
             subset = {tid: members[tid] for tid in current}
             verdict = model.selector(key, value, subset, source, pivot=pivot_values)
             if verdict is None:
                 self.note("selector", "*", "not_evaluated", f"selector {key} not evaluated",
-                          "Targets kept with unknown confidence; needs " + FACTS_NEEDED.get(key, "facts not in snapshot"))
-                current = {tid: downgrade(g, "unknown", f"selector_{key}_not_evaluated") for tid, g in current.items()}
+                          "Matching targets reported as one unresolved placeholder per scope (no members); needs "
+                          + FACTS_NEEDED.get(key, "facts not in snapshot"))
+                for tid in current:
+                    unresolved.setdefault(tid, f"selector_{key}_not_evaluated")
                 continue
+            for tid, why in verdict.items():
+                if why and why[0] == "unknown" and tid in current:
+                    unresolved.setdefault(tid, why[1] or f"selector_{key}_unknown")
+                    self.note("selector", "*", "unresolved", f"selector {key} unresolved ({why[1]})",
+                              "Targets matching only on missing facts reported as one unresolved placeholder per scope; needs "
+                              + FACTS_NEEDED.get(key, "facts not in snapshot"))
             current = {tid: (downgrade(g, *verdict[tid]) if verdict[tid] else g) for tid, g in current.items() if tid in verdict}
             if not current:
-                return None
+                return unknown or None
         result = {}
         for tid, g in current.items():
             target = members[tid]
@@ -453,10 +507,15 @@ class Evaluator:
                 continue
             if tid == source.id and not compiled["selector"].get("same_as_source"):
                 continue
+            if tid in unresolved:
+                if self.include_unknown:
+                    pid = f"{UNRESOLVED_PREFIX}{cset.id}:{target.scope}"
+                    result[pid] = best(result.get(pid), downgrade(g, "unknown", unresolved[tid]))
+                continue
             floor = cset.floor.get(tid)
             result[tid] = downgrade(g, floor[0], floor[1]) if floor else g
         result.update(unknown)
-        return result
+        return result or None
 
     def _pivot(self, source, reqs):
         """Find a pivot (resource / namespace) on which every pivot requirement holds."""

@@ -1,24 +1,24 @@
 {
-  "native_checks": 1002,
+  "native_checks": 1144,
   "upstream_total": 6405,
   "upstream": {
-    "ported": 777,
-    "merged": 142,
-    "rejected": 599,
-    "pending": 4326,
+    "ported": 1016,
+    "merged": 280,
+    "rejected": 668,
+    "pending": 3880,
     "out_of_scope": 561
   },
-  "supported_upstream": 919,
-  "manual_requirements": 483,
-  "rejected_invalid_predicates": 116,
+  "supported_upstream": 1296,
+  "manual_requirements": 520,
+  "rejected_invalid_predicates": 148,
   "outside_runtime_provider_scope": 561,
   "runtime_scope_upstream_total": 5844,
-  "limitations": "Pending target definitions remain explicitly unported; source-supported counts exclude manual attestation and rejection records.",
+  "limitations": "Unported target references remain pending; other providers are explicitly out of scope. Reference tags are not certification.",
   "native_by_provider": {
-    "aws": 118,
-    "gcp": 59,
-    "azure": 79,
-    "k8s": 746
+    "aws": 170,
+    "gcp": 89,
+    "azure": 98,
+    "k8s": 787
   },
   "phase": "expansion_in_progress"
 }

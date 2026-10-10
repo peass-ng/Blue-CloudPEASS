@@ -50,7 +50,8 @@ def test_global_inventory_requires_explicit_verified_same_account_proof(monkeypa
 
 def test_manual_attestation_is_selected_separately_from_automated_count(monkeypatch):
     requirement = {"id": "aws-compliance.control.manual_example", "provider": "aws", "title": "Review owner evidence", "question": "Is the service configured for the approved purpose?", "guidance": "Obtain owner evidence", "status": "MANUAL", "source": "https://example.test/source", "revision": "pinned", "license": "Apache-2.0", "frameworks": [{"framework": "CIS", "framework_id": "aws-compliance.benchmark.cis", "framework_family": "CIS"}], "reason": "Pinned source emits constant manual status", "automated": False}
-    monkeypatch.setattr("peaso.checks.catalog.manual_requirements", lambda: [requirement])
+    monkeypatch.setattr("peaso.checks.catalog.manual_requirements", lambda *args, **kwargs: [requirement])
+    monkeypatch.setattr("peaso.checks.catalog.manual_requirement_ids", lambda provider=None: {requirement["id"]})
     snapshot = make_snapshot("aws", ["111111111111/us-east-1"], [])
     report = evaluate_snapshot(snapshot, categories=["hardening"], checks=[requirement["id"]])
     assert report["stats"]["check_count"] == 0
@@ -123,7 +124,8 @@ def test_successful_selected_inventory_does_not_hide_intentional_scope_partial()
 
 def test_manual_account_question_deduplicates_regions_only_with_verified_account(monkeypatch):
     requirement = {"id": "aws-compliance.control.account_manual", "provider": "aws", "title": "Owner review", "question": "Review evidence", "guidance": "Owner", "source": "https://example.test", "revision": "fixed", "license": "Apache-2.0", "frameworks": [], "reason": "constant manual source", "automated": False, "scope_kinds": ["account"]}
-    monkeypatch.setattr("peaso.checks.catalog.manual_requirements", lambda: [requirement])
+    monkeypatch.setattr("peaso.checks.catalog.manual_requirements", lambda *args, **kwargs: [requirement])
+    monkeypatch.setattr("peaso.checks.catalog.manual_requirement_ids", lambda provider=None: {requirement["id"]})
     scopes = ["111111111111/us-east-1", "111111111111/eu-west-1", "222222222222/us-east-1"]
     account = {"type": "aws_account", "scope": scopes[0], "status": "collected", "global": True, "account_id": "111111111111", "items": [{"Account": "111111111111", "AccountId": "111111111111"}]}
     report = evaluate_snapshot(make_snapshot("aws", scopes, [account]), categories=["hardening"], checks=[requirement["id"]])

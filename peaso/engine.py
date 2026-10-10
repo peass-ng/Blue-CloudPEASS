@@ -128,8 +128,8 @@ def _selection(provider, categories, checks, frameworks):
     frameworks = frameworks or None
     if checks is not None:
         checks = _string_list(checks, "checks")
-        from .checks.catalog import manual_requirements
-        known = {c.id for c in registry if c.provider == provider} | {c["id"] for c in ANALYSIS_CHECKS} | {c["id"] for c in manual_requirements() if c["provider"] == provider}
+        from .checks.catalog import manual_requirement_ids
+        known = {c.id for c in registry if c.provider == provider} | {c["id"] for c in ANALYSIS_CHECKS} | manual_requirement_ids(provider)
         if any(check not in known for check in checks):
             known |= {PRIVESC_CHECK_ID} | {t["id"] for t in privesc_techniques(provider)}
         if any(check not in known for check in checks):
@@ -385,7 +385,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         return list(snapshot["scopes"])
     selected_manual = []
     if "hardening" in selected_categories:
-        for requirement in manual_requirements():
+        for requirement in manual_requirements(provider=provider, ids=set(checks) if checks else None):
             mapping_names = {entry.get(key) for entry in requirement["frameworks"] for key in ("framework", "framework_family", "framework_id")}
             mapping_names.add("HackTricks Cloud Best Practices")
             if requirement["provider"] != provider or (checks and requirement["id"] not in checks) or (requested_frameworks and not requested_frameworks.intersection(mapping_names)):
