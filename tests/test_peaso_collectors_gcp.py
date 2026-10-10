@@ -123,6 +123,22 @@ def test_empty_success_is_not_denial_or_unknown():
     assert collection(result, "network")["status"] == "empty"
 
 
+def test_empty_aggregated_response_is_empty_and_partial_warning_is_visible():
+    result, _ = snapshot(["instance"], lambda r: {})
+    assert collection(result, "instance")["status"] == "empty"
+    result, _ = snapshot(["instance"], lambda r: {"items": {"zones/r": {"instances": [{"name": "vm"}],
+        "warning": {"code": "UNREACHABLE"}}}})
+    assert collection(result, "instance")["status"] == "partial"
+    assert collection(result, "instance")["error"]["code"] == "partial_api_warning"
+
+
+def test_malformed_list_shape_preserves_the_exact_request_evidence():
+    result, _ = snapshot(["network"], lambda r: {"items": "invalid"})
+    found = collection(result, "network")
+    assert found["status"] == "malformed"
+    assert found["source_requests"] == ["request-1"]
+
+
 def test_partial_keeps_successful_page_and_later_denial_evidence():
     def resolve(request):
         if request["params"].get("pageToken"):
@@ -425,6 +441,28 @@ def test_authentication_failure_never_falls_back_or_returns_credential_details(m
     assert "private-key secret" not in json.dumps(result)
 
 
+@pytest.mark.parametrize("auth,method", [({"sa_json": {}}, "service-account"), ({"service_account_file": ""}, "service-account"),
+    ({"external_account_json": {}}, "external-account"), ({"external_account_file": ""}, "external-account"), ({"token": ""}, "token")])
+def test_empty_explicit_credentials_are_failures_in_the_selected_source_not_adc_fallback(monkeypatch, auth, method):
+    import google.auth
+    monkeypatch.setattr(google.auth, "default", lambda **kwargs: pytest.fail("empty explicit credential fell back to ADC"))
+    result = gcp.collect({**connector(["network"]), "auth": auth})
+    assert result["metadata"]["auth_method"] == method
+    assert collection(result, "network")["status"] == "denied"
+
+
+@pytest.mark.parametrize("auth", [[], "invalid"])
+def test_malformed_auth_objects_do_not_select_default_credentials(auth):
+    with pytest.raises(ValueError, match="auth must be an object"):
+        gcp.collect({**connector(["network"]), "auth": auth})
+
+
+def test_unsupported_auth_method_never_serializes_arbitrary_auth_values():
+    result = gcp.collect({**connector(["network"]), "auth": {"method": "sensitive-pasted-value"}})
+    assert result["metadata"]["auth_method"] == "unsupported"
+    assert "sensitive-pasted-value" not in json.dumps(result)
+
+
 @pytest.mark.parametrize("auth", [
     {"method": "service-account", "service_account_file": "/nonexistent/key.json"},
     {"method": "service-account", "sa_json": '{"private_key":"sensitive"}'},
@@ -464,14 +502,19 @@ def test_gcloud_pins_account_and_impersonation_across_refresh(monkeypatch):
 
 
 def test_gcloud_auth_refresh_failure_is_redacted(monkeypatch):
+    tokens = []
     def cli(command, env):
         if command[0] == "config":
             return "selected@example.org"
+        tokens.append(command)
         raise gcp.ReadError("denied", "gcloud_auth_failed")
     monkeypatch.setattr(gcp, "_gcloud", cli)
     credentials = gcp.Credentials({"method": "gcloud"})
     with pytest.raises(gcp.ReadError, match="gcloud_auth_failed"):
         credentials.headers()
+    with pytest.raises(gcp.ReadError, match="gcloud_auth_failed"):
+        credentials.headers()
+    assert len(tokens) == 1
 
 
 @pytest.mark.parametrize("method", ["adc", "service-account", "external-account", "metadata", "impersonation"])
@@ -636,6 +679,13 @@ def test_external_config_destinations_validated_before_loading(config, code):
         gcp.validate_external_config(info)
 
 
+@pytest.mark.parametrize("field,value", [("service_account_impersonation_url", {}), ("service_account_impersonation_url", 123),
+                                         ("credential_source", {"environment_id": "aws1", "url": None})])
+def test_malformed_external_destinations_produce_only_safe_validator_errors(field, value):
+    with pytest.raises(gcp.ReadError):
+        gcp.validate_external_config({"type": "external_account", "token_url": "https://sts.googleapis.com/v1/token", field: value})
+
+
 def test_inline_external_account_requires_explicit_ephemeral_token():
     with pytest.raises(gcp.ReadError, match="inline_subject_token_required"):
         gcp.Credentials({"method": "external-account", "external_account_json": {"type": "external_account",
@@ -652,6 +702,81 @@ def test_engine_evaluation_remains_offline_and_sealed_with_native_bucket_facts()
     assert transport.calls == calls
     assert report["snapshot_id"] == result["snapshot_id"]
     assert any(f["check_id"] == "gcp.storage.uniform_access" and f["status"] == "PASS" for f in report["findings"])
+
+
+def test_direct_bigquery_artifact_run_functions_metadata_has_no_payload_reads():
+    def resolve(request):
+        url = request["url"]
+        if url.endswith(":getIamPolicy"):
+            return {"version": 3, "bindings": []}
+        if url.endswith("/datasets"):
+            return {"datasets": [{"datasetReference": {"projectId": "p-one", "datasetId": "d"}}]}
+        if url.endswith("/datasets/d"):
+            assert request["params"] == {"accessPolicyVersion": 3, "datasetView": "FULL"}
+            return {"access": [], "defaultEncryptionConfiguration": {"kmsKeyName": "projects/p-one/locations/r/keyRings/a/cryptoKeys/k"}}
+        if url.endswith("/repositories"):
+            return {"repositories": [{"name": "projects/p-one/locations/r/repositories/a", "format": "DOCKER",
+                "dockerConfig": {"immutableTags": True}}]}
+        if url.endswith("/services"):
+            return {"services": [{"name": "projects/p-one/locations/r/services/s", "ingress": "INGRESS_TRAFFIC_INTERNAL_ONLY",
+                "template": {"containers": [{"env": [{"name": "PASSWORD", "value": "sensitive-inline-value"}]}]}}]}
+        if url.endswith("/functions"):
+            return {"functions": [{"name": "projects/p-one/locations/r/functions/f", "serviceConfig": {
+                "ingressSettings": "ALLOW_INTERNAL_ONLY", "environmentVariables": {"PASSWORD": "sensitive-inline-value"}}}]}
+        pytest.fail("unplanned API read: " + url)
+    result, transport = snapshot(["bigquery_dataset", "artifact_repository", "cloudrun_service", "function"], resolve,
+        cloudrun_locations=["r"], artifactregistry_locations=["r"])
+    assert all(c["status"] == "collected" for c in result["collections"])
+    assert collection(result, "bigquery_dataset")["items"][0]["access"] == []
+    assert collection(result, "cloudrun_service")["items"][0]["iamPolicy"]["version"] == 3
+    assert "sensitive-inline-value" not in json.dumps(result)
+    assert not any("tabledata" in request["url"] or ":download" in request["url"] for request in transport.requests)
+
+
+def test_run_location_discovery_never_uses_unsupported_wildcard():
+    def resolve(request):
+        if request["url"].endswith("/locations"):
+            return {"locations": [{"name": "projects/p-one/locations/r-a", "locationId": "r-a"}]}
+        assert "/locations/r-a/services" in request["url"]
+        return {"services": []}
+    result, transport = snapshot(["cloudrun_service"], resolve)
+    assert collection(result, "cloudrun_service")["status"] == "empty"
+    assert transport.calls == 2
+    assert not any("/locations/-/services" in request["url"] for request in transport.requests)
+
+
+def test_unreadable_region_does_not_hide_readable_other_region():
+    def resolve(request):
+        if "/locations/r-denied/" in request["url"]:
+            raise gcp.ReadError("denied", "api_error", http_status=403)
+        if request["url"].endswith(":getIamPolicy"):
+            return {"bindings": []}
+        return {"services": [{"name": "projects/p-one/locations/r-good/services/s"}]}
+    result, transport = snapshot(["cloudrun_service"], resolve, cloudrun_locations=["r-denied", "r-good"])
+    found = collection(result, "cloudrun_service")
+    assert found["status"] == "partial"
+    assert len(found["items"]) == 1
+    assert found["error"]["kind"] == "denied"
+
+
+def test_bigquery_detail_denial_does_not_imply_dataset_acl_is_empty():
+    def resolve(request):
+        if request["url"].endswith("/datasets"):
+            return {"datasets": [{"datasetReference": {"datasetId": "d"}}]}
+        raise gcp.ReadError("denied", "api_error", http_status=403)
+    result, _ = snapshot(["bigquery_dataset"], resolve)
+    item = collection(result, "bigquery_dataset")["items"][0]
+    assert "access" not in item
+    assert item["_coverage"]["datasetDetails"]["status"] == "denied"
+
+
+def test_hierarchy_firewall_parent_is_full_org_or_folder_name():
+    def resolve(request):
+        assert request["params"]["parentId"] == request["scope"]
+        assert request["url"] == "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies"
+        return {"items": []}
+    result, transport = snapshot(["firewall_policy"], resolve, scopes=["organizations/12", "folders/34"])
+    assert all(c["status"] == "empty" for c in result["collections"])
 
 
 @pytest.mark.parametrize("option,value", [("concurrency", 17), ("max_pages", 0), ("max_calls", True),

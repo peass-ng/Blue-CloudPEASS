@@ -1,0 +1,166 @@
+# GCP Dataproc privilege escalation techniques.
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-dataproc-privesc.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+# Create-time gates: actAs on the chosen SA (caller) and roles/dataproc.worker on that SA (else creation is rejected).
+
+- id: gcp-dataproc-jobs-create-existing-cluster
+  provider: gcp
+  service: dataproc
+  title: Submit a job to an existing Dataproc cluster and use the cluster service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclustersget-dataprocclustersuse-dataprocjobscreate-dataprocjobsget-dataprocjobslist-storageobjectscreate-storageobjectsget
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account of every Dataproc cluster on which it holds dataproc.clusters.use and dataproc.jobs.create.
+  requires:
+    all_of:
+      - action: dataproc.clusters.use
+        resource: "{target.host_resource}"
+      - action: dataproc.jobs.create
+        resource: "{target.host_resource}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: dataproc_cluster
+    scope: same_project
+    aggregate_as: "SAs of Dataproc clusters the source can submit jobs to"
+  conditions:
+    - id: script_upload
+      description: The job script must be readable by the cluster (typically uploaded with storage.objects.create to a bucket the cluster SA can read); CLI workflows also use dataproc.clusters.get and dataproc.jobs.get.
+    - id: access_scopes
+      description: The usable token is limited by the cluster VMs' access scopes.
+  blockers:
+    - gcp_deny_policy
+  confidence: derived
+  severity: high
+  mitigation: Restrict roles/dataproc.editor/admin to cluster owners and run clusters with least-privilege SAs.
+  notes: No actAs needed.
+
+- id: gcp-dataproc-clusters-batches-create-actas
+  provider: gcp
+  service: dataproc
+  title: Create a Dataproc cluster or serverless batch running as a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclusterscreate--dataprocbatchescreate--iamserviceaccountsactas--attach-an-arbitrary-service-account
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs and that holds roles/dataproc.worker.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+    any_of:
+      - - action: dataproc.clusters.create
+          resource: "*"
+      - - action: dataproc.batches.create
+          resource: "*"
+        - action: dataproc.autoscalingPolicies.use
+          resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts usable as Dataproc VM/batch SA in {project}"
+  conditions:
+    - id: sa_worker_role
+      description: Creation is rejected unless the chosen SA already holds roles/dataproc.worker (staging/temp bucket access); not checked against the target's permissions.
+    - id: cluster_code_path
+      description: On the cluster path, initialization actions run code as the chosen SA at creation, so dataproc.jobs.create is not required.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: critical
+  mitigation: Grant actAs only on specific SAs; review roles/dataproc.hubAgent which bundles actAs and clusters.create.
+  references:
+    - https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/service-accounts
+
+- id: gcp-dataproc-sessions-create-actas
+  provider: gcp
+  service: dataproc
+  title: Create an interactive Dataproc Serverless session running as a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocsessionscreate--dataprocsessiontemplatescreate--interactive-serverless-session-run-as-sa
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs and that holds roles/dataproc.worker.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+      - action: dataproc.sessions.create
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts usable as Dataproc session SA in {project}"
+  conditions:
+    - id: sa_worker_role
+      description: The chosen SA needs roles/dataproc.worker for the session to schedule.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: critical
+  mitigation: Grant actAs only on specific SAs and restrict dataproc.sessions.create.
+  notes: Session templates (dataproc.sessionTemplates.create) persist the SA for later sessions; that is persistence and is not a separate edge.
+
+- id: gcp-dataproc-clusters-setiampolicy
+  provider: gcp
+  service: dataproc
+  title: Self-grant job submission on a Dataproc cluster through its IAM policy
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclusterssetiampolicy--dataprocjobssetiampolicy--resource-level-self-grant
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account of every Dataproc cluster on which it holds dataproc.clusters.setIamPolicy.
+  requires:
+    all_of:
+      - action: dataproc.clusters.setIamPolicy
+        resource: "{target.host_resource}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: dataproc_cluster
+    scope: same_project
+    aggregate_as: "SAs of Dataproc clusters whose IAM policy the source controls"
+  conditions:
+    - id: script_upload
+      description: The follow-up job needs a script location readable by the cluster.
+  blockers:
+    - gcp_deny_policy
+  confidence: derived
+  severity: high
+  mitigation: Restrict dataproc.clusters.setIamPolicy (roles/dataproc.admin).
+  notes: No actAs or project-level IAM change needed. jobs.setIamPolicy and workflowTemplates.setIamPolicy are listed by HackTricks too, but a job-level grant does not by itself confer clusters.use, so only the cluster-level self-grant is modelled.
+
+- id: gcp-dataproc-workflowtemplates-actas
+  provider: gcp
+  service: dataproc
+  title: Create and instantiate a workflow template with a chosen SA and initialization actions
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocworkflowtemplatescreate----initialization-actions--template--init-action-tamper-persistence
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs and that holds roles/dataproc.worker.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+      - action: dataproc.workflowTemplates.create
+        resource: "*"
+      - action: dataproc.workflowTemplates.instantiate
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts pinnable in Dataproc workflow templates in {project}"
+  conditions:
+    - id: sa_worker_role
+      description: The pinned SA needs roles/dataproc.worker for the managed cluster to be created.
+    - id: actas_point
+      description: Where actAs is checked (template create vs instantiate) is not stated by HackTricks; modelled as required for the source.
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict dataproc.workflowTemplates create/update/instantiate and actAs grants.
+  notes: The persistence aspect (others instantiating the template later) is not modelled.

@@ -13,6 +13,7 @@ COPY peaso/ ./peaso/
 COPY bluepeass/ ./bluepeass/
 COPY scripts/ ./scripts/
 COPY risk_rules/ ./risk_rules/
+RUN python -c 'import json,pathlib; [json.loads(path.read_text()) for path in pathlib.Path("peaso").rglob("*.json")]'
 RUN pip install --no-cache-dir . && groupadd -g 10001 peaso && useradd -u 10001 -g 10001 --no-create-home peaso
 ENTRYPOINT ["python", "-m", "peaso.server.bootstrap"]
 

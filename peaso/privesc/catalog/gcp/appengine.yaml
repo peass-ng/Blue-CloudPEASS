@@ -1,0 +1,101 @@
+# GCP App Engine privilege escalation techniques.
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-appengine-privesc.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+# Versions run as the app-level default SA (<PROJECT_ID>@appspot.gserviceaccount.com) unless a per-version SA is set.
+
+- id: gcp-appengine-versions-create-actas
+  provider: gcp
+  service: appengine
+  title: Deploy an App Engine version running as a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#appengineapplicationsget-appengineinstancesget-appengineinstanceslist-appengineoperationsget-appengineoperationslist-appengineservicesget-appengineserviceslist-appengineversionscreate-appengineversionsget-appengineversionslist-cloudbuildbuildsgetiamserviceaccountsactas-resourcemanagerprojectsget-storageobjectscreate-storageobjectslist
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs, including the App Engine default service account.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+      - action: appengine.versions.create
+        resource: "*"
+      - action: storage.objects.create
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts usable as App Engine runtime SA in {project}"
+  conditions:
+    - id: app_exists
+      description: An App Engine application must already exist in the project.
+    - id: deploy_prereqs
+      description: The effective deploy permission set varies (Google recommends App Engine Deployer, Service Account User, Cloud Build Editor and Storage Object Admin); read permissions listed by HackTricks may be avoidable.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: critical
+  mitigation: Grant actAs only on specific SAs, remove roles/editor from the App Engine default SA and restrict roles/appengine.deployer.
+  references:
+    - https://cloud.google.com/appengine/docs/standard/configure-service-accounts
+  notes: A no-promote version is reachable without moving production traffic. Also covers the update-equivalent deploy path and environment-variable startup injection in app.yaml.
+
+- id: gcp-appengine-instances-enabledebug
+  provider: gcp
+  service: appengine
+  title: SSH into an App Engine flexible instance and use its service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#appengineinstancesenabledebug-appengineinstancesget-appengineinstanceslist-appengineoperationsget-appengineservicesget-appengineserviceslist-appengineversionsget-appengineversionslist-computeprojectsget
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account of App Engine flexible versions on which it holds appengine.instances.enableDebug.
+  requires:
+    all_of:
+      - action: appengine.instances.enableDebug
+        resource: "{target.host_resource}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: appengine_version
+    scope: same_project
+    aggregate_as: "SAs of App Engine flexible versions the source can debug"
+  conditions:
+    - id: flexible_only
+      description: Only App Engine flexible instances support SSH debug; standard environment versions are not reachable.
+    - id: ssh_reachability
+      description: The instance VM must be reachable over SSH from the source.
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: high
+  mitigation: Restrict roles/appengine.appAdmin and avoid privileged SAs on flexible versions.
+  notes: HackTricks does not state whether actAs on the version SA is required.
+
+- id: gcp-appengine-staging-bucket-write
+  provider: gcp
+  service: appengine
+  title: Swap source in the App Engine staging bucket during a deployment
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#write-access-over-the-buckets
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account of App Engine versions deployed from a staging bucket it can read and write, when a version is next deployed.
+  requires:
+    all_of:
+      - action: storage.objects.get
+        resource: "{target.host_resource.content_storage}"
+      - action: storage.objects.create
+        resource: "{target.host_resource.content_storage}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: appengine_version
+    scope: any
+    aggregate_as: "SAs of App Engine versions deployed from writable staging buckets"
+  conditions:
+    - id: deployment_window
+      description: Requires a legitimate deployment and winning the race between upload and build.
+    - id: overwrite_rights
+      description: Replacing staged objects may need storage.objects.delete/update.
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: medium
+  mitigation: Restrict access to staging.<project-id>.appspot.com to App Engine and the deployment pipeline.
+  notes: The appspot.com staging bucket cannot be pre-created by an attacker. Works for external identities with access to the bucket (scope any).

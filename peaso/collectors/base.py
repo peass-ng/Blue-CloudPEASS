@@ -2,6 +2,8 @@
 from __future__ import annotations
 import json
 from datetime import date, datetime
+from itertools import count
+import time
 from urllib.parse import urlencode, urlsplit, quote
 from peaso.snapshot import canonical, digest, make_snapshot, resource_id
 
@@ -34,13 +36,27 @@ def _error_status(exc):
 
 class Budget:
     def __init__(self, options):
-        self.max_pages = _bound(options.get("max_pages", 10), "max_pages", 1, 100)
-        self.max_items = _bound(options.get("max_resources", 10000), "max_resources", 1, 100000)
-        self.max_calls = _bound(options.get("max_calls", 200), "max_calls", 1, 10000)
+        def optional_limit(name):
+            value = options.get(name)
+            if value is None:
+                return None
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(name + " must be a positive integer or omitted")
+            return value
+        self.max_pages = optional_limit("max_pages")
+        self.max_items = optional_limit("max_resources")
+        self.max_calls = optional_limit("max_calls")
+        self.intentional_limits = {name: options[name] for name in ("max_pages", "max_resources", "max_calls") if options.get(name) is not None}
+        self.cancel_event = options.get("cancel_event")
+        self.deadline = options.get("deadline")
         self.calls = 0
 
     def call(self, operation, *args, **kwargs):
-        if self.calls >= self.max_calls:
+        if self.cancel_event is not None and self.cancel_event.is_set():
+            raise RuntimeError("collection_cancelled")
+        if self.deadline is not None and time.time() >= self.deadline:
+            raise TimeoutError("explicit collection deadline exceeded")
+        if self.max_calls is not None and self.calls >= self.max_calls:
             raise RuntimeError("collection call budget exhausted")
         self.calls += 1
         return operation(*args, **kwargs)
@@ -71,7 +87,7 @@ class Collector:
         try:
             pages = iter(fetch())
             for page_index, page in enumerate(pages):
-                if page_index >= self.budget.max_pages:
+                if self.budget.max_pages is not None and page_index >= self.budget.max_pages:
                     status, error = "partial", {"code": "page_limit"}
                     break
                 if not isinstance(page, list) or any(not isinstance(item, dict) for item in page):
@@ -81,7 +97,7 @@ class Collector:
                     rid = resource_id(self.provider, kind, scope, item)
                     if rid in items:
                         continue
-                    if self.total_items >= self.budget.max_items:
+                    if self.budget.max_items is not None and self.total_items >= self.budget.max_items:
                         status, error = "partial", {"code": "resource_limit"}
                         break
                     items[rid] = _json(item)
@@ -109,7 +125,7 @@ class Collector:
     def finish(self):
         return make_snapshot(self.provider, self.scopes, self.collections,
             metadata={"collection": "read-only", "calls": self.budget.calls, "max_calls": self.budget.max_calls,
-                      "max_pages": self.budget.max_pages, "max_resources": self.budget.max_items,
+                      "max_pages": self.budget.max_pages, "max_resources": self.budget.max_items, "intentional_limits": self.budget.intentional_limits,
                       "omitted_inventories": sorted(set(TYPES[self.provider]) - self.wanted)})
 
 
@@ -118,10 +134,10 @@ def _aws_pages(collector, client, operation, key, **kwargs):
     model = client.meta.service_model.operation_model(client.meta.method_to_api_mapping[operation])
     input_members = model.input_shape.members if model.input_shape else {}
     token, seen = None, set()
-    for _ in range(collector.budget.max_pages):
+    for _ in (count() if collector.budget.max_pages is None else range(collector.budget.max_pages)):
         arguments = dict(kwargs)
         if "MaxResults" in input_members:
-            arguments["MaxResults"] = min(100, collector.budget.max_items)
+            arguments["MaxResults"] = 100 if collector.budget.max_items is None else min(100, collector.budget.max_items)
         if token:
             arguments["Marker" if "Marker" in input_members else "NextToken"] = token
         result = collector.budget.call(getattr(client, operation), **arguments)
@@ -141,7 +157,7 @@ def _aws_pages(collector, client, operation, key, **kwargs):
 def _http_pages(collector, url, read, *, key="items", next_key="nextPageToken", query=None, token_query="pageToken", transform=None):
     origin = urlsplit(url)
     seen, current = set(), url
-    for _ in range(collector.budget.max_pages):
+    for _ in (count() if collector.budget.max_pages is None else range(collector.budget.max_pages)):
         # Do not send bearer tokens to a different host supplied by a nextLink.
         parsed = urlsplit(current)
         if parsed.scheme != "https" or parsed.netloc != origin.netloc:

@@ -1,13 +1,13 @@
 # AWS IAM privilege escalation techniques.
-# Source: hacktricks-cloud aws-iam-privesc/README.md (rev 6bdd8e89e6).
+# Source: hacktricks-cloud aws-iam-privesc/README.md.
 
 - id: aws-iam-createpolicyversion-self
   provider: aws
   service: iam
   title: Create a new default version of a customer-managed policy attached to the source
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamcreatepolicyversion
-  source_revision: 6bdd8e89e6
-  summary: A principal that can create a new default version of a customer-managed policy attached to itself (directly, via a group, or to its role) can rewrite its own permissions to administrator.
+  source_revision: a53b46392c
+  summary: The source can obtain administrator privileges by rewriting a customer-managed policy attached to itself (directly, via a group, or to its role).
   requires:
     all_of:
       - action: iam:CreatePolicyVersion
@@ -36,8 +36,8 @@
   service: iam
   title: Switch the default version of a customer-managed policy attached to the source
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamsetdefaultpolicyversion
-  source_revision: 6bdd8e89e6
-  summary: A principal that can change the default version of a policy attached to itself can activate an older, more permissive non-default version.
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of a more permissive stored version of a policy attached to itself.
   requires:
     all_of:
       - action: iam:SetDefaultPolicyVersion
@@ -66,8 +66,8 @@
   service: iam
   title: Create access keys for another IAM user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamcreateaccesskey-iamdeleteaccesskey
-  source_revision: 6bdd8e89e6
-  summary: A principal with iam:CreateAccessKey on a user can mint long-term credentials for that user and act as it.
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of IAM users on which it can create access keys.
   requires:
     all_of:
       - action: iam:CreateAccessKey
@@ -95,8 +95,8 @@
   service: iam
   title: Create a console password for another IAM user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamcreateloginprofile--iamupdateloginprofile
-  source_revision: 6bdd8e89e6
-  summary: A principal with iam:CreateLoginProfile on a user that has no console password can set one and sign in as that user.
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of IAM users without a console password on which it can create one.
   requires:
     all_of:
       - action: iam:CreateLoginProfile
@@ -125,8 +125,8 @@
   service: iam
   title: Reset the console password of another IAM user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamcreateloginprofile--iamupdateloginprofile
-  source_revision: 6bdd8e89e6
-  summary: A principal with iam:UpdateLoginProfile on a user that already has a console password can change it and sign in as that user.
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of IAM users whose console password it can change.
   requires:
     all_of:
       - action: iam:UpdateLoginProfile
@@ -155,8 +155,8 @@
   service: iam
   title: Create or reset service-specific credentials for another IAM user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamcreateservicespecificcredential--iamresetservicespecificcredential
-  source_revision: 6bdd8e89e6
-  summary: A principal that can create or reset service-specific credentials of a user obtains that user's permissions for the specific service (CodeCommit Git, Amazon Keyspaces, Bedrock API keys).
+  source_revision: a53b46392c
+  summary: The source can obtain the service-scoped privileges (CodeCommit, Keyspaces, Bedrock) of IAM users for which it can create or reset service-specific credentials.
   requires:
     all_of: []
     any_of:
@@ -189,8 +189,8 @@
   service: iam
   title: Upload an SSH public key for another IAM user (CodeCommit)
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamuploadsshpublickey--iamdeactivatemfadevice
-  source_revision: 6bdd8e89e6
-  summary: A principal with iam:UploadSSHPublicKey on a user can authenticate to CodeCommit as that user and use its repository permissions.
+  source_revision: a53b46392c
+  summary: The source can obtain the CodeCommit privileges of IAM users for which it can upload an SSH public key.
   requires:
     all_of:
       - action: iam:UploadSSHPublicKey
@@ -218,8 +218,8 @@
   service: iam
   title: Attach a managed policy to the source IAM user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachuserpolicy--iamattachgrouppolicy
-  source_revision: 6bdd8e89e6
-  summary: An IAM user that can attach managed policies to itself can attach AdministratorAccess.
+  source_revision: a53b46392c
+  summary: The source IAM user can obtain administrator privileges by attaching a managed policy to itself.
   requires:
     all_of:
       - action: iam:AttachUserPolicy
@@ -247,8 +247,8 @@
   service: iam
   title: Put an inline policy on the source IAM user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachrolepolicy-stsassumerole--iamcreaterole--iamputuserpolicy--iamputgrouppolicy--iamputrolepolicy
-  source_revision: 6bdd8e89e6
-  summary: An IAM user that can write inline policies on itself can grant itself any permission.
+  source_revision: a53b46392c
+  summary: The source IAM user can obtain administrator privileges by writing an inline policy on itself.
   requires:
     all_of:
       - action: iam:PutUserPolicy
@@ -274,12 +274,12 @@
   service: iam
   title: Attach a managed policy to a group the source user belongs to
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachuserpolicy--iamattachgrouppolicy
-  source_revision: 6bdd8e89e6
-  summary: An IAM user that can attach managed policies to one of its own groups can attach AdministratorAccess to that group.
+  source_revision: a53b46392c
+  summary: The source IAM user can obtain administrator privileges by attaching a managed policy to one of its groups.
   requires:
     all_of:
       - action: iam:AttachGroupPolicy
-        resource: "{target.arn}"
+        resource: "{source.group_arn}"
   target:
     kind: aws_account_admin
     selector:
@@ -297,19 +297,19 @@
   severity: critical
   mitigation: Do not let users modify policies of groups they belong to.
   references: []
-  notes: "{target.arn} here is the ARN of one of the source's groups."
+  notes: "{source.group_arn} is the ARN of one of the source's groups (the target is the account-admin entity, which has no ARN)."
 
 - id: aws-iam-putgrouppolicy-self
   provider: aws
   service: iam
   title: Put an inline policy on a group the source user belongs to
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachrolepolicy-stsassumerole--iamcreaterole--iamputuserpolicy--iamputgrouppolicy--iamputrolepolicy
-  source_revision: 6bdd8e89e6
-  summary: An IAM user that can write inline policies on one of its own groups can grant itself any permission.
+  source_revision: a53b46392c
+  summary: The source IAM user can obtain administrator privileges by writing an inline policy on one of its groups.
   requires:
     all_of:
       - action: iam:PutGroupPolicy
-        resource: "{target.arn}"
+        resource: "{source.group_arn}"
   target:
     kind: aws_account_admin
     selector:
@@ -325,15 +325,15 @@
   severity: critical
   mitigation: Do not let users modify policies of groups they belong to.
   references: []
-  notes: "{target.arn} here is the ARN of one of the source's groups."
+  notes: "{source.group_arn} is the ARN of one of the source's groups (the target is the account-admin entity, which has no ARN)."
 
 - id: aws-iam-attachrolepolicy-self
   provider: aws
   service: iam
   title: Attach a managed policy to the source's own role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachrolepolicy-stsassumerole--iamcreaterole--iamputuserpolicy--iamputgrouppolicy--iamputrolepolicy
-  source_revision: 6bdd8e89e6
-  summary: A role session that can attach managed policies to its own role can attach AdministratorAccess (new sessions, and existing ones on next evaluation, get it).
+  source_revision: a53b46392c
+  summary: The source role can obtain administrator privileges by attaching a managed policy to its own role.
   requires:
     all_of:
       - action: iam:AttachRolePolicy
@@ -361,8 +361,8 @@
   service: iam
   title: Put an inline policy on the source's own role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachrolepolicy-stsassumerole--iamcreaterole--iamputuserpolicy--iamputgrouppolicy--iamputrolepolicy
-  source_revision: 6bdd8e89e6
-  summary: A role session that can write inline policies on its own role can grant itself any permission.
+  source_revision: a53b46392c
+  summary: The source role can obtain administrator privileges by writing an inline policy on its own role.
   requires:
     all_of:
       - action: iam:PutRolePolicy
@@ -388,17 +388,14 @@
   service: iam
   title: Grant permissions to a role the source can already assume
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachrolepolicy-stsassumerole--iamcreaterole--iamputuserpolicy--iamputgrouppolicy--iamputrolepolicy
-  source_revision: 6bdd8e89e6
-  summary: A principal that can attach or put policies on a role whose trust policy allows the source to assume it can make that role admin and assume it.
+  source_revision: a53b46392c
+  summary: The source can obtain administrator privileges through a role it can assume and whose policies it can change.
   requires:
-    all_of:
-      - action: sts:AssumeRole
-        resource: "{target.arn}"
     any_of:
       - - action: iam:AttachRolePolicy
-          resource: "{target.arn}"
+          resource: "{source.assumable_role_arn}"
       - - action: iam:PutRolePolicy
-          resource: "{target.arn}"
+          resource: "{source.assumable_role_arn}"
   target:
     kind: aws_account_admin
     selector:
@@ -406,28 +403,26 @@
     scope: same_account
     aggregate_as: "Administrator of {account} (via an assumable role)"
   conditions:
-    - id: same_account_trust_no_assumerole_needed
-      description: When the role trust names the source principal ARN directly in the same account, sts:AssumeRole in the source's identity policy is not required.
+    - id: same_assumable_role
+      description: The role whose policies the source can change must be one it can assume; {source.assumable_role_arn} already restricts the requirement to such roles.
   blockers:
     - scp_or_boundary_deny
   confidence: derived
   severity: critical
   mitigation: Separate who can edit a role's permissions from who can assume it; apply permissions boundaries on delegated role administration.
   references: []
-  notes: via_assumable_role_covered_by applies to whichever any_of action matched (AttachRolePolicy or PutRolePolicy).
+  notes: "{source.assumable_role_arn} is a role the source can already assume (the trust admits it, and its identity policy allows sts:AssumeRole on the role unless the trust names its ARN in the same account), so no separate sts:AssumeRole requirement is listed. via_assumable_role_covered_by applies to whichever any_of action matched (AttachRolePolicy or PutRolePolicy)."
 
 - id: aws-iam-createrole-attach-assume
   provider: aws
   service: iam
   title: Create a new role trusting the source, grant it admin, and assume it
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamattachrolepolicy-stsassumerole--iamcreaterole--iamputuserpolicy--iamputgrouppolicy--iamputrolepolicy
-  source_revision: 6bdd8e89e6
-  summary: A principal that can create a role, give it permissions and assume it effectively becomes administrator.
+  source_revision: a53b46392c
+  summary: The source can obtain administrator privileges through a new role it creates, grants permissions to and assumes.
   requires:
     all_of:
       - action: iam:CreateRole
-        resource: "*"
-      - action: sts:AssumeRole
         resource: "*"
     any_of:
       - - action: iam:AttachRolePolicy
@@ -444,9 +439,9 @@
     - id: permissions_boundary_condition
       description: An iam:PermissionsBoundary condition on CreateRole forces new roles to carry a boundary and removes the escalation.
     - id: resource_path_restriction
-      description: If CreateRole/AttachRolePolicy/AssumeRole are restricted to a role path or name pattern, the actions must all cover the same role ARN.
+      description: If CreateRole/AttachRolePolicy/PutRolePolicy are restricted to a role path or name pattern, the actions must all cover the same role ARN.
     - id: same_account_trust_no_assumerole_needed
-      description: A role trust naming the source ARN in the same account makes the sts:AssumeRole identity grant unnecessary.
+      description: The source writes the new role's trust policy naming its own ARN; in the same account that trust alone authorizes sts:AssumeRole, so no identity grant is required (an explicit identity-policy or SCP deny on sts:AssumeRole still blocks it).
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
@@ -461,8 +456,8 @@
   service: iam
   title: Add the source user to an IAM group
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamaddusertogroup
-  source_revision: 6bdd8e89e6
-  summary: An IAM user that can add itself to a group gains that group's permissions.
+  source_revision: a53b46392c
+  summary: The source IAM user can obtain the privileges of IAM groups it can add itself to.
   requires:
     all_of:
       - action: iam:AddUserToGroup
@@ -488,8 +483,8 @@
   service: iam
   title: Rewrite a role's trust policy to allow the source
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamupdateassumerolepolicy
-  source_revision: 6bdd8e89e6
-  summary: A principal that can update a role's trust policy can make the role trust itself and assume it.
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of roles whose trust policy it can rewrite.
   requires:
     all_of:
       - action: iam:UpdateAssumeRolePolicy
@@ -517,8 +512,8 @@
   service: iam
   title: Replace the metadata of a SAML provider trusted by roles
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamupdatesamlprovider-iamlistsamlproviders-iamgetsamlprovider
-  source_revision: 6bdd8e89e6
-  summary: A principal that can replace a SAML provider's metadata with an IdP it controls can forge assertions and assume every role trusting that provider.
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of roles trusting a SAML provider whose metadata it can replace.
   requires:
     all_of:
       - action: iam:UpdateSAMLProvider
@@ -546,8 +541,8 @@
   service: iam
   title: Replace or remove the permissions boundary of the source user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputuserpermissionsboundary
-  source_revision: 6bdd8e89e6
-  summary: A boundary-restricted IAM user that can change its own permissions boundary can lift the boundary and get the full permissions of its identity policies.
+  source_revision: a53b46392c
+  summary: The source IAM user can obtain the full privileges of its identity policies by replacing or removing its own permissions boundary.
   requires:
     all_of: []
     any_of:
@@ -579,8 +574,8 @@
   service: iam
   title: Replace or remove the permissions boundary of the source role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamputrolepermissionsboundary
-  source_revision: 6bdd8e89e6
-  summary: A boundary-restricted role that can change its own permissions boundary can lift the boundary and get the full permissions of its identity policies.
+  source_revision: a53b46392c
+  summary: The source role can obtain the full privileges of its identity policies by replacing or removing its own permissions boundary.
   requires:
     all_of: []
     any_of:

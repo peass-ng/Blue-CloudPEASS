@@ -1,6 +1,6 @@
 """Kubernetes defaults are interpreted only after a complete native Pod spec."""
 from . import register, result, unknown
-from .facts import get, list_of_objects
+from .facts import get, list_of_objects, optional
 from .fixtures import CASES
 
 
@@ -25,12 +25,12 @@ def container_check(cid, title, predicate, good_context, bad_context, severity="
         spec, rows = containers(item)
         if rows is None:
             return "NOT_APPLICABLE", {"reason": "Linux container control; Windows pod requires its own policy"}
-        pod = spec.get("securityContext", {})
+        pod = optional(spec, "securityContext", {}, dict)
         if not isinstance(pod, dict):
             return unknown("malformed pod securityContext")
         failed = []
         for row in rows:
-            context = row.get("securityContext", {})
+            context = optional(row, "securityContext", {}, dict)
             if not isinstance(context, dict):
                 return unknown("malformed container securityContext")
             if not predicate(context, pod):
@@ -40,7 +40,7 @@ def container_check(cid, title, predicate, good_context, bad_context, severity="
 
 
 def flag(context, key, default=None):
-    value = context.get(key, default)
+    value = optional(context, key, default, bool)
     if value is not None and type(value) is not bool:
         raise ValueError("malformed security flag")
     return value
@@ -60,7 +60,7 @@ container_check("k8s.pod.non_root", "Pod containers require a non-root identity"
 
 
 def drop_all(context, pod):
-    caps = context.get("capabilities", {})
+    caps = optional(context, "capabilities", {}, dict)
     if not isinstance(caps, dict) or not isinstance(caps.get("drop", []), list):
         raise ValueError("malformed capabilities")
     return "ALL" in caps.get("drop", [])
@@ -68,7 +68,7 @@ container_check("k8s.pod.drop_capabilities", "Pod containers drop all Linux capa
 
 
 def safe_capabilities(context, pod):
-    caps = context.get("capabilities", {})
+    caps = optional(context, "capabilities", {}, dict)
     if not isinstance(caps, dict) or not isinstance(caps.get("add", []), list) or any(not isinstance(x, str) for x in caps.get("add", [])):
         raise ValueError("malformed capabilities")
     return not set(caps.get("add", [])) - {"NET_BIND_SERVICE"}

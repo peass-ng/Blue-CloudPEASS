@@ -137,3 +137,9 @@ def test_extension_review_shard_records_adapted_not_complete_migration():
     assert all((row["native_checks"] or row.get("related_native_checks")) and row["reason"] for row in shard.values())
     assert "hostPort0" in shard["kubernetes-compliance.control.pod_container_host_port_not_specified"]["reason"]
     assert all("pod_security_policy" not in key for key in shard)
+
+
+def test_unrelated_namespace_inventory_cannot_establish_quota_absence():
+    cid = "k8s.namespace.quota_limits_cpu"
+    index = {"collections": {"resourcequota": [{"scope": "cluster/other", "status": "empty"}]}, "resourcequota": []}
+    assert registry()[cid].evaluate({"metadata": {"name": "apps"}}, index)[0] == "UNKNOWN"

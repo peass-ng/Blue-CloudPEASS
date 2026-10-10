@@ -70,4 +70,4 @@
   mitigation: Limit Azure Batch Job Submitter assignments and keep pool identities least-privileged.
   references:
     - https://learn.microsoft.com/en-us/azure/batch/batch-role-based-access-control
-  notes: HackTricks cites the jobs/* and jobSchedules/* wildcards of the built-in role; the exact narrowest data action for task add is not stated on the page.
+  notes: HackTricks cites the jobs/* and jobSchedules/* wildcards of the built-in role. Microsoft's Batch data-action list has no separate tasks action, so jobs/write (or jobSchedules/write) is the narrowest data action covering task add.

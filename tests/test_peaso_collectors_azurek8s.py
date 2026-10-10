@@ -460,10 +460,11 @@ def test_resource_exact_cap_can_be_complete_and_empty_distinct():
     assert collection(snapshot, "pod")["status"] == "empty"
 
 
-def test_azure_root_assignment_uses_at_scope_filter():
+@pytest.mark.parametrize("kind,plural", [("role_assignment", "roleAssignments"), ("deny_assignment", "denyAssignments")])
+def test_azure_root_assignment_uses_at_scope_filter(kind, plural):
     api = FakeAzure(lambda *_: {"value": []})
-    azure.collect({"scopes": ["sub-a"]}, ["role_assignment"], transport=api)
-    root = [url for url, _, _ in api.calls if urlsplit(url).path == "/providers/Microsoft.Authorization/roleAssignments"]
+    azure.collect({"scopes": ["sub-a"]}, [kind], transport=api)
+    root = [url for url, _, _ in api.calls if urlsplit(url).path == "/providers/Microsoft.Authorization/" + plural]
     assert len(root) == 1 and "%24filter=atScope%28%29" in root[0]
 
 
@@ -544,3 +545,113 @@ def test_azure_thin_arm_list_get_denial_retains_unavailable_detail():
     assert result["status"] == "partial"
     assert result["items"][0]["detail"]["collection_status"] == "denied"
     assert "properties" not in result["items"][0]
+
+
+def test_azure_app_config_whitelists_settings_and_never_exports_credentials():
+    rid = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Web/sites/app"
+    def handler(url, body, audience):
+        if body:
+            return {"data": []}
+        if "/config/web?" in url:
+            return {"id": rid + "/config/web", "properties": {"minTlsVersion": "1.3", "ftpsState": "FtpsOnly", "appSettings": [{"name": "PASSWORD", "value": "sensitive"}], "machineKey": {"validationKey": "sensitive"}}}
+        return {"value": [{"id": rid, "properties": {"httpsOnly": True}}]}
+    api = FakeAzure(handler)
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["app_service_config"], transport=api)
+    config = collection(snapshot, "app_service_config")["items"][0]
+    assert config["properties"] == {"minTlsVersion": "1.3", "ftpsState": "FtpsOnly"}
+    assert config["parent_id"] == rid
+    assert "sensitive" not in json.dumps(snapshot)
+    assert all("publishingcredentials" not in url.lower() and "appsettings" not in url.lower() for url, _, _ in api.calls)
+
+
+def test_azure_storage_services_use_metadata_get_default_no_list_keys():
+    rid = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/account"
+    def handler(url, body, audience):
+        if body:
+            return {"data": []}
+        if "/default?" in url:
+            service = urlsplit(url).path.split("/")[-2]
+            return {"id": rid + "/" + service + "/default", "type": "Microsoft.Storage/storageAccounts/" + service, "properties": {"deleteRetentionPolicy": {"enabled": True, "days": 7}}}
+        return {"value": [{"id": rid, "properties": {"minimumTlsVersion": "TLS1_2"}}]}
+    api = FakeAzure(handler)
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["storage_service"], transport=api)
+    services = [c for c in snapshot["collections"] if c["type"] == "storage_service"]
+    assert len(services) == 4 and all(c["status"] == "collected" for c in services)
+    assert all("listkeys" not in url.lower() for url, _, _ in api.calls)
+
+
+def test_azure_sql_tde_reads_user_database_metadata_and_preserves_native_parent_id():
+    server = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Sql/servers/server"
+    user = server + "/databases/application"
+    def handler(url, body, audience):
+        if body:
+            return {"data": []}
+        if "/transparentDataEncryption/current?" in url:
+            return {"id": user, "type": "Microsoft.Sql/servers/databases/transparentDataEncryption", "properties": {"state": "Enabled"}}
+        if "/databases?" in url:
+            return {"value": [{"id": user, "name": "application"}, {"id": server + "/databases/master", "name": "master"}]}
+        return {"value": [{"id": server, "properties": {"publicNetworkAccess": "Disabled"}}]}
+    api = FakeAzure(handler)
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["sql_tde"], transport=api)
+    record = collection(snapshot, "sql_tde")["items"][0]
+    assert record["id"] == record["parent_id"] == user
+    assert record["properties"]["state"] == "Enabled"
+    assert all("/master/transparentDataEncryption" not in url for url, _, _ in api.calls)
+
+
+@pytest.mark.parametrize("kind,plural", [("resourcequota", "resourcequotas"), ("limitrange", "limitranges")])
+def test_k8s_quota_and_limitrange_keep_namespace_scopes_and_native_specs(kind, plural):
+    api = FakeKube(lambda *_: kube_list([kube_item("limits", "team-a", spec={"hard": {"pods": "10"}, "limits": []})]))
+    snapshot = k8s.collect({"scopes": ["team-a"]}, [kind], api=api)
+    assert api.calls[0][0] == "/api/v1/namespaces/team-a/" + plural
+    assert collection(snapshot, kind)["items"][0]["spec"]["hard"]["pods"] == "10"
+
+
+def test_hosted_dns_change_is_revalidated_and_private_second_address_never_connected(monkeypatch):
+    from kubernetes import client
+    addresses = iter(["8.8.8.8", "169.254.169.254"])
+    monkeypatch.setattr(k8s.socket, "getaddrinfo", lambda *args, **kwargs: [(2, 1, 6, "", (next(addresses), 443))])
+    monkeypatch.setattr(client, "ApiClient", lambda *args, **kwargs: pytest.fail("private second address must not connect"))
+    assert k8s._public_server("https://cluster.example")[0] == "https://8.8.8.8"
+    with pytest.raises(ValueError, match="public addresses"):
+        k8s._new_api({"server": "https://cluster.example", "token": "fake-token", "_hosted": True})
+
+
+def test_inline_alias_requires_safe_inline_credentials(monkeypatch):
+    from kubernetes import client
+    captured = []
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or SimpleNamespace(configuration=cfg))
+    k8s._new_api({"method": "inline", "kubeconfig_data": inline_config()})
+    assert captured[-1].host == "https://cluster.example"
+    with pytest.raises(ValueError, match="requires kubeconfig_data"):
+        k8s._new_api({"method": "inline"})
+
+
+@pytest.mark.parametrize("module,scopes,kinds,transport", [(azure, ["sub-a"], ["subscription"], {"transport": FakeAzure(lambda *_: {"value": []})}), (k8s, ["team-a"], ["pod"], {"api": FakeKube(lambda *_: kube_list())})])
+def test_explicit_trusted_scopes_are_preserved_without_inferring_selected_scope(module, scopes, kinds, transport):
+    snapshot = module.collect({"scopes": scopes, "options": {"trusted_scope_ids": ["tenant-explicit", "tenant-explicit"]}}, kinds, **transport)
+    assert snapshot["metadata"]["trusted_scope_ids"] == ["tenant-explicit"]
+    assert scopes[0] not in snapshot["metadata"]["trusted_scope_ids"]
+
+
+def test_selected_namespace_inventory_gets_only_selected_namespaces_in_their_scopes():
+    def handler(path, params):
+        assert path != "/api/v1/namespaces"
+        namespace = path.rsplit("/", 1)[-1]
+        return {"metadata": {"name": namespace, "uid": "namespace-" + namespace, "labels": {"pod-security.kubernetes.io/enforce": "restricted"}}}
+    api = FakeKube(handler)
+    snapshot = k8s.collect({"scopes": ["team-a", "team-b"]}, ["namespace"], api=api)
+    assert {c["scope"] for c in snapshot["collections"]} == {"team-a", "team-b"}
+    for c in snapshot["collections"]:
+        assert c["status"] == "collected"
+        assert c["items"][0]["metadata"]["name"] == c["scope"]
+    assert len(api.calls) == 2
+
+
+def test_hosted_stale_credential_fields_cannot_authorize_ambient_method(monkeypatch):
+    monkeypatch.setattr(azure, "AzureTransport", lambda *_: pytest.fail("Azure worker identity source must not run"))
+    snapshot = azure.collect({"scopes": ["sub-a"], "options": {"hosted": True}, "auth": {"method": "managed-identity", "client_secret": "stale-secret"}}, ["vnet"])
+    assert collection(snapshot, "vnet")["status"] == "malformed"
+    monkeypatch.setattr(k8s, "_new_api", lambda *_: pytest.fail("Kubeconfig worker identity source must not run"))
+    snapshot = k8s.collect({"scopes": ["team-a"], "options": {"hosted": True}, "auth": {"method": "kubeconfig", "server": "https://stale.example", "token": "stale-token"}}, ["pod"])
+    assert collection(snapshot, "pod")["status"] == "malformed"

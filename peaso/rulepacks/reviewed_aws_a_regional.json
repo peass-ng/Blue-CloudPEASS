@@ -1,0 +1,470 @@
+{
+  "aws-compliance.control.cis_v120_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L83"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L85"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L85"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L85"
+    }
+  },
+  "aws-compliance.control.cis_v150_4_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips af-south-1, eu-south-1 and ap-northeast-3 as unsupported. Current official Security Hub CSPM endpoint documentation explicitly supports those Regions. Keeping this predicate would suppress enabled-region security assessment; the obsolete scope variant is not ported or merged with a narrower rule. No assertion is made here about the separate China applicability branches; these remain in the pinned source history.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/sechub.html",
+      "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-regions.html"
+    ],
+    "replacement_checks": [],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "securityhub_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "23388fd8b27fd0288d70909500e76aada33d614fcb321ab4ffcd625bc64b9d06",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_4.pp#L245"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.cis_v200_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L85"
+    }
+  },
+  "aws-compliance.control.cis_v200_4_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips af-south-1, eu-south-1 and ap-northeast-3 as unsupported. Current official Security Hub CSPM endpoint documentation explicitly supports those Regions. Keeping this predicate would suppress enabled-region security assessment; the obsolete scope variant is not ported or merged with a narrower rule. No assertion is made here about the separate China applicability branches; these remain in the pinned source history.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/sechub.html",
+      "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-regions.html"
+    ],
+    "replacement_checks": [],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "securityhub_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "23388fd8b27fd0288d70909500e76aada33d614fcb321ab4ffcd625bc64b9d06",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_4.pp#L245"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.cis_v300_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L55"
+    }
+  },
+  "aws-compliance.control.cis_v300_4_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips af-south-1, eu-south-1 and ap-northeast-3 as unsupported. Current official Security Hub CSPM endpoint documentation explicitly supports those Regions. Keeping this predicate would suppress enabled-region security assessment; the obsolete scope variant is not ported or merged with a narrower rule. No assertion is made here about the separate China applicability branches; these remain in the pinned source history.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/sechub.html",
+      "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-regions.html"
+    ],
+    "replacement_checks": [],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "securityhub_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "23388fd8b27fd0288d70909500e76aada33d614fcb321ab4ffcd625bc64b9d06",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_4.pp#L245"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.cis_v400_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L55"
+    }
+  },
+  "aws-compliance.control.cis_v400_4_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips af-south-1, eu-south-1 and ap-northeast-3 as unsupported. Current official Security Hub CSPM endpoint documentation explicitly supports those Regions. Keeping this predicate would suppress enabled-region security assessment; the obsolete scope variant is not ported or merged with a narrower rule. No assertion is made here about the separate China applicability branches; these remain in the pinned source history.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/sechub.html",
+      "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-regions.html"
+    ],
+    "replacement_checks": [],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "securityhub_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "23388fd8b27fd0288d70909500e76aada33d614fcb321ab4ffcd625bc64b9d06",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_4.pp#L245"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.cis_v500_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L55"
+    }
+  },
+  "aws-compliance.control.cis_v500_4_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips af-south-1, eu-south-1 and ap-northeast-3 as unsupported. Current official Security Hub CSPM endpoint documentation explicitly supports those Regions. Keeping this predicate would suppress enabled-region security assessment; the obsolete scope variant is not ported or merged with a narrower rule. No assertion is made here about the separate China applicability branches; these remain in the pinned source history.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/sechub.html",
+      "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-regions.html"
+    ],
+    "replacement_checks": [],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "securityhub_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "23388fd8b27fd0288d70909500e76aada33d614fcb321ab4ffcd625bc64b9d06",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_4.pp#L245"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.cis_v600_4_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L55"
+    }
+  },
+  "aws-compliance.control.cis_v600_5_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips af-south-1, eu-south-1 and ap-northeast-3 as unsupported. Current official Security Hub CSPM endpoint documentation explicitly supports those Regions. Keeping this predicate would suppress enabled-region security assessment; the obsolete scope variant is not ported or merged with a narrower rule. No assertion is made here about the separate China applicability branches; these remain in the pinned source history.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/sechub.html",
+      "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-regions.html"
+    ],
+    "replacement_checks": [],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "securityhub_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "23388fd8b27fd0288d70909500e76aada33d614fcb321ab4ffcd625bc64b9d06",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_5.pp#L244"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.config_configuration_recorder_no_failed_deliver_logs": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned predicate tests status.LastStatus = FAILURE. Current native AWS enum is Failure (case-sensitive), and the official plugin hydrates the unmodified SDK recorder-status object. The predicate consequently passes a real native Failure state; this is an invalid security condition. No source support is claimed by rewriting the literal or treating missing evidence as a failure.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_configuration_recorder_no_failed_deliver_logs",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "92b9eb4a4d11ccda83345b9e2ac8106aae2db0aeeac0a4a69532ad7763679420",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/config.pp#L26"
+    }
+  },
+  "aws-compliance.control.config_enabled_all_regions": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/config.pp#L7"
+    }
+  },
+  "aws-compliance.control.foundational_security_config_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query compares recorder native LastStatus to SUCCESS, but current AWS native enum values are Pending, Success, Failure and NotApplicable; the official plugin returns the recorder status object without uppercasing its values. Thus healthy native Success does not meet the literal predicate. Additionally global_recorders COUNT has no account grouping and can satisfy another account through its unqualified cross join if a normalized status variant were used. These are substantive native-semantics and tenant-scope defects, not unavailable facts.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_config_configuration_recorder.go"
+    ],
+    "replacement_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "config_enabled_all_regions",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "90ca7d3b8b23cba42cf73e0cb1344a6672d4f176f00b90e5d6b7a97a0f6a32b2",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/config.pp#L19"
+    }
+  },
+  "aws-compliance.control.foundational_security_guardduty_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips enabled af-south-1, ap-northeast-3, ap-southeast-3, eu-south-1, me-south-1 and us-gov-east-1 as unsupported. Current official GuardDuty endpoint table supports those Regions. This suppresses security failures and is an obsolete applicability predicate; not a missing-data or missing-implementation rejection. Correct regional presence is available in the separately reviewed Prowler-native rule.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/guardduty.html"
+    ],
+    "replacement_checks": [
+      "aws.a.guardduty.region_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "guardduty_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "29a80b41ab4aad735d43db26462f99f5817b77ab76bb4b0e47272164485d59d7",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/guardduty.pp#L28"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.guardduty_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips enabled af-south-1, ap-northeast-3, ap-southeast-3, eu-south-1, me-south-1 and us-gov-east-1 as unsupported. Current official GuardDuty endpoint table supports those Regions. This suppresses security failures and is an obsolete applicability predicate; not a missing-data or missing-implementation rejection. Correct regional presence is available in the separately reviewed Prowler-native rule.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/guardduty.html"
+    ],
+    "replacement_checks": [
+      "aws.a.guardduty.region_enabled"
+    ],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "guardduty_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "29a80b41ab4aad735d43db26462f99f5817b77ab76bb4b0e47272164485d59d7",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L7"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "aws-compliance.control.securityhub_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned query hard-skips af-south-1, eu-south-1 and ap-northeast-3 as unsupported. Current official Security Hub CSPM endpoint documentation explicitly supports those Regions. Keeping this predicate would suppress enabled-region security assessment; the obsolete scope variant is not ported or merged with a narrower rule. No assertion is made here about the separate China applicability branches; these remain in the pinned source history.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/general/latest/gr/sechub.html",
+      "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-regions.html"
+    ],
+    "replacement_checks": [],
+    "review_notes": "Complete pinned source conditions individually reviewed. Current official provider semantics checked; rejection does not hide a missing collector or incomplete implementation. Exact framework/source records remain auditable.",
+    "reviewed_query_id": "securityhub_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "23388fd8b27fd0288d70909500e76aada33d614fcb321ab4ffcd625bc64b9d06",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/securityhub.pp#L7"
+    },
+    "rejection_kind": "obsolete_regional_applicability"
+  },
+  "prowler.aws.config_recorder_all_regions_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.config.region_recorder_enabled"
+    ],
+    "reason": "Full regional predicate preserved: complete-empty recorders fail, non-recording or native lastStatus Failure fails, recording with recognized non-Failure native status passes. Missing/denied/partial/malformed metadata remains unknown. Native status case and absence behavior are tested; no stricter Success-only substitute.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorder_status.html"
+    ],
+    "review_notes": "Selected enabled/account regions, immutable scoped index, no cloud calls in evaluator. Registered explicit dependencies.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "e3b0bc5df0e748a598b0fee156e30078448aeaa36ad07a77d97d96ef82d0cd36",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/config/config_recorder_all_regions_enabled/config_recorder_all_regions_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.guardduty_is_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.guardduty.region_enabled"
+    ],
+    "reason": "Full regional predicate preserved: complete-empty detector inventory fails, configured DISABLED fails, configured ENABLED passes. Missing/denied/partial/malformed collection or detail remains unknown. Scope target ensures absence is evaluated rather than per-object EMPTY.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Selected enabled/account regions, immutable scoped index, no cloud calls in evaluator. Registered explicit dependencies.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "8ba2160e90bd29d1623674f7cc1029c7e6e830ba3d81825187bda7bc3d9ab533",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/guardduty/guardduty_is_enabled/guardduty_is_enabled.metadata.json"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+# GCP VM Manager / OS Config privilege escalation techniques.
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-osconfig-privesc.md and gcp-compute-privesc/README.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+# The OS Config agent runs as root on the VM; no actAs on the VM's SA is needed (HackTricks).
+
+- id: gcp-osconfig-patchjobs-exec
+  provider: gcp
+  service: osconfig
+  title: Run root pre/post-patch steps on project VMs through an OS Config patch job
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-osconfig-privesc.md#osconfigpatchjobsexec--osconfigpatchdeploymentscreate--run-code-as-root-via-prepost-patch-steps
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service accounts attached to OS Config-managed VMs of every project where it holds osconfig.patchJobs.exec or osconfig.patchDeployments.create.
+  requires:
+    any_of:
+      - - action: osconfig.patchJobs.exec
+          resource: "{target.project}"
+      - - action: osconfig.patchDeployments.create
+          resource: "{target.project}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: compute_instance
+    scope: same_project
+    aggregate_as: "SAs of OS Config-managed VMs in {project}"
+  conditions:
+    - id: agent_enabled
+      description: The VM must run the OS Config agent with VM Manager enabled (enable-osconfig) and have egress to the OS Config control plane.
+    - id: executable_location
+      description: The pre/post-patch executable is fetched from Cloud Storage by the VM, so the object must be readable by the VM's SA (or be a local path).
+    - id: access_scopes
+      description: The usable token is limited by the VM's OAuth access scopes.
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: high
+  mitigation: Restrict roles/osconfig.patchJobExecutor, roles/osconfig.patchDeploymentAdmin and roles/osconfig.admin; disable VM Manager where not needed.
+  references:
+    - https://cloud.google.com/compute/docs/os-patch-management/create-patch-job
+  notes: No actAs on the VM SA is required (HackTricks, current at the reference revision). patchDeployments.create is the scheduled variant; also documented on gcp-compute-privesc/README.md#osconfigpatchdeploymentscreate--osconfigpatchjobsexec (former duplicate entry gcp-compute-osconfig-patchdeployments-create removed).
+
+- id: gcp-osconfig-ospolicyassignments-create
+  provider: gcp
+  service: osconfig
+  title: Run root code on project VMs through OS policy assignments or guest policies
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-osconfig-privesc.md#osconfigospolicyassignmentscreate--guest-policies--run-code-as-root-via-recipes
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service accounts attached to OS Config-managed VMs of every project where it can create or update OS policy assignments or guest policies.
+  requires:
+    any_of:
+      - - action: osconfig.osPolicyAssignments.create
+          resource: "{target.project}"
+      - - action: osconfig.osPolicyAssignments.update
+          resource: "{target.project}"
+      - - action: osconfig.guestPolicies.create
+          resource: "{target.project}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: compute_instance
+    scope: same_project
+    aggregate_as: "SAs of OS Config-managed VMs in {project}"
+  conditions:
+    - id: agent_enabled
+      description: VM Manager must be enabled on the VM and the VM needs egress to the control plane; execution happens on the agent polling interval.
+    - id: update_requires_existing
+      description: The update-only path needs an existing assignment whose instance filter (or a filter the source can change) matches the VM.
+    - id: access_scopes
+      description: The usable token is limited by the VM's OAuth access scopes.
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: high
+  mitigation: Restrict roles/osconfig.osPolicyAssignmentAdmin/Editor and roles/osconfig.guestPolicyAdmin.
+  notes: Guest policies are the legacy mechanism; whether they still apply depends on the agent version.

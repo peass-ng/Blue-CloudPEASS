@@ -1,0 +1,97 @@
+# Frozen copies of peaso/privesc/catalog/aws entries used by tests (rev a53b46392c).
+- id: aws-ec2-passrole-runinstances
+  provider: aws
+  service: ec2
+  title: Launch an EC2 instance with a passed instance profile
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#iampassrole-ec2runinstances
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of passable roles trusting ec2.amazonaws.com that are in an instance profile by launching an instance it controls with that profile.
+  requires:
+    all_of:
+    - action: iam:PassRole
+      resource: '{target.arn}'
+    - action: ec2:RunInstances
+      resource: '*'
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: ec2.amazonaws.com
+      has_instance_profile: true
+    scope: same_account
+    aggregate_as: Roles trusting ec2.amazonaws.com with an instance profile in {account}
+  conditions:
+  - id: passrole_condition_key
+    description: iam:PassedToService / iam:AssociatedResourceArn conditions may restrict this.
+  - id: instance_access
+    description: The source needs a way to run code on the instance (user data, an SSH key pair, SSM); user data needs no extra permission.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict iam:PassRole on EC2 roles with iam:PassedToService and specific role ARNs; require IMDSv2 and monitor RunInstances with instance profiles.
+  references:
+  - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html
+  notes: Creating a new instance profile for a role without one additionally needs iam:CreateInstanceProfile and iam:AddRoleToInstanceProfile.
+- id: aws-iam-createaccesskey-other-user
+  provider: aws
+  service: iam
+  title: Create access keys for another IAM user
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamcreateaccesskey-iamdeleteaccesskey
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of IAM users on which it can create access keys.
+  requires:
+    all_of:
+    - action: iam:CreateAccessKey
+      resource: '{target.arn}'
+  target:
+    kind: aws_user
+    selector:
+      resource_permission_covers_target: iam:CreateAccessKey
+    scope: same_account
+    aggregate_as: IAM users covered by iam:CreateAccessKey in {account}
+  conditions:
+  - id: access_key_limit
+    description: A user can hold at most two access keys; if the target already has two, iam:DeleteAccessKey on the target is also required.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Scope iam:CreateAccessKey to "arn:aws:iam::*:user/${aws:username}" (self-service only) and alert on CreateAccessKey for other users.
+  references:
+  - https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateAccessKey.html
+  notes: Target users whose identity policies require MFA (aws:MultiFactorAuthPresent) will not get those permissions with plain access keys.
+- id: aws-lambda-passrole-createfunction-invokefunction
+  provider: aws
+  service: lambda
+  title: Create a Lambda function with a passed execution role and invoke it
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#iampassrole-lambdacreatefunction-lambdainvokefunction
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any passable role trusting lambda.amazonaws.com.
+  requires:
+    all_of:
+    - action: iam:PassRole
+      resource: '{target.arn}'
+    - action: lambda:CreateFunction
+      resource: '*'
+    - action: lambda:InvokeFunction
+      resource: '*'
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: lambda.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: Roles trusting lambda.amazonaws.com passable in {account}
+  conditions:
+  - id: passrole_condition_key
+    description: iam:PassedToService / iam:AssociatedResourceArn conditions on the PassRole grant may restrict which roles can be passed to Lambda.
+  - id: invoke_resource_scope
+    description: lambda:InvokeFunction must cover the newly created function name; a name-restricted Resource limits which names the source can use but does not remove the edge if any covered name is free.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict iam:PassRole to specific Lambda execution roles with iam:PassedToService=lambda.amazonaws.com, and scope lambda:CreateFunction/InvokeFunction to named functions.
+  references:
+  - https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
+  notes: Only roles whose trust policy allows lambda.amazonaws.com can be used as an execution role.

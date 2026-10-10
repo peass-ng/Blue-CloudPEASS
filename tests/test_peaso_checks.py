@@ -52,8 +52,12 @@ def test_every_check_has_behavior_fixtures(check):
         if name in cases:
             data = copy.deepcopy(cases[name])
             before = copy.deepcopy(data)
-            assert check.evaluate(data, copy.deepcopy(index))[0] == expected
+            state_index = cases.get(name + "_index", cases.get("case_indices", {}).get(name, index))
+            scoped = copy.deepcopy(state_index)
+            before_index = copy.deepcopy(scoped)
+            assert check.evaluate(data, scoped)[0] == expected
             assert data == before, "evaluators must not mutate native snapshot facts"
+            assert scoped == before_index, "evaluators must not mutate scoped dependency facts"
     assert check.evaluate(cases.get("missing", {}), index)[0] == "UNKNOWN"
     assert check.evaluate(cases.get("malformed", None), index)[0] == "UNKNOWN"
     assert check.evaluate({"collection_status": "denied"}, index)[0] == "UNKNOWN"
@@ -63,8 +67,14 @@ def test_every_check_has_behavior_fixtures(check):
 @pytest.mark.parametrize("check", CHECKS, ids=lambda c: c.id)
 @pytest.mark.parametrize("collection_status,expected", [("denied", "DENIED"), ("unknown", "UNKNOWN"), ("malformed", "UNKNOWN"), ("empty", "EMPTY")])
 def test_unavailable_inventory_never_passes(check, collection_status, expected):
-    snapshot = make_snapshot(check.provider, ["test-scope"], [{"type": check.kind, "scope": "test-scope", "service": "test", "status": collection_status, "items": []}])
+    kinds = check.dependencies if check.target == "scope" else [check.kind]
+    snapshot = make_snapshot(check.provider, ["test-scope"], [{"type": kind, "scope": "test-scope", "service": "test", "status": collection_status, "items": []} for kind in dict.fromkeys(kinds)])
     report = evaluate_snapshot(snapshot, categories=[check.category], checks=[check.id])
+    if check.target == "scope" and collection_status == "empty":
+        # A complete empty dependency is evaluated as a reviewed absence fact.
+        # Per-rule pass/fail indexes above assert the actual intended predicate.
+        assert all(row["status"] != "EMPTY" for row in report["findings"])
+        return
     assert report["findings"][0]["status"] == expected
     assert "PASS" not in report["stats"]["by_status"]
 
@@ -141,7 +151,59 @@ def test_framework_catalog_contains_families_and_preserves_control_tree():
 def test_current_provider_semantic_exceptions():
     registry = {c.id: c for c in CHECKS}
     assert registry["gcp.gke.network_policy"].evaluate({"networkConfig": {"datapathProvider": "ADVANCED_DATAPATH"}, "networkPolicy": {"enabled": False}}, {})[0] == "PASS"
+    assert registry["gcp.gke.network_policy"].evaluate({"networkConfig": {"datapathProvider": "ADVANCED_DATAPATH"}, "_coverage": {"networkConfig": {"status": "denied"}}}, {})[0] == "UNKNOWN"
     assert registry["azure.aks.network_policy"].evaluate({"properties": {"networkProfile": {"networkDataplane": "cilium", "networkPolicy": "none"}}}, {})[0] == "PASS"
     assert registry["azure.storage.minimum_tls"].evaluate({"properties": {"minimumTlsVersion": "TLS1_3"}}, {})[0] == "UNKNOWN"
     assert registry["gcp.storage.public_access_prevention"].evaluate({"iamConfiguration": {"publicAccessPrevention": "unspecified"}}, {})[0] == "UNKNOWN"
     assert registry["aws.iam.root_mfa"].evaluate({"user": "<root_account>", "password_enabled": "false", "access_key_1_active": "false", "access_key_2_active": "false", "mfa_active": "false"}, {})[0] == "NOT_APPLICABLE"
+
+
+def test_namespace_policy_qualified_scope_cannot_invent_missing_coverage():
+    check = next(c for c in CHECKS if c.id == "k8s.network.namespace_policy_inventory")
+    native = {"metadata": {"name": "apps"}}
+    foreign = {"collections": {"networkpolicy": [{"scope": "cluster/other", "status": "empty"}]}}
+    assert check.evaluate(native, foreign)[0] == "UNKNOWN"
+    own = {"collections": {"networkpolicy": [{"scope": "cluster/apps", "status": "empty"}]}}
+    assert check.evaluate(native, own)[0] == "FAIL"
+
+
+def test_specific_framework_versions_preserve_ids_and_pending_status():
+    from peaso.checks.catalog import framework_catalog
+    versions = framework_catalog()
+    assert len({entry["id"] for entry in versions}) == len(versions)
+    assert any(entry["status"] == "pending" for entry in versions)
+    assert any(entry["status"] == "partially_supported" for entry in versions)
+    for entry in versions:
+        assert entry["id"] and entry["version"] and entry["source_revision"]
+        assert entry["supported_native_checks"] == len(entry["native_check_ids"])
+        if entry["status"] == "pending":
+            assert entry["supported_native_checks"] == 0
+    check = next(c for c in CHECKS if c.id == "aws.ebs.encryption")
+    assert check.framework_ids
+    available = {entry["id"] for entry in versions}
+    assert set(check.framework_ids).issubset(available)
+
+
+def test_engine_accepts_specific_checklist_id_and_marks_unported_controls():
+    from peaso.checks.catalog import framework_catalog
+    check = next(c for c in CHECKS if c.id == "aws.ebs.encryption")
+    specific = next(row for row in framework_catalog() if row["id"] in check.framework_ids and row["pending_source_checks"])
+    snapshot = make_snapshot("aws", ["us-east-1"], [{"type": "ebs_volume", "scope": "us-east-1", "service": "ec2", "status": "collected", "items": [{"VolumeId": "vol-a", "Encrypted": True}]}])
+    report = evaluate_snapshot(snapshot, categories=["hardening"], checks=[check.id], frameworks=[specific["id"]])
+    assert sum(row["status"] == "PASS" for row in report["findings"]) == 1
+    assert report["stats"]["coverage_complete"] is False
+    assert report["framework_versions"][0]["id"] == specific["id"]
+
+
+def test_runtime_catalog_does_not_load_pending_audit_definitions(monkeypatch):
+    import peaso.checks.catalog as catalog_module
+    from peaso.engine import get_catalog
+    def unexpected_audit_read():
+        raise AssertionError("runtime path inflated the audit manifest")
+    monkeypatch.setattr(catalog_module, "manifest", unexpected_audit_read)
+    catalog_module._runtime.cache_clear()
+    catalog_module._mappings.cache_clear()
+    result = get_catalog()
+    assert result["checks"]
+    assert result["upstream_coverage"]["runtime_scope_upstream_total"] == 5844
+    assert result["manual_requirements"]

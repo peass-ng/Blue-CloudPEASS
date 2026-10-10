@@ -4,7 +4,13 @@ WORKDIR /app
 COPY pyproject.toml /app/
 COPY peaso /app/peaso
 COPY risk_rules /app/risk_rules
+COPY bluepeass/__init__.py bluepeass/k8s.py bluepeass/k8s_risks.py /app/bluepeass/
+COPY scripts/cloud_permission_risks.py /app/scripts/cloud_permission_risks.py
 RUN pip install --no-cache-dir . boto3 'PyJWT[crypto]>=2.10' requests google-auth azure-identity azure-mgmt-resource azure-mgmt-subscription azure-mgmt-authorization azure-mgmt-monitor kubernetes \
-    && groupadd --gid 10001 peaso && useradd --uid 10001 --gid 10001 --no-create-home peaso
+    && groupadd --gid 10001 peaso && useradd --uid 10001 --gid 10001 --no-create-home peaso \
+    && mkdir -p /tmp/peaso && chown -R 10001:10001 /tmp && chmod 0700 /tmp
+# Fargate copies ownership from this exact image volume path. Without VOLUME,
+# its empty bind mount is root-owned 0755 and the non-root worker cannot write.
+VOLUME ["/tmp"]
 USER 10001:10001
 ENTRYPOINT ["python", "-m", "peaso.worker"]

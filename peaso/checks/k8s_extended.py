@@ -9,7 +9,7 @@ from __future__ import annotations
 import copy
 import re
 from . import register, result, unknown
-from .facts import get, list_of_objects
+from .facts import get, list_of_objects, optional
 from .fixtures import CASES, nest
 
 PSS = "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
@@ -28,7 +28,7 @@ def _pod(item):
     rows = list(containers)
     for key in ("initContainers", "ephemeralContainers"):
         rows += list_of_objects(spec.get(key, []))
-    pod_context = spec.get("securityContext", {})
+    pod_context = optional(spec, "securityContext", {}, dict)
     if not isinstance(pod_context, dict):
         raise ValueError("malformed Pod securityContext")
     for row in rows:
@@ -39,7 +39,7 @@ def _pod(item):
 
 
 def _flag(value, name, default=False):
-    value = value.get(name, default)
+    value = optional(value, name, default, bool)
     if type(value) is not bool:
         raise ValueError("malformed boolean " + name)
     return value
@@ -56,11 +56,11 @@ def _evaluate_pod(item, predicate):
     spec, containers, pod = _pod(item)
     violations = []
     if predicate == "no_host_network":
-        return result(_flag(spec, "hostNetwork"), host_network=spec.get("hostNetwork", False), semantics="Declared Pod network namespace; networking admission and reachability were not assessed.")
+        return result(_flag(spec, "hostNetwork"), host_network=spec.get("hostNetwork", False), official_reference=PSS, semantics="Declared Pod network namespace; networking admission and reachability were not assessed.")
     if predicate == "non_root" and spec.get("os", {}).get("name") == "windows":
         return "NOT_APPLICABLE", {"reason": "Linux runAsNonRoot predicate; Windows identity policy is separate."}
     for row in containers:
-        context = row.get("securityContext", {})
+        context = optional(row, "securityContext", {}, dict)
         if predicate == "no_privileged":
             failed = _flag(context, "privileged")
         elif predicate == "non_root":
@@ -178,7 +178,8 @@ def _quota_check(key):
     @register(cid, "k8s", "hardening", "namespace", "Namespace declares a broad " + key + " resource quota", "low", "SC-5", "Define ResourceQuota appropriate to the namespace workloads; scope-specific quotas and cluster admission enforcement require review.")
     def evaluate(item, index):
         name = get(item, "metadata.name", str)
-        collections = index.get("collections", {}).get("resourcequota", [])
+        collections = [c for c in index.get("collections", {}).get("resourcequota", [])
+            if c.get("scope") in ("*", name) or str(c.get("scope", "")).endswith("/" + name) or str(c.get("scope", "")).endswith("/*")]
         if not collections or any(c.get("status") not in ("collected", "empty") for c in collections):
             return unknown("resource quota inventory unavailable or incomplete")
         quotas = [r["data"] for r in index.get("resourcequota", []) if r["data"].get("metadata", {}).get("namespace") == name]

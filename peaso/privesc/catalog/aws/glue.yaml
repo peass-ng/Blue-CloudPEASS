@@ -235,6 +235,8 @@
     all_of:
       - action: glue:UpdateJob
         resource: "{target.resource_arn}"
+      - action: iam:PassRole
+        resource: "{target.arn}"
   target:
     kind: aws_role
     selector:
@@ -245,8 +247,8 @@
   conditions:
     - id: job_runs_later
       description: An existing trigger/schedule/workflow or an operator must run the job after the update (or the source holds glue:StartJobRun).
-    - id: passrole_on_resubmitted_role
-      description: UpdateJob replaces the whole JobUpdate including Role; whether iam:PassRole is evaluated when the unchanged role is resubmitted was not verified in AWS docs - if it is, this entry collapses into aws-glue-passrole-createjob-or-updatejob-run.
+    - id: passrole_condition_key
+      description: iam:PassedToService conditions may restrict which roles can be passed.
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
@@ -254,4 +256,6 @@
   mitigation: Restrict glue:UpdateJob to the deployment pipeline on specific job ARNs.
   references:
     - https://docs.aws.amazon.com/glue/latest/webapi/API_UpdateJob.html
-  notes: HackTricks states UpdateJob alone suffices; PassRole behavior on unchanged role is the main accuracy caveat.
+    - https://docs.aws.amazon.com/glue/latest/webapi/API_JobUpdate.html
+    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsglue.html
+  notes: HackTricks states UpdateJob alone suffices, but JobUpdate marks Role as required and states the previous job definition is completely overwritten, and the Service Authorization Reference lists iam:PassRole as a dependent action of glue:UpdateJob, so PassRole on the job's role is required. Distinct from aws-glue-passrole-createjob-or-updatejob-run because the run comes from an existing trigger, schedule or operator rather than the source.

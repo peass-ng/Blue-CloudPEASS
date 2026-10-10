@@ -44,6 +44,7 @@ class DynamoStore:
             client = boto3.client("dynamodb")
         self.table, self.client = table, client
         self.claims = {}
+        self.clock = time.time
 
     def key(self, tenant, kind, ident):
         return {"PK": "tenant/" + tenant, "SK": kind + "/" + ident}
@@ -136,7 +137,7 @@ class DynamoStore:
         if idem is None:
             return None
         current = self._get(tenant, "idem", hashlib.sha256(idem.encode()).hexdigest())
-        if not current or current.get("expires_at", float("inf")) <= time.time():
+        if not current or current.get("expires_at", float("inf")) <= self.clock():
             return None
         if current["digest"] != digest:
             raise StoreError(409, "Idempotency key already used for a different request")
@@ -182,12 +183,12 @@ class DynamoStore:
 
     def job(self, tenant, ident):
         value = self._get(tenant, "job", ident)
-        if not value or value.get("expires_at", float("inf")) <= time.time():
+        if not value or value.get("expires_at", float("inf")) <= self.clock():
             raise StoreError(404, "Scan not found")
         return value
 
     def jobs(self, tenant):
-        return [self.public_job(value) for value in sorted(self._query(tenant, "job"), key=lambda x: x["created"], reverse=True) if value.get("expires_at", float("inf")) > time.time()]
+        return [self.public_job(value) for value in sorted(self._query(tenant, "job"), key=lambda x: x["created"], reverse=True) if value.get("expires_at", float("inf")) > self.clock()]
 
     def queued_jobs(self):
         return [item for item in self._scan("job") if item["status"] == "queued"]
@@ -315,6 +316,9 @@ class DynamoStore:
     def due_schedules(self, now=None):
         now = time.time() if now is None else now
         return [value for value in self._scan("schedule") if value["enabled"] and value["next_run"] <= now]
+
+    def pause_schedule(self, tenant, ident):
+        self.client.update_item(TableName=self.table, Key=attrs(self.key(tenant, "schedule", ident)), UpdateExpression="SET #enabled=:false,last_error=:error ADD #rev :one", ConditionExpression="attribute_exists(PK)", ExpressionAttributeNames={"#enabled": "enabled", "#rev": "rev"}, ExpressionAttributeValues=attrs({":false": False, ":error": "Schedule disabled: identity is no longer eligible", ":one": 1}))
 
     def trigger_schedule(self, current, limit=1, timeout=900, now=None):
         now = time.time() if now is None else now

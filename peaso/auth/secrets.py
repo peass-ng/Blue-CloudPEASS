@@ -6,7 +6,7 @@ import re
 import uuid
 from cryptography.fernet import Fernet
 
-SENSITIVE = re.compile(r"(?i)^(?:.*password|.*passwd|.*clientsecret|.*secretaccesskey|secret|secretvalue|(?:access|refresh|id|session|aws.?session|bearer|oauth|api|subject|federated)?token|authorization|privatekey|clientkey(?:data)?|(?:aws)?accesskeyid|credentials|credential|connectionstring|kubeconfig)$")
+SENSITIVE = re.compile(r"(?i)^(?:.*password|.*passwd|.*clientsecret|.*secretaccesskey|.*secret|secretvalue|(?:access|refresh|id|session|aws.?session|bearer|oauth|api|subject|federated)?token|authorization|privatekey|clientkey(?:data)?|apikey|keystring|(?:aws)?accesskeyid|credentials|credential|connectionstring|kubeconfig)$")
 
 
 def private_file(path: Path, factory) -> bytes:
@@ -64,7 +64,7 @@ def secret_values(value):
         yield value
 
 
-PUBLIC_AUTH_FIELDS = {"method", "profile", "context", "region_name", "role_arn", "external_id", "target_principal", "impersonate_service_account", "tenant_id", "client_id", "account", "quota_project", "server", "cluster_id", "in_cluster", "session_name", "role_session_name", "token_uri", "client_email", "type", "project_id", "private_key_id", "auth_uri", "auth_provider_x509_cert_url", "client_x509_cert_url", "universe_domain", "name", "namespace", "current-context", "apiVersion", "kind"}
+PUBLIC_AUTH_FIELDS = {"provider", "method", "profile", "context", "region_name", "role_arn", "external_id", "target_principal", "impersonate_service_account", "tenant_id", "client_id", "account", "quota_project", "server", "cluster_id", "in_cluster", "session_name", "role_session_name", "token_uri", "client_email", "type", "project_id", "private_key_id", "auth_uri", "auth_provider_x509_cert_url", "client_x509_cert_url", "universe_domain", "name", "namespace", "current-context", "apiVersion", "kind"}
 
 
 def credential_values(value):
@@ -96,10 +96,13 @@ def credential_values(value):
 def redact(value, secrets=()):
     """Drop secret-shaped fields and replace known credential values everywhere."""
     if isinstance(value, dict):
-        return {str(k): "[REDACTED]" if SENSITIVE.fullmatch(re.sub(r"[^a-zA-Z0-9]", "", str(k))) and isinstance(v, (str, dict, list)) else redact(v, secrets) for k, v in value.items()}
+        labels = [item for key, item in value.items() if str(key).lower() in {"key", "name"} and isinstance(item, str)]
+        paired_secret = any(SENSITIVE.fullmatch(re.sub(r"[^a-zA-Z0-9]", "", label)) for label in labels)
+        return {str(k): "[REDACTED]" if (SENSITIVE.fullmatch(re.sub(r"[^a-zA-Z0-9]", "", str(k))) or (paired_secret and str(k).lower() in {"value", "content", "data"})) and isinstance(v, (str, dict, list)) else redact(v, secrets) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [redact(v, secrets) for v in value]
     if isinstance(value, str):
+        value = re.sub(r"-----BEGIN (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----", "[REDACTED PRIVATE KEY]", value)
         for secret in sorted(set(secrets), key=len, reverse=True):
             if secret and (len(secret) >= 4 or value == secret):
                 value = value.replace(secret, "[REDACTED]")

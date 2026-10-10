@@ -13,6 +13,7 @@ from peaso.server.app import create_app
 from peaso.server.config import Settings
 from peaso.snapshot import make_snapshot
 from peaso.worker import Worker
+from peaso.engine import catalog
 
 SENTINEL = "INERT_QA_SENTINEL_NO_REAL_CREDENTIAL"
 
@@ -145,3 +146,12 @@ def test_credentials_are_encrypted_and_validation_does_not_echo_input(runtime):
             assert SENTINEL.encode() not in path.read_bytes()
     assert client.get("/api/connectors").status_code == 401
     assert client.get("/api/connectors", headers={**headers(), "Origin": "https://untrusted.invalid"}).status_code == 403
+
+
+def test_published_exact_framework_checklist_can_enqueue(runtime):
+    _, _, client = runtime
+    ident = connector(client)
+    selected = next(row for row in catalog()["framework_versions"] if row["provider"] == "aws" and row["native_check_ids"])
+    response = client.post("/api/scans", headers=headers(), json={"connector_id": ident, "frameworks": [selected["id"]]})
+    assert response.status_code == 201, response.text
+    assert response.json()["frameworks"] == [selected["id"]]

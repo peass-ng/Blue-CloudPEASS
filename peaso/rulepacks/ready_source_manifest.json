@@ -1,0 +1,471 @@
+{
+  "schema_version": "1.0",
+  "phase": "review_expansion_in_progress",
+  "source_root": "/Users/carlospolop/git/Blue-CloudPEASS",
+  "scope": "Defensive registry/checks/reference metadata only; engine/snapshot/collectors integration exported by respective owners, no user-owned privilege-chain files or hooks.",
+  "validation": "Current accepted-source manifest validates, baseline+component/scope/differential suite7643pass; latest own registry+regional5089pass; source review remains partial.",
+  "files": [
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/docs/peaso-checks.md",
+      "relative_path": "docs/peaso-checks.md",
+      "sha256": "ee14a94d769349c66fb2eb4310ba42bec8e2e3429ff652e3bd11018a3babd6e4",
+      "bytes": 10837
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/__init__.py",
+      "relative_path": "peaso/checks/__init__.py",
+      "sha256": "9d5cee22da33fa09a8aa71a0edf250e33603ae37755a1bcaed1c703598f8d336",
+      "bytes": 32702
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/aws.py",
+      "relative_path": "peaso/checks/aws.py",
+      "sha256": "1f3e94bea63a548654593bf4d1d5a93e1c6dd782b2a9a1f3ae7290c206171edc",
+      "bytes": 11531
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/aws_a_iam.py",
+      "relative_path": "peaso/checks/aws_a_iam.py",
+      "sha256": "6bd2fdb21cb98a9cebd33fd7a67d584d2ea97832859291e0ffbf90d3cad0bfb5",
+      "bytes": 7177
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/aws_b_core.py",
+      "relative_path": "peaso/checks/aws_b_core.py",
+      "sha256": "7c654668881379c43f3c20cd44ff2b5db9915783a9dc76f36df8cda918eb90e2",
+      "bytes": 13811
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/aws_b_loadbalancing.py",
+      "relative_path": "peaso/checks/aws_b_loadbalancing.py",
+      "sha256": "4cfc86c304c0f62066e2059d63249c43e928fce9999cbebe9326be0184bf11a8",
+      "bytes": 15194
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/aws_b_regional.py",
+      "relative_path": "peaso/checks/aws_b_regional.py",
+      "sha256": "4045462676f680fb61353d86ceec3b2f3184f1a6c0b691900451f809c2b47368",
+      "bytes": 7281
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/aws_extended.py",
+      "relative_path": "peaso/checks/aws_extended.py",
+      "sha256": "d605053bf2449e1491da885e29da1e52809c7c06d07bebc7bf21f86e15c3ee1d",
+      "bytes": 18128
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/azure.py",
+      "relative_path": "peaso/checks/azure.py",
+      "sha256": "1074e86f7185616373cb5458d5f5d9f2b1de0f301ed81740f377e8396c05508d",
+      "bytes": 4928
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/azure_extended.py",
+      "relative_path": "peaso/checks/azure_extended.py",
+      "sha256": "6d1e5ed70f73d4f6b19afc694b415ae9fd1d36875ee74d61bea2e601ca2dd02a",
+      "bytes": 21297
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/azure_ports_services.py",
+      "relative_path": "peaso/checks/azure_ports_services.py",
+      "sha256": "c3bc75bf92eaf12269147b9f6989cb836cdac13aa4b1de084072dd6575ca31c3",
+      "bytes": 15462
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/batch.py",
+      "relative_path": "peaso/checks/batch.py",
+      "sha256": "ecbc035a973c5d3156d738e5004b484f7d6494cd34396e1f0997b97f4da6b51e",
+      "bytes": 6366
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/catalog.py",
+      "relative_path": "peaso/checks/catalog.py",
+      "sha256": "7762bdbc21d167496a8f62416e1500dec7e07c031834095a5018a9d61c263e39",
+      "bytes": 8014
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/facts.py",
+      "relative_path": "peaso/checks/facts.py",
+      "sha256": "0a85f698c2ff17fbfc2a54de02a3daf1e98423b7cee4e5f6e22f2859212aecc7",
+      "bytes": 4163
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/fixtures.py",
+      "relative_path": "peaso/checks/fixtures.py",
+      "sha256": "4351abb9e68be96c5ab081c3f243e9a6d07e178a3b1f77783788cd544ac836b4",
+      "bytes": 233
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/gcp.py",
+      "relative_path": "peaso/checks/gcp.py",
+      "sha256": "1551effcab1b86489811de909be6eaff8dafbbc7bebf52dcee7e57a8d49e11d2",
+      "bytes": 9108
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/gcp_extended.py",
+      "relative_path": "peaso/checks/gcp_extended.py",
+      "sha256": "effb58e686f62169c93833c75a7ce83a0c019a9d71a84753abcb193286999464",
+      "bytes": 21375
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/k8s.py",
+      "relative_path": "peaso/checks/k8s.py",
+      "sha256": "f5e6a6ac578d81356978995c4527a607369de484088a47ab8347aa7bd6505953",
+      "bytes": 8184
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/k8s_extended.py",
+      "relative_path": "peaso/checks/k8s_extended.py",
+      "sha256": "b03575a8b0fbdcafedae64b7b9152ef5b0d18e0ac6d85e365e8d5686ade7b898",
+      "bytes": 12628
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/k8s_ports_components.py",
+      "relative_path": "peaso/checks/k8s_ports_components.py",
+      "sha256": "b3dd2367ee45768e8d104fb0b2f4244691a2e17c42d9bb59691a8ff4645d368f",
+      "bytes": 15605
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/checks/k8s_ports_workloads.py",
+      "relative_path": "peaso/checks/k8s_ports_workloads.py",
+      "sha256": "8b7b465a60faede8734c780e229407022bfa28cf5a0276d2722119d14d3d2e60",
+      "bytes": 13845
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/active_reviews.json",
+      "relative_path": "peaso/rulepacks/active_reviews.json",
+      "sha256": "c65580d20c2fee23df857a2bce91666cce7fa291098438cad474e492d611e44e",
+      "bytes": 639
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/catalog_summary.json",
+      "relative_path": "peaso/rulepacks/catalog_summary.json",
+      "sha256": "f9431ce01700d0db1e5568d4d9e8443ae3693c916fc5bd2bf246834c0ba31e12",
+      "bytes": 636
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/framework_catalog.json",
+      "relative_path": "peaso/rulepacks/framework_catalog.json",
+      "sha256": "20ad29907e499a559f1fff1e34f4bf6475b61b77df08d8242290dd83b002c465",
+      "bytes": 181078
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/integration_summary.json",
+      "relative_path": "peaso/rulepacks/integration_summary.json",
+      "sha256": "b56dc8da0870a3d2af60563848805904dff25e269a16f641ebe9abe2b3f0037c",
+      "bytes": 1701
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/prowler.txt",
+      "relative_path": "peaso/rulepacks/licenses/prowler.txt",
+      "sha256": "a0666bd9911fb4b653372b3721c500fdbd097ed1ca83466adb07e7ae7afb82e0",
+      "bytes": 11348
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/steampipe-mod-aws-compliance.txt",
+      "relative_path": "peaso/rulepacks/licenses/steampipe-mod-aws-compliance.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/steampipe-mod-aws-perimeter.txt",
+      "relative_path": "peaso/rulepacks/licenses/steampipe-mod-aws-perimeter.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/steampipe-mod-azure-compliance.txt",
+      "relative_path": "peaso/rulepacks/licenses/steampipe-mod-azure-compliance.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/steampipe-mod-azure-perimeter.txt",
+      "relative_path": "peaso/rulepacks/licenses/steampipe-mod-azure-perimeter.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/steampipe-mod-gcp-compliance.txt",
+      "relative_path": "peaso/rulepacks/licenses/steampipe-mod-gcp-compliance.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/steampipe-mod-gcp-perimeter.txt",
+      "relative_path": "peaso/rulepacks/licenses/steampipe-mod-gcp-perimeter.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/licenses/steampipe-mod-kubernetes-compliance.txt",
+      "relative_path": "peaso/rulepacks/licenses/steampipe-mod-kubernetes-compliance.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/manual_catalog.json",
+      "relative_path": "peaso/rulepacks/manual_catalog.json",
+      "sha256": "fa5a5167a3acc7e43859ea476714dd1c0ebf421690a352954effcc6b811f9ce2",
+      "bytes": 1012809
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/native_catalog.json",
+      "relative_path": "peaso/rulepacks/native_catalog.json",
+      "sha256": "d175c9ec871bb200d3f6ddf748c85e4f446846352ad3501da8f2cf44bd6b8a48",
+      "bytes": 4372699
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/performance.json",
+      "relative_path": "peaso/rulepacks/performance.json",
+      "sha256": "ea8ed63259ba987fc69e24650185ecf13cc6ed43005c6a27acc2800896c52b4f",
+      "bytes": 704
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/port_partitions.json",
+      "relative_path": "peaso/rulepacks/port_partitions.json",
+      "sha256": "74cea7f782bb14e6005e69daa04df6ef917be1f3cba6499da3ab062a5890bb89",
+      "bytes": 1102286
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed.json",
+      "relative_path": "peaso/rulepacks/reviewed.json",
+      "sha256": "ec0ca9a2d8542b01e1507ea49e33c1908ad8aff4110399d9c622a747f39ab524",
+      "bytes": 17237
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_aws.json",
+      "relative_path": "peaso/rulepacks/reviewed_aws.json",
+      "sha256": "165dc1cfc1c836759b5179e804f61245582febd2af27298f2ec1ddb6cabb1ffc",
+      "bytes": 41469
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_aws_a_account.json",
+      "relative_path": "peaso/rulepacks/reviewed_aws_a_account.json",
+      "sha256": "19536e4dc3efdb36e0d46d0eb0c1d017c074763be19b5c16bac22d9cce6388a9",
+      "bytes": 12822
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_aws_a_iam.json",
+      "relative_path": "peaso/rulepacks/reviewed_aws_a_iam.json",
+      "sha256": "e495f1200c0fcee8deb8e0a2e5b6ab8f5c4efeb8cd2c0272814816a26a3c7d22",
+      "bytes": 85012
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_aws_a_manual.json",
+      "relative_path": "peaso/rulepacks/reviewed_aws_a_manual.json",
+      "sha256": "a06a4e1648a50c52a3d5a00ce30108caf76fa1795c89bf71ca2a4bcfe1f99644",
+      "bytes": 57953
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_aws_b_core.json",
+      "relative_path": "peaso/rulepacks/reviewed_aws_b_core.json",
+      "sha256": "bc8a03df7a2248bbceb23eda4cab449b733f30b3b0696b041fca6ed8b8726a1b",
+      "bytes": 106918
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_azure.json",
+      "relative_path": "peaso/rulepacks/reviewed_azure.json",
+      "sha256": "be35c24d37fb9e4508cc319a404bb7cb648ce12ee3a14451a6eb3daff2c036a2",
+      "bytes": 29328
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_azure_ports_manual.json",
+      "relative_path": "peaso/rulepacks/reviewed_azure_ports_manual.json",
+      "sha256": "c8d28acf0d6ee2b33cfcda14e7e0b021b87e887be82ddfd8d162377190161f72",
+      "bytes": 644322
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_azure_ports_services.json",
+      "relative_path": "peaso/rulepacks/reviewed_azure_ports_services.json",
+      "sha256": "7e6e1e97b866ff77da3ee51404a391480511cb0a515b0af5e74dd0274e8de58f",
+      "bytes": 29787
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_gcp.json",
+      "relative_path": "peaso/rulepacks/reviewed_gcp.json",
+      "sha256": "456a8bcb9fa7c8ea66aa9bee2d0d4100ae23521fbc1f1f4af1fd5a19b091e792",
+      "bytes": 24470
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_gcp_ports_manual.json",
+      "relative_path": "peaso/rulepacks/reviewed_gcp_ports_manual.json",
+      "sha256": "fcc46f9cf96bf43941b0148327cd81fc0334fe773929bd0fdc2b5458e798f41d",
+      "bytes": 96992
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_gcp_ports_services.json",
+      "relative_path": "peaso/rulepacks/reviewed_gcp_ports_services.json",
+      "sha256": "d55f07431818389239069d4d16fe9b7f64e87b6659983fcf06dc4e1ff7d6197c",
+      "bytes": 161062
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_k8s.json",
+      "relative_path": "peaso/rulepacks/reviewed_k8s.json",
+      "sha256": "cef6023a9c2fd3d40d7d7a064c87d905c2d27df3b2b239a24d91a97043526e3e",
+      "bytes": 25002
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_k8s_ports_components.json",
+      "relative_path": "peaso/rulepacks/reviewed_k8s_ports_components.json",
+      "sha256": "f1652e4d94a91557f88289535bcf86f9abd9130d67a18202a7032d2cf7fe3595",
+      "bytes": 748651
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/reviewed_k8s_ports_workloads.json",
+      "relative_path": "peaso/rulepacks/reviewed_k8s_ports_workloads.json",
+      "sha256": "e65784d2f6967aaffe52d33c29725248f7ee894eaaea28ca4515414034d42c80",
+      "bytes": 225818
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/runtime_metadata.json",
+      "relative_path": "peaso/rulepacks/runtime_metadata.json",
+      "sha256": "7a893adca50559f921e8051cd0fc39bdf0b17fc644496bb71bf503c041d10d5c",
+      "bytes": 2971300
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/sources.json",
+      "relative_path": "peaso/rulepacks/sources.json",
+      "sha256": "49fce59e66304ae7a3ac3c4767b46c1b7e706291bf9454ac73958cbfe799cecd",
+      "bytes": 4686
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/upstream_manifest.json",
+      "relative_path": "peaso/rulepacks/upstream_manifest.json",
+      "sha256": "0cf33251ffb8e73a57a7efad1a05cfdaea8049740e317c1bc441cbf084321286",
+      "bytes": 27865878
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/peaso/rulepacks/upstream_manifest.json.gz",
+      "relative_path": "peaso/rulepacks/upstream_manifest.json.gz",
+      "sha256": "828ebafad575e8f1feb9d0b974f04fab8f4142e0b8f8a093c2b074e1aea76bbc",
+      "bytes": 1839364
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/scripts/peaso_review_catalog.py",
+      "relative_path": "scripts/peaso_review_catalog.py",
+      "sha256": "c1bafee6915e17c99fff251ca316fbb575fb83a9eb0e183fb3c08455c36587e7",
+      "bytes": 18629
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks.py",
+      "relative_path": "tests/test_peaso_checks.py",
+      "sha256": "33d814ad39f7935407b720ec6ed9966193642f27a87783b91bf6c4eef9c9f476",
+      "bytes": 15867
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_a_account.py",
+      "relative_path": "tests/test_peaso_checks_aws_a_account.py",
+      "sha256": "70f6f0d653240498b84efef2d6f96fcc346d8f07871e1abbe491ca7600a7654a",
+      "bytes": 1092
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_a_collector.py",
+      "relative_path": "tests/test_peaso_checks_aws_a_collector.py",
+      "sha256": "f59c0ab045be157bdc70edd50f0b6a4a30a0633c057195e4619714f4a77d2030",
+      "bytes": 2525
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_a_full_collection.py",
+      "relative_path": "tests/test_peaso_checks_aws_a_full_collection.py",
+      "sha256": "ae2cf6079a1f8b9e2f2ccae732db9e5ae365b8cb0229ea4d862e6722e587abe5",
+      "bytes": 11364
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_a_iam.py",
+      "relative_path": "tests/test_peaso_checks_aws_a_iam.py",
+      "sha256": "7b36778670ecef665811c9f0ce5e736cd452f6b5a935fea0c52a48c84eb1dc0a",
+      "bytes": 4991
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_b_core.py",
+      "relative_path": "tests/test_peaso_checks_aws_b_core.py",
+      "sha256": "7780da323d75e4014eae4a20b8adebf5610e0139c7f989872a4118afee001a2e",
+      "bytes": 4355
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_b_metadata.py",
+      "relative_path": "tests/test_peaso_checks_aws_b_metadata.py",
+      "sha256": "5995f8316ee9cb1a3ece3eaa5f76383022c8a11efce4bffbbcefb9c45c5c9cc2",
+      "bytes": 3495
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_b_regional.py",
+      "relative_path": "tests/test_peaso_checks_aws_b_regional.py",
+      "sha256": "331448260db2f987704e347446ce19d2d612051350e462043fa3f276b695e77c",
+      "bytes": 2196
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_aws_extended.py",
+      "relative_path": "tests/test_peaso_checks_aws_extended.py",
+      "sha256": "485b586c597857c837a7e1e6889688ebc6b157bfadc7af8e25a4249d8ad922fd",
+      "bytes": 10508
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_azure_extended.py",
+      "relative_path": "tests/test_peaso_checks_azure_extended.py",
+      "sha256": "4316f6b9e1075e043e8465192263d112a1f66c128f41ebd84534ac82f8010dc7",
+      "bytes": 8049
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_azure_ports_services.py",
+      "relative_path": "tests/test_peaso_checks_azure_ports_services.py",
+      "sha256": "dacba31452a37b0b990027c5af02dbfc08c6fd963eae77033e5dba9549065a1f",
+      "bytes": 20349
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_batch.py",
+      "relative_path": "tests/test_peaso_checks_batch.py",
+      "sha256": "97510ea687428d12dd84adad048466d71baea581f851e1312382e2452e460a29",
+      "bytes": 1803
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_gcp_extended.py",
+      "relative_path": "tests/test_peaso_checks_gcp_extended.py",
+      "sha256": "e27b8680332a2df8489307d604d61980bf74f4a43a5e976d77b4f97d01ad0690",
+      "bytes": 6496
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_gcp_ports_collection.py",
+      "relative_path": "tests/test_peaso_checks_gcp_ports_collection.py",
+      "sha256": "e501a9bb3b9ed289f7cc9e3be7cecfae8bb48238240ecdeb1f54341b09046df4",
+      "bytes": 7577
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_gcp_ports_services.py",
+      "relative_path": "tests/test_peaso_checks_gcp_ports_services.py",
+      "sha256": "b3d6d33611f94d679ce73995d5a3df16e0845d5846aaa04b5c31f20b1fcea672",
+      "bytes": 3292
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_k8s_extended.py",
+      "relative_path": "tests/test_peaso_checks_k8s_extended.py",
+      "sha256": "0401494b0ff1e8b091698c53d6555dbe8f09103881d534138b8dc21d5e0814c0",
+      "bytes": 8151
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_k8s_ports_collection.py",
+      "relative_path": "tests/test_peaso_checks_k8s_ports_collection.py",
+      "sha256": "61abf9d5f3cb9c591eef1a05a2d172c2908fe4fb9fbbe4633160a8ef0fec4c6d",
+      "bytes": 5553
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_k8s_ports_components.py",
+      "relative_path": "tests/test_peaso_checks_k8s_ports_components.py",
+      "sha256": "4a88063d8ca424ad326c70a140af988834d94e9a00709e9f8c77aeca24da4b87",
+      "bytes": 5844
+    },
+    {
+      "path": "/Users/carlospolop/git/Blue-CloudPEASS/tests/test_peaso_checks_k8s_ports_workloads.py",
+      "relative_path": "tests/test_peaso_checks_k8s_ports_workloads.py",
+      "sha256": "5ec122a82ad7abe4bdd6afc3e5ff5185f0e3e4580f7b40fd5bde188565f3701b",
+      "bytes": 6037
+    }
+  ],
+  "integration_gates": [
+    "Scope/clock/manual dispatcher and default inventory planner must be merged by core owner into defensive child sections.",
+    "Provider collector modules/types/plugins must be transferred from exact ready collector owner revisions.",
+    "Unaccepted review modules stay excluded from __init__/active_reviews.",
+    "Current remaining source definitions stay pending; no full framework certification claim."
+  ]
+}

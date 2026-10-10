@@ -4,7 +4,7 @@
 - id: aws-apigateway-integration-credentials-passrole
   provider: aws
   service: apigateway
-  title: Create a REST API AWS integration that runs with a passed credentials role
+  title: Create a REST API AWS-service integration that runs with a passed credentials role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-apigateway-privesc/README.md#apigatewayput-apigatewaypost-and-sometimes-iampassrole
   source_revision: a53b46392c
   summary: The source can obtain the privileges of passable roles trusting apigateway.amazonaws.com by using them as the execution credentials of an AWS-service integration it can invoke.

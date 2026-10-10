@@ -39,12 +39,18 @@ def validate(snapshot):
         raise ValueError("snapshot created_at must be a string")
     if not isinstance(result.get("collections"), list):
         raise ValueError("snapshot collections must be a list")
+    if not isinstance(result.get("metadata", {}), dict):
+        raise ValueError("snapshot metadata must be an object")
     seen = set()
     for collection in result["collections"]:
         if not isinstance(collection, dict) or not all(isinstance(collection.get(k), str) for k in ("type", "scope", "status")):
             raise ValueError("collection requires type, scope, and status strings")
         if collection["status"] not in STATUSES or not isinstance(collection.get("items"), list):
             raise ValueError("collection requires a known status and items list")
+        if "error" in collection and not isinstance(collection["error"], dict):
+            raise ValueError("collection error must be an object")
+        if "service" in collection and not isinstance(collection["service"], str):
+            raise ValueError("collection service must be a string")
         if any(not isinstance(item, dict) for item in collection["items"]):
             raise ValueError("collection items must be native objects")
         key = (collection["type"], collection["scope"])

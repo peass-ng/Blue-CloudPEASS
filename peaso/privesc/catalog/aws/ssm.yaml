@@ -259,3 +259,40 @@
   references:
     - https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-permissions.html
   notes: Targets are any SSM-managed instance in the account/region since the source chooses the targets.
+
+- id: aws-ssm-createdocument-startautomationexecution-passrole
+  provider: aws
+  service: ssm
+  title: Create an Automation runbook with a passed assume role and start it
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md#ssmstartautomationexecution--execute-a-preauthorized-runbook-role
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of passable roles trusting ssm.amazonaws.com by authoring an Automation runbook whose steps it controls and running it under that role.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: ssm:CreateDocument
+        resource: "*"
+      - action: ssm:StartAutomationExecution
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: ssm.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: "Roles trusting ssm.amazonaws.com passable in {account}"
+  conditions:
+    - id: passrole_condition_key
+      description: iam:PassedToService conditions may restrict which roles can be passed.
+    - id: trust_confused_deputy_conditions
+      description: aws:SourceAccount / aws:SourceArn conditions in the role trust limit it to Automation executions of the stated account.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: derived
+  severity: critical
+  mitigation: Restrict iam:PassRole on Automation roles with iam:PassedToService, restrict ssm:CreateDocument to administrators, and keep Automation roles least-privileged.
+  references:
+    - https://docs.aws.amazon.com/systems-manager/latest/userguide/automation-setup-iam.html
+    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_awssystemsmanager.html
+  notes: The Service Authorization Reference lists iam:PassRole as a dependent action of both ssm:CreateDocument (literal assumeRole in the runbook) and ssm:StartAutomationExecution (AutomationAssumeRole supplied at start). HackTricks documents only the stored-role path (aws-ssm-startautomationexecution-stored-role); its section states that a role chosen by the author or caller triggers a pass-role check, and the anchor is that section.

@@ -38,10 +38,22 @@ scalar("compute.confidential_computing", "instance", "confidentialInstanceConfig
        "Compute VM explicitly enables confidential computing")
 scalar("storage.versioning", "bucket", "versioning.enabled", True, False,
        "Bucket enables object versioning")
-scalar("network.flow_logs", "subnetwork", "logConfig.enable", True, False,
-       "Subnet explicitly enables VPC Flow Logs")
 scalar("loadbalancer.backend_logging", "backend_service", "logConfig.enable", True, False,
        "Backend service explicitly enables request logging")
+
+
+@rule("network.flow_logs", "subnetwork", "Subnet explicitly enables VPC Flow Logs", control="AU-2")
+def flow_logs(item, index):
+    legacy = get(item, "enableFlowLogs", bool) if "enableFlowLogs" in item else None
+    if "logConfig" in item:
+        enabled = get(item, "logConfig.enable", bool)
+        if legacy is not None and legacy != enabled:
+            return unknown("conflicting explicit legacy and structured Flow Logs settings")
+    elif legacy is not None:
+        enabled = legacy
+    else:
+        return unknown("Flow Logs setting absent")
+    return result(not enabled, flow_logs_enabled=enabled)
 
 
 @rule("compute.ip_forwarding", "instance", "Compute VM restricts IP forwarding", control="SC-7")
@@ -318,6 +330,7 @@ def bigquery_public(item, index):
 
 # Independent semantic fixtures for custom predicates. No evaluator uses CASES.
 CASES.update({
+    PREFIX + "network.flow_logs": {"pass": {"logConfig": {"enable": True}}, "fail": {"logConfig": {"enable": False}}},
     PREFIX + "bigquery.cmek": {"pass": {"defaultEncryptionConfiguration": {"kmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}},
         "fail": {"defaultEncryptionConfiguration": {}}},
     PREFIX + "bigquery.no_public_acl": {"pass": {"access": []}, "fail": {"access": [{"specialGroup": "allAuthenticatedUsers", "role": "READER"}]}},

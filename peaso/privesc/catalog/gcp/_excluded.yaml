@@ -1,0 +1,1291 @@
+# GCP privesc catalog: techniques / page sections from the assigned HackTricks pages that are
+# deliberately NOT modelled as identity edges (pure data reads, DoS, guardrail/config tamper,
+# persistence-only, network pivots without an identity, OIDC-only token minting, replay of
+# existing workloads, recon/intro/reference sections, or anchors already covered by an entry).
+# Pages: hacktricks-cloud @ a53b46392c
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-run-privesc.md#public-exposure-without-an-allusers-binding----no-invoker-iam-check-drs-bypass
+  technique: Public exposure via invoker IAM check disable
+  reason: Exposes the service's existing functionality to the internet; no new identity for the source.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-run-privesc.md#plaintext-environment-disclosure-with-cloud-run-read-permissions
+  technique: Plaintext env disclosure via run get/list
+  reason: Pure data read (secrets in env values); not an identity edge.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-run-privesc.md#runjobsrun-alone-on-a-pre-existing-job--run-as-its-pinned-sa
+  technique: run.jobs.run alone on an existing job
+  reason: Executes only the job's existing image/args; the source cannot run its own code as the SA, so it does not obtain the SA's privileges (confused-deputy only).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuildbuildsapprove--release-a-run-as-build-with-no-buildscreate-and-no-actas
+  technique: cloudbuild.builds.approve releases a pending build
+  reason: Approval only releases the pending build's existing steps; the source gains the SA's privileges only if it separately controls that build's content (not an independent edge).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuildbuildsget--cloudbuildbuildslist
+  technique: builds get/list disclose env and substitutions
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuildrepositoriesaccessreadtoken
+  technique: Read-only SCM token
+  reason: Read-only repository access; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuildconnectionsfetchlinkablerepositories
+  technique: List repositories a connection can access
+  reason: Enumeration only.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuildconnectionsget--secretmanagerversionsaccess--steal-the-raw-scm-credential-2nd-gen-host-connection
+  technique: Read the SCM credential behind a host connection
+  reason: Yields an external SCM credential (secret read); downstream build-trigger reach is not a GCP identity edge of this technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuildworkerpoolscreate--private-worker-pool-as-a-network-pivot--egress-control
+  technique: Private worker pool network pivot
+  reason: Network pivot with no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#cloudfunctionsfunctionssourcecodeset
+  technique: sourceCodeSet alone
+  reason: Only yields an upload URL; the function code is not changed without update (HackTricks).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#cloudfunctionsfunctionsupdate
+  technique: update without actAs
+  reason: HackTricks states this is not a valid privesc.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#invoke-functions
+  technique: Invoke functions
+  reason: Triggers existing function logic; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#read--write-access-over-artifact-registry
+  technique: Artifact Registry write for gen2 functions
+  reason: HackTricks states modifying the stored image does not compromise the function (DoS at most).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computemachineimagessetiampolicy
+  technique: Machine image setIamPolicy
+  reason: Grants access to image data only; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computesnapshotssetiampolicy
+  technique: Snapshot setIamPolicy
+  reason: Grants access to snapshot data only; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computediskssetiampolicy
+  technique: Disk setIamPolicy
+  reason: Grants access to disk data only; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#bypass-access-scopes
+  technique: Bypass access scopes
+  reason: Pointer to other techniques; no standalone permission precondition.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#local-privilege-escalation-in-gcp-compute-instance
+  technique: Local privesc inside a VM
+  reason: Requires prior code execution on the VM (host-level), covered by gcp-local-privilege-escalation-ssh-pivoting.md.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#dump-airflow-connections--variables-secret-theft
+  technique: Dump Airflow connections and variables
+  reason: Pure data/secret read (external credentials); the code-exec edge of the same permission is gcp-composer-environments-executeairflowcommand.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#airflow-config-overrides-same-composerenvironmentsupdate
+  technique: Airflow config overrides
+  reason: Variant of composer.environments.update, covered by gcp-composer-environments-update.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#weaken-the-airflow-web-server-network-acl-attack-surface-expansion
+  technique: Open the Airflow web server ACL
+  reason: Network exposure only; no new identity for the source.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#download-dags
+  technique: Download DAGs
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#import-dags
+  technique: Import DAGs
+  reason: Same edge as gcp-composer-bucket-write (writes into the environment bucket).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#snapshot-exfil--injection-composerenvironmentssavesnapshot--loadsnapshot
+  technique: Snapshot save/load
+  reason: Save is data exfiltration; load is gated by composer.environments.update and covered by gcp-composer-environments-update.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#import-plugins
+  technique: Import plugins
+  reason: HackTricks marks this as TODO (impact unverified); the bucket-write edge already covers code delivery.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#import-data
+  technique: Import data
+  reason: HackTricks marks this as TODO; data folder write has no documented identity impact.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataflow-privesc.md#python-udf-injection
+  technique: Python UDF injection
+  reason: Variant covered by gcp-dataflow-udf-template-bucket-write.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataflow-privesc.md#job-template-yaml-injection
+  technique: Job template YAML injection
+  reason: Variant covered by gcp-dataflow-udf-template-bucket-write.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataflow-privesc.md#compute-engine-access-to-dataflow-workers
+  technique: Compute Engine access to Dataflow worker VMs
+  reason: Same edges as the compute metadata/OS Login entries (workers are compute instances). This page's claim that setMetadata needs no actAs conflicts with the compute page (actAs required) and is not
+    modelled separately.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataflow-privesc.md#dataflowjobsupdatecontents--snapshots--drain--in-flight-tamper--dos
+  technique: updateContents/snapshots/drain
+  reason: Pipeline tamper and DoS per HackTricks; no documented new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobsget--cloudschedulerjobslist
+  technique: Scheduler job get/list disclose headers and bodies
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobsrun--on-demand-force-trigger-of-an-existing-privileged-job
+  technique: Force-run an existing SA-backed job
+  reason: Replays only the job's predefined request; the source cannot choose the request, so it does not obtain the SA's privileges (confused deputy).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobscreate-app-engine-target--actas-free-app-engine-app-invocation
+  technique: App Engine target jobs without actAs
+  reason: Reaches the app's internal handlers as a trusted request; no identity is obtained.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobscreate-pubsub-target--confused-deputy-publish-to-any-project-topic
+  technique: Pub/Sub target jobs publish as the service agent
+  reason: Message injection into topics (confused deputy); no identity obtained, downstream consumers not modelled.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudtasks-privesc.md#cloudtasksqueuescreate--cloudtasksqueuesupdate--queue-level-urioverride-silent-traffic-hijack--token-attach
+  technique: Queue-level uriOverride hijack
+  reason: Traffic redirection plus OIDC token attach; actAs is re-enforced at enqueue (no amplification), OIDC tokens are audience-bound; covered by gcp-cloudtasks-tasks-create-actas.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudtasks-privesc.md#cloudtaskstasksget--cloudtaskstaskslist
+  technique: Task get/list disclose headers
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudtasks-privesc.md#cloudtaskstaskscreate-app-engine-target--actas-free-app-engine-app-invocation
+  technique: App Engine tasks without actAs
+  reason: Reaches the app's handlers as a trusted request; no identity is obtained.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudtasks-privesc.md#cloudtasksqueuespause--purge--resume--delete--dos
+  technique: Queue pause/purge/delete
+  reason: DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudtasks-privesc.md#cloudtaskstasksrun-cloudtaskstaskslist
+  technique: Run existing tasks
+  reason: Replays only existing tasks' predefined requests; the source cannot choose the request.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#access-secrets-with-a-connector
+  technique: Access secrets with a connector
+  reason: Example of using the workflow SA (data read); covered by the workflow deploy entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#deploy-and-execute-a-workflow-from-the-cli
+  technique: Deploy and execute from the CLI
+  reason: Procedure for the create/actAs technique, covered by gcp-workflows-create-actas-execute.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflow-source-and-execution-data-disclosure
+  technique: Workflow source/execution disclosure
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflowscallbackssend--inject-into-a-running-privileged-execution
+  technique: Callback injection into paused executions
+  reason: Injects data only; impact depends on the workflow's own logic; no direct identity edge.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#send-oidc-or-oauth-20-tokens-from-http-steps
+  technique: Send OIDC/OAuth tokens from HTTP steps
+  reason: Mechanism of the deploy entries; OIDC token exfiltration is audience-bound and excluded.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#oauth-20
+  technique: OAuth 2.0 sub-example
+  reason: Sub-example of the deploy entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#oidc
+  technique: OIDC sub-example
+  reason: Audience-bound OIDC token; excluded like getOpenIdToken.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#environment-variable-startup-injection-during-version-deployment
+  technique: app.yaml env var startup injection
+  reason: Needs the same version-create prerequisites; covered by gcp-appengine-versions-create-actas.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#update-equivalent-permissions
+  technique: Update-equivalent deploy
+  reason: Covered by gcp-appengine-versions-create-actas (same deploy prerequisites and actAs).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#appengineapplicationsupdate-appengineoperationsget
+  technique: applications.update alone
+  reason: HackTricks states this alone is not a way to obtain the SA (actAs required; affects only later deployments).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#appengineversionsgetfilecontents-appengineversionsupdate
+  technique: getFileContents / versions.update
+  reason: Source read (data) and config patch without code overwrite per HackTricks.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#write-access-over-the-artifact-registry
+  technique: Artifact Registry write for App Engine images
+  reason: HackTricks states modifying the image does not change executed code (race unverified).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#storageobjectsget
+  technique: storage.objects.get
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#storageobjectssetiampolicy
+  technique: Object-level setIamPolicy/ACL self-grant
+  reason: Grants access to individual existing objects only; any code-bearing overwrite is covered by the service-specific bucket-write entries and is not modelled per object.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#storageobjectscreate-storageobjectsdelete--storage-write-permissions
+  technique: Generic bucket write
+  reason: Generic (web content and unknown consumers); identity reach is modelled only for known consumers (Composer, Functions, App Engine, Dataflow).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#composer
+  technique: Composer bucket write
+  reason: Covered by gcp-composer-bucket-write.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#cloud-functions
+  technique: Cloud Functions source bucket write
+  reason: Covered by gcp-cloudfunctions-source-bucket-write.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#app-engine
+  technique: App Engine staging bucket write
+  reason: Covered by gcp-appengine-staging-bucket-write.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#gcr
+  technique: GCR bucket write
+  reason: Container Registry is deprecated and writes are unavailable (HackTricks).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-resourcemanager-privesc.md#tags-privesc-via-iam-condition--org-policy-bypass
+  technique: Tag-based IAM condition / org-policy bypass
+  reason: Self-escalation bounded by pre-existing tag-conditional bindings; needs a schema extension (gcp_tag_conditional_binding) and tag-binding facts. Org-policy exceptions are guardrail bypasses, not
+    identity edges.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-resourcemanager-privesc.md#resourcemanagerhierarchynodescreatetagbinding--tag-value-use
+  technique: createTagBinding plus tag value use
+  reason: See tag-based condition entry above (extension gcp_tag_conditional_binding).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-resourcemanager-privesc.md#resourcemanagertagvaluescreate--resourcemanagertagkeyscreate
+  technique: Create tag keys/values
+  reason: See tag-based condition entry above; only useful when a condition matches any value of a key.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-resourcemanager-privesc.md#resourcemanagertagvaluessetiampolicy--resourcemanagertagkeyssetiampolicy
+  technique: Tag value/key setIamPolicy
+  reason: See tag-based condition entry above (grants tag use, not a role).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudidentity-privesc.md#modify-group-membership
+  technique: Escalate own group membership role to OWNER/MANAGER
+  reason: Group membership roles do not change the IAM roles inherited from the group; only grants group management (adding others).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#containerclustersget
+  technique: clusters.get / getCredentials
+  reason: Only obtains cluster access with the caller's own RBAC; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#containerpodsgetlogs
+  technique: Read pod logs
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#containerpodsattach
+  technique: Attach to running containers
+  reason: Depends on a pre-existing process accepting stdin; not a general identity edge.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#containerpodsportforward
+  technique: Port-forward to pods
+  reason: Network pivot with no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#containerpodsproxy--containerservicesproxy
+  technique: Proxy to pods/services
+  reason: Network pivot with no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#containermutatingwebhookconfigurationscreate--containermutatingwebhookconfigurationsupdate
+  technique: Mutating webhooks
+  reason: Primarily persistence per HackTricks; escalation depends on the webhook backend and matching rules.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#containerclustersupdate--access-control--security-config-tamper
+  technique: clusters.update security tamper
+  reason: Guardrail/network weakening (authorized networks, BinAuthz, metadata mode); no new identity by itself.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#gkehubgatewaygeneratecredentials--kubectl-via-connect-gateway-no-network-path
+  technique: Connect Gateway credentials
+  reason: Network reach only; in-cluster power is the caller's own RBAC.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#gkehubmembershipssetiampolicy--self-grant-connect-gateway-access
+  technique: memberships.setIamPolicy self-grant gateway
+  reason: Grants gateway reach only (RBAC still caps power); the cluster-admin path is gcp-gkehub-rbacrolebindings-gateway.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#gkehub--fleet--connect-gateway
+  technique: Fleet section intro
+  reason: Section heading; techniques modelled under their own anchors.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#artifactregistryrepositoriesdownloadartifacts
+  technique: Download artifacts
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#artifactregistrytagsdelete-artifactregistryversionsdelete-artifactregistrypackagesdelete-artifactregistryrepositoriesget-artifactregistrytagsget-artifactregistrytagslist
+  technique: Delete tags/versions/packages
+  reason: Destructive / DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#artifactregistryrepositoriesdelete
+  technique: Delete repository
+  reason: Destructive / DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#artifactregistryrulescreate--repo-wide-deny-download-dos
+  technique: DENY download rules
+  reason: DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#artifactregistryprojectsettingsupdate--flip-gcrio-routing
+  technique: Flip gcr.io routing
+  reason: Routing/availability change; the squat edge is gcp-artifactregistry-gcrio-namespace-squat.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#pivoting-to-other-services-through-artifact-registry-read--write
+  technique: Pivot to Functions/App Engine images
+  reason: 'HackTricks negative result: modifying stored images does not change deployed code (only a speculative race).'
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#artifact-registry
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-batch-privesc.md#batch
+  technique: Section intro
+  reason: Introductory heading; technique modelled as gcp-batch-jobs-create-actas.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquery
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#read-table
+  technique: Read table
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#export-data
+  technique: Export data
+  reason: Pure data read/exfiltration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#insert-data
+  technique: Insert data
+  reason: Data tampering; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerydatasetssetiampolicy
+  technique: Dataset setIamPolicy
+  reason: Self-grant of dataset data access only; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerydatasetsupdate-bigquerydatasetsget
+  technique: Dataset ACL update
+  reason: Data access self-grant / public exposure; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerytablessetiampolicy
+  technique: Table setIamPolicy
+  reason: Data access self-grant; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryrowaccesspoliciescreateupdate-bigqueryrowaccesspoliciessetiampolicy-bigquerytablesgetdata-bigqueryjobscreate
+  technique: Row access policy bypass
+  reason: Data read control bypass.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#authorized-view--authorized-dataset-exfil--bigquerydatasetsupdate-on-the-sensitive-dataset
+  technique: Authorized view exfil
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryconnectionscreate--cloud_resource-connection-confused-deputy-read-through
+  technique: CLOUD_RESOURCE connection deputy
+  reason: Data read through the per-connection managed SA, which only gets roles the source itself grants; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryconnectionsuse-get--read-a-connected-cloud-sql-db-via-stored-creds-external_query
+  technique: EXTERNAL_QUERY via stored creds
+  reason: Database data read with stored DB credentials; no cloud identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryconnectionssetiampolicy--self-grant-connectionuser-on-a-privileged-connection
+  technique: Connection setIamPolicy
+  reason: Self-grant leading to data read only.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryconnectionsupdate--repoint--rotate-a-connections-credentials-tamper
+  technique: Connection credential tamper
+  reason: Tamper / DoS / data hijack; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#datacatalogtaxonomiessetiampolicy--self-grant-past-bigquery-column-level-security
+  technique: Policy tag self-grant
+  reason: Column-level data read bypass.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#datacatalogtaxonomiesupdate--disable-cls-enforcement-taxonomy-wide-mass-unmask
+  technique: Disable CLS enforcement
+  reason: Data read control bypass.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-deploy-privesc.md#cloud-deploy
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-deploy-privesc.md#clouddeployautomationscreate--persistent-auto-promote-as-an-automation-sa
+  technique: Automation auto-promote
+  reason: Persistence-focused; automations only promote releases (actAs validated at create), so the reach is covered by gcp-clouddeploy-pipeline-target-release-actas.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-deploy-privesc.md#clouddeployrolloutsapprove--force-approve-a-gated-rollout
+  technique: Approve gated rollout
+  reason: Releases someone else's pending change; the source does not choose the code (consistent with Cloud Build approve exclusion).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-deploy-privesc.md#clouddeploydeploypoliciesoverride--bypass-a-deploy-policy-freezerestriction-gate
+  technique: Override deploy policy
+  reason: Guardrail bypass; no identity by itself.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-workstations-privesc.md#container-breakout-via-docker-socket-container---vm---project
+  technique: Docker socket breakout
+  reason: Local escalation inside an already-accessible workstation; the VM identity is the config SA already covered by the workstation entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataplex-privesc.md#dataplex
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataplex-privesc.md#dataplexassetssetiampolicy-lakeszonesassets--self-grant-that-propagates-to-the-underlying-gcsbq-data
+  technique: Asset setIamPolicy propagation
+  reason: Data access self-grant only; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataplex-privesc.md#datacatalogcategoriessetiampolicy--bypass-bigquery-column-level-security-policy-tags
+  technique: Policy tag self-grant
+  reason: Column-level data read bypass.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataplex-privesc.md#dataplexdatascansgetdata--read-profiled-column-values-without-any-bigquery-data-access
+  technique: DataScan results read
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-infra-manager-privesc.md#infrastructure-manager
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-integration-connectors-privesc.md#integration-connectors
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secure-source-manager-privesc.md#secure-source-manager
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secure-source-manager-privesc.md#branch-protection--pr-review-bypass--slip-code-past-review
+  technique: Branch protection / PR review bypass
+  reason: Guardrail bypass enabling gcp-securesourcemanager-push-cicd; no identity by itself.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secure-source-manager-privesc.md#malicious-webhooks--exfil--ssrf--persistence
+  technique: Malicious webhooks
+  reason: Exfiltration / SSRF / persistence; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-sourcerepos-privesc.md#source-repositories
+  technique: Section intro
+  reason: Introductory heading.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-sourcerepos-privesc.md#sourcereposget
+  technique: Clone repositories
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-sourcerepos-privesc.md#secret-access
+  technique: Secret access
+  reason: Pointer to Secret Manager (data read).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-sourcerepos-privesc.md#add-ssh-keys
+  technique: Add SSH keys
+  reason: Alternate credential for the caller's own account; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-sourcerepos-privesc.md#manual-credentials
+  technique: Manual credentials
+  reason: Requires the user's own credentials/session; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-sourcerepos-privesc.md#sourcereposupdateprojectconfig
+  technique: updateProjectConfig
+  reason: Guardrail/notification tamper; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#add-an-attacker-controlled-saml-provider-with-the-exact-permission
+  technique: Provider create procedure
+  reason: Covered by gcp-wif-provider-create.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#iamgoogleapiscomworkloadidentitypoolsupdate
+  technique: Pool re-enable
+  reason: Covered by gcp-wif-pool-provider-restore.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#iamgoogleapiscomworkloadidentitypoolsundelete
+  technique: Pool undelete
+  reason: Covered by gcp-wif-pool-provider-restore.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#validated-saml-provider-takeover
+  technique: SAML provider takeover
+  reason: Covered by gcp-wif-provider-update.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#add-an-attacker-certificate-with-the-exact-permission
+  technique: Provider update procedure
+  reason: Covered by gcp-wif-provider-update.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#forge-and-exchange-the-assertion
+  technique: Assertion exchange
+  reason: Procedure detail shared by the WIF entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#enumeration-and-low-permission-fallbacks
+  technique: Enumeration
+  reason: Enumeration only.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#live-validation-evidence
+  technique: Validation evidence
+  reason: Evidence section; no separate technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#provider-creation-into-a-broadly-trusted-pool
+  technique: Validation evidence
+  reason: Covered by gcp-wif-provider-create.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#existing-provider-update
+  technique: Validation evidence
+  reason: Covered by gcp-wif-provider-update.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#deleted-provider-restoration
+  technique: Validation evidence
+  reason: Covered by gcp-wif-pool-provider-restore.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#disabled-and-deleted-pool-restoration
+  technique: Validation evidence
+  reason: Covered by gcp-wif-pool-provider-restore.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#apigee
+  technique: Section intro
+  reason: Introductory heading (runtime Message Processor SSRF pivot is documented on another page).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#apigeesharedflows--apigeesharedflowrevisionsdeploy--apigeeflowhooksattachsharedflow--environment-wide-code-injection-via-flow-hooks
+  technique: Flow hook shared-flow injection
+  reason: API traffic tamper/exfiltration on Google-managed runtime; no GCP identity unless bound to an SA (covered by gcp-apigee-proxy-deploy-with-sa-actas).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#apigeekeyvaluemapentriesgetlist--read-encrypted-kvm-secrets-via-the-management-api
+  technique: Read KVM secrets
+  reason: Secret/data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#apigeetracesessionscreate--apigeemaskconfigsupdate--live-credential-capture-from-in-transit-traffic
+  technique: Trace sessions
+  reason: Captures third-party API credentials in transit (data read); no GCP identity edge modelled.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#apigeedeveloperappscreate--apigeeappkeys--mint--steal-api-credentials
+  technique: Mint API keys
+  reason: Apigee API credentials, not a GCP identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#apigeeenvironmentssetiampolicy--apigeedeploymentssetiampolicy--resource-level-self-grant--persistence
+  technique: Environment/deployment setIamPolicy
+  reason: Apigee-scoped self-grant/persistence; reaching a GCP SA still needs actAs (covered by gcp-apigee-proxy-deploy-with-sa-actas).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#vertex-ai
+  technique: Section intro
+  reason: Introductory heading (Agent Engine post-exploitation is documented elsewhere).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#aiplatformmodelsupload-aiplatformmodelsget
+  technique: Upload model
+  reason: Preparation step; covered by gcp-vertex-models-upload-endpoint-deploy-actas and gcp-vertex-batchprediction-create-actas.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#aiplatformmodelsexport
+  technique: Export model
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#aiplatformdatasetsexport
+  technique: Export dataset
+  reason: Pure data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#aiplatformdatasetsimport
+  technique: Import dataset
+  reason: Training data poisoning; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#aiplatformfeaturestores--featureviews--feature--embedding-data-exfil-and-poisoning-via-low-priv-vertex-roles
+  technique: Feature store data
+  reason: Data read / poisoning.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#featureview--featuregroup-bigquery-source-confused-deputy-cross-dataset-bq-read
+  technique: FeatureView BigQuery deputy
+  reason: Data read through a service agent; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#vector-search--matching-engine--data-plane-embedding-reads--poisoning
+  technique: Vector search data
+  reason: Data read / poisoning.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#aiplatformmetadatastores-artifacts--contexts--executions--ml-metadata-pointer--parameter-disclosure
+  technique: ML metadata
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#app-engine
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-appengine-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-artifact-registry-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-batch-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-deploy-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-workstations-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuild
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#direct-exploitation-via-gcloud-cli
+  technique: Exploitation tooling sub-section
+  reason: Tooling for the build-create technique; covered by the cloudbuild entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#using-python-gcloud-library
+  technique: Exploitation tooling sub-section
+  reason: Tooling for the build-create technique; covered by the cloudbuild entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#cloudfunctions
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudidentity-privesc.md#cloudidentity
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudidentity-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloud-scheduler
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudtasks-privesc.md#cloud-tasks
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudtasks-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#composer
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/gcp-add-custom-ssh-metadata.md#incorporation-of-ssh-keys-into-custom-metadata
+  technique: SSH keys in custom metadata (background)
+  reason: Background for the metadata SSH key technique; covered by gcp-compute-ssh-metadata-keys.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/gcp-add-custom-ssh-metadata.md#add-ssh-key-to-existing-privileged-user
+  technique: Add SSH key to an existing user
+  reason: Variant of the metadata SSH key technique; covered by gcp-compute-ssh-metadata-keys.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/gcp-add-custom-ssh-metadata.md#create-a-new-privileged-user-and-add-a-ssh-key
+  technique: Create a new privileged user via SSH key metadata
+  reason: Variant of the metadata SSH key technique; covered by gcp-compute-ssh-metadata-keys.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/gcp-add-custom-ssh-metadata.md#ssh-keys-at-project-level
+  technique: Project-level SSH keys
+  reason: Covered by gcp-compute-projects-setcommoninstancemetadata.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/gcp-add-custom-ssh-metadata.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#compute
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#container
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataflow-privesc.md#dataflow
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataflow-privesc.md#direct-exploitation-via-gcloud-cli
+  technique: Exploitation tooling sub-section
+  reason: Tooling for the template launch technique; covered by the dataflow entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataflow-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataplex-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataproc
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#steps-to-exploit
+  technique: Exploitation steps sub-section
+  reason: Steps for the job-submit technique; covered by the dataproc entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-deploymentmaneger-privesc.md#deploymentmanager
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-deploymentmaneger-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-infra-manager-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-integration-connectors-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-osconfig-privesc.md#os-config
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-osconfig-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-resourcemanager-privesc.md#resourcemanager
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-resourcemanager-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-run-privesc.md#cloud-run
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-run-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secure-source-manager-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-sourcerepos-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#storage
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vertex-ai-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflows
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workload-identity-federation-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iam
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamrolescreate--iamserviceaccountssetiampolicy
+  technique: Custom role create plus SA setIamPolicy
+  reason: The escalation comes from iam.serviceAccounts.setIamPolicy, covered by gcp-iam-serviceaccounts-setiampolicy; the custom role adds no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#stealth-variant--upload-your-own-public-key-keysupload
+  technique: SA key upload (keys:upload)
+  reason: Gated by the same iam.serviceAccountKeys.create permission; covered by gcp-iam-serviceaccountkeys-create.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountsactas
+  technique: actAs (generic)
+  reason: actAs alone yields nothing; every service-specific actAs deploy technique is modelled as its own entry.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#service-account-impersonation
+  technique: Service account impersonation (background)
+  reason: Background on impersonation methods; covered by the getAccessToken/keys/signBlob/signJwt/implicitDelegation entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountsgetopenidtoken
+  technique: getOpenIdToken
+  reason: Mints an OIDC identity token only, which authorizes nothing in GCP IAM by itself (only at relying parties configured to trust it).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#resourcemanagertagvaluebindingscreate--satisfy-an-iam-condition-via-tag-manipulation
+  technique: Tag binding to satisfy a tag-conditional IAM binding
+  reason: Self-escalation bounded by pre-existing tag-conditional bindings; needs schema extension gcp_tag_conditional_binding and tag-binding facts.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#resourcemanagertagvaluessetiampolicy--control-who-may-usebind-a-tag-value-inverse-lever
+  technique: Tag value setIamPolicy
+  reason: Grants tag use only, not a role; prerequisite for the tag-conditional technique (extension gcp_tag_conditional_binding).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/README.md#introduction-to-gcp-privilege-escalation
+  technique: Introduction
+  reason: Introductory text; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/README.md#permissions-for-privilege-escalation-methodology
+  technique: Methodology
+  reason: Methodology overview; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/README.md#bypassing-access-scopes
+  technique: Bypassing access scopes
+  reason: Uses already-held credentials/tokens of the same SA; not a new identity edge (scope limits are not modelled as identity).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/README.md#abusing-gcp-to-escalate-privileges-locally
+  technique: Local escalation pointer
+  reason: Pointer to the local privilege escalation page (excluded there).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/README.md#privilege-escalation-techniques
+  technique: Techniques index
+  reason: Index of the service pages; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/README.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#access-context-manager-accesscontextmanagergoogleapiscom
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanageraccesslevelsupdate--loosen-context-aware-access
+  technique: Loosen access levels
+  reason: Guardrail tamper (context-aware access); no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanagerserviceperimetersupdate--defeat-vpc-sc-data-exfil-protection
+  technique: Service perimeter update
+  reason: Guardrail tamper (VPC-SC exfiltration protection); no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#authorizedorgsdescs-authorized-orgs--cross-org-trust-injection
+  technique: Authorized orgs injection
+  reason: Guardrail tamper (cross-org perimeter trust); no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#dry-run-spec-vs-enforced-status--stealth-staging--one-call-flip
+  technique: Dry-run spec staging
+  reason: Guardrail tamper / stealth staging; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#gcpuseraccessbindings-cloud-bindings--group-targeted-context-aware-access-removal
+  technique: GcpUserAccessBinding removal
+  reason: Guardrail tamper (context-aware access for groups); no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#recon--map-the-orgs-entire-exfil-posture-read-only
+  technique: Recon
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#analytics-hub
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#analyticshubdataexchangescreate--analyticshublistingscreate--publish-private-data--exfil-channel
+  technique: Publish private data via listings
+  reason: Data exfiltration; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#analyticshublistingssetiampolicy--analyticshubdataexchangessetiampolicy
+  technique: Listing / exchange setIamPolicy
+  reason: Self-grant of data access to shared datasets; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#analyticshublistingssubscribe--bigquerydatasetscreate
+  technique: Subscribe to listing
+  reason: Data access via linked dataset; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#analyticshubsubscriptions--subscription-lifecycle-subscriber-recon--revoke-dos
+  technique: Subscription lifecycle
+  reason: Recon and revocation DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apikeys-privesc.md#api-keys
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apikeys-privesc.md#apikeyskeyscreate-apikeyskeysgetkeystring
+  technique: Create API key
+  reason: API keys are not a principal; they carry no IAM identity (quota/billing attribution only).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apikeys-privesc.md#apikeyskeyslist-apikeyskeysgetkeystring
+  technique: List / read API keys
+  reason: Secret read; API keys are not a principal.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apikeys-privesc.md#apikeyskeysupdate--silently-broaden-a-scoped-key-to-unrestricted-restriction-tamper
+  technique: Broaden key restrictions
+  reason: Restriction tamper on a non-identity credential.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apikeys-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtable
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtableinstancessetiampolicy
+  technique: Instance setIamPolicy
+  reason: Self-grant of data access; data read/write only.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtabletablessetiampolicy
+  technique: Table setIamPolicy
+  reason: Self-grant of data access; data read/write only.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtablebackupssetiampolicy
+  technique: Backup setIamPolicy
+  reason: Self-grant of backup data access; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtableauthorizedviewssetiampolicy
+  technique: Authorized view setIamPolicy
+  reason: Self-grant of data access; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#update-authorized-view
+  technique: Update authorized view
+  reason: Widens data exposed by a view; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#logical--materialized-view-create--self-grant
+  technique: Logical / materialized view self-grant
+  reason: Data read bypass.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#cloud-billing
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#billingaccountssetiampolicy
+  technique: Billing account setIamPolicy
+  reason: Billing roles grant cost/billing control, not resource access or an identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#billingbudgetsupdate--blind-spendanomaly-alerts-cover-cost-abuse
+  technique: Budget tamper
+  reason: Detection tamper / cost abuse.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#billingresourceassociationsdelete--resourcemanagerprojectsdeletebillingassignment--project-wide-dos
+  technique: Unlink billing
+  reason: DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#billingresourceassociationslist--org-wide-project-enumeration
+  technique: Billing association list
+  reason: Enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#billingsubscriptionscreate--update--marketplace-cost-abuse-admin-only
+  technique: Marketplace subscriptions
+  reason: Cost abuse.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#recon
+  technique: Recon
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-billing-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-certificate-authority-service-privesc.md#certificate-authority-service-cas
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-certificate-authority-service-privesc.md#privatecacertificatescreate--privatecacapoolsget--forge-a-certificate-for-an-arbitrary-identity
+  technique: Forge certificate
+  reason: Yields a certificate trusted by mTLS relying parties only; not a GCP IAM identity edge (not modelled).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-certificate-authority-service-privesc.md#privatecacapoolssetiampolicy--resource-self-grant-to-the-forge
+  technique: CA pool setIamPolicy
+  reason: Self-grant leading to certificate forging; same non-IAM outcome as above.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-certificate-authority-service-privesc.md#privatecacapoolsupdate--certificateauthoritiesupdate--certificatetemplates--widen-issuance-policy-tamper
+  technique: Issuance policy tamper
+  reason: Configuration tamper; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-certificate-authority-service-privesc.md#availability--integrity--revoke-certs-tamper-the-crl-delete-the-ca-dos
+  technique: Revoke / CRL / CA delete
+  reason: DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-certificate-authority-service-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-clientauthconfig-privesc.md#create-oauth-brand-and-client
+  technique: Create OAuth brand and client
+  reason: Enables OAuth consent phishing; requires victim interaction and grants no identity directly.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-clientauthconfig-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#database-migration-service-datamigrationgoogleapiscom
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#datamigrationmigrationjobs--full-database-exfil
+  technique: Migration job exfil
+  reason: Data exfiltration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#confused-deputy-the-dms-service-agent-over-cloud-sql--alloydb--gcs
+  technique: DMS service agent confused deputy
+  reason: Data copy via the service agent; data read/write, no identity for the caller.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#conversion-workspaces--attacker-controlled-schemaddl-transform-into-the-destination
+  technique: Conversion workspace DDL injection
+  reason: Database-level tampering; no GCP IAM identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#datamigrationconnectionprofilessetiampolicy--self-grant-on-a-profile
+  technique: Connection profile setIamPolicy
+  reason: Self-grant leading to the data-copy techniques above.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#datamigrationprivateconnectionscreate--vpc-peering--network-attachment-foothold
+  technique: Private connection foothold
+  reason: Network pivot with no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#stored-db-passwords-are-not-recoverable-write-only
+  technique: Stored passwords note
+  reason: Negative result; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#recon
+  technique: Recon
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-database-migration-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#datastream-datastreamgoogleapiscom
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#datastreamconnectionprofilescreate--datastreamstreamscreate--full-database-copy-out-confused-deputy
+  technique: Stream database copy-out
+  reason: Data exfiltration (confused deputy); no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#zero-credential-native-gcp-sources-spanner--bigquery--pure-iam-confused-deputy
+  technique: Native-source confused deputy
+  reason: Data copy via the service agent; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#datastreamconnectionprofilesdiscover--live-source-db-schema-recon-read-only-role-reaches-it
+  technique: Discover schema
+  reason: Recon.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#datastreamstreamspause--resume--delete--dos-anti-forensics--persistence
+  technique: Pause / delete streams
+  reason: DoS / anti-forensics.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#differences-from-dms-and-negative-results
+  technique: Negative results
+  reason: No technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#recon
+  technique: Recon
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-datastream-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebase
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#unauthenticated-access-to-firebase-realtime-database
+  technique: Unauthenticated RTDB access
+  reason: Data read; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#exposure-of-data-in-cloud-firestore
+  technique: Firestore data exposure
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#direct-document-access
+  technique: Direct document access
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#data-exfiltration-and-manipulation-in-cloud-firestore
+  technique: Firestore exfil / manipulation
+  reason: Data read/write.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#exposure-of-files-in-firebase-storage
+  technique: Storage file exposure
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#modification-of-security-rules-in-firebase-services
+  technique: Security rules modification
+  reason: Data-access guardrail tamper; no GCP IAM identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#user-management-in-firebase-authentication
+  technique: Firebase Auth user management
+  reason: Affects app (end-user) identities, not GCP IAM principals.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebase-adminsdk-service-account--forge-custom-tokens-for-any-app-user-and-pivot-to-the-whole-project
+  technique: firebase-adminsdk SA custom tokens
+  reason: Custom tokens impersonate app users, not GCP IAM principals; the GCP part (obtaining the firebase-adminsdk SA) is covered by gcp-iam-serviceaccountkeys-create and the actAs deploy entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#brute-force-attack-against-firebase-authentication-with-a-weak-password-policy
+  technique: Password brute force
+  reason: Credential guessing against app users; not a permission edge.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebaseauthconfigsupdate--firebase-auth-config-tampering-rogue-idp--disable-email-verification--authorized-domains
+  technique: Auth config tamper
+  reason: App-user identity tamper; not GCP IAM.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#identitytoolkittenantscreate--rogue-gcip-tenant-isolated-backdoor-user-pool--stealth-persistence
+  technique: Rogue GCIP tenant
+  reason: Persistence for app users; not GCP IAM.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#theft-and-misuse-of-firebase-cli-credentials
+  technique: Firebase CLI credential theft
+  reason: Credential theft from disk; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#invocation-of-public-firebase-cloud-functions
+  technique: Invoke public functions
+  reason: Uses existing function functionality; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#remote-config-template-poisoning-mass-client-compromise
+  technique: Remote Config poisoning
+  reason: Client-side compromise of app users; not GCP IAM.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebase-hosting-deploy-hijack--defacement--phishing
+  technique: Hosting deploy hijack
+  reason: Defacement / phishing; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebase-cloud-messaging-fcm-mass-push-abuse
+  technique: FCM mass push
+  reason: Messaging abuse; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebase-app-distribution--malicious-build-push-to-testers-supply-chain-to-humans
+  technique: App Distribution malicious build
+  reason: Supply chain to human testers' devices; not a GCP IAM edge.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebase-app-check--enforcement-bypass--attestation-spoofing--provider-key-dos
+  technique: App Check bypass
+  reason: Guardrail bypass / DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebase-management-api--app-enumeration-sdk-config-api-key-disclosure--attacker-app-injection
+  technique: Management API enumeration
+  reason: Enumeration / API key disclosure (not an identity).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#identity-aware-proxy-iap
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#iaptunnelinstancesaccessviaiap--ssh--tunnel-to-internal-only-vms
+  technique: IAP tunnel access
+  reason: Network access path; logging in still requires OS Login/SSH key techniques (modelled in compute).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#iaptunnelinstancessetiampolicy--iaptunnelzonessetiampolicy
+  technique: IAP tunnel setIamPolicy
+  reason: Grants network tunnel access only.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#iapweb-resources
+  technique: IAP web resources
+  reason: Grants web access to an app; app access is not a GCP identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#iapwebupdatesettings--weaken-iap-enforcement-settings-tamper
+  technique: IAP settings tamper
+  reason: Guardrail tamper.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#iap-oauth-client-secrets--programmatic-bypass-of-the-web-gate-clientauthconfig
+  technique: OAuth client secrets
+  reason: Secret read enabling app access; no GCP identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#kms
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#cloudkmscryptokeyversionsusetodecrypt
+  technique: Decrypt
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#cloudkmscryptokeyssetiampolicy
+  technique: CryptoKey setIamPolicy
+  reason: Self-grant of key use; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#cloudkmscryptokeyversionsusetodecryptviadelegation
+  technique: Decrypt via delegation
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#setting-up-for-delegation
+  technique: Delegation setup
+  reason: Setup for the decrypt-via-delegation data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#autokey-confused-deputy-cloudkmsautokeyconfigsupdate--cloudkmskeyhandlescreate
+  technique: Autokey confused deputy
+  reason: Key-material control / data access; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#ekm-connection-hijack-attacker-ekm--mitm-of-external-key-material-cloudkmsekmconnectionsupdate
+  technique: EKM connection hijack
+  reason: MITM of key material; data access / DoS, no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-local-privilege-escalation-ssh-pivoting.md#read-the-scripts
+  technique: Read VM scripts
+  reason: Credential discovery inside a VM; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-local-privilege-escalation-ssh-pivoting.md#custom-metadata
+  technique: Custom metadata secrets
+  reason: Data read of metadata values.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-local-privilege-escalation-ssh-pivoting.md#abusing-iam-permissions
+  technique: Abusing the attached SA's IAM permissions
+  reason: Pointer; the permission-based paths are modelled in compute/osconfig/iam entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-local-privilege-escalation-ssh-pivoting.md#search-for-keys-in-the-filesystem
+  technique: Search keys on filesystem
+  reason: Credential discovery on disk; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-local-privilege-escalation-ssh-pivoting.md#more-api-key-regexes
+  technique: API key regexes
+  reason: Credential discovery heuristics; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-local-privilege-escalation-ssh-pivoting.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-misc-perms-privesc.md#generic-interesting-permissions
+  technique: Generic permissions intro
+  reason: Overview; no specific technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-misc-perms-privesc.md#setiampolicy
+  technique: Generic setIamPolicy
+  reason: Generic pattern; each identity-relevant setIamPolicy is modelled per resource in its service file.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-misc-perms-privesc.md#create-update
+  technique: Generic create/update
+  reason: Generic pattern; each service-specific variant is modelled in its service file.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-misc-perms-privesc.md#serviceaccount
+  technique: Generic ServiceAccount permissions
+  reason: Generic pattern; specific permissions are modelled in iam/compute entries.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-misc-perms-privesc.md#iamserviceaccountsactas
+  technique: Generic actAs
+  reason: actAs alone yields nothing; modelled per service deploy entry.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-misc-perms-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-network-docker-escape.md#initial-state
+  technique: Initial state
+  reason: Scenario description; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-network-docker-escape.md#attack-explanation
+  technique: Metadata response injection
+  reason: Network-position attack (TCP injection against the metadata server from a host-network container); no IAM permission precondition, not representable as a permission edge.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-network-docker-escape.md#escape-technique
+  technique: Escape technique
+  reason: Network attack details; see above.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-network-docker-escape.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#network-security-networksecuritygoogleapiscom
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecurityservertlspoliciescreate--update--disable-mtls-downgrade-to-plaintext
+  technique: Disable mTLS
+  reason: Network guardrail tamper; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecurityclienttlspoliciescreate--update--repoint-client-trust
+  technique: Repoint client trust
+  reason: Network MITM enabler; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecurityauthorizationpoliciescreate--update-and-authzpolicies--authz-bypass--dos
+  technique: Authz policy bypass / DoS
+  reason: Network-level authorization tamper; no GCP identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecurityaddressgroupscreateupdate--gatewaysecuritypolicyrules--egress--secure-web-proxy-bypass
+  technique: Egress / SWP bypass
+  reason: Network guardrail tamper.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecuritysetiampolicy--resource-level-grant
+  technique: Network security setIamPolicy
+  reason: Self-grant leading only to the tamper techniques above.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networkservices-privesc.md#network-services-networkservicesgoogleapiscom
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networkservices-privesc.md#networkserviceshttproutescreate--networkserviceshttproutesupdate--mesh-traffic-hijack
+  technique: Mesh traffic hijack
+  reason: Network pivot / traffic interception; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networkservices-privesc.md#networkservicesendpointpoliciescreate--update--strip-mtls--loosen-authz-on-victim-sidecars
+  technique: Strip mTLS on sidecars
+  reason: Network guardrail tamper.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networkservices-privesc.md#meshconfigprojectsinit--mesh-control-plane-bootstrap-persistence
+  technique: Mesh bootstrap
+  reason: Persistence.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networkservices-privesc.md#roles
+  technique: Roles
+  reason: Role listing; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networkservices-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-orgpolicy-privesc.md#orgpolicy
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-orgpolicy-privesc.md#orgpolicypolicyset
+  technique: Org policy set
+  reason: Guardrail tamper; unlocks other techniques but grants no identity (modelled as the org_policy_constraint blocker on entries).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-orgpolicy-privesc.md#orgpolicypolicyset-iamserviceaccountsactas
+  technique: Disable cross-project SA usage constraint plus actAs
+  reason: Guardrail tamper that removes the org_policy_constraint blocker for cross-project actAs; the identity edge itself is the service deploy entry.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-orgpolicy-privesc.md#orgpolicypoliciescreate--orgpolicypoliciesupdate-v2-api--disable-guardrails-at-project-scope
+  technique: Org Policy v2 create/update
+  reason: Guardrail tamper.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-orgpolicy-privesc.md#orgpolicycustomconstraintscreate--update--author-org-wide-custom-constraints-org-scope
+  technique: Custom constraints
+  reason: Guardrail tamper / DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-orgpolicy-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-parallelstore-privesc.md#parallelstore-parallelstoregoogleapiscom
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-parallelstore-privesc.md#recon
+  technique: Recon
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-parallelstore-privesc.md#parallelstoreinstancesexportdata--filesystem-exfil-to-an-attacker-bucket-confused-deputy
+  technique: Export data
+  reason: Data exfiltration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-parallelstore-privesc.md#parallelstoreinstancesimportdata--data-injection--poisoning
+  technique: Import data
+  reason: Data poisoning; no identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-parallelstore-privesc.md#parallelstoreinstancesdelete--destructive-dos
+  technique: Delete instance
+  reason: DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-parallelstore-privesc.md#notes-on-the-access-model
+  technique: Access model notes
+  reason: No technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-parallelstore-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsub
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubsnapshotscreate-pubsubtopicsattachsubscription
+  technique: Snapshot create
+  reason: Message data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubsnapshotssetiampolicy
+  technique: Snapshot setIamPolicy
+  reason: Self-grant of message access; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubsubscriptionscreate
+  technique: Push subscription to attacker endpoint
+  reason: Message data exfiltration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubsubscriptionsupdate
+  technique: Repoint subscription
+  reason: Message data exfiltration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubsubscriptionscreate--pubsubsubscriptionsupdate--iamserviceaccountsactas--mint-oidc-tokens-as-an-arbitrary-service-account
+  technique: Push OIDC token as SA
+  reason: Yields OIDC identity tokens only, which authorize nothing in GCP IAM by themselves (only at relying parties trusting that audience).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubsubscriptionsconsume
+  technique: Consume messages
+  reason: Data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubsubscriptionssetiampolicy
+  technique: Subscription setIamPolicy
+  reason: Self-grant of message access; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-runtimeconfig-privesc.md#runtimeconfig
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-runtimeconfig-privesc.md#runtimeconfigconfigsget-runtimeconfigvariablesget--list
+  technique: Read variables
+  reason: Data/secret read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-runtimeconfig-privesc.md#runtimeconfigvariablescreate-runtimeconfigvariablesupdate
+  technique: Write variables
+  reason: Config poisoning of consumers; consumer-dependent, not modelled as an identity edge.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-runtimeconfig-privesc.md#runtimeconfigwaiterscreate
+  technique: Waiters
+  reason: Covert signalling / DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-runtimeconfig-privesc.md#runtimeconfigconfigssetiampolicy
+  technique: Config setIamPolicy
+  reason: Self-grant on the config resource only; leads to the data read/write above.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-runtimeconfig-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secretmanager-privesc.md#secretmanager
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secretmanager-privesc.md#secretmanagerversionsaccess
+  technique: Access secret version
+  reason: Secret read (data read).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secretmanager-privesc.md#secretmanagersecretssetiampolicy
+  technique: Secret setIamPolicy
+  reason: Self-grant of secret read; data read.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secretmanager-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-service-management-privesc.md#servicemanagement
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-service-management-privesc.md#servicemanagementservicessetiampolicy--self-grant-on-a-managed-service
+  technique: Managed service setIamPolicy
+  reason: Grants consumer/controller roles on an API service, not a principal identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-service-management-privesc.md#servicemanagementservicesupdate--config-rollout-authentication-injection
+  technique: Endpoints auth injection
+  reason: Application-level authentication tamper; not a GCP IAM identity.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-service-management-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-serviceusage-privesc.md#serviceusage
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-serviceusage-privesc.md#serviceusageapikeyscreate-legacy-current-apikeyskeyscreate
+  technique: Legacy API key create
+  reason: API keys are not a principal.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-serviceusage-privesc.md#serviceusageapikeyslist-legacy-current-apikeyskeyslist
+  technique: Legacy API key list
+  reason: Secret read; API keys are not a principal.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-serviceusage-privesc.md#serviceusageservicesenable-serviceusageservicesuse
+  technique: Enable / use services
+  reason: Enabling APIs grants no identity; it only unblocks other techniques.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-serviceusage-privesc.md#serviceusageservicesdisable--blind-defenders--denial-of-service
+  technique: Disable services
+  reason: DoS / detection tamper.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-serviceusage-privesc.md#serviceusagequotasupdate--consumer-quota-override-tamper-stealth-dos--abuse-enablement
+  technique: Quota tamper
+  reason: DoS / abuse enablement.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-serviceusage-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#spanner
+  technique: Page intro
+  reason: Service introduction heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#spannerdatabasessetiampolicy--spannerinstancessetiampolicy--data-access-self-grant
+  technique: Spanner setIamPolicy
+  reason: Data-access self-grant.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#data-exfiltration-via-export--backup
+  technique: Export / backup exfil
+  reason: Data exfiltration.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#spannerbackupscreate--databasesrestore--restore-into-new-db-resets-iam-database-level-acl--fgac-bypass
+  technique: Restore into new DB
+  reason: Data-access bypass.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#spannerdatabasesupdate--drop--spannerinstancesupdate--delete--database--instance-destruction--dos
+  technique: Database / instance destruction
+  reason: DoS.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#from-gcp-to-gws
+  technique: Section intro
+  reason: Heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#domain-wide-delegation-basics
+  technique: DWD basics
+  reason: Background; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#create-a-new-delegation-persistence
+  technique: Create a new delegation
+  reason: Persistence (requires Workspace super admin).
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#cross-organizational-delegation
+  technique: Cross-organization delegation
+  reason: Persistence variant of delegation creation.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#delepwn
+  technique: DelePwn tool
+  reason: Tooling for DWD abuse; covered by gcp-workspace-dwd-key-create / gcp-workspace-dwd-keyless-signjwt.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#delefriend
+  technique: DeleFriend tool
+  reason: Tooling for DWD abuse; covered by the DWD entries.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#gcp-generate-delegation-token
+  technique: Delegation token tool
+  reason: Tooling for DWD abuse; covered by the DWD entries.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#gitlabs-python-script
+  technique: GitLab script
+  reason: Tooling for DWD abuse; covered by the DWD entries.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#direct-service-account-workspace-resources-without-dwd
+  technique: SA-owned Workspace resources without DWD
+  reason: The SA uses only resources shared with itself; no new identity.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#agent-identity-auth-manager-credentials
+  technique: Agent Identity pointer
+  reason: Pointer; covered by gcp-agentidentity-retrieve-credentials / gcp-agentidentity-update-token-url.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#application-integration-credential-access
+  technique: Application Integration pointer
+  reason: Pointer; covered by gcp-appintegration-runas-sa-actas.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#workspace-http-add-on-deployment-takeover
+  technique: Add-on takeover pointer
+  reason: Pointer; covered by gcp-workspace-addons-deployment-update.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#creating-a-project-to-enumerate-workspace
+  technique: Create project to enumerate Workspace
+  reason: Enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#abusing-gcloud-credentials
+  technique: Abusing gcloud credentials
+  reason: Reuses the user's own token with extra scopes; same identity.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#google-groups-privilege-escalation
+  technique: Google Groups self-join
+  reason: Covered by gcp-cloudidentity-add-member-to-group.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#from-gws-to-gcp
+  technique: Section intro
+  reason: Heading; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#access-privileged-gcp-users
+  technique: Workspace admin resets privileged users
+  reason: Source is a Workspace admin role; Workspace admin-role facts are not collected (schema extension needed).
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/README.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-understanding-domain-wide-delegation.md#understanding-domain-wide-delegation
+  technique: DWD explainer
+  reason: Background page; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-understanding-domain-wide-delegation.md#domain-wide-delegation-under-the-hood
+  technique: DWD internals
+  reason: Background; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-understanding-domain-wide-delegation.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#conditional-gcp-to-workspace-pivot
+  technique: Conditional pivot explanation
+  reason: Explains the conditions of the covered agentidentity entries.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#read-only-enumeration-and-no-list-fallback
+  technique: Enumeration
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#detection-and-hardening
+  technique: Detection and hardening
+  reason: Defensive guidance; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-agent-identity-auth-manager-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#integrationsauthconfigsget--retrieve-decrypted-credentials
+  technique: Retrieve decrypted auth configs
+  reason: Secret read.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#integrationsintegrationsinvoke--invoke-a-credentialed-workflow
+  technique: Invoke existing integration
+  reason: Replays an existing workflow's fixed logic; no control over the identity's actions.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#http-connector-credential-forwarding
+  technique: HTTP connector credential forwarding
+  reason: Credential exfiltration via an authored integration; covered by gcp-appintegration-runas-sa-actas when run-as SA is used, otherwise a secret read.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#connectorsconnectionscreate--unauthorized-runtime-identity-attachment
+  technique: Connector runtime identity attachment
+  reason: Covered by gcp-connectors-connections-create-delegated-sa.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#read-only-enumeration-and-no-list-fallback
+  technique: Enumeration
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#detection-and-hardening
+  technique: Detection and hardening
+  reason: Defensive guidance; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-workspace-addons-privesc.md#preconditions
+  technique: Preconditions
+  reason: Conditions of the covered gcp-workspace-addons-deployment-update entry.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-workspace-addons-privesc.md#enumerate-safely
+  technique: Enumeration
+  reason: Read-only enumeration.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-workspace-addons-privesc.md#authorized-lab-proof
+  technique: Lab proof
+  reason: Validation notes for the covered entry.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-workspace-addons-privesc.md#detection-and-hardening
+  technique: Detection and hardening
+  reason: Defensive guidance; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-workspace-addons-privesc.md#references
+  technique: References section
+  reason: Reference list; no technique.
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/gcp-add-custom-ssh-metadata.md#modifying-the-metadata
+  technique: Add SSH keys or a new privileged user through instance metadata
+  reason: Duplicate edge; covered by gcp-compute-instances-setmetadata-existing-vm (instance metadata) and gcp-compute-projects-setcommoninstancemetadata (project metadata).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#osconfigpatchdeploymentscreate--osconfigpatchjobsexec
+  technique: OS Config patch deployment pre/post steps
+  reason: Duplicate edge; covered by gcp-osconfig-patchjobs-exec (any_of patchJobs.exec / patchDeployments.create).
+- source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudbuild-privesc.md#cloudbuildtriggerscreate-cloudbuildtriggersrun-iamserviceaccountsactas
+  technique: Create and run a build trigger as a chosen SA
+  reason: Covered by gcp-cloudbuild-builds-create-custom-sa-actas. Google maps triggers.create and triggers.run to cloudbuild.builds.create (https://docs.cloud.google.com/build/docs/iam-roles-permissions), so the permission set and the target set are identical; there are no cloudbuild.triggers.* IAM permissions.

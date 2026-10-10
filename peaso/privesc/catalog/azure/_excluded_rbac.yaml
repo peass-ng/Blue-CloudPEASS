@@ -1,14 +1,8 @@
 # Azure resource-plane (ARM/RBAC) HackTricks techniques reviewed and intentionally NOT modelled as
-# principal -> principal privilege-escalation edges. Source rev 6bdd8e89e6.
+# principal -> principal privilege-escalation edges. Source rev a53b46392c.
 - source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-authorization-privesc.md#permission-first-role-discovery
   technique: Permission-first role discovery
   reason: Enumeration guidance only; no privilege gain.
-- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-authorization-privesc.md#microsoftauthorizationpolicyassignmentswrite--microsoftauthorizationpolicyassignmentsdelete
-  technique: Microsoft.Authorization/policyAssignments/write|delete
-  reason: Disables Azure Policy guardrails (defense evasion); grants no new identity or RBAC permissions by itself.
-- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-authorization-privesc.md#microsoftauthorizationpolicydefinitionswrite
-  technique: Microsoft.Authorization/policyDefinitions/write
-  reason: Weakens policy rules (defense evasion); no identity gain. Note DeployIfNotExists/Modify policies run with their own assignment managed identity, but that requires policyAssignments/write + roleAssignments/write, which is already modelled by azure-authorization-roleassignments-write.
 - source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-authorization-privesc.md#microsoftmanagementmanagementgroupswrite
   technique: Microsoft.Management/managementGroups/write
   reason: Creating or re-parenting management groups changes inherited policy/RBAC, but per Microsoft docs moving an MG/subscription also requires Owner-equivalent (roleAssignments/write) on the child, which already yields scope ownership; no additional edge.
@@ -210,3 +204,432 @@
 - source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-batch-privesc.md#read-plaintext-job-and-schedule-configuration
   technique: Batch job/schedule configuration read
   reason: Data read of configuration of unknown content.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftmachinelearningservicesworkspaceshubswrite-microsoftmachinelearningservicesworkspaceswrite-microsoftmanagedidentityuserassignedidentitiesassignaction
+  technique: Attach UAMI to AI Hub / workspace
+  reason: Attachment alone does not expose the identity to user code; the code-execution paths are modelled separately.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftmachinelearningservicesworkspacesonlineendpointstokenaction
+  technique: Online endpoint AML token
+  reason: Scoring access to one endpoint; data/cost impact only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftmachinelearningservicesworkspacesserverlessendpointslistkeysaction
+  technique: Serverless endpoint listKeys
+  reason: Inference keys; data/cost impact only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#azure-ml-v1-environment-registry-credentials
+  technique: Azure ML V1 environment registry credentials
+  reason: Registry credential disclosure; image poisoning is second-order.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#ai-foundry-shared-connection-credential-recovery
+  technique: Foundry project connection credentials (data actions)
+  reason: Covered conceptually by azure-ml-connection-secrets; credential type unknown.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#stored-azure-openai-response-disclosure
+  technique: Stored Azure OpenAI responses
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#foundry-project-response-disclosure-through-aiservicesagentsread
+  technique: Foundry agents/read response disclosure
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftmachinelearningservicesworkspaceslistkeysaction-and-microsoftmachinelearningservicesworkspacesliststorageaccountkeysaction
+  technique: Workspace listKeys / storage account keys
+  reason: Storage key disclosure; data access.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftcognitiveservicesaccountslistkeysaction--microsoftcognitiveservicesaccountsregeneratekeyaction
+  technique: Cognitive Services listKeys / regenerateKey
+  reason: Service API keys; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftsearchsearchserviceslistadminkeysaction--microsoftsearchsearchservicesregenerateadminkeyaction
+  technique: AI Search admin keys
+  reason: Search data-plane keys; data access/poisoning.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftsearchsearchservicesindexesdocumentsread--microsoftsearchsearchservicesindexescontentsecurityelevatedoperationsread
+  technique: AI Search elevated read
+  reason: Data read bypassing document ACLs.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftsearchsearchservicesskillsetswrite
+  technique: AI Search skillsets/write
+  reason: Duplicate of azure-ai-search-skillset-write-identity-token (ai_search.yaml).
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#microsoftsearchsearchserviceslistquerykeysaction--microsoftsearchsearchservicescreatequerykeyaction
+  technique: AI Search query keys
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-ai-foundry-privesc.md#data-asset-metadata-permissions-are-not-standalone-poisoning
+  technique: ML data asset metadata writes
+  reason: Page states not a standalone primitive.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftcontainerinstancecontainergroupsrestartaction-microsoftcontainerinstancecontainergroupsstartaction
+  technique: ACI restart/start
+  reason: 'Replays unchanged startup; no attacker-controlled code (page: Medium).'
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappcontainerappslistsecretsaction
+  technique: Container App listSecrets
+  reason: Secret values of unknown content; data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappcontainerappsrevisionsactivateaction-microsoftappcontainerappsrevisionsrestartaction-microsoftappcontainerappsstartaction
+  technique: Container App revision activate/restart/start
+  reason: Runs existing code only; no attacker-controlled code.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappmanagedenvironmentsdaprcomponentslistsecretsaction
+  technique: Dapr component listSecrets
+  reason: Secret read of unknown content.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappsessionpoolsfilescontentread
+  technique: Session pool file read
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappsandboxgroupssandboxesexecutecommandaction-and-microsoftappsandboxgroupssandboxesexecuteshellcommandaction
+  technique: ACA Sandbox command execution
+  reason: Code execution in isolated sandbox; page does not state a managed identity is reachable.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappsandboxgroupssandboxesfilesread
+  technique: ACA Sandbox file read
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappsandboxgroupssecretspeekaction
+  technique: ACA Sandbox secret peek
+  reason: Secret read of unknown content.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappbuildslistauthtokenaction
+  technique: Container Apps build auth token
+  reason: Page states impact not demonstrated; conditional and not modelable.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappjobsread-microsoftappjobslistsecretsaction
+  technique: Container Apps Job listSecrets
+  reason: Secret read of unknown content.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceuserstokenaction
+  technique: APIM developer-portal user SSO token
+  reason: Developer-portal identity, not an Azure principal.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementservicesubscriptionsread--microsoftapimanagementservicesubscriptionslistsecretsaction
+  technique: APIM subscription keys
+  reason: API access keys; data access only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceapikeyslistsecretsaction
+  technique: AI Gateway API keys
+  reason: Gateway runtime keys; configuration-dependent data access.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceworkspacestoolserverslistsecretsaction
+  technique: Tool Server secrets
+  reason: External credentials of unknown content.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceportalconfigslistdelegationsecretsaction-and-microsoftapimanagementserviceportalsettingslistsecretsaction
+  technique: Portal delegation keys
+  reason: Developer-portal delegation forgery; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceportalconfigslistmediacontentsecretsaction-and-microsoftapimanagementserviceportalsettingslistsecretsaction
+  technique: Portal media SAS
+  reason: Portal media data access.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementservicebackendsread
+  technique: Backend credentials read
+  reason: Stored header credentials of unknown content; data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementservicetenantlistsecretsaction
+  technique: Tenant access keys
+  reason: APIM direct management API only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementservicegatewaysgeneratetokenaction
+  technique: Self-hosted gateway token
+  reason: Gateway configuration access only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#policy-read-permissions
+  technique: Policy read
+  reason: Data read of embedded values.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#jwt-validation-misconfiguration
+  technique: JWT validation misconfiguration
+  reason: Application-level misconfiguration; not an RBAC edge.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementserviceapplynetworkconfigurationupdatesaction
+  technique: Network configuration updates
+  reason: Network exposure change only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-api-management-privesc.md#microsoftapimanagementservicebackendswrite
+  technique: Backend URL/credential redirect
+  reason: Traffic and Named Value capture of unknown content; no modelable identity edge.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-bot-service-privesc.md#microsoftbotservicebotserviceschannelslistchannelwithkeysaction
+  technique: Bot channel keys
+  reason: Bot client impersonation; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-bot-service-privesc.md#microsofthealthbothealthbotsadminconversationlogsexportaction
+  technique: Health Bot conversation export
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-bot-service-privesc.md#microsofthealthbothealthbotslistsecretsaction
+  technique: Health Bot secrets
+  reason: Service management API of one bot; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-bot-service-privesc.md#microsofthealthbothealthbotsadminsecretsgenerateapikeyaction
+  technique: Health Bot API key generation
+  reason: Service management API of one bot; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistrieslistcredentialsaction
+  technique: ACR admin credentials (listCredentials, optionally registries/write)
+  reason: Registry push/pull; image poisoning is second-order and consumer-dependent.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistriesregeneratecredentialaction
+  technique: ACR regenerateCredential
+  reason: Registry push/pull credential.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistriesgeneratecredentialsaction
+  technique: ACR token generateCredentials
+  reason: Repository credential bounded by scope map.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistriesrunslistlogsasurlaction
+  technique: ACR run log SAS
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistriestaskslistdetailsaction-microsoftcontainerregistryregistriestaskrunslistdetailsaction
+  technique: ACR task listDetails
+  reason: Secret read of unknown content.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistriestaskrunswrite
+  technique: ACR taskruns/write
+  reason: 'Page: no managed identity obtainable (linked authorization required); runner execution and tag poisoning only.'
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistriesschedulerunaction
+  technique: ACR scheduleRun quick task
+  reason: 'Page: quick tasks do not inherit task identities.'
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistriesimportimageaction
+  technique: ACR importImage
+  reason: Image poisoning; second-order and consumer-dependent.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#microsoftcontainerregistryregistrieswebhooksgetcallbackconfigaction
+  technique: ACR webhook callback config
+  reason: Callback secret read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-registry-privesc.md#mutable-image-tag-poisoning-with-repository-content-permissions
+  technique: Mutable tag poisoning via repository content read/write
+  reason: Consumer workload identity is reached only when a consumer later pulls the tag; not determinable from RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-cosmosDB-privesc.md#microsoftdocumentdbdatabaseaccountslistkeysaction
+  technique: Cosmos DB listKeys
+  reason: Data-plane key; data access.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-cosmosDB-privesc.md#microsoftdocumentdbdatabaseaccountslistconnectionstringsaction
+  technique: Cosmos DB listConnectionStrings
+  reason: Data-plane key; data access.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-cosmosDB-privesc.md#microsoftdocumentdbdatabaseaccountsreadonlykeysaction--microsoftdocumentdbdatabaseaccountsreadonlykeysread
+  technique: Cosmos DB read-only keys
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-cosmosDB-privesc.md#microsoftinferenceserviceinferenceaccountslistkeysaction
+  technique: Inference account listKeys / regenerateKeys / invoke
+  reason: Billed inference access only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-cosmosDB-privesc.md#microsoftdocumentdbmongoclustersread--microsoftdocumentdbmongoclustersfirewallruleswrite
+  technique: MongoDB cluster firewall rules write
+  reason: Network exposure only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#microsoftdatafactoryfactoriesintegrationruntimeslistauthkeysaction
+  technique: SHIR auth keys
+  reason: Registers a runtime node; exposure of linked-service credentials of unknown content, no defined identity edge.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#microsoftdatafactoryfactoriespipelinescreaterunaction
+  technique: Run an existing pipeline
+  reason: No attacker-controlled code; existing pipeline behaviour only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#blind-sink-replacement-with-microsoftdatafactoryfactoriesdatasetswrite
+  technique: Dataset sink replacement
+  reason: Data exfiltration.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#blind-sink-replacement-with-microsoftdatafactoryfactorieslinkedserviceswrite
+  technique: Linked service sink replacement
+  reason: Data exfiltration.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#pivot-through-blob-backed-pipeline-configuration-without-data-factory-permissions
+  technique: Blob-backed pipeline configuration
+  reason: Pipeline-specific trust in blob content; not modelable from RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#read-plaintext-parameters-from-pipeline-run-history
+  technique: Pipeline run parameter read
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-grid-privesc.md#shared-access-key-disclosure-and-event-injection
+  technique: Event Grid access keys / event publication
+  reason: Message injection; escalation depends on downstream consumer logic, not modelable from RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-grid-privesc.md#namespace-event-injection-with-only-eventssendaction
+  technique: Event Grid namespace events/send
+  reason: Message injection; escalation depends on downstream consumer logic, not modelable from RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-grid-privesc.md#mqtt-topic-space-publication-and-subscription
+  technique: Event Grid MQTT publish/subscribe
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-grid-privesc.md#secret-delivery-attribute-disclosure
+  technique: Event subscription secret delivery attributes
+  reason: Secret read of unknown content.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-grid-privesc.md#signed-event-subscription-endpoint-disclosure
+  technique: Event subscription full endpoint URL
+  reason: Callback secret read (invokes triggers only).
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-grid-privesc.md#hijack-event-delivery-by-overwriting-a-subscription-with-eventsubscriptionswrite
+  technique: Event subscription destination overwrite
+  reason: Event exfiltration; any delivery token is audience-bound to the destination app, not a usable Azure identity edge.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-grid-privesc.md#namespace-pull-subscription-data-disclosure
+  technique: Event Grid namespace events/receive
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-hubs-privesc.md#authorization-rule-key-disclosure
+  technique: Event Hubs authorization-rule keys
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-hubs-privesc.md#direct-entra-authenticated-event-read-and-injection
+  technique: Event Hubs send/receive data actions
+  reason: Message injection; escalation depends on downstream consumer logic, not modelable from RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-hubs-privesc.md#create-an-entity-sas-policy-and-recover-its-generated-key
+  technique: Event Hubs SAS policy creation
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-event-hubs-privesc.md#geo-disaster-recovery-alias-key-disclosure
+  technique: Event Hubs Geo-DR alias keys
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#iot-hub-shared-access-policy-keys
+  technique: IoT Hub shared access keys
+  reason: IoT device-plane control; no Azure/Entra identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#device-provisioning-service-shared-access-policy-keys
+  technique: DPS shared access keys
+  reason: IoT device-plane control; no Azure/Entra identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#device-and-module-identity-takeover
+  technique: IoT device/module identity takeover
+  reason: IoT device identities are not Azure/Entra principals.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#device-twin-disclosure-and-commandconfiguration-injection
+  technique: Device twin read/write
+  reason: Device configuration injection; device-side effect.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#cloud-to-device-messages-direct-methods-and-jobs
+  technique: C2D messages, direct methods, jobs
+  reason: Device-side effect; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#full-registry-export-and-import
+  technique: Registry export/import
+  reason: IoT device credentials; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#dps-attestation-key-disclosure-and-unauthorized-provisioning
+  technique: DPS attestation keys
+  reason: IoT device provisioning; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-iot-hub-privesc.md#lower-impact-boundaries
+  technique: IoT lower-impact operations
+  reason: Low impact per page.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#authorization-rule-key-disclosure-and-rotation
+  technique: Service Bus authorization-rule keys
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesdisasterrecoveryconfigsauthorizationruleslistkeysaction
+  technique: Service Bus DR alias keys
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesauthorizationruleswrite
+  technique: Service Bus namespace SAS policy write
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesqueuestopicsauthorizationruleslistkeysaction-or-microsoftservicebusnamespacesqueuestopicsauthorizationrulesregeneratekeysaction
+  technique: Service Bus entity keys
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesqueuestopicsauthorizationruleswrite
+  technique: Service Bus entity SAS policy write
+  reason: Message read/injection.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespaceswrite--microsoftservicebusnamespacesread-if-az-cli-is-used
+  technique: Service Bus re-enable local auth
+  reason: Control weakening; no identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#send-messages-dataactions-microsoftservicebusnamespacesmessagessendaction
+  technique: Service Bus send/receive (keys or data actions)
+  reason: Message injection; escalation depends on downstream consumer logic, not modelable from RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-signalr-web-pubsub-privesc.md#access-key-disclosure-and-message-injection
+  technique: SignalR/Web PubSub access keys
+  reason: Real-time message control; application-dependent.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-signalr-web-pubsub-privesc.md#signalr-temporary-signing-material-with-only-authaccesskeyaction
+  technique: SignalR auth/accessKey
+  reason: Real-time message control; application-dependent.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-signalr-web-pubsub-privesc.md#targeted-client-message-injection
+  technique: SignalR/Web PubSub message injection
+  reason: Message injection; escalation depends on downstream consumer logic, not modelable from RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-signalr-web-pubsub-privesc.md#web-pubsub-client-token-minimum-pair
+  technique: Web PubSub client token
+  reason: Application client connection only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-signalr-web-pubsub-privesc.md#microsoftsignalrservicewebpubsubhubswrite---redirect-future-user-events
+  technique: Web PubSub event handler redirect
+  reason: Event exfiltration; no identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-key-vault-privesc.md#write-only-secret-poisoning
+  technique: Key Vault secret write poisoning
+  reason: Consumer-dependent second-order effect.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-key-vault-privesc.md#modify-network-restrictions
+  technique: Key Vault network ACL change
+  reason: Network reachability only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowstriggerslistcallbackurlaction
+  technique: Trigger callback URL
+  reason: Runs existing workflow logic only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowslistcallbackurlaction
+  technique: Workflow callback URL
+  reason: Runs existing workflow logic only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#integration-account-signed-callback-permissions
+  technique: Integration Account callback URLs
+  reason: Artifact content read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowsversionstriggerslistcallbackurlaction
+  technique: Version trigger callback URL
+  reason: Runs stored workflow logic only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowstriggersrunaction
+  technique: Run existing trigger
+  reason: Runs existing workflow logic only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowsrunaction
+  technique: Run existing workflow
+  reason: Runs existing workflow logic only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowstriggershistoriesresubmitaction
+  technique: Resubmit trigger history
+  reason: Replays existing logic only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowsrunsactionsread
+  technique: Run action inputs/outputs read
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowsrunsactionsrequesthistoriesread
+  technique: Webhook request history read
+  reason: Data read.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicworkflowsaccesskeyslistaction
+  technique: Workflow access keys
+  reason: Callback signing material; existing logic only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftwebsitespublishaction-microsoftwebsitesread-microsoftwebsitesbasicpublishingcredentialspoliciesread-microsoftwebsitesconfiglistaction-microsoftwebsitesstartaction
+  technique: Standard Logic App publish
+  reason: Duplicate of app_services.yaml Microsoft.Web/sites publish entries.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftwebconnectionswrite---redirect-a-future-workflow-through-attacker-credentials
+  technique: API connection credential replacement
+  reason: Data redirection; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-logic-apps-privesc.md#microsoftlogicintegrationaccountsmapswrite---poison-a-future-xslt-transformation
+  technique: Integration Account map write
+  reason: Data manipulation; consumer-dependent.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-postgresql-privesc.md#microsoftdbforpostgresqlflexibleserversread-microsoftdbforpostgresqlflexibleserverswrite-microsoftdbforpostgresqlflexibleserversbackupsread
+  technique: PostgreSQL restore from backup
+  reason: Data copy; password reset path modelled separately.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversfirewallruleswrite
+  technique: SQL firewall rules
+  reason: Network reachability only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversipv6firewallruleswrite
+  technique: SQL IPv6 firewall rules
+  reason: Network reachability only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversazureadonlyauthenticationswrite--microsoftsqlserversazureadonlyauthenticationsread
+  technique: SQL Entra-only authentication toggle
+  reason: Control weakening; used as condition of password reset entry.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversdatabasesdatamaskingpolicieswrite
+  technique: Dynamic data masking policy
+  reason: Data exposure control.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#remove-row-level-security
+  technique: Remove row-level security
+  reason: Data-plane SQL permission; not RBAC.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#elastic-jobs-run-arbitrary-t-sql-through-jobagentsjobsstepswrite--executionswrite
+  technique: Elastic Jobs T-SQL as stored credential
+  reason: Reaches a SQL login of unknown privilege, not an Azure principal or necessarily admin.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsitessnippetswrite
+  technique: SWA snippet injection
+  reason: Client-side content injection; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#read-configured-third-party-credentials
+  technique: Third-party source-control tokens
+  reason: Non-Azure (GitHub/Bitbucket/...) tokens.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#overwrite-file---overwrite-routes-html-js
+  technique: Overwrite repo files with GitHub token
+  reason: Non-Azure repository write.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsitesconfigwrite
+  technique: SWA basic auth change
+  reason: Content access control only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsiteslistsecretsaction
+  technique: SWA deployment token
+  reason: Static content deployment; no managed identity reached.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsiteswrite
+  technique: SWA source repository change
+  reason: Static content deployment; no managed identity reached.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsitesresetapikeyaction
+  technique: SWA reset API key
+  reason: Disruption.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsitescreateinvitationaction
+  technique: SWA user invitation
+  reason: App-level role, not an Azure principal.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#pull-requests
+  technique: SWA PR preview deployments
+  reason: Repository-level abuse; no Azure identity.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistkeysaction
+  technique: Storage listkeys
+  reason: Storage data access; no identity gain. Function App content-storage escalation is modelled in functions.yaml.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsregeneratekeyaction
+  technique: Storage regenerateKey
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistaccountsasaction
+  technique: Storage listAccountSas
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistservicesasaction
+  technique: Storage listServiceSas
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#service-user-delegation-keys-blob-file-queue-and-table
+  technique: User delegation keys
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountswrite
+  technique: Storage account write (network/settings)
+  reason: Control weakening only.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#poison-a-privileged-consumer-with-microsoftstoragestorageaccountsblobservicescontainersblobswrite
+  technique: Blob write poisoning of privileged consumers
+  reason: Consumer-dependent; Function App package/content case modelled in functions.yaml (azure-functions-content-storage-write).
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#hns-acl-takeover-and-blob-super-user-data-action
+  technique: HNS ACL takeover / runAsSuperUser
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#operational-blob-backup-rollback-with-microsoftdataprotectionbackupvaultsbackupinstancesrestoreaction
+  technique: Blob backup rollback
+  reason: Data integrity/recovery; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsblobservicescontainersimmutabilitypolicieswrite--microsoftstoragestorageaccountsblobservicescontainersimmutabilitypoliciesdelete
+  technique: Immutability policies
+  reason: Data retention control.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsfileservicestakeownershipaction
+  technique: Azure Files take ownership
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsfileservicesfilesharesfilesmodifypermissionsaction
+  technique: Azure Files modify permissions
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsfileservicesfilesharesfilesactassuperuseraction
+  technique: Azure Files act as superuser
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#tested-azure-files-and-local-user-credential-boundaries
+  technique: Azure Files / local-user boundaries
+  reason: Page states not standalone primitives.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslocaluserswrite-microsoftstoragestorageaccountslocalusersread
+  technique: Storage local users write
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslocalusersregeneratepasswordaction
+  technique: Storage local user password regeneration
+  reason: Storage data access; no identity gain.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsrestoreblobrangesaction
+  technique: Restore blob ranges
+  reason: Data recovery.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#soft-deleted-containers-and-blobs-via-account-keys
+  technique: Soft-deleted container/blob restore
+  reason: Data recovery.
+- source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsfileservicessharesrestoreaction--microsoftstoragestorageaccountsread
+  technique: File share restore
+  reason: Data recovery.

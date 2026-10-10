@@ -58,3 +58,30 @@ def list_of_objects(value):
     if not isinstance(value, list) or any(not isinstance(x, dict) for x in value):
         raise Unavailable("expected a list of native objects")
     return value
+
+
+def complete_items(index, kind):
+    """Require complete scoped dependency inventory before absence/cardinality."""
+    envelopes = index.get("collections", {}).get(kind, [])
+    if not isinstance(envelopes, list) or not envelopes:
+        raise Unavailable("dependency not collected: " + kind)
+    if any(not isinstance(row, dict) or row.get("status") not in ("collected", "empty") for row in envelopes):
+        raise Unavailable("dependency incomplete or unavailable: " + kind)
+    resources = list_of_objects(index.get(kind, []))
+    return [get(resource, "data", dict) for resource in resources]
+
+
+def optional(item, key, default, expected=None):
+    """A documented API omission default, while explicit unreadability stays unknown."""
+    guard(item)
+    if key in item or key in item.get("_coverage", {}):
+        return get(item, key, expected)
+    return default
+
+
+def unique_join(index, kind, path, value):
+    """A complete, exact native-key join. Missing/ambiguous relationships are unknown."""
+    rows = [row for row in complete_items(index, kind) if get(row, path) == value]
+    if len(rows) != 1:
+        raise Unavailable("dependency join missing or ambiguous: " + kind + "." + path)
+    return rows[0]

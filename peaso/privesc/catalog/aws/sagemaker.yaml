@@ -132,50 +132,6 @@
     - https://docs.aws.amazon.com/sagemaker/latest/dg/amazon-sagemaker-toolkits.html
   notes: Artifact set = sagemaker_submit_directory bundles and executed ProcessingInputs of jobs/pipelines; requires collector support for pipeline definitions.
 
-- id: aws-sagemaker-ecr-putimage-processing-image
-  provider: aws
-  service: sagemaker
-  title: Replace a mutable image tag used by later SageMaker Processing jobs
-  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sagemaker-privesc/README.md#ecrputimage-on-a-mutable-processing-image-later-job-required
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the execution role of SageMaker Processing jobs using a mutable ECR tag it can write.
-  requires:
-    all_of:
-      - action: ecr:PutImage
-        resource: "{target.artifact_arn}"
-    any_of:
-      - - action: ecr:BatchGetImage
-          resource: "{target.artifact_arn}"
-      - - action: ecr:InitiateLayerUpload
-          resource: "{target.artifact_arn}"
-        - action: ecr:UploadLayerPart
-          resource: "{target.artifact_arn}"
-        - action: ecr:CompleteLayerUpload
-          resource: "{target.artifact_arn}"
-        - action: ecr:BatchCheckLayerAvailability
-          resource: "{target.artifact_arn}"
-  target:
-    kind: aws_role
-    selector:
-      attached_to_service: sagemaker
-      via_artifact_type: ecr_repository
-    scope: same_account
-    aggregate_as: "SageMaker Processing job roles using writable ECR tags in {account}"
-  conditions:
-    - id: later_job_required
-      description: A later Processing job must reference the mutable tag.
-    - id: retag_needs_attacker_image
-      description: The BatchGetImage-only group just retags an existing manifest; it yields code execution only if an attacker-controlled image already exists in the repository.
-  blockers:
-    - ecr_tag_immutability
-    - scp_or_boundary_deny
-  confidence: conditional
-  severity: high
-  mitigation: Enable ECR tag immutability and reference processing images by digest.
-  references:
-    - https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html
-  notes: Only consumers that actually use the mutable tag in a later job.
-
 - id: aws-sagemaker-passrole-createprocessingjob
   provider: aws
   service: sagemaker
@@ -354,4 +310,45 @@
   mitigation: Restrict iam:PassRole on SageMaker roles and sagemaker:UpdateDomain/CreateUserProfile to platform admins.
   references:
     - https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_UpdateDomain.html
-  notes: CreateUserProfile with an explicit ExecutionRole would itself be a PassRole path; this entry follows the page's inherit-default variant.
+  notes: CreateUserProfile with an explicit ExecutionRole is itself a PassRole path, modelled in aws-sagemaker-createuserprofile-passrole-createapp; this entry follows the page's inherit-default variant.
+
+- id: aws-sagemaker-createuserprofile-passrole-createapp
+  provider: aws
+  service: sagemaker
+  title: Create a Studio user profile with an explicit passed execution role and launch an app
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sagemaker-privesc/README.md#sagemakerupdatedomain-sagemakercreateuserprofile-sagemakercreateapp-iampassrole-sagemakercreatepresigneddomainurl-sagemakerdeleteapp
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any passable role trusting sagemaker.amazonaws.com by setting it as the execution role of a new Studio user profile.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: sagemaker:CreateUserProfile
+        resource: "*"
+      - action: sagemaker:CreateApp
+        resource: "*"
+      - action: sagemaker:CreatePresignedDomainUrl
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: sagemaker.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: "Roles trusting sagemaker.amazonaws.com passable in {account}"
+  conditions:
+    - id: existing_domain
+      description: A Studio domain covered by CreateUserProfile must exist; CreateApp and CreatePresignedDomainUrl must cover the new profile and app ARNs.
+    - id: not_unified_studio
+      description: Unified Studio domains reject presigned domain URLs.
+    - id: passrole_condition_key
+      description: iam:PassedToService conditions may restrict which roles can be passed.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole on SageMaker roles and sagemaker:CreateUserProfile to platform admins.
+  references:
+    - https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateUserProfile.html
+    - https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_UserSettings.html
+  notes: Not a separate HackTricks section; it is the explicit-role variant of the UpdateDomain section (UserSettings.ExecutionRole on CreateUserProfile), which avoids UpdateDomain and the no-InService-apps restriction.

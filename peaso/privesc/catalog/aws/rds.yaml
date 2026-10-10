@@ -136,7 +136,7 @@
     - id: host_access
       description: Credentials are only exposed if the source can obtain code execution or administrative access on the RDS Custom host (e.g. via SSM or the EC2 key pair).
     - id: rds_custom_prerequisites
-      description: RDS Custom prerequisites (custom engine version, networking, symmetric KMS key usable by the source) must be met.
+      description: RDS Custom prerequisites (custom engine version, networking, customer managed symmetric KMS key usable by the source) must be met. For RDS Custom for Oracle the creator also needs s3:CreateBucket, s3:PutBucketPolicy, s3:PutBucketObjectLockConfiguration and s3:PutBucketVersioning on do-not-delete-rds-custom-* buckets, iam:SimulatePrincipalPolicy, and cloudtrail:CreateTrail and cloudtrail:StartLogging on do-not-delete-rds-custom-* trails (not modelled as requirements because they are engine-specific).
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
@@ -144,4 +144,5 @@
   mitigation: Restrict iam:PassRole on AWSRDSCustom* roles and restrict RDS Custom instance creation to DBAs.
   references:
     - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-creating.html
-  notes: The exact KMS action set required for RDS Custom is approximated (CreateGrant/DescribeKey); verify against the RDS Custom setup guide.
+    - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-setup-orcl.html
+  notes: The RDS Custom setup guide confirms kms:CreateGrant and kms:DescribeKey on "*" for the creating principal, and the default AWSRDSCustomInstanceRole-<region> trusts ec2.amazonaws.com. RDS Custom for Oracle reaches end of support on March 31, 2027.

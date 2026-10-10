@@ -1,0 +1,40 @@
+# GCP BigQuery privilege escalation techniques (identity-yielding only; dataset/table/connection data access is excluded).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-bigquery-privesc.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+
+- id: gcp-bigquery-transfers-scheduled-query-actas
+  provider: gcp
+  service: bigquery
+  title: Create or update a Data Transfer Service scheduled query bound to a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerytransfersupdate--bigquerydatatransfertransferconfigscreate--iamserviceaccountsactas--run-sql-as-an-arbitrary-service-account
+  source_revision: a53b46392c
+  summary: The source can obtain the BigQuery privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
+  requires:
+    all_of:
+      - action: bigquery.transfers.update
+        resource: "*"
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts usable as BigQuery scheduled-query SA in {project}"
+  conditions:
+    - id: dts_agent_token_creator
+      description: The Data Transfer service agent (service-<number>@gcp-sa-bigquerydatatransfer) must hold iam.serviceAccounts.getAccessToken (Token Creator) on the target SA, otherwise runs fail.
+    - id: sql_only
+      description: The SA is used only to run SQL (reads, DML, EXPORT DATA, DCL on datasets the SA administers), not as a general token.
+    - id: update_needs_actas
+      description: Changing the query of an existing SA-bound config also needs actAs on its SA; transfers.update alone is not enough.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: high
+  mitigation: Grant actAs only on dedicated scheduled-query SAs and avoid broad Token Creator grants to the DTS service agent.
+  references:
+    - https://cloud.google.com/bigquery/docs/scheduling-queries
+  notes: Legacy permission name bigquery.datatransfer.transferConfigs.* is not used by current IAM; roles/editor and roles/owner already contain both permissions. Power is limited to BigQuery (and storage via EXPORT DATA).

@@ -16,7 +16,7 @@
         resource: "*"
       - action: lambda:GetFunction
         resource: "*"
-      - action: lambda:EnableReplication*
+      - action: lambda:EnableReplication
         resource: "*"
       - action: iam:PassRole
         resource: "{target.arn}"
@@ -28,6 +28,7 @@
       trust_allows_service:
         - lambda.amazonaws.com
         - edgelambda.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting lambda and edgelambda in {account}"
   conditions:
@@ -42,4 +43,4 @@
   mitigation: Restrict iam:PassRole on Lambda@Edge roles and cloudfront:UpdateDistribution.
   references:
     - https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html
-  notes: "trust_allows_service given as a list means every listed principal must be trusted. Roles trusting only lambda.amazonaws.com are reachable through the generic Lambda PassRole technique (lambda.yaml) instead."
+  notes: "trust_allows_service given as a list means every listed principal must be trusted. Roles trusting only lambda.amazonaws.com are reachable through the generic Lambda PassRole technique (lambda.yaml) instead. The Lambda@Edge permissions page writes the replication permission as lambda:EnableReplication*; the concrete action in the Service Authorization Reference is lambda:EnableReplication."

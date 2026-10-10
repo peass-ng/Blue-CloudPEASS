@@ -88,8 +88,8 @@ def _permission_severity(provider, permission, revision):
     """
     try:
         from scripts.cloud_permission_risks import classify_permission
-        low = classify_permission(provider, permission, unknown_default="low")
-        high = classify_permission(provider, permission, unknown_default="high")
+        low = classify_permission(provider, permission, unknown_default="low", offline=True)
+        high = classify_permission(provider, permission, unknown_default="high", offline=True)
         # The shared API exposes fallback uncertainty through its default.
         # If only changing the fallback changes the classification, no rule
         # recognized this permission and low must not be asserted.

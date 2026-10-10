@@ -1,4 +1,5 @@
 import type { Connector, Finding, Graph, Report, Scan } from "./types";
+import { privescDemoRequest } from "./privescFixtures";
 const findings: Finding[] = [
   {
     id: "demo-f1",
@@ -196,11 +197,17 @@ const scans: Scan[] = [
       "least_privilege",
       "network",
       "iam_graph",
+      "privesc",
     ],
     report,
   },
 ];
 export function demoRequest(path: string, init: RequestInit): unknown {
+  if (!init.method || init.method === "GET") {
+    const privesc = privescDemoRequest(path);
+    if (privesc !== undefined) return privesc;
+  }
+  path = path.split("?")[0];
   if (init.method && init.method !== "GET")
     throw new Error(
       "Fixture demo is read-only. Switch to live API to make changes.",
@@ -229,6 +236,13 @@ export function demoRequest(path: string, init: RequestInit): unknown {
       ],
       note: "Fixture catalog. Consult live catalog for supported native checks.",
     };
+  if (path.includes("/coverage"))
+    return {
+      items: report.coverage,
+      total: Array.isArray(report.coverage) ? report.coverage.length : 0,
+      next_offset: null,
+    };
+  if (path.endsWith("/summary")) return report;
   if (path.includes("/findings")) return { items: findings };
   if (path.endsWith("/graphs/network")) return network;
   if (path.endsWith("/graphs/iam")) return iam;

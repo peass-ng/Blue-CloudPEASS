@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 from functools import wraps
-from .facts import get, list_of_objects
+from ipaddress import ip_network
+from .facts import get, list_of_objects, optional
 
 HACKTRICKS = "HackTricks Cloud Best Practices"
 FRAMEWORKS = (HACKTRICKS, "NIST 800-53")
@@ -21,10 +22,20 @@ class Check:
     control: str
     remediation: str
     evaluate: Callable
+    target: str = "resource"
+    declared_dependencies: tuple = ()
+
+    @property
+    def evaluation_mode(self):
+        return self.target
 
     @property
     def frameworks(self):
         return list(self.mapping)
+
+    @property
+    def framework_ids(self):
+        return sorted({control["framework_id"] for value in self.mapping.values() for control in value.get("controls", [])})
 
     @property
     def mapping(self):
@@ -33,6 +44,8 @@ class Check:
 
     @property
     def dependencies(self):
+        if self.declared_dependencies:
+            return list(self.declared_dependencies)
         from sys import modules
         for provider in ("aws", "gcp", "azure", "k8s"):
             module = modules.get("peaso.checks." + provider + "_extended")
@@ -47,8 +60,9 @@ class Check:
         from .batch import scalar_sql
         return {"id": self.id, "provider": self.provider, "category": self.category, "type": self.kind,
                 "title": self.title, "severity": self.severity, "frameworks": self.frameworks,
+                "framework_ids": self.framework_ids,
                 "mapping": self.mapping, "remediation": self.remediation,
-                "dependencies": self.dependencies, "evaluator_version": "1.0.0",
+                "dependencies": self.dependencies, "target": self.target, "evaluator_version": "1.0.0",
                 "evaluator": {"language": "python", "entrypoint": "peaso.checks:evaluate_check", "check_id": self.id,
                     **({"alternative": {"language": "sql", "backend": "duckdb", "version": "1.0.0", "sql": scalar_sql(self.id)}} if self.id in FIELD_SPECS else {})},
                 "sources": provenance_for(self.id),
@@ -66,7 +80,11 @@ def evaluate_check(check_id, item, index=None):
     return check.evaluate(item, {} if index is None else index)
 
 
-def register(id, provider, category, kind, title, severity, control, remediation):
+def register(id, provider, category, kind, title, severity, control, remediation, *, target="resource", dependencies=None):
+    if target not in ("resource", "scope"):
+        raise ValueError("check target must be resource or scope")
+    if dependencies is not None and (not isinstance(dependencies, (list, tuple)) or not all(isinstance(x, str) for x in dependencies)):
+        raise ValueError("check dependencies must be collection-type strings")
     def decorate(function):
         if any(c.id == id for c in CHECKS):
             raise ValueError("duplicate check id: " + id)
@@ -83,7 +101,7 @@ def register(id, provider, category, kind, title, severity, control, remediation
                 return unknown(str(exc))
             except (ValueError, TypeError, KeyError, IndexError, AttributeError, OverflowError) as exc:
                 return unknown("malformed or missing native facts", error_type=type(exc).__name__)
-        CHECKS.append(Check(id, provider, category, kind, title, severity, control, remediation, safe))
+        CHECKS.append(Check(id, provider, category, kind, title, severity, control, remediation, safe, target, tuple(dependencies or ())))
         return function
     return decorate
 
@@ -229,9 +247,11 @@ def aws_ingress(item, index):
         if not isinstance(rule.get("IpProtocol"), str):
             return unknown("ingress protocol unavailable")
         for ranges, key in (("IpRanges", "CidrIp"), ("Ipv6Ranges", "CidrIpv6")):
-            for source in rule.get(ranges, []):
-                if source.get(key) in ("0.0.0.0/0", "::/0"):
-                    broad.append({"source": source[key], "protocol": rule.get("IpProtocol"), "from_port": rule.get("FromPort"), "to_port": rule.get("ToPort")})
+            for source in list_of_objects(rule.get(ranges, [])):
+                cidr = get(source, key, str)
+                network = ip_network(cidr, strict=False)
+                if network.prefixlen == 0:
+                    broad.append({"source": cidr, "protocol": rule.get("IpProtocol"), "from_port": rule.get("FromPort"), "to_port": rule.get("ToPort")})
     return result(bool(broad), internet_ingress=broad, semantics="Declared ingress; reachable services are not inferred.")
 
 
@@ -308,9 +328,15 @@ def gcp_ingress(item, index):
         return unknown("malformed firewall allow rule")
     # GCP defaults omitted ingress source ranges to 0.0.0.0/0 only when no source tags/SA exists.
     sources = item.get("sourceRanges")
+    for field in ("sourceTags", "sourceServiceAccounts"):
+        if not isinstance(item.get(field, []), list) or any(not isinstance(value, str) for value in item.get(field, [])):
+            return unknown("malformed firewall source selectors")
     if sources is None:
         sources = [] if item.get("sourceTags") or item.get("sourceServiceAccounts") else ["0.0.0.0/0"]
-    return result(bool(allowed) and any(x in ("0.0.0.0/0", "::/0") for x in sources), source_ranges=sources, allowed=allowed,
+    if not isinstance(sources, list) or any(not isinstance(source, str) for source in sources):
+        return unknown("malformed firewall source ranges")
+    networks = [ip_network(source, strict=False) for source in sources]
+    return result(bool(allowed) and any(network.prefixlen == 0 for network in networks), source_ranges=sources, allowed=allowed,
         target_tags=item.get("targetTags", []), target_service_accounts=item.get("targetServiceAccounts", []), priority=item.get("priority", 1000), semantics="Declared firewall rule only, not effective reachability.")
 
 
@@ -389,6 +415,8 @@ def azure_ingress(item, index):
             return unknown("malformed NSG rule direction or access")
         if p.get("direction") == "Inbound" and p.get("access") == "Allow":
             sources = p.get("sourceAddressPrefixes") or [p.get("sourceAddressPrefix")]
+            if not isinstance(sources, list) or any(not isinstance(source, str) for source in sources):
+                return unknown("NSG source prefixes missing or malformed")
             if any(s in ("*", "Internet", "0.0.0.0/0", "::/0") for s in sources):
                 broad.append({"name": rule.get("name"), "priority": p.get("priority"), "source": sources,
                     "destination_ports": p.get("destinationPortRanges") or [p.get("destinationPortRange")], "protocol": p.get("protocol")})
@@ -426,7 +454,7 @@ def k8s_privileged(item, index):
     all_containers = containers + spec.get("initContainers", []) + spec.get("ephemeralContainers", [])
     if any(not isinstance(c, dict) or not isinstance(c.get("securityContext", {}), dict) or type(c.get("securityContext", {}).get("privileged", False)) is not bool for c in all_containers):
         return unknown("malformed container privileged flag")
-    privileged = [c.get("name") for c in all_containers if c.get("securityContext", {}).get("privileged") is True]
+    privileged = [c.get("name") for c in all_containers if optional(optional(c, "securityContext", {}, dict), "privileged", False, bool) is True]
     return result(bool(privileged), privileged_containers=privileged, semantics="Observed pod spec; admission enforcement not inferred.")
 
 
@@ -435,7 +463,7 @@ def k8s_host(item, index):
     spec = get(item, "spec", dict)
     if not isinstance(spec, dict):
         return unknown("pod specification missing")
-    values = {k: spec.get(k, False) for k in ("hostNetwork", "hostPID", "hostIPC")}
+    values = {k: optional(spec, k, False, bool) for k in ("hostNetwork", "hostPID", "hostIPC")}
     if any(type(v) is not bool for v in values.values()):
         return unknown("malformed host namespace flags")
     return result(any(values.values()), host_namespace_flags=values)
@@ -449,6 +477,8 @@ def k8s_service(item, index):
     service_type = spec.get("type", "ClusterIP")
     if service_type not in ("ClusterIP", "NodePort", "LoadBalancer", "ExternalName"):
         return unknown("unknown service type")
+    if not isinstance(spec.get("externalIPs", []), list) or any(not isinstance(value, str) for value in spec.get("externalIPs", [])):
+        return unknown("malformed external IP list")
     return result(service_type in ("LoadBalancer", "NodePort") or bool(spec.get("externalIPs")), service_type=service_type,
         external_ips=spec.get("externalIPs", []), semantics="Publication configuration; internet reachability was not tested.")
 
@@ -459,8 +489,9 @@ def k8s_policies(item, index):
     if not name:
         return unknown("namespace name missing")
     envelopes = index.get("collections", {}).get("networkpolicy", [])
-    # Core supplies a same-scope index; scopes can include cluster identity.
-    relevant = envelopes
+    # Qualified scopes identify a cluster and namespace. A cluster-scoped namespace
+    # list must not turn another namespace's missing policy inventory into a FAIL.
+    relevant = [c for c in envelopes if c["scope"] in ("*", name) or c["scope"].endswith(("/" + name, "/*"))]
     if not relevant or any(c["status"] not in ("collected", "empty") for c in relevant):
         return unknown("network policy inventory missing or incomplete")
     policies = [r for r in index.get("networkpolicy", []) if r["data"].get("metadata", {}).get("namespace") == name]
@@ -473,3 +504,14 @@ def k8s_policies(item, index):
 from . import aws, gcp, azure, k8s  # noqa: E402,F401
 from . import k8s_extended  # noqa: E402,F401
 from . import gcp_extended  # noqa: E402,F401
+from . import aws_extended  # noqa: E402,F401
+from . import azure_extended  # noqa: E402,F401
+from . import k8s_ports_workloads  # noqa: E402,F401
+from . import azure_ports_services  # noqa: E402,F401
+from . import aws_a_iam  # noqa: E402,F401
+from . import aws_b_core, aws_b_loadbalancing  # noqa: E402,F401
+from . import k8s_ports_components  # noqa: E402,F401
+from . import aws_b_regional  # noqa: E402,F401
+from . import gcp_ports_services  # noqa: E402,F401
+from . import aws_b_cloudfront  # noqa: E402,F401
+from . import aws_a_regional, azure_ports_defender, k8s_ports_cluster  # noqa: E402,F401

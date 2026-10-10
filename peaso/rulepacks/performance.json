@@ -1,0 +1,30 @@
+{
+  "fixture_version": "1.0.0",
+  "resources": 100000,
+  "check": "aws.ebs.encryption",
+  "timings_seconds": {
+    "python": 0.097914082929492,
+    "duckdb": 0.18971562501974404,
+    "duckdb_summary": 0.058871000073850155
+  },
+  "status_counts": {
+    "python": {
+      "UNKNOWN": 35136,
+      "PASS": 32432,
+      "FAIL": 32432
+    },
+    "duckdb": {
+      "UNKNOWN": 35136,
+      "PASS": 32432,
+      "FAIL": 32432
+    },
+    "duckdb_summary": {
+      "UNKNOWN": 35136,
+      "FAIL": 32432,
+      "PASS": 32432
+    }
+  },
+  "parity": true,
+  "cloud_calls": 0,
+  "limitations": "Single-run local synthetic timing including setup; not a guarantee of backend speedup or provider collection throughput."
+}

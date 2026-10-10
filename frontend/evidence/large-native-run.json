@@ -1,0 +1,11 @@
+{
+  "scan_id": "14f032e8856349bf8a55d284eb3487b9",
+  "connector_id": "cf36f049deda475fb072b52fd7673765",
+  "input_mode": "offline_snapshot",
+  "resources": 9153,
+  "findings": 8666,
+  "summary_bytes": 2650,
+  "full_report_navigation_requests": 0,
+  "backend": "http://127.0.0.1:8003",
+  "date": "2026-10-10T17:41:55.267Z"
+}

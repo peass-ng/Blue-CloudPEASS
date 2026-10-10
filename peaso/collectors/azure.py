@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import json
+import math
 import re
 import threading
 import time
@@ -33,10 +34,19 @@ ENDPOINTS = {
     "disk": ("Microsoft.Compute/disks", "2023-10-02"),
     "app_service": ("Microsoft.Web/sites", "2023-12-01"),
     "security_pricing": ("Microsoft.Security/pricings", "2024-01-01"),
+    "security_contact": ("Microsoft.Security/securityContacts", "2023-12-01-preview"),
+    "security_setting": ("Microsoft.Security/settings", "2022-05-01"),
     "storage_account": ("Microsoft.Storage/storageAccounts", "2023-05-01"),
     "sql_server": ("Microsoft.Sql/servers", "2023-08-01"),
     "aks_cluster": ("Microsoft.ContainerService/managedClusters", "2024-05-01"),
     "vault": ("Microsoft.KeyVault/vaults", "2023-07-01"),
+    "redis_cache": ("Microsoft.Cache/redis", "2024-11-01"),
+    "cognitive_account": ("Microsoft.CognitiveServices/accounts", "2024-10-01"),
+    "app_configuration": ("Microsoft.AppConfiguration/configurationStores", "2024-06-01"),
+    "data_factory": ("Microsoft.DataFactory/factories", "2018-06-01"),
+    "api_management": ("Microsoft.ApiManagement/service", "2024-05-01"),
+    "search_service": ("Microsoft.Search/searchServices", "2023-11-01"),
+    "managed_identity": ("Microsoft.ManagedIdentity/userAssignedIdentities", "2023-01-31"),
     "resource_group": ("resourcegroups", "2021-04-01"),
 }
 AUTHORIZATION = {
@@ -45,19 +55,29 @@ AUTHORIZATION = {
 }
 DIRECTORY = {
     "directory_user": "users?$select=id,displayName,userPrincipalName,accountEnabled,userType",
-    "directory_group": "groups?$select=id,displayName,securityEnabled,groupTypes",
-    "directory_service_principal": "servicePrincipals?$select=id,appId,displayName,servicePrincipalType,accountEnabled",
-    "directory_application": "applications?$select=id,appId,displayName,requiredResourceAccess",
+    "directory_group": "groups?$select=id,displayName,securityEnabled,groupTypes,isAssignableToRole,membershipRule,membershipRuleProcessingState",
+    "directory_service_principal": "servicePrincipals?$select=id,appId,displayName,servicePrincipalType,accountEnabled,appRoles",
+    "directory_application": "applications?$select=id,appId,displayName,requiredResourceAccess,signInAudience",
     "directory_role_assignment": "roleManagement/directory/roleAssignments",
     "directory_role_definition": "roleManagement/directory/roleDefinitions",
     "directory_audit": "auditLogs/directoryAudits",
+    "directory_domain": "domains?$select=id,isVerified,authenticationType,isDefault,isInitial",
+    "directory_administrative_unit": "directory/administrativeUnits?$select=id,displayName,isMemberManagementRestricted,membershipRule,membershipRuleProcessingState,visibility",
+    "directory_role_eligibility_schedule": "roleManagement/directory/roleEligibilitySchedules?$select=id,principalId,roleDefinitionId,directoryScopeId,memberType,status",
+    "directory_role_eligibility_instance": "roleManagement/directory/roleEligibilityScheduleInstances?$select=id,principalId,roleDefinitionId,directoryScopeId,startDateTime,endDateTime,memberType",
 }
-TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + (
+DIRECTORY_SINGLETONS = {
+    "directory_authorization_policy": "policies/authorizationPolicy",
+    "directory_security_defaults": "policies/identitySecurityDefaultsEnforcementPolicy",
+}
+TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIRECTORY_SINGLETONS) + (
     "subscription", "tenant", "management_group", "resource_graph", "activity_log",
     "subnet", "vnet_peering", "diagnostic_setting", "storage_service", "sql_database",
     "sql_firewall_rule", "sql_audit", "sql_security", "secret_metadata", "dns_record",
     "private_dns_link", "directory_membership",
     "app_service_config", "sql_tde",
+    "directory_app_role_assignment", "directory_owner", "directory_administrative_unit_member",
+    "managed_identity_federated_credential",
 )
 
 
@@ -128,7 +148,7 @@ class AzureTransport:
         self.auth = auth
         self.credential = credential
         self.owned = credential is None
-        self.direct = auth.get("method", "auto") in ("auto", "token", "arm-token") and bool(auth.get("arm_token") or auth.get("token"))
+        self.direct = auth.get("method", "auto") in ("auto", "token", "arm-token") and bool(auth.get("arm_token") or auth.get("token") or auth.get("graph_token"))
         if self.credential is None and not self.direct:
             self.credential = credential_for(auth)
         self.tokens = {}
@@ -210,17 +230,53 @@ def _metadata_only(value, secret=False):
         return [_metadata_only(item, secret) for item in value]
     if not isinstance(value, dict):
         return value
-    return {key: _metadata_only(item, secret) for key, item in value.items() if not (secret and key.lower() == "value") and key.lower() not in (
+    result = {key: _metadata_only(item, secret) for key, item in value.items() if not (secret and key.lower() == "value") and key.lower() not in (
         "password", "adminpassword", "clientsecret", "accesstoken", "token",
         "connectionstring", "primarykey", "secondarykey", "privatekey", "customdata",
         "userdata", "protectedsettings", "protectedsettingsfromkeyvault", "appsettings",
-        "machinekey", "decryptionkey", "validationkey", "sourceuri", "accesssas")}
+        "machinekey", "decryptionkey", "validationkey", "sourceuri", "accesssas",
+        "redisconfiguration", "tenantsettings", "apiproperties", "globalparameters",
+        "migrationtoken", "secrettext")}
+    credential_names = {"token", "apitoken", "apikey", "accesskey", "accesskeyid",
+                        "secretaccesskey", "accesskeysecret", "clientsecret", "secret",
+                        "password", "passwd", "privatekey", "accesstoken", "refreshtoken",
+                        "bearertoken", "authorization", "connectionstring", "sastoken",
+                        "credential", "credentials"}
+    for field, tags in value.items():
+        if field.lower() not in ("tags", "labels") or not isinstance(tags, dict):
+            continue
+        safe_tags, redacted = {}, []
+        for key, item in tags.items():
+            normalized = re.sub(r"[^a-z0-9]", "", key.lower())
+            if normalized in credential_names:
+                safe_tags[key] = "[REDACTED]"
+                redacted.append({"key": key, "status": "redacted"})
+            else:
+                safe_tags[key] = _metadata_only(item, secret)
+        result[field] = safe_tags
+        if redacted:
+            result.setdefault("_redacted_metadata", {})[field] = redacted
+    return result
 
 
 class _Reader:
     """Shared native read scheduler; budgets include retry attempts."""
     def __init__(self, options):
-        self.budget = Budget(options)
+        self.budget = Budget({key: value for key, value in options.items() if value is not None})
+        # Complete collection is the default. Limits exist only when supplied
+        # explicitly by the caller or trusted hosted execution policy.
+        self.budget.max_pages = options.get("max_pages")
+        self.budget.max_items = options.get("max_resources")
+        self.budget.max_calls = options.get("max_calls")
+        self.explicit_limits = {key: options[key] for key in ("max_pages", "max_resources", "max_calls", "max_scopes") if options.get(key) is not None}
+        self.cancel_check = options.get("_cancel_check")
+        if self.cancel_check is not None and not callable(self.cancel_check):
+            raise ValueError("_cancel_check must be a callable runtime hook")
+        deadline = options.get("collection_deadline_seconds")
+        if deadline is not None and (isinstance(deadline, bool) or not isinstance(deadline, (int, float)) or not math.isfinite(deadline) or deadline <= 0):
+            raise ValueError("collection_deadline_seconds must be positive")
+        self.deadline = time.monotonic() + deadline if deadline is not None else None
+        self.deadline_seconds = deadline
         self.workers = _bound(options.get("concurrency", 4), "concurrency", 1, 16)
         self.retries = _bound(options.get("retries", 2), "retries", 0, 5)
         self.page_size = _bound(options.get("page_size", 200), "page_size", 1, 1000)
@@ -228,10 +284,23 @@ class _Reader:
         self.collections = []
         self.total = 0
 
+    def check_cancelled(self):
+        event = getattr(self.budget, "cancel_event", None)
+        if event is not None and event.is_set():
+            raise AzureReadError("collection_cancelled")
+        absolute_deadline = getattr(self.budget, "deadline", None)
+        if absolute_deadline is not None and time.time() >= absolute_deadline:
+            raise AzureReadError("deadline_exceeded", 408)
+        if self.cancel_check is not None and self.cancel_check():
+            raise AzureReadError("collection_cancelled")
+        if self.deadline is not None and time.monotonic() >= self.deadline:
+            raise AzureReadError("deadline_exceeded", 408)
+
     def call(self, operation, *args, **kwargs):
         for attempt in range(self.retries + 1):
+            self.check_cancelled()
             with self.lock:
-                if self.budget.calls >= self.budget.max_calls:
+                if self.budget.max_calls is not None and self.budget.calls >= self.budget.max_calls:
                     raise AzureReadError("call_limit")
                 self.budget.calls += 1
             try:
@@ -245,11 +314,14 @@ class _Reader:
     def pages(self, request, url, *, audience=ARM, key="value", next_key="nextLink", body=None):
         origin = urlsplit(url)
         seen = set()
-        for _ in range(self.budget.max_pages):
+        page = 0
+        while self.budget.max_pages is None or page < self.budget.max_pages:
+            self.check_cancelled()
             parsed = urlsplit(url)
             if parsed.scheme != "https" or parsed.netloc != origin.netloc or parsed.path != origin.path or parsed.fragment or parsed.username:
                 raise AzureReadError("untrusted_continuation")
             response = self.call(request, url, body=body, audience=audience)
+            page += 1
             if not isinstance(response, dict) or not isinstance(response.get(key), list):
                 raise ValueError("malformed list")
             yield response[key]
@@ -272,23 +344,25 @@ class _Reader:
         items = {}
         status, error = "collected", None
         try:
+            self.check_cancelled()
             for page in fetch():
+                self.check_cancelled()
                 if not isinstance(page, list) or any(not isinstance(item, dict) for item in page):
                     raise ValueError("malformed page")
                 for item in page:
                     identifier = item.get("id")
                     if not isinstance(identifier, str) or not identifier:
                         raise ValueError("missing authoritative resource identity")
-                    scoped_types = set(ENDPOINTS) | {"resource_graph", "subnet", "vnet_peering", "diagnostic_setting", "storage_service", "sql_database", "sql_firewall_rule", "sql_audit", "sql_security", "secret_metadata", "dns_record", "private_dns_link", "app_service_config", "sql_tde"}
+                    scoped_types = set(ENDPOINTS) | {"resource_graph", "subnet", "vnet_peering", "diagnostic_setting", "storage_service", "sql_database", "sql_firewall_rule", "sql_audit", "sql_security", "secret_metadata", "dns_record", "private_dns_link", "app_service_config", "sql_tde", "managed_identity_federated_credential"}
                     if service != "kubernetes" and kind in scoped_types and scope.startswith("/subscriptions/") and not (identifier.lower() == scope.lower() or identifier.lower().startswith(scope.lower() + "/")):
                         raise ValueError("resource outside selected ARM scope")
                     normalized = identifier.lower() if service != "kubernetes" else identifier
-                    if normalized not in items and len(items) >= self.budget.max_items:
+                    if normalized not in items and self.budget.max_items is not None and len(items) >= self.budget.max_items:
                         raise AzureReadError("resource_limit")
                     items.setdefault(normalized, item if service == "kubernetes" else _metadata_only(item, kind == "secret_metadata" or str(item.get("type", "")).lower().endswith("/secrets")))
         except Exception as exc:
             status, error = _safe_error(exc)
-            if items or getattr(exc, "code", "") in ("resource_limit", "page_limit", "call_limit", "graph_truncated"):
+            if items or getattr(exc, "code", "") in ("resource_limit", "page_limit", "call_limit", "graph_truncated", "scope_limit", "collection_cancelled"):
                 status = "partial"
         if status == "collected" and not items:
             status = "empty"
@@ -302,7 +376,7 @@ class _Reader:
         with ThreadPoolExecutor(max_workers=self.workers) as pool:
             results = pool.map(self._read, jobs)
             for result in results:
-                capacity = max(0, self.budget.max_items - self.total)
+                capacity = len(result["items"]) if self.budget.max_items is None else max(0, self.budget.max_items - self.total)
                 if len(result["items"]) > capacity:
                     result["items"] = result["items"][:capacity]
                     result.update(status="partial", error={"code": "resource_limit"})
@@ -316,7 +390,9 @@ class _Reader:
     def metadata(self):
         return {"collection": "read-only", "calls": self.budget.calls, "max_calls": self.budget.max_calls,
                 "max_pages": self.budget.max_pages, "max_resources": self.budget.max_items,
-                "concurrency": self.workers, "retries": self.retries}
+                "concurrency": self.workers, "retries": self.retries,
+                "explicit_limits": dict(self.explicit_limits), "collection_deadline_seconds": self.deadline_seconds,
+                "intentional_partial": any(c.get("error", {}).get("code") in ("resource_limit", "page_limit", "call_limit", "scope_limit", "deadline_exceeded", "collection_cancelled") for c in self.collections)}
 
 
 def _selected(options, requirements):
@@ -328,6 +404,12 @@ def _selected(options, requirements):
         selected.add("directory_group")
     if "sql_tde" in selected:
         selected.add("sql_database")
+    if "directory_app_role_assignment" in selected:
+        selected.add("directory_service_principal")
+    if "directory_owner" in selected:
+        selected.update(("directory_application", "directory_service_principal", "directory_group"))
+    if "directory_administrative_unit_member" in selected:
+        selected.add("directory_administrative_unit")
     return selected
 
 
@@ -352,9 +434,15 @@ def collect(connector, requirements=None, *, transport=None):
     trusted_scopes = _trusted_scopes(options)
     reader = _Reader(options)
     raw_scopes = connector.get("scopes") or ["*"]
-    if not isinstance(raw_scopes, list) or len(raw_scopes) > 100 or any(not isinstance(x, str) for x in raw_scopes):
-        raise ValueError("scopes must contain at most 100 subscription IDs")
+    if not isinstance(raw_scopes, list) or any(not isinstance(x, str) for x in raw_scopes):
+        raise ValueError("scopes must contain subscription IDs")
+    max_scopes = options.get("max_scopes")
+    if max_scopes is not None and (isinstance(max_scopes, bool) or not isinstance(max_scopes, int) or max_scopes < 1):
+        raise ValueError("max_scopes must be a positive integer")
     scopes = list(dict.fromkeys(_subscription(x) for x in raw_scopes if x != "*"))
+    scopes_limited = max_scopes is not None and len(scopes) > max_scopes
+    if scopes_limited:
+        scopes = scopes[:max_scopes]
     discover_all = "*" in raw_scopes
     owned = transport is None
     tenant_scope = "/tenants/" + (auth.get("tenant_id") or "selected")
@@ -367,6 +455,12 @@ def collect(connector, requirements=None, *, transport=None):
                 raise ValueError("hosted Azure credentials require inline material")
             if not (auth.get("arm_token") or auth.get("token") or auth.get("client_secret") or auth.get("certificate_data") or auth.get("client_certificate") or auth.get("federated_token")):
                 raise ValueError("hosted Azure requires tenant-provided explicit credentials")
+            method = auth.get("method", "auto")
+            if method == "auto":
+                method = "token" if auth.get("arm_token") or auth.get("token") else "client-secret" if auth.get("client_secret") else "client-cert" if auth.get("certificate_data") or auth.get("client_certificate") else "workload-identity"
+            if method not in ("token", "client-secret", "client-cert", "certificate", "workload-identity"):
+                raise ValueError("hosted Azure cannot select worker identity sources")
+            auth = {**auth, "method": method}
         if owned:
             transport = AzureTransport(auth)
         request = transport.request
@@ -375,8 +469,9 @@ def collect(connector, requirements=None, *, transport=None):
             reader.run([("subscription", tenant_scope, "Microsoft.Resources", lambda: reader.pages(request, ARM + "/subscriptions?api-version=2022-12-01"))])
             if discover_all:
                 scopes = [item["id"] for item in reader.collections[-1]["items"] if isinstance(item.get("subscriptionId"), str)]
-                if len(scopes) > 100:
-                    scopes = scopes[:100]
+                if max_scopes is not None and len(scopes) > max_scopes:
+                    scopes = scopes[:max_scopes]
+                    scopes_limited = True
                     reader.collections[-1].update(status="partial", error={"code": "scope_limit"})
         if "tenant" in wanted:
             jobs.append(("tenant", tenant_scope, "Microsoft.Resources", lambda: reader.pages(request, ARM + "/tenants?api-version=2022-12-01")))
@@ -401,10 +496,10 @@ def collect(connector, requirements=None, *, transport=None):
             jobs.append(("management_group", tenant_scope, "Microsoft.Management", management_groups))
         # Query each selected subscription before detail reads. The discovery
         # collection is retained even when only downstream inventories are wanted.
-        need_resources = wanted.intersection(set(ENDPOINTS) | {"diagnostic_setting", "subnet", "vnet_peering", "secret_metadata", "storage_service", "sql_database", "sql_firewall_rule", "sql_audit", "sql_security", "dns_record", "private_dns_link", "resource_graph", "app_service_config", "sql_tde"})
+        need_resources = wanted.intersection(set(ENDPOINTS) | {"diagnostic_setting", "subnet", "vnet_peering", "secret_metadata", "storage_service", "sql_database", "sql_firewall_rule", "sql_audit", "sql_security", "dns_record", "private_dns_link", "resource_graph", "app_service_config", "sql_tde", "managed_identity_federated_credential"})
         if need_resources:
             for scope in scopes:
-                body = {"subscriptions": [scope.rsplit("/", 1)[-1]], "query": "Resources | project id, type, name, location, properties, subscriptionId, resourceGroup | order by id asc", "options": {"resultFormat": "objectArray", "$top": reader.page_size}}
+                body = {"subscriptions": [scope.rsplit("/", 1)[-1]], "query": "Resources | project id, type, name, location, identity, properties, subscriptionId, resourceGroup | order by id asc", "options": {"resultFormat": "objectArray", "$top": reader.page_size}}
                 def discovery(body=body, scope=scope):
                     for page in reader.pages(request, ARM + "/providers/Microsoft.ResourceGraph/resources?api-version=2022-10-01", body=body, key="data", next_key="$skipToken"):
                         if any(not isinstance(item, dict) or not str(item.get("id", "")).lower().startswith(scope.lower() + "/") for item in page):
@@ -418,11 +513,11 @@ def collect(connector, requirements=None, *, transport=None):
             for kind, endpoint in AUTHORIZATION.items():
                 if kind in wanted:
                     url = ARM + scope.rstrip("/") + "/providers/Microsoft.Authorization/" + endpoint + "?api-version=2022-04-01"
-                    if scope == "/" and kind == "role_assignment":
+                    if scope == "/" and kind in ("role_assignment", "deny_assignment"):
                         url += "&" + urlencode({"$filter": "atScope()"})
                     jobs.append((kind, scope, "Microsoft.Authorization", lambda url=url: reader.pages(request, url)))
         # Discovery supplies IDs; ARM GET provides authoritative current details.
-        child_dependencies = {"subnet": "vnet", "vnet_peering": "vnet", "storage_service": "storage_account", "sql_database": "sql_server", "sql_firewall_rule": "sql_server", "sql_audit": "sql_server", "sql_security": "sql_server", "secret_metadata": "vault", "dns_record": "dns_zone", "private_dns_link": "private_dns_zone", "app_service_config": "app_service", "sql_tde": "sql_server"}
+        child_dependencies = {"subnet": "vnet", "vnet_peering": "vnet", "storage_service": "storage_account", "sql_database": "sql_server", "sql_firewall_rule": "sql_server", "sql_audit": "sql_server", "sql_security": "sql_server", "secret_metadata": "vault", "dns_record": "dns_zone", "private_dns_link": "private_dns_zone", "app_service_config": "app_service", "sql_tde": "sql_server", "managed_identity_federated_credential": "managed_identity"}
         parents = wanted.intersection(ENDPOINTS) | {parent for child, parent in child_dependencies.items() if child in wanted}
         if "diagnostic_setting" in wanted:
             parents |= set(ENDPOINTS) - {"resource_group"}
@@ -485,7 +580,14 @@ def collect(connector, requirements=None, *, transport=None):
                 child_paths = []
                 if kind == "storage_account" and "storage_service" in wanted:
                     for service in ("blobServices", "fileServices", "queueServices", "tableServices"):
-                        child_paths.append(("storage_service", service, "2023-05-01"))
+                        child_scope = rid + "/" + service
+                        url = ARM + child_scope + "/default?api-version=2023-05-01"
+                        def storage_config(url=url, child_scope=child_scope):
+                            detail = reader.call(request, url)
+                            if not isinstance(detail, dict) or str(detail.get("id", "")).lower() != (child_scope + "/default").lower():
+                                raise ValueError("malformed storage service metadata")
+                            yield [detail]
+                        jobs.append(("storage_service", child_scope, "Microsoft.Storage", storage_config))
                 if kind == "sql_server":
                     child_paths.extend((child, path, "2023-08-01") for child, path in (("sql_database", "databases"), ("sql_firewall_rule", "firewallRules"), ("sql_audit", "auditingSettings"), ("sql_security", "securityAlertPolicies")) if child in wanted)
                 if kind == "vault" and "secret_metadata" in wanted:
@@ -494,6 +596,8 @@ def collect(connector, requirements=None, *, transport=None):
                     child_paths.append(("dns_record", "all", "2018-05-01"))
                 if kind == "private_dns_zone" and "private_dns_link" in wanted:
                     child_paths.append(("private_dns_link", "virtualNetworkLinks", "2020-06-01"))
+                if kind == "managed_identity" and "managed_identity_federated_credential" in wanted:
+                    child_paths.append(("managed_identity_federated_credential", "federatedIdentityCredentials", "2023-01-31"))
                 if kind == "app_service" and "app_service_config" in wanted:
                     url = ARM + rid + "/config/web?api-version=2023-12-01"
                     def app_config(url=url, rid=rid):
@@ -530,13 +634,107 @@ def collect(connector, requirements=None, *, transport=None):
                     jobs.append(("sql_tde", rid, "Microsoft.Sql", tde))
             reader.run(jobs)
             jobs = []
+        tenant_scope = "/tenants/" + (getattr(transport, "tenant", None) or auth.get("tenant_id") or "selected")
         for kind, endpoint in DIRECTORY.items():
             if kind in wanted:
                 url = GRAPH + "/v1.0/" + endpoint
                 if kind == "directory_audit":
                     url += "?" + urlencode({"$filter": f"activityDateTime ge {start} and activityDateTime le {end}"})
                 jobs.append((kind, tenant_scope, "Microsoft.Graph", lambda url=url: reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink")))
+        for kind, endpoint in DIRECTORY_SINGLETONS.items():
+            if kind in wanted:
+                url = GRAPH + "/v1.0/" + endpoint
+                def singleton(url=url):
+                    value = reader.call(request, url, audience=GRAPH)
+                    if not isinstance(value, dict) or not value.get("id"):
+                        raise ValueError("malformed directory singleton metadata")
+                    yield [value]
+                jobs.append((kind, tenant_scope, "Microsoft.Graph", singleton))
         reader.run(jobs)
+        object_collections = {kind: [item for c in reader.collections if c["type"] == kind for item in c["items"]]
+                              for kind in ("directory_application", "directory_service_principal", "directory_group", "directory_administrative_unit")}
+        if "directory_owner" in wanted or "directory_administrative_unit_member" in wanted:
+            jobs = []
+            owner_types = (("directory_application", "applications", "application"),
+                           ("directory_service_principal", "servicePrincipals", "servicePrincipal"),
+                           ("directory_group", "groups", "group"))
+            for parent_kind, endpoint, object_type in owner_types:
+                if "directory_owner" not in wanted:
+                    break
+                for parent in object_collections[parent_kind]:
+                    object_id = parent["id"]
+                    url = GRAPH + "/v1.0/" + endpoint + "/" + quote(object_id, safe="") + "/owners?$select=id"
+                    def owners(url=url, object_id=object_id, object_type=object_type):
+                        owner_ids = []
+                        try:
+                            for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
+                                if any(not isinstance(owner, dict) or not isinstance(owner.get("id"), str) or not owner["id"] for owner in page):
+                                    raise ValueError("malformed directory owner metadata")
+                                owner_ids.extend(owner["id"] for owner in page)
+                        except Exception as exc:
+                            if owner_ids:
+                                yield [{"id": object_id, "objectId": object_id, "objectType": object_type, "ownerIds": list(dict.fromkeys(owner_ids)),
+                                        "_coverage": {"ownerIds": {"status": "partial", "error": _safe_error(exc)[1]}},
+                                        "_provenance": {"tenant_id": tenant_scope.removeprefix("/tenants/"), "endpoint": urlsplit(url).path, "read_only": True}}]
+                            raise
+                        yield [{"id": object_id, "objectId": object_id, "objectType": object_type, "ownerIds": list(dict.fromkeys(owner_ids)),
+                                "_provenance": {"tenant_id": tenant_scope.removeprefix("/tenants/"), "endpoint": urlsplit(url).path, "read_only": True}}]
+                    jobs.append(("directory_owner", tenant_scope + "/" + endpoint + "/" + object_id, "Microsoft.Graph", owners))
+            if "directory_administrative_unit_member" in wanted:
+                for unit in object_collections["directory_administrative_unit"]:
+                    object_id = unit["id"]
+                    url = GRAPH + "/v1.0/directory/administrativeUnits/" + quote(object_id, safe="") + "/members?$select=id"
+                    def members(url=url, object_id=object_id):
+                        for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
+                            if any(not isinstance(member, dict) or not isinstance(member.get("id"), str) for member in page):
+                                raise ValueError("malformed administrative unit membership")
+                            yield [{**member, "administrativeUnitId": object_id,
+                                    "_provenance": {"tenant_id": tenant_scope.removeprefix("/tenants/"), "endpoint": urlsplit(url).path, "read_only": True}} for member in page]
+                    jobs.append(("directory_administrative_unit_member", tenant_scope + "/administrativeUnits/" + object_id, "Microsoft.Graph", members))
+            reader.run(jobs)
+        if "directory_app_role_assignment" in wanted:
+            resources = {sp["id"]: sp for sp in object_collections["directory_service_principal"]}
+            cache_lock = threading.Lock()
+            def role_metadata(resource_id):
+                with cache_lock:
+                    cached = resources.get(resource_id)
+                    if cached is not None and (isinstance(cached.get("appRoles"), list) or cached.get("collection_status")):
+                        return cached
+                    try:
+                        url = GRAPH + "/v1.0/servicePrincipals/" + quote(resource_id, safe="") + "?$select=id,appId,appRoles"
+                        cached = reader.call(request, url, audience=GRAPH)
+                        if not isinstance(cached, dict) or cached.get("id") != resource_id or not isinstance(cached.get("appRoles"), list):
+                            raise ValueError("malformed resource service principal roles")
+                    except Exception as exc:
+                        cached = {"id": resource_id, "collection_status": _safe_error(exc)[0], "error": _safe_error(exc)[1]}
+                    resources[resource_id] = cached
+                    return cached
+            jobs = []
+            for principal in object_collections["directory_service_principal"]:
+                principal_id = principal["id"]
+                url = GRAPH + "/v1.0/servicePrincipals/" + quote(principal_id, safe="") + "/appRoleAssignments"
+                def assignments(url=url, principal_id=principal_id):
+                    for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
+                        enriched = []
+                        for assignment in page:
+                            if not isinstance(assignment, dict) or assignment.get("principalId") != principal_id or not all(isinstance(assignment.get(key), str) for key in ("id", "resourceId", "appRoleId")):
+                                raise ValueError("malformed or cross-principal app role assignment")
+                            row = {**assignment, "_provenance": {"tenant_id": tenant_scope.removeprefix("/tenants/"), "endpoint": urlsplit(url).path,
+                                                                  "appRoleValue_source": "resource servicePrincipal.appRoles", "effective_access": "not_computed"}}
+                            if assignment["appRoleId"] == "00000000-0000-0000-0000-000000000000":
+                                row.update(appRoleValue=None, defaultAppRole=True)
+                            else:
+                                resource = role_metadata(assignment["resourceId"])
+                                roles = resource.get("appRoles", [])
+                                matches = [role for role in roles if isinstance(role, dict) and role.get("id") == assignment["appRoleId"]]
+                                if len(matches) == 1 and isinstance(matches[0].get("value"), str):
+                                    row.update(appRoleValue=matches[0]["value"], appRoleEnabled=matches[0].get("isEnabled"))
+                                else:
+                                    row["_coverage"] = {"appRoleValue": {"status": resource.get("collection_status", "unknown"), "reason": "resource role metadata denied, missing or ambiguous"}}
+                            enriched.append(row)
+                        yield enriched
+                jobs.append(("directory_app_role_assignment", tenant_scope + "/servicePrincipals/" + principal_id, "Microsoft.Graph", assignments))
+            reader.run(jobs)
         if "directory_membership" in wanted:
             jobs = []
             for c in reader.collections:
@@ -555,6 +753,8 @@ def collect(connector, requirements=None, *, transport=None):
         if owned and transport is not None:
             transport.close()
     metadata = reader.metadata()
+    if scopes_limited:
+        metadata.update(intentional_partial=True, scope_coverage={"status": "partial", "reason": "explicit max_scopes limit", "max_scopes": max_scopes})
     directory = [c for c in reader.collections if c["service"] == "Microsoft.Graph"]
     metadata.update(tenant_id=getattr(transport, "tenant", None) or auth.get("tenant_id"),
                     trusted_scope_ids=trusted_scopes,

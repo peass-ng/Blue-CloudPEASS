@@ -7,12 +7,20 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Search, SlidersHorizontal, ChevronRight } from "lucide-react";
-import type { Finding } from "./types";
+import type { Catalog, Finding, Report } from "./types";
 import { Badge, Evidence, Inspector, Panel, State } from "./ui";
 import { items, request, useApi } from "./api";
 import { useInfiniteQuery } from "@tanstack/react-query";
-type FindingPage={items:Finding[];total?:number;next_offset?:number|null;offset?:number;facets?:{services?:string[];statuses?:string[];frameworks?:string[]}};
+type FindingPage = {
+  items: Finding[];
+  total?: number;
+  next_offset?: number | null;
+  offset?: number;
+  facets?: { services?: string[]; statuses?: string[]; frameworks?: string[] };
+};
 const col = createColumnHelper<Finding>();
+const assetLabel = (finding: Finding) =>
+  finding.resource_name || finding.native_resource_id || finding.resource_id;
 export function Findings({
   scanId,
   category,
@@ -27,39 +35,108 @@ export function Findings({
   const [status, setStatus] = useState("");
   const [service, setService] = useState("");
   const [framework, setFramework] = useState("");
+  const [checklist, setChecklist] = useState("");
+  const catalog = useApi<Catalog>("/catalog", demo);
+  const summary = useApi<Report>(
+    `/scans/${encodeURIComponent(scanId)}/summary`,
+    demo,
+    !!scanId,
+  );
+  const selectedChecklist = catalog.data?.framework_versions?.find(
+    (row) => row.id === checklist,
+  );
   const [group, setGroup] = useState("service");
   const [inspect, setInspect] = useState<Finding>();
-  const [debouncedSearch,setDebouncedSearch]=useState('');
-  useEffect(()=>{const timer=setTimeout(()=>setDebouncedSearch(search),250);return()=>clearTimeout(timer);},[search]);
-  const query=useInfiniteQuery({queryKey:[demo?'demo':'live','findings',scanId,category,debouncedSearch,severity,status,service,framework,group],initialPageParam:0,queryFn:({pageParam})=>{
-    const params=new URLSearchParams({limit:'200',offset:String(pageParam),group_by:group});
-    for(const [key,value] of Object.entries({categories:category,search:debouncedSearch,severity,status,service,framework})){if(value)params.set(key,value);}
-    return request<FindingPage>(`/scans/${encodeURIComponent(scanId)}/findings?${params}`,{},demo);
-  },getNextPageParam:(last)=>last.next_offset??undefined,enabled:!!scanId,retry:1});
-  const firstPage=query.data?.pages[0];
-  const all=useMemo(()=>query.data?.pages.flatMap(page=>items(page))||[],[query.data]);
-  const serverFiltered=typeof firstPage?.total==='number';
-  const facets=firstPage?.facets;
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+  const query = useInfiniteQuery({
+    queryKey: [
+      demo ? "demo" : "live",
+      "findings",
+      scanId,
+      category,
+      debouncedSearch,
+      severity,
+      status,
+      service,
+      framework,
+      checklist,
+      group,
+    ],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({
+        limit: "200",
+        offset: String(pageParam),
+        group_by: group,
+      });
+      for (const [key, value] of Object.entries({
+        categories: category,
+        search: debouncedSearch,
+        severity,
+        status,
+        service,
+        framework: checklist || framework,
+      })) {
+        if (value) params.set(key, value);
+      }
+      return request<FindingPage>(
+        `/scans/${encodeURIComponent(scanId)}/findings?${params}`,
+        {},
+        demo,
+      );
+    },
+    getNextPageParam: (last) => last.next_offset ?? undefined,
+    enabled: !!scanId,
+    retry: 1,
+  });
+  const firstPage = query.data?.pages[0];
+  const all = useMemo(
+    () => query.data?.pages.flatMap((page) => items(page)) || [],
+    [query.data],
+  );
+  const serverFiltered = typeof firstPage?.total === "number";
+  const facets = firstPage?.facets;
   const filtered = useMemo(
     () =>
       all
         .filter(
-          (f) => serverFiltered ||
-            (!category || f.category === category) &&
-            (!severity || f.severity === severity) &&
-            (!status || f.status === status) &&
-            (!service || f.service === service) &&
-            (!framework || f.frameworks?.includes(framework)) &&
-            `${f.title} ${f.resource_id} ${f.check_id} ${f.scope} ${JSON.stringify(f.evidence)}`
-              .toLowerCase()
-              .includes(search.toLowerCase()),
+          (f) =>
+            serverFiltered ||
+            ((!category || f.category === category) &&
+              (!severity || f.severity === severity) &&
+              (!status || f.status === status) &&
+              (!service || f.service === service) &&
+              (!framework || f.frameworks?.includes(framework)) &&
+              (!checklist ||
+                f.framework_ids?.includes(checklist) ||
+                (Array.isArray(selectedChecklist?.native_check_ids) &&
+                  selectedChecklist.native_check_ids.includes(f.check_id))) &&
+              `${f.title} ${f.resource_id} ${f.resource_name || ""} ${f.native_resource_id || ""} ${f.check_id} ${f.scope} ${JSON.stringify(f.evidence)}`
+                .toLowerCase()
+                .includes(search.toLowerCase())),
         )
         .sort((a, b) =>
           String(a[group as keyof Finding]).localeCompare(
             String(b[group as keyof Finding]),
           ),
         ),
-    [all, category, severity, status, service, framework, search, group,serverFiltered],
+    [
+      all,
+      category,
+      severity,
+      status,
+      service,
+      framework,
+      search,
+      group,
+      serverFiltered,
+      checklist,
+      selectedChecklist,
+    ],
   );
   const columns = useMemo(
     () => [
@@ -81,14 +158,29 @@ export function Findings({
       }),
       col.accessor("service", {
         header: "Service",
-        cell: (i) => <span className="service-cell">{i.getValue()}</span>,
+        cell: (i) => (
+          <span className="service-cell" title={i.getValue()}>
+            {i.getValue()}
+          </span>
+        ),
       }),
       col.accessor("resource_id", {
         header: "Asset",
         cell: (i) => (
-          <span title={i.getValue()} className="truncate">
-            {i.getValue()}
-          </span>
+          <div className="asset-cell">
+            <span title={assetLabel(i.row.original)} className="truncate">
+              {assetLabel(i.row.original)}
+            </span>
+            {i.row.original.resource_name &&
+              i.row.original.native_resource_id && (
+                <span
+                  className="native-asset-id"
+                  title={i.row.original.native_resource_id}
+                >
+                  {i.row.original.native_resource_id}
+                </span>
+              )}
+          </div>
         ),
       }),
       col.accessor("status", {
@@ -117,10 +209,23 @@ export function Findings({
         <p>Configuration findings, grounded in collected evidence.</p>
         <span className="count-pill">
           {filtered.length} /{" "}
-          {all.filter((f) => !category || f.category === category).length}{" "}
+          {firstPage?.total ??
+            all.filter((f) => !category || f.category === category).length}{" "}
           findings
         </span>
       </div>
+      {selectedChecklist && (
+        <div className="notice">
+          <p>
+            {String(selectedChecklist.name)} ·{" "}
+            {String(selectedChecklist.supported_native_checks ?? 0)} mapped
+            native checks ·{" "}
+            {String(selectedChecklist.pending_source_checks ?? "unknown")}{" "}
+            pending source checks. Missing or pending evidence does not
+            establish compliance.
+          </p>
+        </div>
+      )}
       <Panel className="findings-panel">
         <div className="filters">
           <div className="search-field">
@@ -129,7 +234,7 @@ export function Findings({
               aria-label="Search findings"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search assets, checks, evidence…"
+              placeholder="Search assets, checks and metadata…"
             />
           </div>
           <label className="compact-label">
@@ -151,7 +256,23 @@ export function Findings({
             onChange={(e) => setStatus(e.target.value)}
           >
             <option value="">All statuses</option>
-            {Array.from(new Set([...(facets?.statuses||[]),...all.map((f)=>f.status),...(demo?[]:['PASS','FAIL','UNKNOWN','DENIED','EMPTY','MANUAL','NOT_APPLICABLE'])]))
+            {Array.from(
+              new Set([
+                ...(facets?.statuses || []),
+                ...all.map((f) => f.status),
+                ...(demo
+                  ? []
+                  : [
+                      "PASS",
+                      "FAIL",
+                      "UNKNOWN",
+                      "DENIED",
+                      "EMPTY",
+                      "MANUAL",
+                      "NOT_APPLICABLE",
+                    ]),
+              ]),
+            )
               .sort()
               .map((s) => (
                 <option key={s}>{s}</option>
@@ -163,7 +284,12 @@ export function Findings({
             onChange={(e) => setService(e.target.value)}
           >
             <option value="">All services</option>
-            {Array.from(new Set([...(facets?.services||[]),...all.map((f) => f.service)]))
+            {Array.from(
+              new Set([
+                ...(facets?.services || []),
+                ...all.map((f) => f.service),
+              ]),
+            )
               .sort()
               .map((s) => (
                 <option key={s}>{s}</option>
@@ -175,13 +301,43 @@ export function Findings({
           <select
             aria-label="Compliance framework"
             value={framework}
-            onChange={(e) => setFramework(e.target.value)}
+            onChange={(e) => {
+              setFramework(e.target.value);
+              setChecklist("");
+            }}
           >
             <option value="">All compliance frameworks</option>
-            {Array.from(new Set([...(facets?.frameworks||[]),...all.flatMap((f) => f.frameworks || [])]))
+            {Array.from(
+              new Set([
+                ...(facets?.frameworks || []),
+                ...all.flatMap((f) => f.frameworks || []),
+              ]),
+            )
               .sort()
               .map((s) => (
                 <option key={s}>{s}</option>
+              ))}
+          </select>
+          <select
+            aria-label="Exact finding checklist version"
+            value={checklist}
+            onChange={(e) => {
+              setChecklist(e.target.value);
+              setFramework("");
+            }}
+          >
+            <option value="">All checklist versions</option>
+            {(catalog.data?.framework_versions || [])
+              .filter(
+                (row) =>
+                  row.provider === summary.data?.provider ||
+                  row.provider === "all",
+              )
+              .map((row, i) => (
+                <option key={String(row.id || i)} value={String(row.id)}>
+                  {String(row.name || row.id)} ·{" "}
+                  {String(row.status || "unknown")}
+                </option>
               ))}
           </select>
           <label>
@@ -214,7 +370,7 @@ export function Findings({
         ) : (
           <State
             loading={query.isPending}
-            error={query.error&&!query.data?query.error:undefined}
+            error={query.error && !query.data ? query.error : undefined}
             onRetry={() => void query.refetch()}
           >
             <div
@@ -267,7 +423,11 @@ export function Findings({
                         {row.getVisibleCells().map((cell, index) => (
                           <td key={cell.id}>
                             {index === 1 && current !== previous && (
-                              <span className="group-label">{current}</span>
+                              <span className="group-label">
+                                {group === "resource_id"
+                                  ? assetLabel(row.original)
+                                  : current}
+                              </span>
                             )}
                             {flexRender(
                               cell.column.columnDef.cell,
@@ -299,19 +459,60 @@ export function Findings({
                 <div className="state">
                   <Search />
                   <h3>
-                    {(all.length||search||severity||status||service||framework)
+                    {all.length ||
+                    search ||
+                    severity ||
+                    status ||
+                    service ||
+                    framework ||
+                    checklist
                       ? "No findings match these filters"
                       : "No findings recorded"}
                   </h3>
                   <p>
-                    {(all.length||search||severity||status||service||framework)
+                    {all.length ||
+                    search ||
+                    severity ||
+                    status ||
+                    service ||
+                    framework ||
+                    checklist
                       ? "Try another search or reset your filters."
                       : "Review scan coverage before drawing a security conclusion."}
                   </p>
                 </div>
               )}
             </div>
-            {serverFiltered&&<div className="pagination-footer"><span>{all.length} loaded of {firstPage?.total} matching findings · Filters search the complete assessment</span>{query.hasNextPage&&<button className="button" disabled={query.isFetchingNextPage} onClick={()=>void query.fetchNextPage()}>{query.isFetchingNextPage?'Loading more…':'Load more findings'}</button>}{query.error&&<span role="alert">More results could not be loaded. <button className="text-button" onClick={()=>void query.fetchNextPage()}>Retry</button></span>}</div>}
+            {serverFiltered && (
+              <div className="pagination-footer">
+                <span>
+                  {all.length} loaded of {firstPage?.total} matching findings ·
+                  Filters search the complete assessment
+                </span>
+                {query.hasNextPage && (
+                  <button
+                    className="button"
+                    disabled={query.isFetchingNextPage}
+                    onClick={() => void query.fetchNextPage()}
+                  >
+                    {query.isFetchingNextPage
+                      ? "Loading more…"
+                      : "Load more findings"}
+                  </button>
+                )}
+                {query.error && (
+                  <span role="alert">
+                    More results could not be loaded.{" "}
+                    <button
+                      className="text-button"
+                      onClick={() => void query.fetchNextPage()}
+                    >
+                      Retry
+                    </button>
+                  </span>
+                )}
+              </div>
+            )}
           </State>
         )}
       </Panel>
@@ -319,12 +520,76 @@ export function Findings({
         A passing check applies only to its observed scope. Unknown, skipped and
         denied collections are not passing checks.
       </p>
-      {inspect && <FindingInspector finding={inspect} scanId={scanId} demo={demo} lazy={serverFiltered} onClose={()=>setInspect(undefined)}/>}
+      {inspect && (
+        <FindingInspector
+          finding={inspect}
+          scanId={scanId}
+          demo={demo}
+          lazy={serverFiltered}
+          onClose={() => setInspect(undefined)}
+        />
+      )}
     </>
   );
 }
-function FindingInspector({finding,scanId,demo,lazy,onClose}:{finding:Finding;scanId:string;demo:boolean;lazy:boolean;onClose:()=>void}){
- const detail=useApi<Finding>(`/scans/${encodeURIComponent(scanId)}/findings/${encodeURIComponent(finding.id)}`,demo,lazy&&!demo);
- const observed=detail.data||finding;
- return <Inspector title="Finding evidence" onClose={onClose}><div className="inspector-badges"><Badge value={observed.severity}/><Badge value={observed.status}/></div><h3>{observed.title}</h3><dl><dt>Check</dt><dd>{observed.check_id}</dd><dt>Asset</dt><dd>{observed.resource_id}</dd><dt>Scope</dt><dd>{observed.scope}</dd><dt>Frameworks</dt><dd>{observed.frameworks?.join(' · ')||'No framework mapping'}</dd></dl><State loading={lazy&&!demo&&detail.isPending} error={lazy&&!demo?detail.error:undefined} onRetry={()=>void detail.refetch()}><h3>Observed evidence</h3><Evidence data={observed.evidence}/><h3>Defensive remediation</h3><Evidence data={observed.remediation}/></State><button className="button" onClick={onClose}>Back to findings<ChevronRight size={16}/></button></Inspector>;
+function FindingInspector({
+  finding,
+  scanId,
+  demo,
+  lazy,
+  onClose,
+}: {
+  finding: Finding;
+  scanId: string;
+  demo: boolean;
+  lazy: boolean;
+  onClose: () => void;
+}) {
+  const detail = useApi<Finding>(
+    `/scans/${encodeURIComponent(scanId)}/findings/${encodeURIComponent(finding.id)}`,
+    demo,
+    lazy && !demo,
+  );
+  const observed = detail.data || finding;
+  return (
+    <Inspector title="Finding evidence" onClose={onClose}>
+      <div className="inspector-badges">
+        <Badge value={observed.severity} />
+        <Badge value={observed.status} />
+      </div>
+      <h3>{observed.title}</h3>
+      <dl>
+        <dt>Check</dt>
+        <dd>{observed.check_id}</dd>
+        <dt>Asset</dt>
+        <dd>{assetLabel(observed)}</dd>
+        {observed.native_resource_id && (
+          <>
+            <dt>Native ID</dt>
+            <dd>{observed.native_resource_id}</dd>
+          </>
+        )}
+        <dt>Report resource ID</dt>
+        <dd>{observed.resource_id}</dd>
+        <dt>Scope</dt>
+        <dd>{observed.scope}</dd>
+        <dt>Frameworks</dt>
+        <dd>{observed.frameworks?.join(" · ") || "No framework mapping"}</dd>
+      </dl>
+      <State
+        loading={lazy && !demo && detail.isPending}
+        error={lazy && !demo ? detail.error : undefined}
+        onRetry={() => void detail.refetch()}
+      >
+        <h3>Observed evidence</h3>
+        <Evidence data={observed.evidence} />
+        <h3>Defensive remediation</h3>
+        <Evidence data={observed.remediation} />
+      </State>
+      <button className="button" onClick={onClose}>
+        Back to findings
+        <ChevronRight size={16} />
+      </button>
+    </Inspector>
+  );
 }

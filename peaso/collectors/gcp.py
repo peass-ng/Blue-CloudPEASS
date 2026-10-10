@@ -12,15 +12,16 @@ import re
 import subprocess
 import threading
 import time
+from itertools import count
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
-from urllib.parse import quote, urlencode, urlsplit
+from urllib.parse import quote, urlsplit
 
 OAUTH_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 HOSTS = frozenset(f"{s}.googleapis.com" for s in (
     "cloudasset", "cloudresourcemanager", "compute", "storage", "iam", "logging",
     "sqladmin", "container", "cloudkms", "secretmanager", "recommender", "bigquery", "artifactregistry",
-    "run", "cloudfunctions"))
+    "run", "cloudfunctions", "cloudidentity", "appengine"))
 SAFE_REASONS = frozenset(("SERVICE_DISABLED", "ACCESS_TOKEN_SCOPE_INSUFFICIENT", "IAM_PERMISSION_DENIED",
     "PERMISSION_DENIED", "UNAUTHENTICATED", "NOT_FOUND", "RESOURCE_EXHAUSTED", "INVALID_ARGUMENT",
     "BILLING_DISABLED", "USER_PROJECT_DENIED", "QUOTA_EXCEEDED", "RATE_LIMIT_EXCEEDED", "UNAVAILABLE"))
@@ -28,7 +29,8 @@ SENSITIVE_KEYS = frozenset(("privatekey", "privatekeydata", "publickeydata", "ac
     "idtoken", "clientsecret", "password", "certificate", "clientcertificate", "clientkey", "token",
     "authorization", "secretvalue", "payload", "startupscript", "sshkeys", "userdata", "connectionstring",
     "cert", "servercacert", "sharedsecret", "sharedsecrethash", "environmentvariables",
-    "secretenvironmentvariables", "args", "command", "subjecttoken"))
+    "secretenvironmentvariables", "args", "command", "subjecttoken", "apikey", "keystring",
+    "authtoken", "oauthtoken", "secretaccesskey", "sessiontoken", "credentials", "authcredentials"))
 
 
 def sanitize(value):
@@ -37,7 +39,7 @@ def sanitize(value):
         output = {}
         for key, item in value.items():
             normalized = re.sub(r"[^a-z0-9]", "", str(key).lower())
-            if normalized in SENSITIVE_KEYS or normalized.endswith("password"):
+            if normalized in SENSITIVE_KEYS or normalized.endswith(("password", "token", "privatekey", "clientsecret", "secretvalue")):
                 continue
             if key == "env" and isinstance(item, list):
                 output[key] = [{"name": entry.get("name"), **({"valueFrom": sanitize(entry["valueFrom"])}
@@ -88,6 +90,10 @@ def bound(options, name, default, low, high):
     return value
 
 
+def optional_bound(options, name, low, high):
+    return None if options.get(name) is None else bound(options, name, None, low, high)
+
+
 def _gcloud(command, env):
     try:
         result = subprocess.run(["gcloud", *command], env=env, capture_output=True, text=True,
@@ -109,12 +115,12 @@ def validate_external_config(info, *, inline=False):
     if info.get("token_info_url") not in (None, "https://sts.googleapis.com/v1/introspect"):
         raise ReadError("denied", "unsafe_external_token_endpoint")
     impersonation_url = info.get("service_account_impersonation_url")
-    if impersonation_url is not None and not re.fullmatch(
+    if impersonation_url is not None and (not isinstance(impersonation_url, str) or not re.fullmatch(
         r"https://iamcredentials\.googleapis\.com/v1/projects/-/serviceAccounts/[A-Za-z0-9@._%+-]+:generateAccessToken",
-        impersonation_url):
+        impersonation_url)):
         raise ReadError("denied", "unsafe_external_impersonation_endpoint")
     source = info.get("credential_source", {})
-    if not isinstance(source, dict) or source.get("executable"):
+    if not isinstance(source, dict) or "executable" in source:
         raise ReadError("unsupported", "external_executable_source_prohibited")
     if inline:
         # The inline supplier replaces the config's source, so it cannot execute
@@ -125,10 +131,10 @@ def validate_external_config(info, *, inline=False):
             "region_url": "http://169.254.169.254/latest/meta-data/placement/availability-zone",
             "imdsv2_session_token_url": "http://169.254.169.254/latest/api/token"}
         for key, value in expected.items():
-            if key in source and source[key].rstrip("/") != value:
+            if key in source and (not isinstance(source[key], str) or source[key].rstrip("/") != value):
                 raise ReadError("denied", "unsafe_external_credential_source")
         verification = source.get("regional_cred_verification_url", "")
-        if not re.fullmatch(r"https://sts\.\{region\}\.amazonaws\.com(?:\.cn)?/\?Action=GetCallerIdentity&Version=2011-06-15", verification):
+        if not isinstance(verification, str) or not re.fullmatch(r"https://sts\.\{region\}\.amazonaws\.com(?:\.cn)?/\?Action=GetCallerIdentity&Version=2011-06-15", verification):
             raise ReadError("denied", "unsafe_external_credential_source")
     elif source.get("url") or not isinstance(source.get("file"), str):
         raise ReadError("unsupported", "external_source_requires_local_file_or_inline_token")
@@ -165,22 +171,38 @@ class GcloudCredentials:
         return {"Authorization": "Bearer " + self.token}
 
 
+def selected_auth_method(auth):
+    if "token" in auth:
+        return "token"
+    if "method" in auth:
+        method = auth["method"]
+    elif any(key in auth for key in ("service_account_file", "sa_json")):
+        method = "service-account"
+    elif any(key in auth for key in ("external_account_file", "credential_file", "external_account_json")):
+        method = "external-account"
+    else:
+        method = "adc"
+    if not isinstance(method, str):
+        return "unsupported"
+    method = {"auto": "adc", "gcloud-cli": "gcloud", "service_account": "service-account",
+              "external_account": "external-account", "wif": "external-account", "impersonate": "impersonation"}.get(method, method)
+    return method if method in ("adc", "gcloud", "service-account", "external-account", "metadata", "impersonation") else "unsupported"
+
+
 class Credentials:
     def __init__(self, auth, *, timeout=20):
         self.lock = threading.Lock()
+        self.failure = None
         self.timeout = timeout
-        self.method = auth.get("method", "service-account" if auth.get("service_account_file") or auth.get("sa_json")
-                               else "external-account" if auth.get("external_account_file") or auth.get("external_account_json") else "adc")
-        self.method = {"auto": "adc", "gcloud-cli": "gcloud", "service_account": "service-account",
-                       "external_account": "external-account", "wif": "external-account",
-                       "impersonate": "impersonation"}.get(self.method, self.method)
+        self.method = selected_auth_method(auth)
         self.direct_token = auth.get("token")
         self.credential = None
         self.gcloud = None
         self.session = None
         try:
-            if self.direct_token:
-                self.method = "token"
+            if "token" in auth:
+                if not isinstance(self.direct_token, str) or not self.direct_token.strip():
+                    raise ReadError("denied", "explicit_token_required")
                 return
             if self.method == "gcloud":
                 self.gcloud = GcloudCredentials(auth)
@@ -264,6 +286,8 @@ class Credentials:
 
     def headers(self):
         with self.lock:
+            if self.failure is not None:
+                raise self.failure
             try:
                 if self.direct_token:
                     return {"Authorization": "Bearer " + self.direct_token}
@@ -275,10 +299,12 @@ class Credentials:
                     return self.request(*args, **kwargs)
                 self.credential.before_request(request, "GET", "https://cloudasset.googleapis.com/", headers)
                 return headers
-            except ReadError:
+            except ReadError as exc:
+                self.failure = exc
                 raise
             except Exception:
-                raise ReadError("denied", "credential_refresh_failed") from None
+                self.failure = ReadError("denied", "credential_refresh_failed")
+                raise self.failure from None
 
     def close(self):
         if self.session:
@@ -290,7 +316,7 @@ class Credentials:
 class Transport:
     def __init__(self, credentials, options, *, sleep=time.sleep):
         self.credentials, self.options, self.sleep = credentials, options, sleep
-        self.max_calls = bound(options, "max_calls", 1000, 1, 100000)
+        self.max_calls = optional_bound(options, "max_calls", 1, 100000)
         self.retries = bound(options, "retries", 2, 0, 5)
         self.timeout = bound(options, "timeout", 20, 1, 120)
         self.calls = 0
@@ -299,6 +325,25 @@ class Transport:
         self.sessions = []
         self.evidence = []
         self.cache = {}
+        self.started = time.monotonic()
+        self.deadline_seconds = optional_bound(options, "deadline_seconds", 1, 86400)
+        if self.deadline_seconds is None:
+            self.deadline_seconds = optional_bound(options, "collection_deadline_seconds", 1, 86400)
+        self.deadline = options.get("deadline")
+        if self.deadline is not None and (isinstance(self.deadline, bool) or not isinstance(self.deadline, (int, float))):
+            raise ValueError("deadline must be an absolute epoch timestamp")
+
+    def check_cancelled(self):
+        event = self.options.get("cancel_event")
+        if event is not None and event.is_set():
+            raise ReadError("unavailable", "cancelled")
+        callback = self.options.get("_cancel_check")
+        if callable(callback) and callback():
+            raise ReadError("unavailable", "cancelled")
+        if self.deadline is not None and time.time() >= self.deadline:
+            raise ReadError("unavailable", "execution_deadline")
+        if self.deadline_seconds is not None and time.monotonic() - self.started >= self.deadline_seconds:
+            raise ReadError("unavailable", "execution_deadline")
 
     def _session(self):
         if not getattr(self.local, "session", None):
@@ -309,6 +354,7 @@ class Transport:
         return self.local.session
 
     def request(self, method, url, *, params=None, body=None, scope=None, operation=None):
+        self.check_cancelled()
         parsed = urlsplit(url)
         if parsed.scheme != "https" or parsed.hostname not in HOSTS or parsed.port not in (None, 443) or parsed.username or parsed.query:
             raise ReadError("unsupported", "unsafe_api_endpoint")
@@ -340,8 +386,9 @@ class Transport:
             evidence["request"] = sanitize({k: v for k, v in body.items() if k != "pageToken"})
         try:
             for attempt in range(self.retries + 1):
+                self.check_cancelled()
                 with self.lock:
-                    if self.calls >= self.max_calls:
+                    if self.max_calls is not None and self.calls >= self.max_calls:
                         raise ReadError("unavailable", "call_limit")
                     self.calls += 1
                 evidence["attempts"] += 1
@@ -376,7 +423,10 @@ class Transport:
                 break
         except ReadError as exc:
             evidence["status"], evidence["error"] = exc.status, exc.error
-            cached["error"] = exc
+            # Credential failure is memoized across requests; provenance belongs
+            # to this request, so do not mutate that shared exception instance.
+            cached["error"] = ReadError(exc.status, exc.error["code"], http_status=exc.error.get("http_status"),
+                                        reason=exc.error.get("reason"))
         except Exception:
             error = ReadError("unavailable", "read_failed")
             evidence["status"], evidence["error"], cached["error"] = error.status, error.error, error
@@ -426,9 +476,11 @@ SUPPORTED_TYPES = frozenset({x[0] for x in COMPUTE} | {
     "service_account", "service_account_key", "activity", "recommendation", "insight", "shared_vpc",
     "bucket", "sql_instance", "gke_cluster", "kms_key_ring", "kms_key", "secret", "log_sink",
     "workload_identity_pool", "workload_identity_provider", "workforce_pool", "workforce_provider",
-    "bigquery_dataset", "artifact_repository", "cloudrun_service", "function"})
+    "bigquery_dataset", "artifact_repository", "cloudrun_service", "function", "group", "group_membership",
+    "principal_access_boundary_policy", "policy_binding", "app_engine_application"})
 DEPENDENCIES = {"service_account_key": {"service_account"}, "workload_identity_provider": {"workload_identity_pool"},
-                "workforce_provider": {"workforce_pool"}, "kms_key": {"kms_key_ring"}}
+                "workforce_provider": {"workforce_pool"}, "kms_key": {"kms_key_ring"},
+                "group": {"iam_policy", "organization"}, "group_membership": {"group", "iam_policy", "organization"}}
 
 
 def normalize_scope(value):
@@ -451,7 +503,7 @@ def item_identity(kind, scope, item):
         name = item.get(field)
         if kind == "iam_policy" and name == scope:
             return "//cloudresourcemanager.googleapis.com/" + scope
-        if isinstance(name, str) and (name.startswith(("https://", "//", "projects/", "organizations/", "folders/", "locations/"))):
+        if isinstance(name, str) and (name.startswith(("https://", "//", "projects/", "organizations/", "folders/", "locations/", "groups/", "roles/", "policies/"))):
             return name
     name = str(item.get("name") or item.get("id") or item.get("email") or "")
     location = item.get("zone") or item.get("region") or item.get("location") or item.get("_aggregated_scope") or "global"
@@ -466,7 +518,7 @@ def relationships(item):
         "target": "forwards_to", "backendService": "uses_backend", "urlMap": "uses_url_map",
         "defaultService": "uses_backend", "service": "uses_backend", "group": "uses_instance_group",
         "healthChecks": "uses_health_check", "kmsKeyName": "encrypted_with", "defaultKmsKeyName": "encrypted_with",
-        "destination": "logs_to", "keyRing": "belongs_to_key_ring"}
+        "destination": "logs_to", "keyRing": "belongs_to_key_ring", "group": "member_of_group", "member": "member_reference"}
     def visit(value, path=""):
         if isinstance(value, dict):
             for field, child in value.items():
@@ -488,7 +540,11 @@ def relationships(item):
 class GCPCollector:
     def __init__(self, connector, requirements=None, *, transport=None):
         self.options = dict(connector.get("options") or {})
-        self.auth = connector.get("auth") or {}
+        self.auth = connector.get("auth", {})
+        if self.auth is None:
+            self.auth = {}
+        if not isinstance(self.auth, dict):
+            raise ValueError("GCP auth must be an object")
         if self.auth.get("quota_project"):
             self.options["quota_project"] = self.auth["quota_project"]
         requested = self.options.get("inventories", sorted(SUPPORTED_TYPES))
@@ -503,6 +559,11 @@ class GCPCollector:
             self.needed.update(DEPENDENCIES.get(kind, set()))
         self.scopes = list(dict.fromkeys(normalize_scope(s) for s in connector.get("scopes", [])))
         self.requested_scopes = self.scopes[:]
+        self.auto_scopes = not self.scopes
+        if self.auto_scopes:
+            self.scopes = ["*"]
+            self.options["all_projects"] = True
+            self.options["all_hierarchy"] = True
         self.allowed = self.options.get("project_restrictions", self.options.get("allowed_projects"))
         if self.allowed is not None:
             if not isinstance(self.allowed, list) or any(not isinstance(x, str) for x in self.allowed):
@@ -514,14 +575,14 @@ class GCPCollector:
                 raise ValueError("explicit project is outside project_restrictions")
         if not self.scopes or ("*" in self.scopes and not self.options.get("all_projects")):
             raise ValueError("GCP requires explicit scopes; '*' requires all_projects=true")
-        self.max_scopes = bound(self.options, "max_scopes", 100, 1, 1000)
-        if len(self.scopes) > self.max_scopes:
+        self.max_scopes = optional_bound(self.options, "max_scopes", 1, 100000)
+        if self.max_scopes is not None and len(self.scopes) > self.max_scopes:
             raise ValueError("scope limit exceeded")
-        self.max_pages = bound(self.options, "max_pages", 10, 1, 100)
-        self.max_items = bound(self.options, "max_resources", 10000, 1, 100000)
+        self.max_pages = optional_bound(self.options, "max_pages", 1, 100000)
+        self.max_items = optional_bound(self.options, "max_resources", 1, 10000000)
         self.page_size = bound(self.options, "page_size", 100, 1, 1000)
         self.workers = bound(self.options, "concurrency", 4, 1, 16)
-        self.max_calls = bound(self.options, "max_calls", 1000, 1, 100000)
+        self.max_calls = optional_bound(self.options, "max_calls", 1, 100000)
         self.collections = {}
         self.lock = threading.Lock()
         self.total_items = 0
@@ -540,25 +601,36 @@ class GCPCollector:
         if not single and page_size_key:
             params.setdefault(page_size_key, min(self.page_size, 500 if "compute.googleapis.com" in url else 1000))
         seen = set()
-        for page in range(self.max_pages):
+        for page in count():
             data, request_id = self.read(url, scope, params=params, body=body, method=method, operation=operation)
+            def malformed(code):
+                error = ReadError("malformed", code)
+                error.request_id = request_id
+                return error
             if not isinstance(data, dict):
-                raise ReadError("malformed", "malformed_response")
-            items = [data] if single else data.get("items" if aggregate else key, [])
+                raise malformed("malformed_response")
+            incomplete = isinstance(data.get("warning"), dict) and data["warning"].get("code") not in (None, "NO_RESULTS_ON_PAGE")
+            items = [data] if single else data.get("items" if aggregate else key, {} if aggregate else [])
             if aggregate:
                 if not isinstance(items, dict):
-                    raise ReadError("malformed", "malformed_aggregated_list")
+                    raise malformed("malformed_aggregated_list")
                 flattened = []
                 for location, group in sorted(items.items()):
                     if not isinstance(group, dict) or not isinstance(group.get(aggregate, []), list):
-                        raise ReadError("malformed", "malformed_aggregated_list")
+                        raise malformed("malformed_aggregated_list")
+                    if any(not isinstance(entry, dict) for entry in group.get(aggregate, [])):
+                        raise malformed("malformed_aggregated_list")
+                    if isinstance(group.get("warning"), dict) and group["warning"].get("code") not in (None, "NO_RESULTS_ON_PAGE"):
+                        incomplete = True
                     flattened.extend({**x, "_aggregated_scope": location} for x in group.get(aggregate, []))
                 items = flattened
             if not isinstance(items, list) or any(not isinstance(x, dict) for x in items):
-                raise ReadError("malformed", "malformed_list")
+                raise malformed("malformed_list")
             if transform:
                 items = [transform(item) for item in items]
             yield items, request_id
+            if incomplete:
+                raise ReadError("unavailable", "partial_api_warning")
             if data.get("unreachables") or data.get("unreachable") or data.get("missingZones"):
                 raise ReadError("unavailable", "unreachable_locations")
             token = data.get("nextPageToken")
@@ -567,7 +639,7 @@ class GCPCollector:
             if not isinstance(token, str) or token in seen:
                 raise ReadError("malformed", "repeated_pagination_token")
             seen.add(token)
-            if page + 1 >= self.max_pages:
+            if self.max_pages is not None and page + 1 >= self.max_pages:
                 raise ReadError("unavailable", "page_limit")
             if body is not None:
                 body = {**body, "pageToken": token}
@@ -591,7 +663,7 @@ class GCPCollector:
                     with self.lock:
                         identity = (kind, scope, rid)
                         if identity not in self.seen_items:
-                            if self.total_items >= self.max_items:
+                            if self.max_items is not None and self.total_items >= self.max_items:
                                 raise ReadError("unavailable", "resource_limit")
                             self.seen_items.add(identity)
                             self.total_items += 1
@@ -667,6 +739,9 @@ class GCPCollector:
             result = self.add("project", "discovery", "cloudresourcemanager", lambda: self.pages(
                 "https://cloudresourcemanager.googleapis.com/v3/projects:search", "discovery", key="projects",
                 params={"query": "state:ACTIVE"}))
+            if result["coverage_status"] not in ("collected", "empty"):
+                self.scope_errors.append({"scope": "discovery", "operation": "projects:search", "status": result["coverage_status"],
+                    "error": result.get("error"), "source_requests": result["source_requests"]})
             discovered = [normalize_scope(item.get("projectId") or item["name"]) for item in result["items"]]
             self.scopes = [s for s in self.scopes if s != "*"] + discovered
         if self.options.get("discover_projects"):
@@ -681,6 +756,14 @@ class GCPCollector:
                     project = item.get("projectId") or item.get("project_id")
                     if project:
                         self.scopes.append(normalize_scope(project))
+        if self.options.get("all_hierarchy"):
+            for kind, key in (("organization", "organizations"), ("folder", "folders")):
+                result = self.add(kind, "discovery", "cloudresourcemanager", lambda key=key: self.pages(
+                    f"https://cloudresourcemanager.googleapis.com/v3/{key}:search", "discovery", key=key))
+                if result["coverage_status"] not in ("collected", "empty"):
+                    self.scope_errors.append({"scope": "discovery", "operation": key + ":search", "status": result["coverage_status"],
+                        "error": result.get("error"), "source_requests": result["source_requests"]})
+                self.scopes.extend(normalize_scope(item["name"]) for item in result["items"])
         self.scopes = list(dict.fromkeys(s for s in self.scopes if not s.startswith("projects/") or
                                         self.allowed is None or s in self.allowed))
         # Remove discovery evidence about projects excluded by restrictions.
@@ -691,7 +774,7 @@ class GCPCollector:
                         x.get("projectId") or x.get("project_id") or x.get("name", "excluded")) in self.allowed]
                     if not collection["items"] and collection["status"] == "collected":
                         collection["status"] = collection["coverage_status"] = "empty"
-        if len(self.scopes) > self.max_scopes:
+        if self.max_scopes is not None and len(self.scopes) > self.max_scopes:
             self.scopes = self.scopes[:self.max_scopes]
             self.scope_errors.append({"code": "scope_limit", "status": "partial"})
 
@@ -746,6 +829,12 @@ class GCPCollector:
                     hydrated.append(item)
                 yield hydrated, request_id
         add("iam_deny_policy", "iam", deny_policies)
+        add("policy_binding", "iam", lambda: self.pages(f"https://iam.googleapis.com/v3/{scope}/locations/global/policyBindings",
+            scope, key="policyBindings"))
+        if scope_type == "organization":
+            add("principal_access_boundary_policy", "iam", lambda: self.pages(
+                f"https://iam.googleapis.com/v3/{scope}/locations/global/principalAccessBoundaryPolicies", scope,
+                key="principalAccessBoundaryPolicies"))
         if scope_type in ("project", "organization"):
             add("iam_role", "iam", lambda: self.pages(f"https://iam.googleapis.com/v1/{scope}/roles", scope,
                 key="roles", params={"view": "FULL", "showDeleted": "true"}))
@@ -795,6 +884,8 @@ class GCPCollector:
             scope, page_size_key="maxResults"))
         add("gke_cluster", "container", lambda: self.pages(f"https://container.googleapis.com/v1/{scope}/locations/-/clusters",
             scope, key="clusters", page_size_key=None))
+        add("app_engine_application", "appengine", lambda: self.pages(f"https://appengine.googleapis.com/v1/apps/{project}",
+            scope, single=True))
         def service_accounts():
             for items, request_id in self.pages(f"https://iam.googleapis.com/v1/{scope}/serviceAccounts", scope, key="accounts"):
                 yield [self.hydrate(item, "iamPolicy", f"https://iam.googleapis.com/v1/{item['name']}:getIamPolicy",
@@ -929,8 +1020,8 @@ class GCPCollector:
                 self.scope_errors.append({"scope": scope, "operation": "getAncestry", "status": exc.status,
                     "error": exc.error, "source_requests": [exc.request_id] if getattr(exc, "request_id", None) else []})
         self.inherited_scopes = sorted(parents - set(self.scopes))
-        remaining = self.max_scopes - len(self.scopes)
-        if len(self.inherited_scopes) > remaining:
+        remaining = self.max_scopes - len(self.scopes) if self.max_scopes is not None else None
+        if remaining is not None and len(self.inherited_scopes) > remaining:
             self.inherited_scopes = self.inherited_scopes[:max(0, remaining)]
             self.scope_errors.append({"code": "inherited_scope_limit", "status": "partial"})
         jobs = []
@@ -985,6 +1076,8 @@ class GCPCollector:
                             transform=transform if parent == "kms_key_ring" else None)
                 add(child, scope, "cloudkms" if parent == "kms_key_ring" else "iam", children)
         self.run_jobs(jobs)
+        if self.needed.intersection({"group", "group_membership"}):
+            self.directory_groups()
         if "iam_role" in self.needed:
             role_scopes = {}
             for scope, policy in self.items("iam_policy"):
@@ -1005,6 +1098,86 @@ class GCPCollector:
                     f"https://iam.googleapis.com/v1/{role}", scope, single=True)))
             self.run_jobs(jobs)
 
+    def directory_groups(self):
+        """Resolve declared group references and selected directory group realms."""
+        if not self.scopes:
+            return
+        scope = self.scopes[0]
+        references = sorted({member.removeprefix("group:") for _, policy in self.items("iam_policy")
+            for binding in policy.get("bindings", []) for member in binding.get("members", [])
+            if isinstance(member, str) and member.startswith("group:")})
+        customers = set(self.options.get("cloud_identity_customers", []))
+        for _, organization in self.items("organization"):
+            owner = organization.get("owner", {})
+            customer = organization.get("directoryCustomerId") or (owner.get("directoryCustomerId") if isinstance(owner, dict) else None)
+            if customer:
+                customers.add(customer)
+        if any(not isinstance(customer, str) or not re.fullmatch(r"C[A-Za-z0-9_-]+", customer) for customer in customers):
+            raise ValueError("cloud_identity_customers must contain Google directory customer IDs")
+        def groups():
+            failures = []
+            for customer in sorted(customers):
+                try:
+                    yield from self.pages("https://cloudidentity.googleapis.com/v1/groups", scope, key="groups",
+                        params={"parent": "customers/" + customer, "view": "FULL", "pageSize": min(self.page_size, 500)})
+                except ReadError as exc:
+                    failures.append(exc)
+            for email in references:
+                try:
+                    resolved, request_id = self.read("https://cloudidentity.googleapis.com/v1/groups:lookup", scope,
+                        params={"groupKey.id": email})
+                    name = resolved.get("name")
+                    if not isinstance(name, str) or not re.fullmatch(r"groups/[A-Za-z0-9_-]+", name):
+                        raise ReadError("malformed", "invalid_group_reference")
+                    item = self.hydrate({"name": name, "groupKey": {"id": email}, "referencedPrincipal": "group:" + email},
+                        "groupDetails", f"https://cloudidentity.googleapis.com/v1/{name}", scope)
+                    if item["_coverage"]["groupDetails"]["status"] == "collected":
+                        item.update(item.pop("groupDetails"))
+                    yield [item], request_id
+                except ReadError as exc:
+                    failures.append(exc)
+            # Without a known customer realm, reference resolution cannot claim
+            # a complete directory inventory, even if all referenced groups read.
+            if not customers:
+                failures.append(ReadError("unavailable", "directory_customer_scope_unknown"))
+            if failures:
+                raise failures[0]
+        group_collection = self.add("group", scope, "cloudidentity", groups)
+        if "group_membership" not in self.needed:
+            return
+        def memberships():
+            failures = []
+            for group in group_collection["items"]:
+                name = group.get("name")
+                if not isinstance(name, str) or not re.fullmatch(r"groups/[A-Za-z0-9_-]+", name):
+                    failures.append(ReadError("malformed", "invalid_group_reference"))
+                    continue
+                for relation, endpoint in (("direct", "memberships"), ("transitive", "memberships:searchTransitiveMemberships")):
+                    try:
+                        for items, request_id in self.pages(f"https://cloudidentity.googleapis.com/v1/{name}/{endpoint}", scope,
+                            key="memberships", params={"view": "FULL", "pageSize": min(self.page_size, 500)} if relation == "direct" else None):
+                            transformed = []
+                            for index, member in enumerate(items):
+                                identifier = member.get("name") or member.get("member") or str(member.get("preferredMemberKey") or member.get("memberKey"))
+                                transformed.append({**member, "name": f"{name}/{relation}/{identifier}", "group": name,
+                                    "membershipKind": relation, "groupKey": group.get("groupKey"),
+                                    "membershipCoverage": {"status": "observed", "completeTransitiveClosure": False}})
+                            yield transformed, request_id
+                    except ReadError as exc:
+                        failures.append(exc)
+                        group.setdefault("_coverage", {})[relation + "Memberships"] = {
+                            "status": exc.status, "error": exc.error,
+                            "source_requests": [exc.request_id] if getattr(exc, "request_id", None) else []}
+            if group_collection["status"] not in ("collected", "empty"):
+                failures.append(ReadError("unavailable", "group_inventory_incomplete"))
+            if failures:
+                raise failures[0]
+        collected = self.add("group_membership", scope, "cloudidentity", memberships)
+        if collected["status"] in ("collected", "empty"):
+            for member in collected["items"]:
+                member["membershipCoverage"] = {"status": "collected", "completeTransitiveClosure": True,
+                    "semantics": "Cloud Identity membership visibility, not effective cloud permissions"}
+
     def finish(self):
         from peaso.snapshot import make_snapshot
         envelopes = []
@@ -1014,9 +1187,13 @@ class GCPCollector:
                 envelopes.append(collection)
         metadata = {"collection": "read-only", "collector": "native-gcp", "requested_scopes": self.requested_scopes,
             "resolved_scopes": self.scopes, "inherited_scopes": getattr(self, "inherited_scopes", []),
-            "auth_method": getattr(getattr(self.transport, "credentials", None), "method", self.auth.get("method", "adc")),
+            "auth_method": getattr(getattr(self.transport, "credentials", None), "method", selected_auth_method(self.auth)),
             "calls": getattr(self.transport, "calls", 0), "max_calls": self.max_calls, "max_pages": self.max_pages,
-            "max_resources": self.max_items, "concurrency": self.workers, "asset_read_time": self.read_time,
+            "max_resources": self.max_items, "max_scopes": self.max_scopes, "concurrency": self.workers, "asset_read_time": self.read_time,
+            "intentional_limits": {key: self.options[key] for key in ("max_calls", "max_pages", "max_resources", "max_scopes", "deadline_seconds")
+                                   if self.options.get(key) is not None},
+            "collection_mode": "intentionally_limited" if any(self.options.get(key) is not None for key in
+                ("max_calls", "max_pages", "max_resources", "max_scopes", "deadline_seconds")) else "full",
             "omitted_inventories": sorted(SUPPORTED_TYPES - self.wanted), "supporting_inventories": sorted(self.needed - self.wanted),
             "source_requests": getattr(self.transport, "evidence", []), "scope_coverage": self.scope_errors,
             "project_restrictions": sorted(self.allowed) if self.allowed is not None else None,
@@ -1028,7 +1205,8 @@ class GCPCollector:
                 "Shared VPC references outside selected projects are not traversed"]}
         # Preserve exactly the user's selection; resolved scopes and ancestry are
         # separately explicit and every collection is individually scoped.
-        return make_snapshot("gcp", self.requested_scopes, envelopes, metadata=sanitize(metadata))
+        snapshot_scopes = (self.scopes or ["*"]) if self.auto_scopes else self.requested_scopes
+        return make_snapshot("gcp", snapshot_scopes, envelopes, metadata=sanitize(metadata))
 
     def collect(self):
         owned_transport = self.transport is None

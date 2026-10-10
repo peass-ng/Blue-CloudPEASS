@@ -1,0 +1,1462 @@
+{
+  "aws-compliance.control.acm_certificate_expires_30_days": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.acm.expiry_thirty_days"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "fa7684f65f35e12c874fecda0ded5b9a6de4b9929d4e87e5d9608eef3f0ac366",
+      "query_id": "acm_certificate_expires_30_days",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/acm.pp#L7"
+    }
+  },
+  "aws-compliance.control.acm_certificate_no_failed_certificate": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.acm.no_failed_validation"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "29c50b684e3662e8626a9569bbf2f50e4926b8c55f43a1bfe76f964d2abbac81",
+      "query_id": "acm_certificate_no_failed_certificate",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/acm.pp#L61"
+    }
+  },
+  "aws-compliance.control.acm_certificate_no_pending_validation_certificate": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.acm.pending_validation_review"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4400294b5a55ce3df7eab4d238f3a24c7635aa2a673060147829cc006c50c4d8",
+      "query_id": "acm_certificate_no_pending_validation_certificate",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/acm.pp#L71"
+    }
+  },
+  "aws-compliance.control.acm_certificate_no_wildcard_domain_name": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.acm.no_wildcard_domain"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "438cbe3fff91fe9dbb60177c3e24d1b92497fb948aebc62fc984c2f9ac26eb04",
+      "query_id": "acm_certificate_no_wildcard_domain_name",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/acm.pp#L43"
+    }
+  },
+  "aws-compliance.control.acm_certificate_not_expired": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.acm.not_past_expiry_date"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4fdc680bdf51aae7da623bacbdba582dc82f0044ce1c496ff10f639137317943",
+      "query_id": "acm_certificate_not_expired",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/acm.pp#L51"
+    }
+  },
+  "aws-compliance.control.acm_certificate_rsa_key_length_2048_bits_or_greater": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.acm.rsa_minimum_2048"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reason": "The SQL first skips every key not LIKE RSA-%, then tries to fail exact RSA_1024; that failing value is necessarily excluded by the first branch, so no value can ever reach FAIL. Current ACM API documents RSA_1024/RSA_2048 underscore values. Corrected native key-length assessment is separate.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "65512be42e7ab5a8a240066a9f51dc42c78a4b84a41573268154a3e09248e7da",
+      "query_id": "acm_certificate_rsa_key_length_2048_bits_or_greater",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/acm.pp#L81"
+    }
+  },
+  "aws-compliance.control.acm_certificate_transparency_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.acm.transparency_logging"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "3f21c388be3275475ce690478af665602a2f30b072417665b26d48f421142694",
+      "query_id": "acm_certificate_transparency_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/acm.pp#L33"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_10_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "10.1 Ensure you are using VPC Endpoints for source code access",
+      "guidance": "App Runner needs access to your application source, so it can't be encrypted. Therefore, be sure to secure the connection between your development or deployment environment and App Runner."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_10.pp#L20"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_11_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "11.1 Ensure communications between your applications and clients is encrypted",
+      "guidance": "SimSpace Weaver doesn't manage communications between your apps and the clients."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_11.pp#L20"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.1 Apply updates to any apps running in Lightsail",
+      "guidance": "Amazon Lightsail is a virtual private server (VPS) provider and is the easiest way to get started with AWS for developers, small businesses, students, and other users who need a solution to build and host their applications on cloud."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L31"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.10 Enable storage bucket access logging",
+      "guidance": "Access logging provides detailed records for the requests that are made to this bucket. This information can include the request type, the resources that are specified in the request, and the time and date that the request was processed. Access logs are useful for many applications."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L157"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.11 Ensure your Windows Server based lightsail instances are updated with the latest security patches",
+      "guidance": "Windows server based Lightsail instances are still managed by the consumer and any security updates or patches have to be installed and maintained by the user."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L171"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.12 Change the auto-generated password for Windows based instances",
+      "guidance": "When you create a Windows Server-based instance, Lightsail randomly generates a long password that is hard to guess. You use this password uniquely with your new instance. You can use the default password to connect quickly to your instance using remote desktop (RDP). You are always logged in as the Administrator on your Lightsail instance."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L185"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.2 Change default Administrator login names and passwords for applications",
+      "guidance": "Change the default settings for the administrator login names and passwords of the application software that you install on Lightsail instances."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L45"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.7 Ensure you are using an IAM policy to manage access to buckets in Lightsail",
+      "guidance": "The following policy grants a user access to manage a specific bucket in the Amazon Lightsail object storage service."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L115"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.8 Ensure Lightsail instances are attached to the buckets",
+      "guidance": "Attaching an Amazon Lightsail instance to a Lightsail storage bucket gives it full programmatic access to the bucket and its objects."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L129"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_3_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "3.9 Ensure that your Lightsail buckets are not publicly accessible",
+      "guidance": "You can make all objects private, public (read-only) or private while making individual objects public (read-only). By default when creating a bucket the permissions are set to 'All objects are private'."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_3.pp#L143"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.1 Ensure AWS Config is enabled for Lambda and serverless",
+      "guidance": "With AWS Config, you can track configuration changes to the Lambda functions (including deleted functions), runtime environments, tags, handler name, code size, memory allocation, timeout settings, and concurrency settings, along with Lambda IAM execution role, subnet, and security group associations."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L31"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.10 Ensure Lambda functions do not allow unknown cross account access via permission policies",
+      "guidance": "Ensure that all your Amazon Lambda functions are configured to allow access only to trusted AWS accounts in order to protect against unauthorized cross-account access."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L157"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.11 Ensure that the runtime environment versions used for your Lambda functions do not have end of support dates",
+      "guidance": "Always using a recent version of the execution environment configured for your Amazon Lambda functions adheres to best practices for the newest software features, the latest security patches and bug fixes, and performance and reliability."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L171"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.lambda.insights_layer"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c406eea49d17e80e50ca000ddfb514ab912793401932a557fa679e97a50b78d9",
+      "query_id": "lambda_function_cloudwatch_insights_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L45"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.3 Ensure AWS Secrets manager is configured and being used by Lambda for databases",
+      "guidance": "Lambda functions often have to access a database or other services within your environment."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L59"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.4 Ensure least privilege is used with Lambda function access",
+      "guidance": "Lambda is fully integrated with IAM, allowing you to control precisely what each Lambda function can do within the AWS Cloud. As you develop a Lambda function, you expand the scope of this policy to enable access to other resources. For example, for a function that processes objects put into an S3 bucket, it requires read access to objects stored in that bucket."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L73"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.5 Ensure every Lambda function has its own IAM Role",
+      "guidance": "Every Lambda function should have a one to one IAM execution role and the roles should not be shared between functions."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L87"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.7 Ensure Lambda functions are referencing active execution",
+      "guidance": "In order to have the necessary permissions to access the AWS cloud services and resources Amazon Lambda functions should be associated with active(available) execution roles."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L115"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.8 Ensure that Code Signing is enabled for Lambda functions",
+      "guidance": "Ensure that all your Amazon Lambda functions are configured to use the Code Signing feature in order to restrict the deployment of unverified code."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L129"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_4_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.9 Ensure there are no Lambda functions with admin privileges within your AWS account",
+      "guidance": "Ensure that your Amazon Lambda functions don't have administrative permissions potentially giving the function access to all AWS cloud services and resources."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_4.pp#L143"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_5_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.1 Ensure AWS Batch is configured with AWS Cloudwatch Logs",
+      "guidance": "You can configure Batch jobs to send log information to CloudWatch Logs."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_5.pp#L21"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_5_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.2 Ensure Batch roles are configured for cross-service confused deputy prevention",
+      "guidance": "The Cross-service confused deputy problem is a security issue where an entity that doesn't have permission to perform an action can coerce a more-privileged entity to perform the action."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_5.pp#L35"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_6_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "6.1 Ensure Managed Platform updates is configured",
+      "guidance": "AWS Elastic Beanstalk regularly releases platform updates to provide fixes, software updates, and new features. With managed platform updates, you can configure your environment to automatically upgrade to the latest version of a platform during a scheduled maintenance window."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_6.pp#L23"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_6_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "6.3 Ensure access logs are enabled",
+      "guidance": "When you enable load balancing, your AWS Elastic Beanstalk environment is equipped with an Elastic Load Balancing load balancer to distribute traffic among the instances in your environment."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_6.pp#L51"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_6_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "6.4 Ensure that HTTPS is enabled on load balancer",
+      "guidance": "The simplest way to use HTTPS with an Elastic Beanstalk environment is to assign a server certificate to your environment's load balancer."
+    },
+    "reason": "Individually inspected control title and constant manual_control query: SELECT aws_account identity, literal info status, Manual verification required; there is no automatic predicate. Preserve this exact human requirement and all source compliance mappings separately from native check counts.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "query_id": "manual_control",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_6.pp#L65"
+    }
+  },
+  "aws-compliance.control.dynamodb_table_point_in_time_recovery_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dynamodb.point_in_time_recovery"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "8f5d149a65c80dd5695f36ba970a623e25ed1fb3c88eb4cffd9125401056e42a",
+      "query_id": "dynamodb_table_point_in_time_recovery_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/dynamodb.pp#L30"
+    }
+  },
+  "aws-compliance.control.eks_cluster_control_plane_audit_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.eks.audit_log_category"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "43154023bc2b910c43a6b60115dbe5aba341215803c84f80d52cc2e72ce5c1b9",
+      "query_id": "eks_cluster_control_plane_audit_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/eks.pp#L36"
+    }
+  },
+  "aws-compliance.control.eks_cluster_endpoint_restrict_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.eks.disable_public_endpoint"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4dcdf03b91271ff43a4e93dcdea975b2c2a677e71dc824d95e21bf089552260e",
+      "query_id": "eks_cluster_endpoint_restrict_public_access",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/eks.pp#L22"
+    }
+  },
+  "aws-compliance.control.eks_cluster_no_default_vpc": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.eks.no_default_vpc"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ea90b03f145acaaa8f0a0ad6b9deed4c3dabeda9d593005a18f6afb518065827",
+      "query_id": "eks_cluster_no_default_vpc",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/eks.pp#L47"
+    }
+  },
+  "aws-compliance.control.elb_application_classic_lb_logging_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.alb.access_logs",
+      "aws.b.classic_elb.access_logs"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html",
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d792b31f5ec4f2d4b02e378087756e9808ab3d60a686354584b301814ecb3de5",
+      "query_id": "elb_application_classic_lb_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L31"
+    }
+  },
+  "aws-compliance.control.elb_application_gateway_network_lb_multiple_az_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elbv2.multiple_az"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b12e1f019a50100e009618007e5a383b1b45193c2b771c4a72482f6fadff8903",
+      "query_id": "elb_application_gateway_network_lb_multiple_az_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L380"
+    }
+  },
+  "aws-compliance.control.elb_application_lb_deletion_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.alb.deletion_protection"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "548d440151c4e17c941fbae7a6f54d0af046e6075969f1d16ea59c7fc17e1215",
+      "query_id": "elb_application_lb_deletion_protection_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L61"
+    }
+  },
+  "aws-compliance.control.elb_application_lb_desync_mitigation_mode": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.alb.desync_mode"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "9a962f54ab0c89e5cb035db13c51de93eae78845bd5c83d175dbf4cad3f1d693",
+      "query_id": "elb_application_lb_desync_mitigation_mode",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L346"
+    }
+  },
+  "aws-compliance.control.elb_application_lb_drop_http_headers": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.alb.invalid_header_dropping"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "23419f11b13721089af21670bd6935f8fb103d2d73f50201ddb68b6aa2cc75f2",
+      "query_id": "elb_application_lb_drop_http_headers",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L162"
+    }
+  },
+  "aws-compliance.control.elb_application_lb_http_drop_invalid_header_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.alb.invalid_header_dropping"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1ab2c867cf1fc3114f49593270113bc3f86f1d5ecebf5a32f56897e3a9855fda",
+      "query_id": "elb_application_lb_http_drop_invalid_header_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L183"
+    }
+  },
+  "aws-compliance.control.elb_application_network_lb_use_listeners": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elbv2.listener_presence"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7d20fdc37253b97789a8af1157a96f37ab711ed7432c579e91cd22cf82c408bd",
+      "query_id": "elb_application_network_lb_use_listeners",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L320"
+    }
+  },
+  "aws-compliance.control.elb_classic_lb_cross_zone_load_balancing_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.cross_zone"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1132a93460953c0fb5043e78eb6f06f14ad273a30a6c73a78a90cc8f008140a8",
+      "query_id": "elb_classic_lb_cross_zone_load_balancing_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L232"
+    }
+  },
+  "aws-compliance.control.elb_classic_lb_desync_mitigation_mode": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.desync_mode"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "0d00e23620b3ad8b8f6307dc9e00482e720d6a833372cbcbf05bafdb41e424f4",
+      "query_id": "elb_classic_lb_desync_mitigation_mode",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L357"
+    }
+  },
+  "aws-compliance.control.elb_classic_lb_multiple_az_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.multiple_az"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1bfad8c7efd0e42a6b6a64e27afc08ae0ad85bfe44469f1fd65e062dc162201b",
+      "query_id": "elb_classic_lb_multiple_az_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L369"
+    }
+  },
+  "aws-compliance.control.elb_classic_lb_use_ssl_certificate": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_Listener.html"
+    ],
+    "reason": "The SQL selects listeners that use an ACM ARN and returns alarm when that selected listener exists, while its reason says no ACM certificate is used. This reverses the intended certificate-source condition and can PASS a non-ACM listener while failing an ACM listener. This inverted source predicate is invalid, not an unimplemented-facts rejection.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "0e0660bc7512bba67a2db16054d35d1ecab49e987a27f216b667ba7a89c396f5",
+      "query_id": "elb_classic_lb_use_ssl_certificate",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L134"
+    }
+  },
+  "aws-compliance.control.elb_classic_lb_use_tls_https_listeners": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.encrypted_listeners"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "a7bf62844a57e1fec59f0719de2ca8beb53503f564dbd43d8dc456307853d197",
+      "query_id": "elb_classic_lb_use_tls_https_listeners",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elb.pp#L204"
+    }
+  },
+  "aws-compliance.control.foundational_security_acm_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.acm.expiry_thirty_days"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "fa7684f65f35e12c874fecda0ded5b9a6de4b9929d4e87e5d9608eef3f0ac366",
+      "query_id": "acm_certificate_expires_30_days",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/acm.pp#L20"
+    }
+  },
+  "aws-compliance.control.foundational_security_acm_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.acm.rsa_minimum_2048"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"
+    ],
+    "reason": "The SQL first skips every key not LIKE RSA-%, then tries to fail exact RSA_1024; that failing value is necessarily excluded by the first branch, so no value can ever reach FAIL. Current ACM API documents RSA_1024/RSA_2048 underscore values. Corrected native key-length assessment is separate.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "65512be42e7ab5a8a240066a9f51dc42c78a4b84a41573268154a3e09248e7da",
+      "query_id": "acm_certificate_rsa_key_length_2048_bits_or_greater",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/acm.pp#L33"
+    }
+  },
+  "aws-compliance.control.foundational_security_dynamodb_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dynamodb.point_in_time_recovery"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "8f5d149a65c80dd5695f36ba970a623e25ed1fb3c88eb4cffd9125401056e42a",
+      "query_id": "dynamodb_table_point_in_time_recovery_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/dynamodb.pp#L36"
+    }
+  },
+  "aws-compliance.control.foundational_security_eks_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.eks.disable_public_endpoint"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4dcdf03b91271ff43a4e93dcdea975b2c2a677e71dc824d95e21bf089552260e",
+      "query_id": "eks_cluster_endpoint_restrict_public_access",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/eks.pp#L21"
+    }
+  },
+  "aws-compliance.control.foundational_security_eks_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.eks.audit_log_category"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "43154023bc2b910c43a6b60115dbe5aba341215803c84f80d52cc2e72ce5c1b9",
+      "query_id": "eks_cluster_control_plane_audit_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/eks.pp#L47"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.multiple_az"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1bfad8c7efd0e42a6b6a64e27afc08ae0ad85bfe44469f1fd65e062dc162201b",
+      "query_id": "elb_classic_lb_multiple_az_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L135"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.alb.desync_mode"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "9a962f54ab0c89e5cb035db13c51de93eae78845bd5c83d175dbf4cad3f1d693",
+      "query_id": "elb_application_lb_desync_mitigation_mode",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L148"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elbv2.multiple_az"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b12e1f019a50100e009618007e5a383b1b45193c2b771c4a72482f6fadff8903",
+      "query_id": "elb_application_gateway_network_lb_multiple_az_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L161"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.desync_mode"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "0d00e23620b3ad8b8f6307dc9e00482e720d6a833372cbcbf05bafdb41e424f4",
+      "query_id": "elb_classic_lb_desync_mitigation_mode",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L174"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_Listener.html"
+    ],
+    "reason": "The SQL selects listeners that use an ACM ARN and returns alarm when that selected listener exists, while its reason says no ACM certificate is used. This reverses the intended certificate-source condition and can PASS a non-ACM listener while failing an ACM listener. This inverted source predicate is invalid, not an unimplemented-facts rejection.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "0e0660bc7512bba67a2db16054d35d1ecab49e987a27f216b667ba7a89c396f5",
+      "query_id": "elb_classic_lb_use_ssl_certificate",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L44"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.encrypted_listeners"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "a7bf62844a57e1fec59f0719de2ca8beb53503f564dbd43d8dc456307853d197",
+      "query_id": "elb_classic_lb_use_tls_https_listeners",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L57"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.alb.invalid_header_dropping"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1ab2c867cf1fc3114f49593270113bc3f86f1d5ecebf5a32f56897e3a9855fda",
+      "query_id": "elb_application_lb_http_drop_invalid_header_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L70"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.alb.access_logs",
+      "aws.b.classic_elb.access_logs"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html",
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d792b31f5ec4f2d4b02e378087756e9808ab3d60a686354584b301814ecb3de5",
+      "query_id": "elb_application_classic_lb_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L83"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.alb.deletion_protection"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "548d440151c4e17c941fbae7a6f54d0af046e6075969f1d16ea59c7fc17e1215",
+      "query_id": "elb_application_lb_deletion_protection_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L96"
+    }
+  },
+  "aws-compliance.control.foundational_security_elb_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.classic_elb.cross_zone"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerAttributes.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1132a93460953c0fb5043e78eb6f06f14ad273a30a6c73a78a90cc8f008140a8",
+      "query_id": "elb_classic_lb_cross_zone_load_balancing_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elb.pp#L122"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_19": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.cluster_event_categories"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_EventSubscription.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2851f48f505fa44db67775f3ca32a6d9ff370df8be7fcc761f344eb53384bc33",
+      "query_id": "rds_db_cluster_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L290"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_20": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.instance_event_categories"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_EventSubscription.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "9cc5e436e5dae54761db3a9c2a751fe18213b6b44e293f95f1de6b095d0dc707",
+      "query_id": "rds_db_instance_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L303"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_21": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.rds.parameter_group_event_categories"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Events.Messages.html"
+    ],
+    "reason": "Pinned status requires maintenance/failure on db-parameter-group although its own reason branch requires configuration change. Official RDS DB parameter group event categories are configuration change; the impossible status condition cannot audit the documented valid subscription. Corrected native metadata rule preserves the human requirement without claiming SQL equivalence.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "a8c69a39ef31ca1f25cadf1417d11ebb5533e59984092d4a74cb4a73a69a1471",
+      "query_id": "rds_db_parameter_group_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L316"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_22": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.security_group_event_categories"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_EventSubscription.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "77a8d972d74bdfb4e2dbb5076f5c884106c6af2b865370a8a6ecba8776bc1b6d",
+      "query_id": "rds_db_security_group_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L329"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_24": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_cluster.nondefault_admin"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "02ad64005bc6866fc55fd390f9e376cf92a6d782ef7045eb720d8ea689810c51",
+      "query_id": "rds_db_cluster_no_default_admin_name",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L355"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_25": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_instance.nondefault_admin"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d7968e1cf731e006f9b61baf6399d8a7d960fa11b92b20bacbcfe395518b2037",
+      "query_id": "rds_db_instance_no_default_admin_name",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L368"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_35": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.cluster_minor_upgrade"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "739b648b8660d942528247f27b05d8b2ba4d7bfd37b41e67bd461136ca27bffd",
+      "query_id": "rds_db_cluster_automatic_minor_version_upgrade_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L407"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_43": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.proxy_tls"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBProxy.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "15535b41c6b35309a9ebc5faebbee71e30880811c37500fdf56a470841f0e71c",
+      "query_id": "rds_db_proxy_tls_encryption_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L485"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.engine_log_exports"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7273c6faea7df99dfcfd3629932e78307a6f184b0ab603f2f27b9008833d6766",
+      "query_id": "rds_db_instance_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L160"
+    }
+  },
+  "aws-compliance.control.lambda_function_cloudwatch_insights_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.lambda.insights_layer"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c406eea49d17e80e50ca000ddfb514ab912793401932a557fa679e97a50b78d9",
+      "query_id": "lambda_function_cloudwatch_insights_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/lambda.pp#L174"
+    }
+  },
+  "aws-compliance.control.lambda_function_concurrent_execution_limit_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.lambda.reserved_concurrency"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "f594ac2082ab24758a162aceb07a43b5f023b32ccfcfd0d8fb33d5e4b69a0ba3",
+      "query_id": "lambda_function_concurrent_execution_limit_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/lambda.pp#L101"
+    }
+  },
+  "aws-compliance.control.lambda_function_cors_configuration": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.lambda.url_cors_single_wildcard"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4cd4d470ab13326a790bd49ce1edf6862c48b839ebdf26d0a1d1ef835f28af94",
+      "query_id": "lambda_function_cors_configuration",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/lambda.pp#L19"
+    }
+  },
+  "aws-compliance.control.lambda_function_tracing_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.lambda.active_tracing"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2738303feb49c8318661a08e559da71eb017d429c11e8e76a13f5d6074a08f6e",
+      "query_id": "lambda_function_tracing_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/lambda.pp#L127"
+    }
+  },
+  "aws-compliance.control.lambda_function_variables_no_sensitive_data": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "intrusive_unsuitable",
+    "replacement_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html"
+    ],
+    "reason": "Pinned SQL scans literal Lambda environment-variable VALUES for password/token/key patterns. The collection contract prohibits retaining or auditing literal secret values/function contents; a names-only heuristic is not equivalent. This sensitive-content inspection is unsuitable for the metadata-only scanner and is excluded with this substantive data-access boundary.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "cc15e2b2bf109e6cf531958d5282660b2e5dd7fbabb918bd28d2a1a1d1298b10",
+      "query_id": "lambda_function_variables_no_sensitive_data",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/lambda.pp#L166"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_automatic_minor_version_upgrade_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.cluster_minor_upgrade"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "739b648b8660d942528247f27b05d8b2ba4d7bfd37b41e67bd461136ca27bffd",
+      "query_id": "rds_db_cluster_automatic_minor_version_upgrade_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L575"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_events_subscription": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.cluster_event_categories"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_EventSubscription.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2851f48f505fa44db67775f3ca32a6d9ff370df8be7fcc761f344eb53384bc33",
+      "query_id": "rds_db_cluster_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L31"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_no_default_admin_name": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_cluster.nondefault_admin"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "02ad64005bc6866fc55fd390f9e376cf92a6d782ef7045eb720d8ea689810c51",
+      "query_id": "rds_db_cluster_no_default_admin_name",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L494"
+    }
+  },
+  "aws-compliance.control.rds_db_instance_backup_retention_period_less_than_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.backup_retention_seven_days"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "e4b8895c01d390417b95f80abeb96b4464905404a1bede62d0ed9faaada23631",
+      "query_id": "rds_db_instance_backup_retention_period_less_than_7",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L551"
+    }
+  },
+  "aws-compliance.control.rds_db_instance_events_subscription": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.instance_event_categories"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_EventSubscription.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "9cc5e436e5dae54761db3a9c2a751fe18213b6b44e293f95f1de6b095d0dc707",
+      "query_id": "rds_db_instance_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L42"
+    }
+  },
+  "aws-compliance.control.rds_db_instance_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.engine_log_exports"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7273c6faea7df99dfcfd3629932e78307a6f184b0ab603f2f27b9008833d6766",
+      "query_id": "rds_db_instance_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L258"
+    }
+  },
+  "aws-compliance.control.rds_db_instance_no_default_admin_name": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_instance.nondefault_admin"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d7968e1cf731e006f9b61baf6399d8a7d960fa11b92b20bacbcfe395518b2037",
+      "query_id": "rds_db_instance_no_default_admin_name",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L483"
+    }
+  },
+  "aws-compliance.control.rds_db_parameter_group_events_subscription": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.rds.parameter_group_event_categories"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Events.Messages.html"
+    ],
+    "reason": "Pinned status requires maintenance/failure on db-parameter-group although its own reason branch requires configuration change. Official RDS DB parameter group event categories are configuration change; the impossible status condition cannot audit the documented valid subscription. Corrected native metadata rule preserves the human requirement without claiming SQL equivalence.",
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "a8c69a39ef31ca1f25cadf1417d11ebb5533e59984092d4a74cb4a73a69a1471",
+      "query_id": "rds_db_parameter_group_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L53"
+    }
+  },
+  "aws-compliance.control.rds_db_proxy_tls_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.proxy_tls"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBProxy.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "15535b41c6b35309a9ebc5faebbee71e30880811c37500fdf56a470841f0e71c",
+      "query_id": "rds_db_proxy_tls_encryption_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L650"
+    }
+  },
+  "aws-compliance.control.rds_db_security_group_events_subscription": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds.security_group_event_categories"
+    ],
+    "reason": "Individually reviewed exact pinned query CASE/eligibility/default/threshold and literal parameter-free control reference; native SDK projection preserves source policy. Complete missing/denied/malformed facts remain UNKNOWN. Multi-relation source requires all listed native assessments, preserving provider/account/region and applicability branches. No hash-only parameter merge.",
+    "review_notes": "Source code and native positive/negative/denied/malformed/non-applicable regression tests reviewed; pending unrelated source queries remain unported.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_EventSubscription.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "77a8d972d74bdfb4e2dbb5076f5c884106c6af2b865370a8a6ecba8776bc1b6d",
+      "query_id": "rds_db_security_group_events_subscription",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L64"
+    }
+  }
+}

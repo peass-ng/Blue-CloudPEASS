@@ -67,6 +67,8 @@
   conditions:
     - id: admin_endpoint_reachable
       description: The app's admin endpoint must be reachable from the source's network.
+    - id: writable_content
+      description: Code change through the admin VFS API is not possible when the app runs from a read-only package (WEBSITE_RUN_FROM_PACKAGE).
   blockers:
     - azure_deny_assignment
   confidence: derived

@@ -101,7 +101,9 @@ CASES["gcp.iam.data_access_audit"] = {"pass": {"auditConfigs": [{"service": "all
 
 @register("gcp.gke.network_policy", "gcp", "hardening", "gke_cluster", "GKE configures a NetworkPolicy enforcement engine", "medium", "SC-7", "Use GKE Dataplane V2, Autopilot or supported Calico network policy enforcement and review workload policies.")
 def network_policy(item, index):
-    if item.get("networkConfig", {}).get("datapathProvider") == "ADVANCED_DATAPATH" or item.get("autopilot", {}).get("enabled") is True:
+    network = get(item, "networkConfig", dict) if "networkConfig" in item else {}
+    autopilot = get(item, "autopilot", dict) if "autopilot" in item else {}
+    if network.get("datapathProvider") == "ADVANCED_DATAPATH" or autopilot.get("enabled") is True:
         return result(False, semantics="Dataplane V2/Autopilot includes network policy enforcement; policy coverage is separate")
     enabled = get(item, "networkPolicy.enabled", bool)
     return result(not enabled, network_policy_enabled=enabled, semantics="Configured policy engine only, not workload policy coverage")

@@ -12,6 +12,10 @@ The reference inventory is `peaso/rulepacks/upstream_manifest.json`. Each upstre
 
 `sources.json` pins repository revisions and Apache-2.0 licenses, including license and reference-corpus hashes. `reviewed.json` and provider review shards record explicit associations; the generator never matches titles heuristically. The source directories are reference material only. `native_catalog.json` is a reproducible export of executable check metadata. The manifest retains upstream Python/SQL source hashes, source paths, versions, dependencies, rationale and framework associations, plus native evaluator versions and expected offline cost.
 
+`framework_catalog.json` lists source checklist/version selectors separately from family filters. Each has its exact root ID, declared name/version, provider, source revision, supported native IDs and pending source count. A version with no native predicates is `pending`, and a version with some predicates is `partially_supported`; the catalog never labels an entire checklist complete. `Check.framework_ids` supplies the verified selectors associated with that native predicate.
+
+The integrated registry has **233 executable native checks**: AWS 67, GCP 59, Azure 57 and Kubernetes 50. The full manifest has **6,405 upstream definitions**, comprising **116 ported, 76 merged, 0 rejected and 6,213 pending**. Of those, 561 pending definitions belong to providers outside the runtime; the four-provider reference subset has 5,844 definitions and 5,652 pending. There are 53 family filters, with specific checklist versions retained separately. Native checks with corrected or narrower semantics can remain useful while their related upstream references stay pending; native-check count and supported-source count are different quantities.
+
 Reproduce the manifest from local copies of the pinned archives, then validate it:
 
 ```sh
@@ -47,3 +51,7 @@ python scripts/peaso_review_catalog.py --benchmark
 ```
 
 The fixed performance fixture has 100,000 EBS records, missing fields and denied records. Python and DuckDB must produce identical status arrays: 35,136 UNKNOWN, 32,432 PASS and 32,432 FAIL. The benchmark includes JSON conversion and database loading, so it can be slower than Python for a single simple rule. It makes no claim about provider collection throughput or guaranteed speedup.
+
+The recorded local run in `peaso/rulepacks/performance.json` took 0.098 seconds for Python row results, 0.190 seconds for DuckDB row results and 0.059 seconds for DuckDB set-based summary counts; all statuses/counts matched. `summarize_many` avoids materializing Python findings for every row and is useful for large snapshot facets. These single-run timings are reproducible fixtures, not throughput guarantees.
+
+Validation ran 1,845 registry, scalar-backend and provider-extension assertions, including passing/failing fixtures where applicable, unavailable/malformed facts, purity, source associations, version/applicability boundaries and framework conservation. Captured live AWS, Azure and local Kubernetes snapshots were re-evaluated through the current engine without authentication or cloud calls: respectively 259/1,500/155 resources and 439/2,551/333 findings. Exact repeated reports matched and the input snapshots remained unchanged. Coverage remained explicitly incomplete. Count/timing evidence is in `peaso/rulepacks/integration_summary.json`; raw private snapshots are not included in the rulepacks. No authenticated live GCP snapshot was available, so GCP live validation remains unfinished.

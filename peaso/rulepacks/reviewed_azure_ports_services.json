@@ -1,0 +1,486 @@
+{
+  "azure-compliance.control.redis_cache_ssl_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.redis_cache_ssl_enabled"
+    ],
+    "reason": "Inspected control redis_cache_ssl_enabled delegates without arguments to the exact reviewed query redis_cache_ssl_enabled; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/2024-11-01/redis"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "redis_cache_ssl_enabled",
+      "query_path": "regulatory_compliance/redis.pp",
+      "query_line": 57,
+      "query_sha256": "187777259f09024de93a84cfff46ea4158e894cf1ba06365ec5779a4b5542c18",
+      "status_case_sql": "case when enable_non_ssl_port then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/redis.pp",
+      "control_line": 7,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.redis_cache_min_tls_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.redis_cache_min_tls_1_2"
+    ],
+    "reason": "Inspected control redis_cache_min_tls_1_2 delegates without arguments to the exact reviewed query redis_cache_min_tls_1_2; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/2024-11-01/redis"
+    ],
+    "review_notes": "Exact1.2 for the reviewed Redis API; unknown future values are UNKNOWN.",
+    "source_review": {
+      "query_id": "redis_cache_min_tls_1_2",
+      "query_path": "regulatory_compliance/redis.pp",
+      "query_line": 151,
+      "query_sha256": "fbd66aa778966f27218fc3222ebcbb91f5093a374c35712447f2b57b3eff8001",
+      "status_case_sql": "case when minimum_tls_version is null then 'alarm'\n        when minimum_tls_version = '1.2' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/redis.pp",
+      "control_line": 49,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.redis_cache_no_basic_sku": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.redis_cache_no_basic_sku"
+    ],
+    "reason": "Inspected control redis_cache_no_basic_sku delegates without arguments to the exact reviewed query redis_cache_no_basic_sku; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/2024-11-01/redis"
+    ],
+    "review_notes": "KnownBasic alarms; Standard/Premium pass as declared tier, not a measuredSLA.",
+    "source_review": {
+      "query_id": "redis_cache_no_basic_sku",
+      "query_path": "regulatory_compliance/redis.pp",
+      "query_line": 130,
+      "query_sha256": "59380efba61339471bcc00e7bd6967bf5603ccb6568f1fa19d0ee322f5356c47",
+      "status_case_sql": "case when c.sku_name = 'Basic' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/redis.pp",
+      "control_line": 41,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.redis_cache_in_virtual_network": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.redis_cache_in_virtual_network"
+    ],
+    "reason": "Inspected control redis_cache_in_virtual_network delegates without arguments to the exact reviewed query redis_cache_in_virtual_network; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/2024-11-01/redis"
+    ],
+    "review_notes": "Presence of subnetId, not verified network reachability.",
+    "source_review": {
+      "query_id": "redis_cache_in_virtual_network",
+      "query_path": "regulatory_compliance/redis.pp",
+      "query_line": 109,
+      "query_sha256": "2f2e82449e5c9e3fb11885f20644677ed03802ed8eabc8ad3d336e87d9adf99d",
+      "status_case_sql": "case when subnet_id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/redis.pp",
+      "control_line": 33,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.redis_cache_uses_private_link": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.redis_cache_uses_private_link"
+    ],
+    "reason": "Inspected control redis_cache_uses_private_link delegates without arguments to the exact reviewed query redis_cache_uses_private_link; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cache/2024-11-01/redis"
+    ],
+    "review_notes": "Approved connection only; no public-access/DNS/reachability claim.",
+    "source_review": {
+      "query_id": "redis_cache_uses_private_link",
+      "query_path": "regulatory_compliance/redis.pp",
+      "query_line": 78,
+      "query_sha256": "a4e2e98de0362af032be54c68b9d692cf4beafea83fa453a964300e86732711f",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/redis.pp",
+      "control_line": 21,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.cognitive_service_local_auth_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.cognitive_service_local_auth_disabled"
+    ],
+    "reason": "Inspected control cognitive_service_local_auth_disabled delegates without arguments to the exact reviewed query cognitive_service_local_auth_disabled; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts"
+    ],
+    "review_notes": "Upstream status condition disable_local_auth=true is kept; reversed upstream reason strings are corrected.",
+    "source_review": {
+      "query_id": "cognitive_service_local_auth_disabled",
+      "query_path": "regulatory_compliance/cognitiveservice.pp",
+      "query_line": 62,
+      "query_sha256": "9f40aabea1156d757fc1a1c3c791ee3975705699acb2dc511f8b8db8e755523b",
+      "status_case_sql": "case when disable_local_auth then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/cognitiveservice.pp",
+      "control_line": 7,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.cognitive_account_public_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.cognitive_account_public_network_access_disabled"
+    ],
+    "reason": "Inspected control cognitive_account_public_network_access_disabled delegates without arguments to the exact reviewed query cognitive_account_public_network_access_disabled; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "cognitive_account_public_network_access_disabled",
+      "query_path": "regulatory_compliance/cognitiveservice.pp",
+      "query_line": 128,
+      "query_sha256": "cbf80e4285f961f8e9d67c28e54d727592aea8585eedf703c3d6d0cb4cadee0d",
+      "status_case_sql": "case when public_network_access = 'Enabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/cognitiveservice.pp",
+      "control_line": 30,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.cognitive_account_restrict_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.cognitive_account_restrict_public_access"
+    ],
+    "reason": "Inspected control cognitive_account_restrict_public_access delegates without arguments to the exact reviewed query cognitive_account_restrict_public_access; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts"
+    ],
+    "review_notes": "VirtualNetworks capability gating preserved; no-capability source branch passes without claiming runtime restrictions.",
+    "source_review": {
+      "query_id": "cognitive_account_restrict_public_access",
+      "query_path": "regulatory_compliance/cognitiveservice.pp",
+      "query_line": 151,
+      "query_sha256": "90721788fc4b14f657de361f6f6c8b28aca4ed02889a90095f73c082ecc235f2",
+      "status_case_sql": "case when b.id is not null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/cognitiveservice.pp",
+      "control_line": 40,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.cognitive_account_encrypted_with_cmk": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.cognitive_account_encrypted_with_cmk"
+    ],
+    "reason": "Inspected control cognitive_account_encrypted_with_cmk delegates without arguments to the exact reviewed query cognitive_account_encrypted_with_cmk; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts"
+    ],
+    "review_notes": "CustomerManagedKey capability gating preserved; no-capability branch reports the exact source exemption, not verified encryption.",
+    "source_review": {
+      "query_id": "cognitive_account_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/cognitiveservice.pp",
+      "query_line": 184,
+      "query_sha256": "ee9c9777d2c74e98b547046d8187825a4b31a981a27415fb9367862d6dcd49c2",
+      "status_case_sql": "case when c.id is null then 'ok'\n        when c.id is not null and encryption ->> 'keySource' = 'Microsoft.KeyVault' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/cognitiveservice.pp",
+      "control_line": 50,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.cognitive_account_private_link_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.cognitive_account_private_link_used"
+    ],
+    "reason": "Inspected control cognitive_account_private_link_used delegates without arguments to the exact reviewed query cognitive_account_private_link_used; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts"
+    ],
+    "review_notes": "Zero connections yields source INFO/MANUAL, then both VirtualNetworks capability and Approved connection are required.",
+    "source_review": {
+      "query_id": "cognitive_account_private_link_used",
+      "query_path": "regulatory_compliance/cognitiveservice.pp",
+      "query_line": 83,
+      "query_sha256": "7af223f2b6150908442b5788e8d40400cab13516b4acc81e01208db7fa39d894",
+      "status_case_sql": "case when jsonb_array_length(b.private_endpoint_connections) = 0 then 'info'\n        when c.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/cognitiveservice.pp",
+      "control_line": 18,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.app_configuration_private_link_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_configuration_private_link_used"
+    ],
+    "reason": "Inspected control app_configuration_private_link_used delegates without arguments to the exact reviewed query app_configuration_private_link_used; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.appconfiguration/2024-06-01/configurationstores"
+    ],
+    "review_notes": "Free SKU is skipped; only the reviewed paidStandardSKU is tested for Approved connections; futureSKU unknown.",
+    "source_review": {
+      "query_id": "app_configuration_private_link_used",
+      "query_path": "regulatory_compliance/appconfiguration.pp",
+      "query_line": 35,
+      "query_sha256": "ab39da3baacf677fdcc9fe7e5939836e81a2ad3021a1f10eb17be806525e2a53",
+      "status_case_sql": "case -- Only applicable to standard tier\n        when sku_name = 'free' then 'skip'\n        -- All networks, including the internet and private endpoints, can access this resource\n        -- Checking if all network enabled and no private endpoint then it's public access\n        when public_network_access = 'Enabled' and private_endpoint_connections is null then 'alarm'\n        when private_endpoint_connections @> '[{\"privateLinkServiceConnectionStateStatus\": \"Approved\"}]'::jsonb then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/appconfiguration.pp",
+      "control_line": 7,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.app_configuration_sku_standard": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_configuration_sku_standard"
+    ],
+    "reason": "Inspected control app_configuration_sku_standard delegates without arguments to the exact reviewed query app_configuration_sku_standard; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.appconfiguration/2024-06-01/configurationstores"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "app_configuration_sku_standard",
+      "query_path": "regulatory_compliance/appconfiguration.pp",
+      "query_line": 63,
+      "query_sha256": "1b779cc1d384ecc41329215a030556a3e582ee99b59dbfae908e382ca52c9af8",
+      "status_case_sql": "case when sku_name = 'standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/appconfiguration.pp",
+      "control_line": 19,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.app_configuration_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_configuration_encryption_enabled"
+    ],
+    "reason": "Inspected control app_configuration_encryption_enabled delegates without arguments to the exact reviewed query app_configuration_encryption_enabled; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.appconfiguration/2024-06-01/configurationstores"
+    ],
+    "review_notes": "KeyVault keyIdentifier presence is customer-managed configuration, not whether default platform encryption exists.",
+    "source_review": {
+      "query_id": "app_configuration_encryption_enabled",
+      "query_path": "regulatory_compliance/appconfiguration.pp",
+      "query_line": 81,
+      "query_sha256": "9b959413b32134038514ee376f978bc62bd33e9a0aedf31d25e626163d052d65",
+      "status_case_sql": "case when encryption -> 'keyVaultProperties' ->> 'keyIdentifier' is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/appconfiguration.pp",
+      "control_line": 27,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.data_factory_public_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.data_factory_public_network_access_disabled"
+    ],
+    "reason": "Inspected control data_factory_public_network_access_disabled delegates without arguments to the exact reviewed query data_factory_public_network_access_disabled; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.datafactory/2018-06-01/factories"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "data_factory_public_network_access_disabled",
+      "query_path": "regulatory_compliance/datafactory.pp",
+      "query_line": 98,
+      "query_sha256": "cd99d124fa05bd95d7e207cbec023bbf8eee3c0611c88fcf431b82ca9920e0f6",
+      "status_case_sql": "case when public_network_access = 'Enabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/datafactory.pp",
+      "control_line": 30,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.data_factory_encrypted_with_cmk": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.data_factory_encrypted_with_cmk"
+    ],
+    "reason": "Inspected control data_factory_encrypted_with_cmk delegates without arguments to the exact reviewed query data_factory_encrypted_with_cmk; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.datafactory/2018-06-01/factories"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "data_factory_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/datafactory.pp",
+      "query_line": 77,
+      "query_sha256": "7c1309ccd9ec4a446d850ce31e956f9fadc20f5b26f64239b84fc4f92bf74d29",
+      "status_case_sql": "case when encryption ->> 'vaultBaseUrl' is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/datafactory.pp",
+      "control_line": 19,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.data_factory_uses_git_repository": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.data_factory_uses_git_repository"
+    ],
+    "reason": "Inspected control data_factory_uses_git_repository delegates without arguments to the exact reviewed query data_factory_uses_git_repository; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.datafactory/2018-06-01/factories"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "data_factory_uses_git_repository",
+      "query_path": "regulatory_compliance/datafactory.pp",
+      "query_line": 119,
+      "query_sha256": "57375da29c0342ed7540215012490144ce7e487e5bcf2929be514ae7492273ea",
+      "status_case_sql": "case when repo_configuration ->> 'repositoryName' is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/datafactory.pp",
+      "control_line": 38,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.data_factory_uses_private_link": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.data_factory_uses_private_link"
+    ],
+    "reason": "Inspected control data_factory_uses_private_link delegates without arguments to the exact reviewed query data_factory_uses_private_link; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.datafactory/2018-06-01/factories"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "data_factory_uses_private_link",
+      "query_path": "regulatory_compliance/datafactory.pp",
+      "query_line": 46,
+      "query_sha256": "b5185919afa6ad2f6080de4bc76c4df2e85b55918c343799a87c487ea47a33c1",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/datafactory.pp",
+      "control_line": 7,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.apimanagement_service_with_virtual_network": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.apimanagement_service_with_virtual_network"
+    ],
+    "reason": "Inspected control apimanagement_service_with_virtual_network delegates without arguments to the exact reviewed query apimanagement_service_with_virtual_network; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/2024-05-01/service"
+    ],
+    "review_notes": "Internal/External VNet modes pass; External is never labeled internal-only.",
+    "source_review": {
+      "query_id": "apimanagement_service_with_virtual_network",
+      "query_path": "regulatory_compliance/apimanagement.pp",
+      "query_line": 27,
+      "query_sha256": "a84d5c3b3b011a9a4fd1d957afc0aa74d233a5997e01b19164be694c70f8a4e0",
+      "status_case_sql": "case when virtual_network_type != 'None' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/apimanagement.pp",
+      "control_line": 7,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.search_service_public_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.search_service_public_network_access_disabled"
+    ],
+    "reason": "Inspected control search_service_public_network_access_disabled delegates without arguments to the exact reviewed query search_service_public_network_access_disabled; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.search/2023-11-01/searchservices"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "search_service_public_network_access_disabled",
+      "query_path": "regulatory_compliance/cognitivesearch.pp",
+      "query_line": 142,
+      "query_sha256": "52e35e601077c619cb1068d6697bb6a38b93b19f28e874b793906ed201a410fd",
+      "status_case_sql": "case when public_network_access = 'Enabled' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/cognitivesearch.pp",
+      "control_line": 32,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.search_service_uses_private_link": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.search_service_uses_private_link"
+    ],
+    "reason": "Inspected control search_service_uses_private_link delegates without arguments to the exact reviewed query search_service_uses_private_link; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.search/2023-11-01/searchservices"
+    ],
+    "review_notes": "Declared configuration predicate only; no runtime enforcement or secret-value reads.",
+    "source_review": {
+      "query_id": "search_service_uses_private_link",
+      "query_path": "regulatory_compliance/cognitivesearch.pp",
+      "query_line": 163,
+      "query_sha256": "2a9f39312bf0b5b8a72bf163078fa5e8c759e3fffd40d2a553b21e92a92b2a92",
+      "status_case_sql": "case when c.id is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/cognitivesearch.pp",
+      "control_line": 44,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.search_service_uses_managed_identity": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.search_service_uses_managed_identity"
+    ],
+    "reason": "Inspected control search_service_uses_managed_identity delegates without arguments to the exact reviewed query search_service_uses_managed_identity; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.search/2023-11-01/searchservices"
+    ],
+    "review_notes": "ExactSystemAssigned condition retained; SystemAssigned,UserAssigned is not silently merged into a pass.",
+    "source_review": {
+      "query_id": "search_service_uses_managed_identity",
+      "query_path": "regulatory_compliance/cognitivesearch.pp",
+      "query_line": 194,
+      "query_sha256": "935bdedbff324df8ab94ee0031f91c1fecab9edebdd6b5543afa5b12f3b63764",
+      "status_case_sql": "case when identity ->> 'type' = 'SystemAssigned' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/cognitivesearch.pp",
+      "control_line": 56,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  },
+  "azure-compliance.control.search_service_uses_sku_supporting_private_link": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.search_service_uses_sku_supporting_private_link"
+    ],
+    "reason": "Inspected control search_service_uses_sku_supporting_private_link delegates without arguments to the exact reviewed query search_service_uses_sku_supporting_private_link; preserve its eligibility, native configuration fields, branch order and INFO/skip outcomes. Missing, denied and malformed native facts are UNKNOWN, never a default-safe pass.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.search/2023-11-01/searchservices"
+    ],
+    "review_notes": "OnlyFree alarms for reviewedSKU values; no endpoint/capability enforcement inference.",
+    "source_review": {
+      "query_id": "search_service_uses_sku_supporting_private_link",
+      "query_path": "regulatory_compliance/cognitivesearch.pp",
+      "query_line": 121,
+      "query_sha256": "d1377f12f9f5845a889afd756b2216733a6f9231f2a98f5d92a95c92431777ab",
+      "status_case_sql": "case when sku_name = 'free' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/cognitivesearch.pp",
+      "control_line": 20,
+      "arguments": [],
+      "native_unit": "provider resource in the selected subscription"
+    }
+  }
+}

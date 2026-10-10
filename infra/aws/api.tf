@@ -15,6 +15,10 @@ locals {
     PEASO_SOURCE_VERSION        = var.source_version
     PEASO_SOURCE_URL            = "https://${local.domain}/source/peaso-source-${var.source_version}.zip"
     PEASO_SCAN_TIMEOUT_SECONDS  = "900"
+    PEASO_COLLECTOR_VCPU        = "0.25"
+    PEASO_COLLECTOR_MEMORY_GIB  = "1"
+    PEASO_ANALYZER_VCPU         = "0.5"
+    PEASO_ANALYZER_MEMORY_GIB   = "2"
     PEASO_STATE_DIR             = "/tmp/peaso/state"
     PEASO_IDENTITY_DIR          = "/tmp/peaso/identity"
   }

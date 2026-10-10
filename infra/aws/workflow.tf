@@ -4,6 +4,10 @@ locals {
     PEASO_DYNAMODB_TABLE       = aws_dynamodb_table.metadata.name
     PEASO_ARTIFACT_BUCKET      = aws_s3_bucket.artifacts.id
     PEASO_SCAN_TIMEOUT_SECONDS = "900"
+    PEASO_COLLECTOR_VCPU       = "0.25"
+    PEASO_COLLECTOR_MEMORY_GIB = "1"
+    PEASO_ANALYZER_VCPU        = "0.5"
+    PEASO_ANALYZER_MEMORY_GIB  = "2"
     PEASO_STATE_DIR            = "/tmp/peaso/state"
     PEASO_IDENTITY_DIR         = "/tmp/peaso/identity"
     AWS_DEFAULT_REGION         = var.region
@@ -17,8 +21,8 @@ resource "aws_ecs_task_definition" "tasks" {
   family                   = "${local.name}-${each.key}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = each.key == "collector" ? "256" : "512"
+  memory                   = each.key == "collector" ? "1024" : "2048"
   execution_role_arn       = aws_iam_role.execution.arn
   task_role_arn            = each.value
   runtime_platform {
@@ -36,7 +40,10 @@ resource "aws_ecs_task_definition" "tasks" {
     mountPoints            = [{ sourceVolume = "scratch", containerPath = "/tmp", readOnly = false }]
     linuxParameters        = { capabilities = { drop = ["ALL"] } }
     stopTimeout            = 30
-    environment = [for key, value in merge(local.worker_env, each.key == "collector" ? {
+    environment = [for key, value in merge(local.worker_env, {
+      PEASO_TASK_VCPU       = each.key == "collector" ? "0.25" : "0.5"
+      PEASO_TASK_MEMORY_GIB = each.key == "collector" ? "1" : "2"
+      }, each.key == "collector" ? {
       PEASO_CREDENTIAL_SECRET_ARN = aws_secretsmanager_secret.credentials.arn
     } : {}) : { name = key, value = value }]
     logConfiguration = {

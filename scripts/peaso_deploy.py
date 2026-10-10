@@ -36,6 +36,7 @@ aws_secretsmanager_secret.credentials aws_security_group.tasks aws_iam_role.coll
 aws_lambda_function.api aws_kms_key.connectors aws_iam_role_policy.workflow
 aws_iam_role.analyzer aws_iam_role_policy.execution aws_dynamodb_table.metadata
 aws_cloudwatch_event_rule.schedules aws_s3_bucket_server_side_encryption_configuration.private
+aws_s3_bucket_cors_configuration.artifacts
 random_bytes.credential_key aws_cloudwatch_log_group.tasks aws_subnet.tasks
 aws_secretsmanager_secret_version.credentials aws_vpc_endpoint.s3 aws_ecr_repository.worker
 aws_route_table_association.tasks aws_apigatewayv2_route.api aws_lambda_permission.schedules
@@ -47,25 +48,48 @@ def source_root():
     return BUILD / "source-snapshot" if (BUILD / "source-snapshot" / "release.json").is_file() else ROOT
 
 
-def freeze_release():
+def freeze_release(release_source=None):
     """Freeze exact corresponding source without Git, credentials, or caches."""
     import shutil
+    release_root = Path(release_source).resolve() if release_source else ROOT
     files = set()
-    for folder in ["peaso", "risk_rules", "frontend/src", "frontend/public"]:
-        files.update(p for p in (ROOT / folder).rglob("*") if p.is_file())
+    for folder in ["peaso", "risk_rules", "frontend/src", "frontend/public", "frontend/tests", "frontend/e2e"]:
+        files.update(p for p in (release_root / folder).rglob("*") if p.is_file())
     for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json",
                     "infra/aws/.terraform.lock.hcl", "scripts/peaso*.py", "scripts/peaso_test_resources/*.py",
                     "docs/peaso*.md", "tests/test_peaso*.py", "frontend/package*.json", "frontend/*config*",
                     "frontend/index.html"]:
-        files.update(ROOT.glob(pattern))
-    files.update(ROOT / f for f in ["LICENSE", "README.md", "pyproject.toml"])
+        files.update(release_root.glob(pattern))
+    files.update(release_root / name for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py"])
+    files.update(release_root / f for f in ["LICENSE", "README.md", "pyproject.toml"])
+    paths = {str(path.relative_to(release_root)): path for path in files}
+    for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json",
+                    "infra/aws/.terraform.lock.hcl", "scripts/peaso_deploy*.py", "docs/peaso-aws.md"]:
+        for path in ROOT.glob(pattern):
+            paths[str(path.relative_to(ROOT))] = path
     source = {}
-    for path in sorted(files):
-        if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
+    for relative_name, path in sorted(paths.items()):
+        relative = Path(relative_name)
+        if not path.is_file() or "__pycache__" in path.parts or path.suffix in {".pyc", ".tsbuildinfo", ".db", ".sqlite", ".sqlite3", ".key", ".pem", ".log"}:
             continue
-        if path.is_symlink() or not path.resolve().is_relative_to(ROOT):
+        if any(part.startswith(".") and part != ".terraform.lock.hcl" for part in relative.parts):
+            continue
+        if str(relative).startswith(("tests/", "frontend/tests/", "frontend/e2e/")) and path.suffix not in {".py", ".ts", ".tsx", ".js", ".mjs"}:
+            continue
+        if path.is_symlink() or not any(path.resolve().is_relative_to(base.resolve()) for base in (ROOT, release_root)):
             raise RuntimeError("Source archive cannot include symlinks or external files")
-        source[str(path.relative_to(ROOT))] = path.read_bytes()
+        content = path.read_bytes()
+        if path.suffix == ".json":
+            try:
+                json.loads(content)
+            except (ValueError, UnicodeDecodeError) as error:
+                raise RuntimeError(f"Source JSON changing or invalid: {relative}; retry after its owner finishes") from error
+        if path.suffix == ".py":
+            try:
+                compile(content, str(relative), "exec")
+            except SyntaxError as error:
+                raise RuntimeError(f"Source Python changing or invalid: {relative}; retry after its owner finishes") from error
+        source[str(relative)] = content
     manifest = {name: hashlib.sha256(value).hexdigest() for name, value in source.items()}
     version = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     release = {"source_version": version, "source_url": f"https://cspm.hacktricks.wiki/source/peaso-source-{version}.zip",
@@ -86,7 +110,10 @@ def freeze_release():
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
             archive.writestr(info, value)
-        archive.writestr("release.json", json.dumps(release, indent=2))
+        info = zipfile.ZipInfo("release.json", date_time=(1980, 1, 1, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o644 << 16
+        archive.writestr(info, json.dumps(release, indent=2))
     print(f"Frozen source {version}: {len(source)} files; {archive_path}")
     return release
 
@@ -123,6 +150,10 @@ def package_api():
          "PyJWT[crypto]>=2.10", "mangum>=0.19", "boto3>=1.34", "requests>=2"])
     shutil.copytree(source_root() / "peaso", target / "peaso", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     shutil.copytree(source_root() / "risk_rules", target / "risk_rules", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py"]:
+        destination = target / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_root() / name, destination)
     if (BUILD / "release.json").is_file():
         shutil.copyfile(BUILD / "release.json", target / "peaso_release.json")
     package = BUILD / "api.zip"
@@ -136,6 +167,8 @@ def package_api():
 
 def build_worker(tag):
     context = source_root()
+    if context == ROOT:
+        raise RuntimeError("Freeze the reviewed release sources before building the worker")
     run(["docker", "build", "--platform", "linux/amd64", "-f", context / "infra/aws/Dockerfile.worker",
          "-t", f"peaso-worker:{tag}", context])
 
@@ -219,7 +252,10 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("package-api")
     sub.add_parser("verify-package")
-    sub.add_parser("freeze-release")
+    sub.add_parser("validate-workflow")
+    freeze = sub.add_parser("freeze-release")
+    freeze.add_argument("--source-root", type=Path,
+                        help="Coordinator-provided defensive source export; no primary workspace mutations")
     build = sub.add_parser("build-worker")
     build.add_argument("--tag", default=f"release-{int(time.time())}")
     push = sub.add_parser("push-worker")
@@ -241,12 +277,20 @@ def main():
         package_api()
         return
     if args.command == "freeze-release":
-        freeze_release()
+        freeze_release(args.source_root)
         return
     if args.command == "verify-package":
         code = """
 import json
+import importlib.util
+from bluepeass.k8s import KubernetesApi
+from bluepeass.k8s_risks import PermissionKey
+from scripts.cloud_permission_risks import classify_permission
+from peaso.engine import get_catalog
 from peaso.server.lambda_handler import handler
+assert importlib.util.find_spec('peaso.privesc') is not None
+from peaso.privesc import analyze
+print('Native catalog checks:',len(get_catalog()['checks']))
 for path, expected in [('/api/health',200),('/api/me',401),('/api/connectors',401)]:
     event={'version':'2.0','routeKey':'$default','rawPath':path,'rawQueryString':'',
            'headers':{'host':'localhost'},'requestContext':{'stage':'$default',
@@ -288,7 +332,10 @@ for path, expected in [('/api/health',200),('/api/me',401),('/api/connectors',40
         print(json.dumps({"url": args.url, "https_checks": results}, indent=2))
         return
     session = aws_identity()
-    if args.command == "push-worker":
+    if args.command == "validate-workflow":
+        from peaso_deploy_validate_workflow import validate
+        validate(ROOT, TF, session)
+    elif args.command == "push-worker":
         ecr = session.client("ecr")
         auth = ecr.get_authorization_token()["authorizationData"][0]
         import base64

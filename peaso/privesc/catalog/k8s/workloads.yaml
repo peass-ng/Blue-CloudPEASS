@@ -309,6 +309,8 @@
       - - {verb: update, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
       - - {verb: create, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
         - {verb: patch, resource: mutatingadmissionpolicybindings, api_group: admissionregistration.k8s.io, namespace: "*"}
+      - - {verb: create, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
+        - {verb: update, resource: mutatingadmissionpolicybindings, api_group: admissionregistration.k8s.io, namespace: "*"}
   target:
     kind: k8s_service_account
     selector:
@@ -319,7 +321,7 @@
     - id: mutating_admission_policy_served
       description: The MutatingAdmissionPolicy API must be enabled/served on the cluster version.
     - id: existing_policy_bound
-      description: The patch/update-only groups require an existing policy that is already bound to pod creations.
+      description: The patch/update-only policy groups require an existing policy that is already bound to pod creations; the create-policy plus patch/update-binding groups require an existing binding to repoint.
     - id: new_pod_creation_occurs
       description: Only pods created after the change are mutated.
   blockers: []

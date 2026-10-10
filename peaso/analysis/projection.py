@@ -29,12 +29,14 @@ def project_graph(graph, max_nodes=500):
             for annotation in member.get("risk_annotations", []):
                 if annotation not in annotations:
                     annotations.append(copy.deepcopy(annotation))
-        projected.append({"id": aggregate_id, "label": f"{kind} ({len(members)})", "type": kind,
+        projected.append({"id": aggregate_id, "label": members[0].get("label", kind) if preserved_id else f"{kind} ({len(members)})", "type": kind,
+            **({"native_id": members[0].get("native_id")} if preserved_id else {}),
             "native_kind": kind, "provider_specific": copy.deepcopy(members[0].get("provider_specific", {"native_kind": kind})),
             "provider": provider, "scope": scope, "aggregate": not bool(preserved_id), "underlying_count": len(members),
             **({"parent_id": parent} if parent else {}),
             "node_refs": [x["id"] for x in members], "resource_refs": [x.get("resource_id") for x in members if x.get("resource_id")],
-            "risk_annotations": annotations, "evidence": {"projection": "grouped by provider, scope, and native type"}})
+            "risk_annotations": annotations, "evidence": copy.deepcopy(members[0].get("evidence", {})) if preserved_id else
+                {"projection": "grouped by provider, scope, native parent, and native type"}})
     for node in projected:
         if node.get("parent_id"):
             node["parent_id"] = mapping.get(node["parent_id"], node["parent_id"])
@@ -44,7 +46,8 @@ def project_graph(graph, max_nodes=500):
     projected_edges = []
     for (src, dst, kind, layer), members in sorted(edge_groups.items()):
         projected_edges.append({"id": stable_id(src, dst, kind, layer), "source": src, "target": dst,
-            "type": kind, "layer": layer, "confidence": "low" if any(e.get("confidence") == "low" for e in members) else "high",
+            "type": kind, "layer": layer, "confidence": min((e.get("confidence", "low") for e in members),
+                key={"low": 0, "medium": 1, "high": 2}.get),
             "aggregate": True, "underlying_count": len(members), "edge_refs": [x["id"] for x in members],
             "evidence": {"sources": [copy.deepcopy(x["evidence"]) for x in members[:20]],
                 "sampled_evidence": len(members) > 20, "uncertainty": "Expand edge_refs against the immutable snapshot graph for all underlying evidence"}})

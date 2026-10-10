@@ -30,19 +30,17 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
   await page
     .getByText("Advanced native configuration", { exact: true })
     .click();
-  await page
-    .getByLabel("Additional collector options JSON")
-    .fill(
-      JSON.stringify(
-        process.env.PEASO_LIVE_SNAPSHOT_PATH
-          ? {
-              snapshot: JSON.parse(
-                readFileSync(process.env.PEASO_LIVE_SNAPSHOT_PATH, "utf8"),
-              ),
-            }
-          : { demo: true },
-      ),
-    );
+  await page.getByLabel("Additional collector options JSON").fill(
+    JSON.stringify(
+      process.env.PEASO_LIVE_SNAPSHOT_PATH
+        ? {
+            snapshot: JSON.parse(
+              readFileSync(process.env.PEASO_LIVE_SNAPSHOT_PATH, "utf8"),
+            ),
+          }
+        : { demo: true },
+    ),
+  );
   const created = page.waitForResponse(
     (r) =>
       r.url().endsWith("/api/connectors") && r.request().method() === "POST",
@@ -131,7 +129,7 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
     path: "evidence/live-native-findings.png",
     fullPage: true,
   });
-  for (const label of ["Network Map", "Privilege Escalation Map"]) {
+  for (const label of ["Network Map", "IAM Risk Map"]) {
     await page
       .getByRole("navigation")
       .getByRole("button", { name: label, exact: true })
@@ -148,6 +146,49 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
     await expect(page.locator(".graph-table-row").first()).toBeVisible();
     await page.locator(".graph-table-row").first().click();
     await expect(page.getByRole("dialog")).toContainText("Asset evidence");
+    await page.getByRole("button", { name: "Close inspector" }).click();
+  }
+  if (process.env.PEASO_TEST_REACHABILITY) {
+    const response = await page.request.get(
+      `/api/scans/${scan.id}/graphs/network`,
+      { headers: { Authorization: `Bearer ${process.env.PEASO_LIVE_TOKEN}` } },
+    );
+    const network = await response.json();
+    const source = network.nodes.find(
+      (n: { type: string; resource_id?: string }) =>
+        n.type === "instance" && n.resource_id,
+    );
+    const destination = network.nodes.find(
+      (n: { type: string; resource_id?: string }) =>
+        n.type === "subnet" && n.resource_id,
+    );
+    expect(source).toBeTruthy();
+    expect(destination).toBeTruthy();
+    await page
+      .getByRole("navigation")
+      .getByRole("button", { name: "Network Map", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Assess configuration path", exact: true })
+      .click();
+    await page.getByLabel("Source resource ID").fill(source.resource_id);
+    await page
+      .getByLabel("Destination resource ID")
+      .fill(destination.resource_id);
+    await page
+      .getByRole("button", { name: "Assess configuration", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Configuration decision" }),
+    ).toBeVisible();
+    await expect(page.getByRole("dialog")).toContainText("unknown");
+    await expect(page.getByRole("dialog")).toContainText(
+      "Application listening: unknown",
+    );
+    await page.screenshot({
+      path: "evidence/live-configuration-unknown.png",
+      fullPage: true,
+    });
     await page.getByRole("button", { name: "Close inspector" }).click();
   }
   await page

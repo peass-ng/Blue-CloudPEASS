@@ -53,7 +53,7 @@
   blockers:
     - aks_entra_integration_enabled
   confidence: conditional
-  severity: high
+  severity: critical
   mitigation: Enable Entra ID integration and disable local accounts.
   references:
     - https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/list-cluster-user-credentials
@@ -99,13 +99,19 @@
       - - action: Microsoft.ContainerService/managedClusters/rbac.authorization.k8s.io/clusterrolebindings/write
           data_action: true
           scope: "{target.scope}"
+        - action: Microsoft.ContainerService/managedClusters/rbac.authorization.k8s.io/clusterroles/bind/action
+          data_action: true
+          scope: "{target.scope}"
       - - action: Microsoft.ContainerService/managedClusters/rbac.authorization.k8s.io/clusterroles/bind/action
           data_action: true
           scope: "{target.scope}"
         - action: Microsoft.ContainerService/managedClusters/rbac.authorization.k8s.io/rolebindings/write
           data_action: true
           scope: "{target.scope}"
-      - - action: Microsoft.ContainerService/managedClusters/rbac.authorization.k8s.io/clusterroles/escalate/action
+      - - action: Microsoft.ContainerService/managedClusters/rbac.authorization.k8s.io/clusterroles/write
+          data_action: true
+          scope: "{target.scope}"
+        - action: Microsoft.ContainerService/managedClusters/rbac.authorization.k8s.io/clusterroles/escalate/action
           data_action: true
           scope: "{target.scope}"
   target:
@@ -118,11 +124,13 @@
     - id: azure_rbac_for_k8s_enabled
       description: Only when Azure RBAC for Kubernetes authorization is enabled on the cluster.
     - id: namespace_scoped_grant
-      description: Grants scoped to a namespace (scope .../namespaces/<ns>) yield namespace admin, not cluster admin.
+      description: Grants scoped to a namespace (scope .../namespaces/<ns>), and the bind+rolebindings group, yield namespace admin, not cluster admin.
+    - id: escalate_needs_bound_role
+      description: The clusterroles write+escalate group only helps if a ClusterRole already bound to the source (or a group it belongs to) is widened.
   blockers: []
   confidence: conditional
   severity: high
   mitigation: Do not grant RBAC-object write/bind/escalate data actions outside cluster administrators.
   references:
     - https://learn.microsoft.com/en-us/azure/aks/manage-azure-rbac
-  notes: Exact data-action names taken from the Azure RBAC provider operations for Microsoft.ContainerService.
+  notes: Exact data-action names taken from the Azure RBAC provider operations for Microsoft.ContainerService. Kubernetes RBAC escalation prevention means binding write alone is insufficient (bind on the referenced role is also checked), and escalate is useless without role write.

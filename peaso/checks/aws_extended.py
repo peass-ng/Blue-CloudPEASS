@@ -284,3 +284,28 @@ def eks_secrets(item, index):
             return unknown("malformed encrypted resources")
         protected = protected or "secrets" in resources
     return result(not protected, version=version, secret_encryption_configured=protected)
+
+
+for cid, feature, title in [
+    ("aws.guardduty.eks_audit_logs", "EKS_AUDIT_LOGS", "Existing GuardDuty detector enables EKS audit-log protection"),
+    ("aws.guardduty.lambda_network_logs", "LAMBDA_NETWORK_LOGS", "Existing GuardDuty detector enables Lambda network protection"),
+    ("aws.guardduty.rds_login_events", "RDS_LOGIN_EVENTS", "Existing GuardDuty detector enables RDS login-event protection"),
+    ("aws.guardduty.s3_data_events", "S3_DATA_EVENTS", "Existing GuardDuty detector enables S3 data-event protection"),
+    ("aws.guardduty.runtime_monitoring", "RUNTIME_MONITORING", "Existing GuardDuty detector enables runtime monitoring"),
+]:
+    def feature_check(cid=cid, feature=feature, title=title):
+        @install(cid, "guardduty_detector", title,
+            {"Configuration": {"Features": [{"Name": feature, "Status": "ENABLED"}]}},
+            {"Configuration": {"Features": [{"Name": feature, "Status": "DISABLED"}]}}, control="SI-4")
+        def evaluate(item, index):
+            rows = list_of_objects(get(item, "Configuration.Features", list))
+            matching = [row for row in rows if get(row, "Name", str) == feature]
+            if len(matching) > 1:
+                return unknown("duplicate detector feature", feature=feature)
+            if not matching:
+                return result(True, feature=feature, configured="absent", semantics="Complete detector feature list; account-wide detector coverage remains separate")
+            status = get(matching[0], "Status", str)
+            if status not in {"ENABLED", "DISABLED"}:
+                return unknown("unrecognized detector feature status", feature=feature)
+            return result(status != "ENABLED", feature=feature, configured=status)
+    feature_check()

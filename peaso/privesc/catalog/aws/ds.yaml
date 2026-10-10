@@ -4,10 +4,10 @@
 - id: aws-ds-resetuserpassword
   provider: aws
   service: ds
-  title: Reset the password of a directory user with AWS console access
+  title: Reset the password of a directory user with Management Console access
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-directory-services-privesc/README.md#dsresetuserpassword
   source_revision: a53b46392c
-  summary: The source can obtain the privileges of IAM roles that directory users/groups are mapped to for AWS Management Console access by resetting a mapped user's password.
+  summary: The source can obtain the privileges of IAM roles that directory users/groups are mapped to for console access by resetting a mapped user's password.
   requires:
     all_of:
       - action: ds:ResetUserPassword

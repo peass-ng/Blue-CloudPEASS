@@ -38,7 +38,19 @@ def test_cognito_claims_cannot_self_grant_paid(cognito_settings):
     auth.entitlements.paid.return_value = True
     assert auth.authenticate("Bearer " + jwt.encode(claims, key, algorithm="RS256")).weekly_limit == 10
     auth.cognito.admin_get_user.return_value["UserAttributes"][0]["Value"] = "bob"
-    assert auth.authenticate("Bearer " + jwt.encode(claims, key, algorithm="RS256")).weekly_limit == 1
+    with pytest.raises(HTTPException):
+        auth.authenticate("Bearer " + jwt.encode(claims, key, algorithm="RS256"))
+
+
+def test_disabled_identity_rejected_even_with_cached_paid(cognito_settings):
+    auth, key, claims = jwt_auth(cognito_settings)
+    auth.store = Mock()
+    auth.store.get_entitlement.return_value = True
+    auth.cognito.admin_get_user.return_value["Enabled"] = False
+    with pytest.raises(HTTPException) as error:
+        auth.authenticate("Bearer " + jwt.encode(claims, key, algorithm="RS256"))
+    assert error.value.status_code == 401
+    auth.store.get_entitlement.assert_not_called()
 
 
 @pytest.mark.parametrize("change", [{"iss": "https://evil.invalid"}, {"aud": "other-client"}, {"exp": 1}, {"token_use": "access"}, {"iat": int(time.time()) + 3600}])
@@ -137,3 +149,13 @@ def test_hosted_external_id_is_server_generated_and_unique(cognito_settings, mon
         assert client.patch("/api/connectors/" + first.json()["id"], json={"name": "updated"}).status_code == 200
         body["auth"]["external_id"] = "attacker-controlled"
         assert client.post("/api/connectors", json=body).status_code == 422
+
+
+def test_customer_credentials_preserve_existing_role_chain_external_id(cognito_settings):
+    from peaso.server.validation import validate_connector
+    auth = {"method": "assume_role", "aws_access_key_id": "customer-fixture", "aws_secret_access_key": "customer-secret-fixture", "role_chain": [{"role_arn": "arn:aws:iam::123456789012:role/CustomerAudit", "external_id": "customer-existing-id", "role_session_name": "customer-audit"}]}
+    validate_connector("aws", auth, {}, cognito_settings)
+    assert auth["role_chain"][0]["external_id"] == "customer-existing-id"
+    assert auth["method"] == "assume_role" and auth["aws_secret_access_key"] == "customer-secret-fixture"
+    with pytest.raises(HTTPException):
+        validate_connector("aws", {"method": "assume_role", "role_arn": "arn:aws:iam::123456789012:role/Unapproved"}, {}, cognito_settings)

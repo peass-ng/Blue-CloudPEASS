@@ -1,0 +1,133 @@
+# GCP Workflows privilege escalation techniques.
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-workflows-privesc.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+# Workflow connector/OAuth steps act as the attached SA (no raw token extraction). actAs is checked at deploy/create/update,
+# not at execute. Workflows has no resource-level IAM.
+# attached_to_service: compute_default_service_account -> the project's Compute Engine default SA.
+
+- id: gcp-workflows-create-actas-execute
+  provider: gcp
+  service: workflows
+  title: Deploy and execute a workflow running as a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflowsworkflowscreate-iamserviceaccountsactas-workflowsexecutionscreate-workflowsworkflowsget-workflowsexecutionsget-workflowsoperationsget
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+      - action: workflows.workflows.create
+        resource: "*"
+      - action: workflows.executions.create
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts usable as workflow identity in {project}"
+  conditions:
+    - id: api_level
+      description: The SA is usable only through connector and OAuth steps to Google APIs (no metadata token); that covers all of its IAM permissions.
+    - id: cross_project_sa
+      description: Cross-project SAs only when iam.disableCrossProjectServiceAccountUsage is not enforced; not modelled.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: derived
+  severity: critical
+  mitigation: Grant actAs only on specific SAs; roles/workflows.admin/editor do not include actAs.
+  references:
+    - https://cloud.google.com/workflows/docs/authentication
+
+- id: gcp-workflows-create-default-compute-sa
+  provider: gcp
+  service: workflows
+  title: Deploy and execute a workflow with the default Compute Engine service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflowsworkflowscreate-iamserviceaccountsactas-workflowsexecutionscreate-workflowsworkflowsget-workflowsexecutionsget-workflowsoperationsget
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the Compute Engine default service account of every project where it can create and execute workflows.
+  requires:
+    all_of:
+      - action: workflows.workflows.create
+        resource: "*"
+      - action: workflows.executions.create
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: compute_default_service_account
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Compute default SA of {project} via Workflows"
+  conditions:
+    - id: default_sa_exists
+      description: The Compute default SA must exist and be enabled (iam.automaticIamGrantsForDefaultServiceAccounts affects its roles, not its use).
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: critical
+  mitigation: Remove broad roles from the Compute default SA and always deploy workflows with a dedicated SA.
+  notes: HackTricks states omitting the SA attaches the Compute default SA without actAs; this is not confirmed by Google documentation and may change.
+
+- id: gcp-workflows-update-actas
+  provider: gcp
+  service: workflows
+  title: Update an existing workflow's definition and service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflowsworkflowsupdate
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs, by updating an existing workflow.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+      - action: workflows.workflows.update
+        resource: "*"
+      - action: workflows.executions.create
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts attachable to existing workflows in {project}"
+  conditions:
+    - id: existing_workflow
+      description: Needs an existing workflow.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: derived
+  severity: critical
+  mitigation: Restrict workflows.workflows.update and actAs grants.
+
+- id: gcp-workflows-update-source-retain-sa
+  provider: gcp
+  service: workflows
+  title: Replace a workflow's source while keeping its attached service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#replace-workflow-code-while-retaining-the-attached-service-account-without-actas
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account attached to every workflow on which it holds workflows.workflows.update and workflows.executions.create.
+  requires:
+    all_of:
+      - action: workflows.workflows.update
+        resource: "{target.host_resource}"
+      - action: workflows.executions.create
+        resource: "{target.host_resource}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: workflows_workflow
+    scope: any
+    aggregate_as: "SAs attached to workflows whose source the source can replace"
+  conditions:
+    - id: source_only_update
+      description: Only a source-only update keeps the identity; changing or restating the SA requires actAs.
+  blockers:
+    - gcp_deny_policy
+  confidence: derived
+  severity: critical
+  mitigation: Treat workflows.workflows.update on a workflow as equivalent to use of its SA; restrict roles/workflows.editor/admin.
+  notes: The retained SA can belong to another project when the workflow was configured for cross-project execution (scope any).

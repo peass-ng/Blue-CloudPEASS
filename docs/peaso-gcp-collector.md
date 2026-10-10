@@ -149,6 +149,10 @@ are configuration evidence, so treat snapshots as private inventory artifacts.
 | `kms_key_ring`, `kms_key` | KMS locations and per-location key-ring lists, then crypto-key metadata and key IAM. `kms_locations` narrows locations explicitly; rotation, purpose, primary-version state/protection level and references remain metadata. No encrypt/decrypt/export. |
 | `log_sink` | Project/folder/organization Logging sinks, destinations and writer identities. Audit-policy evidence is in `iam_policy.auditConfigs`. |
 | `secret` | Secret Manager secret list and IAM policy metadata, replication/rotation/encryption configuration. No secret values or version access. |
+| `bigquery_dataset` | BigQuery dataset list including hidden datasets, plus full dataset metadata with access-policy version 3. Dataset ACL, default encryption and location/retention metadata; no queries, table data or exports. |
+| `artifact_repository` | Artifact Registry region/repository list plus repository IAM; format, immutable-tag, encryption, vulnerability-scanning and cleanup metadata. No image/package downloads. |
+| `cloudrun_service` | Cloud Run v2 region/service list plus IAM; ingress, service identity, network/VPC, encryption and public URI metadata. Container environment values/commands are stripped. The v2 service list cannot use a wildcard location, so supported locations are enumerated, or explicitly selected with `cloudrun_locations`/`regions`. |
+| `function` | Functions v2 cross-location function list and IAM; runtime, ingress, service identity, VPC and encryption references. Inline environment values are stripped. No source downloads or function invocations. |
 | `workload_identity_pool`, `workload_identity_provider`, `workforce_pool`, `workforce_provider` | IAM workload/workforce pool/provider metadata including OIDC/AWS trust configuration, attribute mappings/conditions and state. Workforce pools are organization-scoped. |
 
 API paths were checked against Google's live
@@ -156,6 +160,10 @@ API paths were checked against Google's live
 In particular, network firewall policies use `aggregated/firewallPolicies`, and
 regional HTTP/HTTPS/TCP proxies use their aggregate paths. KMS key rings are
 enumerated per location rather than assuming a wildcard key-ring list.
+Artifact Registry locations can be narrowed with `artifactregistry_locations`
+or `regions`; neither that adapter nor Cloud Run assumes undocumented wildcard
+location support. A denied regional read does not hide evidence from another
+readable region, but makes the collection partial.
 
 ## Limits, failures and provenance
 
@@ -227,3 +235,38 @@ attempts and one credential/request attempt. No fixture or API enablement was
 performed, and no alternate identity was attempted. A successful live service
 read must be repeated after that selected identity is refreshed; this attempt
 does not establish live service coverage.
+
+## Reviewed native checks
+
+`peaso.checks.gcp_extended` adds 33 pure checks for explicit VM security and
+availability configuration, declared identity/OAuth scope, SSH/serial metadata,
+project OS Login 2FA, subnet/backend logging, storage versioning/soft deletion/
+lifecycle/log destinations, primary SQL availability/CMEK and version-specific
+database flags, symmetric KMS rotation/public policy, and BigQuery default
+encryption/declared public ACL. Checks perform no API calls and do not mutate
+input. KMS scheduling assessments use the immutable item collection timestamp,
+not the wall clock at report reevaluation.
+
+`peaso/rulepacks/reviewed_gcp.json` records exact upstream IDs, review rationale,
+official provider documentation and applicability notes for the pinned Prowler
+revision in `sources.json`. Twenty-two source associations are ported; eleven
+remain pending with `related_native_checks` because their semantics differ.
+These pending associations include a backend predicate without the upstream
+frontend join, a per-network predicate without complete project-wide absence,
+GKE name-based exemptions, purpose/time-bounded KMS predicates, ephemeral-disk
+applicability, metadata default/case handling, and structured BigQuery
+principals/encryption rather than upstream substring/truthiness tests. Related
+checks do not establish upstream/framework support or certification.
+
+Missing, malformed and denied resource/detail facts yield UNKNOWN. Explicit
+read-replica/engine/key-purpose exclusions yield NOT_APPLICABLE. GKE naming
+hints that could describe intentional forwarding/multiple interfaces/default
+identities yield MANUAL rather than inferred permission or reachability claims.
+SQL flags absent from metadata remain UNKNOWN: database-version defaults are
+not guessed. A declared conditional KMS public binding is reported as a public
+member configuration with its condition preserved, without an effective-access
+claim. Run extended acceptance tests with:
+
+```sh
+python3 -m pytest tests/test_peaso_checks_gcp_extended.py -q
+```

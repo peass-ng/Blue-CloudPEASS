@@ -15,14 +15,18 @@ import {
   ShieldCheck,
   Target,
   Waypoints,
+  Route,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError, items, useApi } from "./api";
 import { Connectors } from "./Connectors";
-import { Dashboard, Coverage } from "./Dashboard";
+import { Dashboard, CoverageView } from "./Dashboard";
 import { Findings } from "./Findings";
 const GraphView = lazy(() =>
   import("./GraphView").then((m) => ({ default: m.GraphView })),
+);
+const PrivescMap = lazy(() =>
+  import("./PrivescMap").then((m) => ({ default: m.PrivescMap })),
 );
 import { Scans } from "./Scans";
 import { Settings } from "./Settings";
@@ -62,9 +66,15 @@ const pages = [
     description: "Review identity permissions and reduce unnecessary access.",
   },
   {
-    label: "Privilege Escalation Map",
+    label: "IAM Risk Map",
     icon: Waypoints,
     description: "Defensive IAM risk map · observed access relationships.",
+  },
+  {
+    label: "Privilege Escalation Map",
+    icon: Route,
+    description:
+      "Which identities can escalate to others or to admin · catalog-driven attack paths.",
   },
   {
     label: "Network Map",
@@ -80,7 +90,8 @@ const pages = [
 ];
 export function App() {
   const [page, setPage] = useState(() => {
-    const p = decodeURIComponent(location.hash.slice(1));
+    const raw = decodeURIComponent(location.hash.slice(1));
+    const p = raw;
     return pages.some((x) => x.label === p) ? p : "Dashboard";
   });
   const [demo, setDemo] = useState(false);
@@ -97,7 +108,7 @@ export function App() {
     selected || available.find((s) => s.status === "completed")?.id || "";
   const current = available.find((s) => s.id === scanId);
   const report = useApi<Report>(
-    `/scans/${encodeURIComponent(scanId)}/report`,
+    `/scans/${encodeURIComponent(scanId)}/summary`,
     demo,
     !!scanId && current?.status === "completed",
   );
@@ -108,7 +119,8 @@ export function App() {
   }
   useEffect(() => {
     const change = () => {
-      const p = decodeURIComponent(location.hash.slice(1));
+      const raw = decodeURIComponent(location.hash.slice(1));
+      const p = raw;
       if (pages.some((x) => x.label === p)) setPage(p);
     };
     window.addEventListener("hashchange", change);
@@ -126,6 +138,7 @@ export function App() {
     "Hardening Findings",
     "Exposure",
     "Least Privilege",
+    "IAM Risk Map",
     "Privilege Escalation Map",
     "Network Map",
   ].includes(page);
@@ -169,9 +182,17 @@ export function App() {
                 <span>{p.label}</span>
                 {p.label === "Hardening Findings" && report.data && (
                   <span className="nav-count">
-                    {report.data.findings?.filter(
-                      (f) => f.category === "hardening",
-                    ).length || 0}
+                    {Number(
+                      (
+                        report.data.stats?.by_category as
+                          | Record<string, number>
+                          | undefined
+                      )?.hardening ??
+                        report.data.findings?.filter(
+                          (f) => f.category === "hardening",
+                        ).length ??
+                        0,
+                    )}
                   </span>
                 )}
               </button>
@@ -277,7 +298,9 @@ export function App() {
                   : "Imported offline snapshot"}
               </strong>
               <span>
-                This evidence was not collected from a live cloud environment.
+                {current.input_mode === "demo"
+                  ? "Illustrative native demo snapshot; no live cloud evidence."
+                  : "This assessment analyzed an imported snapshot. Collection provenance and coverage are recorded in the report."}
               </span>
             </div>
           )}
@@ -295,6 +318,8 @@ export function App() {
               connectors={items(connectors.data)}
               scans={available}
               report={report.data}
+              scanId={scanId}
+              demo={demo}
               loading={
                 connectors.isPending ||
                 scans.isPending ||
@@ -342,10 +367,21 @@ export function App() {
               </State>
               {report.data && (
                 <Panel title="Coverage & limitations">
-                  <Coverage data={report.data.coverage} />
+                  <CoverageView scanId={scanId} demo={demo} />
                 </Panel>
               )}
             </>
+          )}
+          {page === "IAM Risk Map" && (
+            <State
+              error={scans.error}
+              loading={scans.isPending}
+              onRetry={() => void scans.refetch()}
+            >
+              <Suspense fallback={<State loading />}>
+                <GraphView scanId={scanId} kind="iam" demo={demo} />
+              </Suspense>
+            </State>
           )}
           {page === "Privilege Escalation Map" && (
             <State
@@ -354,7 +390,12 @@ export function App() {
               onRetry={() => void scans.refetch()}
             >
               <Suspense fallback={<State loading />}>
-                <GraphView scanId={scanId} kind="iam" demo={demo} />
+                <PrivescMap
+                  scanId={scanId}
+                  demo={demo}
+                  categories={current?.categories}
+                  onNavigate={navigate}
+                />
               </Suspense>
             </State>
           )}

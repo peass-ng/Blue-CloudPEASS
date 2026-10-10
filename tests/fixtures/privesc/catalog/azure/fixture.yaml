@@ -1,0 +1,32 @@
+# Frozen copies of peaso/privesc/catalog/azure entries used by tests (rev a53b46392c).
+- id: azure-authorization-roleassignments-write
+  provider: azure
+  service: authorization
+  title: Create Azure role assignments over a scope
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-authorization-privesc.md#microsoftauthorizationroleassignmentswrite
+  source_revision: a53b46392c
+  summary: The source can assign any role (e.g. Owner) at the scope to itself or a controlled principal and so controls all RBAC at that scope and its descendants.
+  requires:
+    all_of:
+    - action: Microsoft.Authorization/roleAssignments/write
+      scope: '{target.scope}'
+  target:
+    kind: azure_scope_owner
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: RBAC control of {scope}
+  conditions:
+  - id: role_assignment_condition
+    description: An ABAC condition on the source's role assignment (delegated role-assignment management) may restrict which roles or principal types can be assigned; an allowlist excluding privileged roles
+      limits or removes the edge.
+  blockers:
+  - azure_deny_assignment
+  confidence: derived
+  severity: critical
+  mitigation: Grant Microsoft.Authorization/roleAssignments/write (Owner, User Access Administrator, Role Based Access Control Administrator or custom roles) only to break-glass/admin principals, at the
+    narrowest scope, and constrain delegated assignment with an allowlist ABAC condition.
+  references:
+  - https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-steps
+  - https://learn.microsoft.com/en-us/azure/role-based-access-control/conditions-overview
+  notes: RBAC NotActions are subtractions, not denies; only deny assignments block. Scope inheritance MG -> subscription -> RG -> resource applies, so a grant at an MG reaches every child subscription.

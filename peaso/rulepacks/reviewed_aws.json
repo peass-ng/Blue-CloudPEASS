@@ -16,6 +16,91 @@
       "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/eks.pp#L7"
     }
   },
+  "aws-compliance.control.guardduty_detector_eks_audit_log_monitoring_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.eks_audit_logs"
+    ],
+    "reason": "Existing detector feature list contains Name=EKS_AUDIT_LOGS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "c90a00b62814b9260d7479ef1dd8e5465f16df296d919595f9404021ad7074e8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L77"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_lambda_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.lambda_network_logs"
+    ],
+    "reason": "Existing detector feature list contains Name=LAMBDA_NETWORK_LOGS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "39fdf9699c9a0461d29f74a8920c222927d7c58c60217a72271c63d365061723",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L85"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_rds_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.rds_login_events"
+    ],
+    "reason": "Existing detector feature list contains Name=RDS_LOGIN_EVENTS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "191e9474bf062489565d224210baceebbb13b6ea7152df1a49a1cf8a3662d8eb",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L109"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_runtime_monitoring_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.runtime_monitoring"
+    ],
+    "reason": "Existing detector feature list contains Name=RUNTIME_MONITORING and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "158bd4bdd0b0d42b61cd170f04f4b06fb889b1057210afdfc6f489962b78d970",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L125"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_s3_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.s3_data_events"
+    ],
+    "reason": "Existing detector feature list contains Name=S3_DATA_EVENTS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "03f51897e36f1e55adcd5bf280686e433edec011bddb7c3fe90a52cec4aece32",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L117"
+    }
+  },
   "aws-compliance.control.rds_db_cluster_copy_tags_to_snapshot_enabled": {
     "disposition": "ported",
     "native_checks": [

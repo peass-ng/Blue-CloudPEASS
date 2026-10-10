@@ -164,6 +164,10 @@ class Model:
                 self.add_coverage("collection", scope, status, f"{kind} collection {status}", impact.get(kind, ""))
 
     # ---- hooks ----------------------------------------------------------
+    current_selector = None
+    current_entry = None
+    pivot_is_conditional = True
+
     def sources(self):
         return list(self.principals.values())
 
@@ -174,6 +178,45 @@ class Model:
         """The resource template of a requirement or None for 'any resource'."""
         raise NotImplementedError
 
+    def localizable(self, req):
+        """True when a '*' requirement should be evaluated on the target's scope in localized entries."""
+        return self.requirement_template(req) is None
+
+    def global_unknown(self, req):
+        """Reason string when the facts for this requirement are not in the snapshot at all."""
+        return None
+
+    def unknown_holders(self, req):
+        """Principal ids that could plausibly hold a requirement whose facts are missing."""
+        return set(self.principals)
+
+    def covered_by_requirement(self, key, action, template, kind):
+        """Requirement equivalent of a *_covered_by selector (None to ignore)."""
+        if key == "resource_permission_covers_target":
+            template = {"aws_role": "{target.arn}", "aws_user": "{target.arn}", "aws_group": "{target.arn}"}.get(kind, "{target.id}")
+        if key == "gcp_actas_granted_on_target":
+            action = "iam.serviceAccounts.actAs"
+        if template is None or not isinstance(action, str):
+            return None
+        return {"action": action, "resource": template}
+
+    def source_matches(self, source, kinds, selector):
+        if kinds and source.kind not in as_list(kinds):
+            return False
+        return True
+
+    def allowed_scopes(self, rule, source):
+        """Scopes a target may live in under the entry's scope rule (None = any)."""
+        return None
+
+    def scope_allows(self, rule, source, target):
+        scopes = self.allowed_scopes(rule, source)
+        return scopes is None or target.scope in scopes
+
+    def pivot_candidates(self, source):
+        """Values for {pivot}/{pivot.*} placeholders to try, or None (pivot treated as ANY, conditional)."""
+        return None
+
     def possible(self, principal):
         """(set of requirement keys principal may hold, universal flag)."""
         raise NotImplementedError
@@ -181,11 +224,11 @@ class Model:
     def check(self, principal, req, ref):
         raise NotImplementedError
 
-    def resolve(self, template, source, target):
-        """Resolve a requirement resource template to a provider resource ref."""
+    def resolve(self, template, source, target, pivot=None):
+        """Resolve a requirement template -> (list of refs, floor or None)."""
         raise NotImplementedError
 
-    def localize(self, target):
+    def localize(self, req, target):
         """Resource ref meaning 'within the target's scope' for '*' requirements."""
         return ANY
 
@@ -193,17 +236,27 @@ class Model:
         """Candidate nodes for a target kind."""
         return []
 
+    def target_variant(self, kind, selector):
+        """Discriminator when an entry's selector needs a different candidate inventory of the same kind."""
+        return None
+
+    def targets_for(self, kind, selector):
+        return self.targets(kind)
+
+    def set_related(self, snapshots):
+        """Related snapshots of other providers (cross-snapshot joins); ignored by default."""
+
+    def cross_edges(self):
+        """[(source node, target public dict, Grant)] joining this snapshot's nodes to related snapshots."""
+        return []
+
     def unknown_target_scopes(self, kind):
         """{scope: status} where the candidate inventory for kind is unavailable."""
         return {}
 
-    def selector(self, key, value, candidates, source):
-        """Filter candidates for one selector key -> dict id -> confidence or None (unsupported)."""
+    def selector(self, key, value, candidates, source, pivot=None):
+        """Filter candidates for one selector key -> {id: None | (confidence, why)}; None when unsupported."""
         return None
-
-    def static_selector(self, key):
-        return key not in {"same_as_source", "trust_allows_principal_of_source"} and not (
-            key == "k8s_sa_in_namespace")
 
     def admin_targets(self, principal):
         """[(entity node, Grant)] the principal already controls (admin-equivalent)."""
@@ -212,28 +265,53 @@ class Model:
     def scope_within(self, inner, outer):
         return inner == outer
 
-    def placeholder(self, name, node):
-        attrs = node.attrs
-        if name in ("arn", "id"):
-            return attrs.get(name) or node.id
-        if name in ("email", "name", "namespace", "account", "project"):
-            return attrs.get(name) or (node.scope if name in ("account", "project", "namespace") else node.label)
-        if name == "scope":
-            return attrs.get("scope", node.scope)
+    def scope_only(self, req, template, localized):
+        """True when a per-target requirement depends on the target only through target.scope."""
+        return False
+
+    def resolve_for(self, template, source, target):
+        """resolve() with the provider's current entry context (AWS needs the selector)."""
+        return self.resolve(template, source, target)
+
+    def blocker(self, blocker, source, compiled):
+        """'blocked' (drop the edge), 'clear' (evaluated, does not apply) or None (facts missing)."""
         return None
 
-    def substitute(self, template, source, target):
-        def repl(match):
-            name = match.group(1)
-            owner, _, attr = name.partition(".")
-            if not attr:
-                owner, attr = "source", owner
-            node = target if owner == "target" else source
-            if node is None:
-                return match.group(0)
-            value = self.placeholder(attr, node)
-            return str(value) if value is not None else match.group(0)
-        return re.sub(r"\{([^{}]+)\}", repl, template)
+    def _held(self, principal, req, template, target):
+        refs, floor = self.resolve_for(template, principal, target)
+        grant = None
+        for ref in refs:
+            grant = best(grant, self.cached_check(principal, req, ref))
+        if grant is None:
+            return None
+        return downgrade(grant, floor[0], floor[1]) if floor else grant
+
+    def check_targets_shared(self, principal, reqs, templates, name, candidates):
+        """Every requirement must hold on the SAME value of the multi-valued placeholder `name`."""
+        token = "{" + name + "}"
+        result = {}
+        for target in candidates:
+            values, floor = self.resolve_for(token, principal, target)
+            if values == [ANY]:
+                # Placeholder not resolvable from the snapshot: independent checks carry the unknown floor.
+                grants = [self._held(principal, req, template, target) for req, template in zip(reqs, templates)]
+                if all(g is not None for g in grants):
+                    result[target.id] = combine(*grants)
+                continue
+            winner = None
+            for value in values[:200]:
+                grants = []
+                for req, template in zip(reqs, templates):
+                    got = self._held(principal, req, template.replace(token, value), target)
+                    if got is None:
+                        break
+                    grants.append(got)
+                else:
+                    got = combine(*grants)
+                    winner = best(winner, Grant(got.confidence, ({"shared_resource": value},) + got.refs, got.conditions))
+            if winner is not None:
+                result[target.id] = winner
+        return result
 
     def cached_check(self, principal, req, ref):
         key = (principal.perm_key if principal.perm_key is not None else principal.id, self.requirement_key(req), ref)
@@ -241,12 +319,17 @@ class Model:
             self._check_cache[key] = self.check(principal, req, ref)
         return self._check_cache[key]
 
-    def check_targets(self, principal, req, template, candidates):
+    def check_targets(self, principal, req, template, candidates, localized=False):
         """Default: resolve per target and check with a cache. Providers add fast paths."""
         result = {}
         for target in candidates:
-            ref = self.resolve(template, principal, target)
-            grant = self.cached_check(principal, req, ref) if ref is not None else None
+            if localized:
+                refs, floor = [self.localize(req, target)], None
+            else:
+                refs, floor = self.resolve(template, principal, target)
+            grant = None
+            for ref in refs:
+                grant = best(grant, self.cached_check(principal, req, ref))
             if grant is not None:
-                result[target.id] = grant
+                result[target.id] = downgrade(grant, floor[0], floor[1]) if floor else grant
         return result

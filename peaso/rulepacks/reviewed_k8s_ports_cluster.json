@@ -1,0 +1,1126 @@
+{
+  "kubernetes-compliance.control.cis_kube_v120_v100_5_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_container_privilege_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_container_privilege_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 116,
+      "source_query_sha256": "40b291c88bf114812b682db720235923061ea51c77bf677611c4bc21f0b14c1c",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cis_kube_v120_v100_5_2_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_hostpid_sharing_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_hostpid_sharing_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 154,
+      "source_query_sha256": "c1e565976f92e860857921b11eef93ca34e7cc180039f62ef2b0235a7bf2570a",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cis_kube_v120_v100_5_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_hostipc_sharing_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_hostipc_sharing_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 135,
+      "source_query_sha256": "fd4ad1c682e828c49dab63c9e4dfb80a0451234fd45225f967c921fdef7b9bcf",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cis_kube_v120_v100_5_2_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_host_network_access_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_host_network_access_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 1,
+      "source_query_sha256": "f04aae2c51c9e9c2ea2f7790cae14a5cc7838c694ba20428dd6be50511342af1",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cis_kube_v120_v100_5_2_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_container_privilege_escalation_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_container_privilege_escalation_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 39,
+      "source_query_sha256": "2e6b24cdb189a65df7e073906144b1072e4e539793050b6479e04d266ee7a8c6",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cis_v170_5_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.clusterrole.role_with_wildcards_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "role_with_wildcards_used",
+      "source_path": "query/role.pp",
+      "source_line": 21,
+      "source_query_sha256": "34c48034a5287aefa849a6cec7320434673422e321b7160702d89544b9ebbd71",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_cluster_role"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cluster_role_binding_default_service_account_binding_not_active": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.clusterrolebinding.cluster_role_binding_default_service_account_binding_not_active"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "cluster_role_binding_default_service_account_binding_not_active",
+      "source_path": "query/cluster_role_binding.pp",
+      "source_line": 1,
+      "source_query_sha256": "d7cff28fa72264f0ddcd2a3a27b4692c8f2363ba147234deab00eda8d5f2bd2f",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_cluster_role_binding"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cluster_role_with_validating_or_mutating_admission_webhook_configurations": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Pinned SQL requires all mutation verbs simultaneously, missing valid single-verb RBAC grants that can modify the named admission configuration or CSR approval subresource; current Kubernetes RBAC authorizes each verb independently. Reject this false-negative conjunction and preserve corrected declared-capability review with exact resource/verb pairing; no effective permission or action-chain claim.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "cluster_role_with_validating_or_mutating_admission_webhook_configurations",
+      "source_path": "query/role.pp",
+      "source_line": 220,
+      "source_query_sha256": "2f1b981d4a4c0d5738e9b588c12af8039dfa9cab9555c4caf454b71b28164661",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_cluster_role"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    },
+    "replacement_checks": [
+      "k8s.ports.clusterrole.cluster_role_with_validating_or_mutating_admission_webhook_configurations"
+    ],
+    "review_classification": "invalid_predicate"
+  },
+  "kubernetes-compliance.control.config_map_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.configmap_metadata.config_map_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "config_map_default_namespace_used",
+      "source_path": "query/config_map.pp",
+      "source_line": 1,
+      "source_query_sha256": "b9f7e2b99b04e35b6835072b1b65fcc5b0814f0af34eb8f830ad75e27edc2fff",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_config_map"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.cronjob_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.cronjob.cronjob_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "cronjob_default_namespace_used",
+      "source_path": "query/cronjob.pp",
+      "source_line": 301,
+      "source_query_sha256": "8c43f394d8d220fc941ba09d537f081436dc25c594123e730555a323ac820897",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_cronjob"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.daemonset_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.daemonset.daemonset_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "daemonset_default_namespace_used",
+      "source_path": "query/daemonset.pp",
+      "source_line": 300,
+      "source_query_sha256": "36ce4b942101a30e01a9c5ad892b64d43faf33070d4e175a3b00454e3cbf3e1c",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_daemonset"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.deployment_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.deployment.deployment_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "deployment_default_namespace_used",
+      "source_path": "query/deployment.pp",
+      "source_line": 22,
+      "source_query_sha256": "34dc2c97a3338e5ccdb2f87df0042673a46bb27103e1fda1a89cab2e69416ff6",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_deployment"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.ingress_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.ingress.ingress_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "ingress_default_namespace_used",
+      "source_path": "query/ingress.pp",
+      "source_line": 1,
+      "source_query_sha256": "75b816494797676329163e4fd91b07aefabafa447e3b2eda99ef890ccca2d0e7",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_ingress"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.job_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.job.job_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "job_default_namespace_used",
+      "source_path": "query/job.pp",
+      "source_line": 84,
+      "source_query_sha256": "e8455e0a2c5f55f6c3d209a5ff2782911850b2f38d748ab50a69faaa9c0f7ede",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_job"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.namespace_limit_range_default_cpu_limit": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_limit_range_default_cpu_limit"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_limit_range_default_cpu_limit",
+      "source_path": "query/namespace.pp",
+      "source_line": 154,
+      "source_query_sha256": "b604e157d65ba3dafbef57f1b28ca998d84af2ea86672b76071e11a8e43cdcfe",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_limit_range",
+        "kubernetes_namespace"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.namespace_limit_range_default_cpu_request": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_limit_range_default_cpu_request"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_limit_range_default_cpu_request",
+      "source_path": "query/namespace.pp",
+      "source_line": 103,
+      "source_query_sha256": "cc763e94d0250918beeecf0699ef12a6e2d94f4a42c44588482514bdefb3888b",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_limit_range",
+        "kubernetes_namespace"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.namespace_limit_range_default_memory_limit": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_limit_range_default_memory_limit"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_limit_range_default_memory_limit",
+      "source_path": "query/namespace.pp",
+      "source_line": 1,
+      "source_query_sha256": "1292c369f7ebed2de13ac8fedbdea36fa3f584088a330aa7b3e31fa0b9868fb0",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_limit_range",
+        "kubernetes_namespace"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.namespace_limit_range_default_memory_request": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_limit_range_default_memory_request"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_limit_range_default_memory_request",
+      "source_path": "query/namespace.pp",
+      "source_line": 73,
+      "source_query_sha256": "162cdc4e0db8a2fe933f7187a7d526fe6b6a4f37d2600498d24a6da0837f29b1",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_limit_range",
+        "kubernetes_namespace"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_cpu_limit": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_resource_quota_cpu_limit"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_resource_quota_cpu_limit",
+      "source_path": "query/namespace.pp",
+      "source_line": 52,
+      "source_query_sha256": "854bfb5d09ac070f6e57168189aebb132bf2a29993afeab1274830a355f0b56f",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_namespace",
+        "kubernetes_resource_quota"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    },
+    "supersedes": "kubernetes-compliance.control.namespace_resource_quota_cpu_limit"
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_cpu_request": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_resource_quota_cpu_request"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_resource_quota_cpu_request",
+      "source_path": "query/namespace.pp",
+      "source_line": 184,
+      "source_query_sha256": "e3edb34629f81d8f754497969d1fcfb390664b5f052f3d0e747c6e02afd87b3a",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_namespace",
+        "kubernetes_resource_quota"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    },
+    "supersedes": "kubernetes-compliance.control.namespace_resource_quota_cpu_request"
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_memory_limit": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_resource_quota_memory_limit"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_resource_quota_memory_limit",
+      "source_path": "query/namespace.pp",
+      "source_line": 31,
+      "source_query_sha256": "edae847d47f1311fe398b1f18477d49ff8dbe528031a36fbc29f6381c1242b53",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_namespace",
+        "kubernetes_resource_quota"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    },
+    "supersedes": "kubernetes-compliance.control.namespace_resource_quota_memory_limit"
+  },
+  "kubernetes-compliance.control.namespace_resource_quota_memory_request": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.namespace_resource_quota_memory_request"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "namespace_resource_quota_memory_request",
+      "source_path": "query/namespace.pp",
+      "source_line": 133,
+      "source_query_sha256": "af2a732c82e51c225285e13cc4d515a515b9a4c5422626bf50728b15f8e3652e",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_namespace",
+        "kubernetes_resource_quota"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    },
+    "supersedes": "kubernetes-compliance.control.namespace_resource_quota_memory_request"
+  },
+  "kubernetes-compliance.control.network_policy_default_deny_egress": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.network_policy_default_deny_egress"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "network_policy_default_deny_egress",
+      "source_path": "query/network_policy.pp",
+      "source_line": 146,
+      "source_query_sha256": "5a8d34a98a81f570919fbb81c01cf46fd0f1230d16db497a684a4102d6d7b003",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_namespace",
+        "kubernetes_network_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.network_policy_default_deny_ingress": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.namespace.network_policy_default_deny_ingress"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "network_policy_default_deny_ingress",
+      "source_path": "query/network_policy.pp",
+      "source_line": 103,
+      "source_query_sha256": "59b32ab733776170e7311e0b07fff53215aae4dd2304ed0149b21a706469641b",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_namespace",
+        "kubernetes_network_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.network_policy_default_dont_allow_egress": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.networkpolicy.network_policy_default_dont_allow_egress"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "network_policy_default_dont_allow_egress",
+      "source_path": "query/network_policy.pp",
+      "source_line": 52,
+      "source_query_sha256": "0cc0b0c88747066bc2d95939be2743639e08c796e8d238bdb7027a023fda828d",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_network_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.network_policy_default_dont_allow_ingress": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.networkpolicy.network_policy_default_dont_allow_ingress"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "network_policy_default_dont_allow_ingress",
+      "source_path": "query/network_policy.pp",
+      "source_line": 1,
+      "source_query_sha256": "ab9184efb1851d332b789e524e171b7296fb231136c07c7fe0c5c39e30357f43",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_network_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.pod_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.pod.pod_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_default_namespace_used",
+      "source_path": "query/pod.pp",
+      "source_line": 175,
+      "source_query_sha256": "b5e3e4a7e68299c14f5b9a3ed77d21e1d18f5e3a52a0b33731724aea80a136f3",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.pod_security_policy_container_privilege_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_container_privilege_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_container_privilege_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 116,
+      "source_query_sha256": "40b291c88bf114812b682db720235923061ea51c77bf677611c4bc21f0b14c1c",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.pod_security_policy_container_privilege_escalation_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_container_privilege_escalation_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_container_privilege_escalation_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 39,
+      "source_query_sha256": "2e6b24cdb189a65df7e073906144b1072e4e539793050b6479e04d266ee7a8c6",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.pod_security_policy_host_network_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_host_network_access_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_host_network_access_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 1,
+      "source_query_sha256": "f04aae2c51c9e9c2ea2f7790cae14a5cc7838c694ba20428dd6be50511342af1",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.pod_security_policy_hostipc_sharing_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_hostipc_sharing_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_hostipc_sharing_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 135,
+      "source_query_sha256": "fd4ad1c682e828c49dab63c9e4dfb80a0451234fd45225f967c921fdef7b9bcf",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.pod_security_policy_hostpid_sharing_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_hostpid_sharing_disabled"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_hostpid_sharing_disabled",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 154,
+      "source_query_sha256": "c1e565976f92e860857921b11eef93ca34e7cc180039f62ef2b0235a7bf2570a",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.pod_security_policy_immutable_container_filesystem": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.podsecuritypolicy.pod_security_policy_immutable_container_filesystem"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "pod_security_policy_immutable_container_filesystem",
+      "source_path": "query/pod_security_policy.pp",
+      "source_line": 97,
+      "source_query_sha256": "32d7c4d847d423232c41830a0ddda6d0a7b10a1587124a211e700f5ca7125439",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_pod_security_policy"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.replicaset_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.replicaset.replicaset_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "replicaset_default_namespace_used",
+      "source_path": "query/replicaset.pp",
+      "source_line": 217,
+      "source_query_sha256": "a289e50a23b72ad8ff947587cf3c54f6ac58cffdd218ff791987ef00d8a53971",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_replicaset"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.replication_controller_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.replicationcontroller.replication_controller_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "replication_controller_default_namespace_used",
+      "source_path": "query/replication_controller.pp",
+      "source_line": 84,
+      "source_query_sha256": "0f9563070ef27c82877d41017e1af84f7b364dd81e9acdbc6e54539eec3d0ab6",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_replication_controller"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.role_binding_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.rolebinding.role_binding_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "role_binding_default_namespace_used",
+      "source_path": "query/role_binding.pp",
+      "source_line": 1,
+      "source_query_sha256": "abad04e60623846d3595d846b7c523658e06e52c4855048135e98c6988af4cd9",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_role_binding"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.role_binding_default_service_account_binding_not_active": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.rolebinding.role_binding_default_service_account_binding_not_active"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "role_binding_default_service_account_binding_not_active",
+      "source_path": "query/role_binding.pp",
+      "source_line": 21,
+      "source_query_sha256": "f54c75f52287ed220f7c4db094547d14b346edf9030780d7a823e9ff30d34e82",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_role_binding"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.role_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.role.role_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "role_default_namespace_used",
+      "source_path": "query/role.pp",
+      "source_line": 1,
+      "source_query_sha256": "9484462e301dc8717646364d5a1ba088fe747f551b77c5ac2cdb8c1649cb3b48",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_role"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.role_with_rbac_approve_certificate_signing_requests": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Pinned SQL requires all mutation verbs simultaneously, missing valid single-verb RBAC grants that can modify the named admission configuration or CSR approval subresource; current Kubernetes RBAC authorizes each verb independently. Reject this false-negative conjunction and preserve corrected declared-capability review with exact resource/verb pairing; no effective permission or action-chain claim.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "role_with_rbac_approve_certificate_signing_requests",
+      "source_path": "query/role.pp",
+      "source_line": 258,
+      "source_query_sha256": "16808554873cab8f28e2f0c3a94debb52a00382bd66e1d9215481d91beb99fcc",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_cluster_role"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    },
+    "replacement_checks": [
+      "k8s.ports.clusterrole.role_with_rbac_approve_certificate_signing_requests"
+    ],
+    "review_classification": "invalid_predicate"
+  },
+  "kubernetes-compliance.control.role_with_rbac_escalate_permissions": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.clusterrole.role_with_rbac_escalate_permissions",
+      "k8s.ports.role.role_with_rbac_escalate_permissions"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "role_with_rbac_escalate_permissions",
+      "source_path": "query/role.pp",
+      "source_line": 60,
+      "source_query_sha256": "15ed2a6da316ad280319338afcd85617bcb976c6a18dbaff7f7bbbb16afbfa99",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_cluster_role",
+        "kubernetes_role"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.role_with_wildcards_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.clusterrole.role_with_wildcards_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "role_with_wildcards_used",
+      "source_path": "query/role.pp",
+      "source_line": 21,
+      "source_query_sha256": "34c48034a5287aefa849a6cec7320434673422e321b7160702d89544b9ebbd71",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_cluster_role"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.secret_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.secret_metadata.secret_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "secret_default_namespace_used",
+      "source_path": "query/secret.pp",
+      "source_line": 1,
+      "source_query_sha256": "8656d8144294f3a447246a8061d318f0bdc5fb70a331e72af44dc76b33f0275e",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_secret"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.service_account_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.serviceaccount.service_account_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "service_account_default_namespace_used",
+      "source_path": "query/service_account.pp",
+      "source_line": 21,
+      "source_query_sha256": "6a8b7664c1c077d74a397f1453d77ae8736886446593a51128671056221993cc",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_service_account"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.service_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.service.service_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "service_default_namespace_used",
+      "source_path": "query/service.pp",
+      "source_line": 1,
+      "source_query_sha256": "b8a7c1857dd9c3b6944cd1326a360dd2e6dfaa40012e0d67bd2e10672fd42217",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_service"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.service_type_forbidden": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.service.service_type_forbidden"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "service_type_forbidden",
+      "source_path": "query/service.pp",
+      "source_line": 20,
+      "source_query_sha256": "b7d5fed445e32b04ae185c76075f4282558d9a51fac609543e0131d29f81cb68",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_service"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  },
+  "kubernetes-compliance.control.statefulset_default_namespace_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "k8s.ports.statefulset.statefulset_default_namespace_used"
+    ],
+    "reason": "Reviewed exact native entity, field declaration, namespace/context join and dependency completeness. Known complete inventories support required-configuration absence; denied/partial/missing inventory is UNKNOWN. Legacy PSP fields require an explicit pre1.25 version and give NOT_APPLICABLE with current admission guidance on newer versions.",
+    "official_docs": [
+      "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+      "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/"
+    ],
+    "review_notes": {
+      "predicate": "statefulset_default_namespace_used",
+      "source_path": "query/statefulset.pp",
+      "source_line": 126,
+      "source_query_sha256": "07a5819f78aafbfddc70a0ea7f3301d2d53f773dde24287f665d2aa141e571df",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "dependencies": [
+        "kubernetes_stateful_set"
+      ],
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+    }
+  }
+}

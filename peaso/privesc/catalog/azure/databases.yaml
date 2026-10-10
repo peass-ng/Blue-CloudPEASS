@@ -1,5 +1,5 @@
 # Azure managed database (MySQL / PostgreSQL / SQL) control-plane -> database admin techniques (declarative only).
-# Source: hacktricks-cloud az-mysql-privesc.md (+ postgresql/sql pages, appended below) (rev a53b46392c; working-tree copy read).
+# Sources: hacktricks-cloud az-mysql-privesc.md, az-postgresql-privesc.md, az-sql-privesc.md (rev a53b46392c; working-tree copy read).
 
 - id: azure-mysql-flexible-admin-password-reset
   provider: azure
@@ -56,3 +56,119 @@
   references:
     - https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad
   notes: ""
+
+- id: azure-postgresql-flexible-admin-password-reset
+  provider: azure
+  service: databases
+  title: Reset the PostgreSQL Flexible Server administrator password
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-postgresql-privesc.md#microsoftdbforpostgresqlflexibleserversread-microsoftdbforpostgresqlflexibleserverswrite-microsoftdbforpostgresqlflexibleserversconfigurationswrite
+  source_revision: a53b46392c
+  summary: The source can obtain the PostgreSQL server administrator account.
+  requires:
+    all_of:
+      - action: Microsoft.DBforPostgreSQL/flexibleServers/write
+        scope: '{target.scope}'
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: PostgreSQL server admin of {target.scope}
+  conditions:
+    - id: password_auth_enabled
+      description: Password authentication must be enabled and the server reachable (firewall / private network).
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Use Entra-only authentication and restrict flexibleServers/write.
+  references:
+    - https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-manage-server-cli
+  notes: The azure_storage extension / server identity part of the same section is not modelled (new SAMI has no roles).
+
+- id: azure-postgresql-flexible-entra-admin-write
+  provider: azure
+  service: databases
+  title: Set a PostgreSQL Flexible Server Entra administrator
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-postgresql-privesc.md#microsoftdbforpostgresqlflexibleserversread-microsoftdbforpostgresqlflexibleserverswrite-microsoftdbforpostgresqlflexibleserversadministratorswrite--microsoftdbforpostgresqlflexibleserversadministratorsread
+  source_revision: a53b46392c
+  summary: The source can obtain Entra administrator on the PostgreSQL server.
+  requires:
+    all_of:
+      - action: Microsoft.DBforPostgreSQL/flexibleServers/administrators/write
+        scope: '{target.scope}'
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: PostgreSQL server admin of {target.scope}
+  conditions:
+    - id: entra_auth_enabled
+      description: Entra authentication must be enabled (otherwise flexibleServers/write is also needed).
+    - id: network_reachable
+      description: Server must be reachable from the source.
+  blockers: []
+  confidence: derived
+  severity: high
+  mitigation: Restrict administrators/write and alert on Entra admin changes.
+  references:
+    - https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-configure-sign-in-azure-ad-authentication
+  notes: ''
+
+- id: azure-sql-server-admin-password-reset
+  provider: azure
+  service: databases
+  title: Reset the Azure SQL logical server administrator password
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversread--microsoftsqlserverswrite
+  source_revision: a53b46392c
+  summary: The source can obtain the SQL server administrator account.
+  requires:
+    all_of:
+      - action: Microsoft.Sql/servers/write
+        scope: '{target.scope}'
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: SQL server admin of {target.scope}
+  conditions:
+    - id: sql_auth_allowed
+      description: Entra-only authentication must be disabled (azureADOnlyAuthentications/write can disable it).
+    - id: network_reachable
+      description: Public network access plus a firewall rule, or a private path, is required.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Enforce Entra-only authentication with Azure Policy and restrict servers/write.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication
+  notes: ''
+
+- id: azure-sql-server-entra-admin-write
+  provider: azure
+  service: databases
+  title: Set the Azure SQL logical server Entra administrator
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversadministratorswrite--microsoftsqlserversadministratorsread
+  source_revision: a53b46392c
+  summary: The source can obtain Entra administrator on the SQL server.
+  requires:
+    all_of:
+      - action: Microsoft.Sql/servers/administrators/write
+        scope: '{target.scope}'
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: SQL server admin of {target.scope}
+  conditions:
+    - id: network_reachable
+      description: Public network access plus a firewall rule, or a private path, is required.
+  blockers: []
+  confidence: derived
+  severity: high
+  mitigation: Restrict administrators/write and alert on Entra admin changes.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure
+  notes: ''

@@ -43,6 +43,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "artifacts" {
     expiration { days = 1 }
   }
 }
+resource "aws_s3_bucket_cors_configuration" "artifacts" {
+  bucket = aws_s3_bucket.artifacts.id
+  cors_rule {
+    allowed_origins = ["https://${local.domain}"]
+    allowed_methods = ["GET", "HEAD"]
+    allowed_headers = ["*"]
+    expose_headers  = ["ETag", "Content-Length", "Content-Disposition"]
+    max_age_seconds = 300
+  }
+}
 resource "aws_s3_bucket_policy" "tls" {
   bucket = aws_s3_bucket.artifacts.id
   policy = jsonencode({ Version = "2012-10-17", Statement = [{

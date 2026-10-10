@@ -22,7 +22,7 @@ peaso = "peaso.cli:main"
 include = ["peaso*", "bluepeass*", "scripts*", "risk_rules*"]
 
 [tool.setuptools.package-data]
-peaso = ["*.yaml", "rulepacks/*.json", "risk_catalog/*.yaml"]
+peaso = ["*.yaml", "rulepacks/*.json", "rulepacks/licenses/*.txt", "risk_catalog/*.yaml", "privesc/catalog/*/*.yaml"]
 bluepeass = ["*.yaml", "*.json"]
 
 risk_rules = ["*.yaml", "*.json"]

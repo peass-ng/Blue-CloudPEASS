@@ -13,6 +13,7 @@ import json
 import re
 import threading
 import time
+import math
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -23,6 +24,13 @@ def _bound(options, key, default, minimum=1, maximum=10000):
     value = options.get(key, default)
     if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
         raise ValueError(f"{key} must be an integer between {minimum} and {maximum}")
+    return value
+
+
+def _optional_limit(options, key):
+    value = options.get(key)
+    if value is not None and (isinstance(value, bool) or not isinstance(value, int) or value < 1):
+        raise ValueError(f"{key} must be a positive integer or null")
     return value
 
 
@@ -51,22 +59,48 @@ def _failure(exc):
     return ReadFailure(status, code)
 
 
-_SECRET_FIELDS = {"SecretAccessKey", "SessionToken", "Token", "WebIdentityToken", "SecretString", "SecretBinary", "Password", "MasterUserPassword", "PreSharedKey", "CustomerGatewayConfiguration", "aws_secret_access_key", "aws_session_token", "aws_access_key_id", "Credentials", "Environment", "UserData", "Code", "ResponseMetadata", "NextToken", "Marker", "ContinuationToken", "NextContinuationToken"}
+_SECRET_FIELDS = {"SecretAccessKey", "SessionToken", "Token", "WebIdentityToken", "SecretString", "SecretBinary", "Password", "MasterUserPassword", "PreSharedKey", "CustomerGatewayConfiguration", "ClientSecret", "clientSecret", "PrivateKey", "Base32StringSeed", "QRCodePNG", "aws_secret_access_key", "aws_session_token", "aws_access_key_id", "Credentials", "Environment", "UserData", "Code", "ResponseMetadata", "NextToken", "Marker", "ContinuationToken", "NextContinuationToken"}
+_LABEL_CONTAINERS = {"Tags", "tags", "TagSet", "tagSet", "TagList", "tagList", "Labels", "labels", "Annotations", "annotations"}
+_ENVIRONMENT_CONTAINERS = {"environment", "environmentVariables", "EnvironmentVariables"}
 
 
-def _safe(value):
+def _credential_label(label):
+    if not isinstance(label, str):
+        return False
+    normalized = re.sub(r"[^a-z0-9]", "", label.lower())
+    fragments = ("password", "passwd", "dbpass", "apikey", "apitoken", "accesskey", "accesstoken", "refreshtoken", "sessiontoken", "securitytoken", "idtoken", "clientsecret", "secretaccesskey", "privatekey", "sshkey", "authorization", "bearer", "credentials")
+    return normalized in {"token", "secret", "credential"} or normalized.endswith("secret") or any(fragment in normalized for fragment in fragments)
+
+
+def _safe(value, *, _labels=False, _environment=False):
     if isinstance(value, dict):
         result = {}
+        label = next((value[k] for k in ("Key", "key", "Name", "name", "HeaderName", "headerName") if isinstance(value.get(k), str)), None)
+        sensitive_record = _environment or _credential_label(label)
+        redacted_fields = []
         for key, val in value.items():
             if key in _SECRET_FIELDS:
+                continue
+            typed_value = key in {"Value", "value", "HeaderValue", "headerValue"} and sensitive_record
+            sensitive_map_value = _labels and _credential_label(key)
+            if (typed_value or sensitive_map_value) and not isinstance(val, bool):
+                result[key] = "[redacted]"
+                redacted_fields.append(key)
                 continue
             if key == "AccessKeyId":
                 result["AccessKeyFingerprint"] = hashlib.sha256(str(val).encode()).hexdigest()
             else:
-                result[key] = _safe(val)
+                result[key] = _safe(val, _labels=key in _LABEL_CONTAINERS or _labels,
+                    _environment=key in _ENVIRONMENT_CONTAINERS or _environment)
+        if redacted_fields:
+            coverage = result.setdefault("_coverage", {})
+            if not isinstance(coverage, dict):
+                coverage = result["_coverage"] = {}
+            for key in redacted_fields:
+                coverage[key] = {"status": "not_collected", "reason": "credential_metadata_redacted"}
         return result
     if isinstance(value, (list, tuple)):
-        return [_safe(x) for x in value]
+        return [_safe(x, _labels=_labels, _environment=_environment) for x in value]
     if isinstance(value, (date, datetime)):
         return value.isoformat()
     if isinstance(value, bytes):
@@ -84,9 +118,9 @@ class ReadResult:
 class Requests:
     """Scan-local, single-flight request cache with one global attempt budget."""
     def __init__(self, options, *, sleep=time.sleep):
-        self.max_calls = _bound(options, "max_calls", 200, maximum=10000)
-        self.max_pages = _bound(options, "max_pages", 10, maximum=100)
-        self.max_items = _bound(options, "max_resources", 10000, maximum=100000)
+        self.max_calls = _optional_limit(options, "max_calls")
+        self.max_pages = _optional_limit(options, "max_pages")
+        self.max_items = _optional_limit(options, "max_resources")
         self.workers = _bound(options, "service_concurrency", 4, maximum=16)
         self.attempts = _bound(options, "retry_attempts", 3, maximum=5)
         self.timeout = _bound(options, "read_timeout", 15, maximum=120)
@@ -96,6 +130,21 @@ class Requests:
         self._cache, self._clients, self._sessions = {}, {}, {}
         self._lock = threading.RLock()
         self._sleep = sleep
+        deadline = options.get("deadline_seconds")
+        if deadline is not None and (isinstance(deadline, bool) or not isinstance(deadline, (int, float)) or not math.isfinite(deadline) or deadline <= 0):
+            raise ValueError("deadline_seconds must be a finite positive number")
+        self.deadline = time.monotonic() + deadline if deadline is not None else None
+        self.cancel_event = options.get("cancel_event")
+        if self.cancel_event is not None and not callable(getattr(self.cancel_event, "is_set", None)):
+            raise ValueError("cancel_event must expose is_set()")
+        self.evidence_generation_wait = _bound(options, "credential_report_wait_seconds", 60, maximum=300)
+        self.evidence_generations = 0
+
+    def check_deadline(self):
+        if self.cancel_event is not None and self.cancel_event.is_set():
+            raise ReadFailure("not_collected", "collection_cancelled")
+        if self.deadline is not None and time.monotonic() >= self.deadline:
+            raise ReadFailure("timeout", "intentional_scan_deadline")
 
     def client(self, session, service, region):
         from botocore.config import Config
@@ -109,11 +158,13 @@ class Requests:
                     max_pool_connections=self.workers))
             return self._clients[key]
 
-    def call(self, session, service, region, operation, **arguments):
+    def call(self, session, service, region, operation, *, _cache_refresh=False, **arguments):
         if (service, operation) not in READ_ACTIONS:
             raise ReadFailure("not_collected", "non_read_operation")
         key = (id(session), service, region, operation, json.dumps(arguments, sort_keys=True))
         with self._lock:
+            if _cache_refresh and key in self._cache and self._cache[key].done():
+                self._cache.pop(key)
             future = self._cache.get(key)
             owner = future is None
             if owner:
@@ -123,15 +174,19 @@ class Requests:
         if not owner:
             return copy.deepcopy(future.result())
         try:
+            self.check_deadline()
             with self._lock:
-                if self.calls >= self.max_calls:
+                if self.max_calls is not None and self.calls >= self.max_calls:
                     raise ReadFailure("not_collected", "call_limit")
             client = self.client(session, service, region)
             for attempt in range(self.attempts):
                 with self._lock:
-                    if self.calls >= self.max_calls:
+                    self.check_deadline()
+                    if self.max_calls is not None and self.calls >= self.max_calls:
                         raise ReadFailure("not_collected", "call_limit")
                     self.calls += 1
+                    if service == "iam" and operation == "generate_credential_report":
+                        self.evidence_generations += 1
                 try:
                     response = getattr(client, operation)(**arguments)
                     if not isinstance(response, dict):
@@ -153,7 +208,7 @@ class Requests:
         items, seen = [], set()
         try:
             with self._lock:
-                if self.calls >= self.max_calls and not any(key[:4] == (id(session), service, region, operation) for key in self._cache):
+                if self.max_calls is not None and self.calls >= self.max_calls and not any(key[:4] == (id(session), service, region, operation) for key in self._cache):
                     raise ReadFailure("not_collected", "call_limit")
             client = self.client(session, service, region)
             # SDK pagination metadata handles IAM Marker, S3 continuation,
@@ -164,7 +219,9 @@ class Requests:
             input_tokens = [input_tokens] if isinstance(input_tokens, str) else input_tokens
             output_tokens = [output_tokens] if isinstance(output_tokens, str) else output_tokens
             params = dict(arguments)
-            for page_number in range(self.max_pages):
+            page_number = 0
+            while self.max_pages is None or page_number < self.max_pages:
+                page_number += 1
                 response = self.call(session, service, region, operation, **params)
                 if operation == "describe_instances":
                     reservations = response.get("Reservations")
@@ -173,14 +230,14 @@ class Requests:
                 batch = jmespath.search(expression, response)
                 if not isinstance(batch, list):
                     raise ReadFailure("malformed", "malformed_response")
-                remaining = self.max_items - len(items)
+                remaining = self.max_items - len(items) if self.max_items is not None else None
                 items.extend(batch[:remaining])
                 more = cfg.get("more_results")
                 tokens = tuple(jmespath.search(token, response) for token in output_tokens)
                 if more and jmespath.search(more, response) and not any(tokens):
                     raise ReadFailure("malformed", "missing_pagination_token")
                 has_more = any(tokens) and (not more or jmespath.search(more, response))
-                if len(batch) > remaining or (len(items) == self.max_items and has_more):
+                if remaining is not None and (len(batch) > remaining or (len(items) == self.max_items and has_more)):
                     raise ReadFailure("not_collected", "resource_limit")
                 if not has_more:
                     return ReadResult(items, "collected" if items else "empty")
@@ -198,7 +255,9 @@ class Requests:
 
     def detail(self, session, service, region, operation, *, absent=(), **arguments):
         try:
-            return _safe(self.call(session, service, region, operation, **arguments))
+            response = _safe(self.call(session, service, region, operation, **arguments))
+            response["collection_status"] = "collected"
+            return response
         except Exception as exc:
             failure = _failure(exc)
             if failure.code in absent:
@@ -230,7 +289,9 @@ def _session(auth, region):
     session = boto3.Session(**kwargs)
     # Freeze the selected context for this bounded scan. This prevents provider
     # refresh/chain changes in concurrently constructed clients.
-    provider_names = {"web_identity": "assume-role-with-web-identity", "container": "container-role", "task_role": "container-role", "instance": "iam-role"}
+    provider_names = {"web_identity": "assume-role-with-web-identity", "container": "container-role", "instance": "iam-role"}
+    if method == "task_role" and (selected_keys or auth.get("profile")):
+        raise ValueError("task_role selects the platform runtime credential context")
     if method in provider_names:
         if selected_keys or auth.get("profile"):
             raise ValueError("selected metadata/web identity provider cannot be combined with keys or profile")
@@ -239,12 +300,16 @@ def _session(auth, region):
         credentials = session.get_credentials()
     if credentials is None:
         raise ReadFailure("denied", "credentials_unavailable")
+    if method == "task_role" and getattr(credentials, "method", None) not in {"env", "container-role", "iam-role", "assume-role-with-web-identity"}:
+        raise ReadFailure("denied", "platform_role_credentials_unavailable")
     frozen = credentials.get_frozen_credentials()
     if not frozen.access_key or not frozen.secret_key:
         raise ReadFailure("denied", "credentials_unavailable")
+    if method == "task_role" and not frozen.token:
+        raise ReadFailure("denied", "platform_role_session_token_required")
     pinned = boto3.Session(aws_access_key_id=frozen.access_key,
         aws_secret_access_key=frozen.secret_key, aws_session_token=frozen.token,
-        region_name=region)
+        region_name=region or session.region_name or "us-east-1")
     return pinned, getattr(credentials, "method", "selected")
 
 
@@ -316,15 +381,18 @@ SPECS = {
 }
 GLOBAL_TYPES = {"aws_account", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "bucket", "s3_account_public_access_block", "organization_account", "scp_policy"}
 AWS_TYPES = sorted(set(SPECS) | GLOBAL_TYPES)
+FETCHERS = {}
+ENRICHERS = {}
 
 # Auditable operation allowlist. In particular, GetSecretValue, logs/objects,
 # credential report generation and Access Analyzer creation are absent.
 _DETAIL_ACTIONS = {
     "sts": "get_caller_identity assume_role",
-    "iam": "get_account_authorization_details get_account_summary get_account_password_policy get_credential_report list_users list_access_keys get_access_key_last_used get_login_profile list_mfa_devices",
-    "s3": "list_buckets get_bucket_location get_public_access_block get_bucket_policy_status get_bucket_policy get_bucket_encryption get_bucket_versioning get_bucket_acl get_bucket_ownership_controls get_bucket_logging",
+    "iam": "get_account_authorization_details get_account_summary get_account_password_policy get_credential_report generate_credential_report list_users list_access_keys get_access_key_last_used get_login_profile list_mfa_devices",
+    "ec2": "describe_regions",
+    "s3": "list_buckets get_bucket_location get_public_access_block get_bucket_policy_status get_bucket_policy get_bucket_encryption get_bucket_versioning get_bucket_acl get_bucket_ownership_controls get_bucket_logging get_bucket_lifecycle_configuration get_bucket_notification_configuration get_bucket_replication get_object_lock_configuration get_bucket_tagging",
     "s3control": "get_public_access_block",
-    "organizations": "list_accounts list_policies_for_target describe_policy",
+    "organizations": "list_accounts list_policies_for_target describe_policy list_parents",
     "kms": "describe_key get_key_rotation_status get_key_policy",
     "cloudtrail": "get_trail_status get_event_selectors",
     "config": "describe_configuration_recorder_status",
@@ -392,7 +460,7 @@ def _enrich(requests, session, region, kind, items):
     for original in items:
         if isinstance(original, str):
             names = {"eks_cluster": "name", "guardduty_detector": "DetectorId", "sqs_queue": "QueueUrl", "dynamodb_table": "TableName"}
-            item = {names.get(kind, "Name"): original}
+            item = {names.get(kind, _NATIVE_IDS.get(kind, "Name")): original}
         elif isinstance(original, dict):
             item = copy.deepcopy(original)
         else:
@@ -516,13 +584,18 @@ def _buckets(requests, session, region):
         ("Versioning", "get_bucket_versioning", ()),
         ("Acl", "get_bucket_acl", ()),
         ("OwnershipControls", "get_bucket_ownership_controls", ("OwnershipControlsNotFoundError",)),
-        ("Logging", "get_bucket_logging", ())]
+        ("Logging", "get_bucket_logging", ()),
+        ("Lifecycle", "get_bucket_lifecycle_configuration", ("NoSuchLifecycleConfiguration",)),
+        ("Notifications", "get_bucket_notification_configuration", ()),
+        ("Replication", "get_bucket_replication", ("ReplicationConfigurationNotFoundError",)),
+        ("ObjectLock", "get_object_lock_configuration", ("ObjectLockConfigurationNotFoundError",)),
+        ("Tags", "get_bucket_tagging", ("NoSuchTagSet",))]
     for item in result.items:
         name = item["Name"]
         location = requests.detail(session, "s3", region, "get_bucket_location", Bucket=name)
         item["Location"] = location
         selected = location.get("LocationConstraint") or region
-        if not location.get("collection_status"):
+        if location.get("collection_status") in (None, "collected"):
             selected = "eu-west-1" if selected == "EU" else selected
             if location.get("LocationConstraint") is None:
                 selected = "us-east-1"
@@ -574,8 +647,33 @@ def _single(requests, session, region, service, operation, *, absent=(), **argum
 
 
 def _credentials_report(requests, session, region):
+    unavailable_report_codes = {"ReportNotPresent", "ReportExpired", "ReportInProgress", "CredentialReportNotPresent", "CredentialReportExpired", "CredentialReportNotReady"}
     read = _single(requests, session, region, "iam", "get_credential_report",
-        absent=("CredentialReportNotPresent", "CredentialReportExpired", "CredentialReportNotReady"))
+        absent=unavailable_report_codes)
+    if read.status == "empty" and read.error and read.error.get("code") in unavailable_report_codes:
+        # Explicitly authorized evidence generation only. This does not change
+        # IAM configuration, credentials, roles or resources.
+        try:
+            response = requests.call(session, "iam", region, "generate_credential_report")
+            if response.get("State") not in {"STARTED", "INPROGRESS", "COMPLETE"}:
+                raise ReadFailure("malformed", "malformed_report_generation_state")
+            deadline = time.monotonic() + requests.evidence_generation_wait
+            while True:
+                try:
+                    response = requests.call(session, "iam", region, "get_credential_report", _cache_refresh=True)
+                    read = ReadResult([response])
+                    break
+                except Exception as exc:
+                    failure = _failure(exc)
+                    if failure.code not in unavailable_report_codes:
+                        raise failure from None
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise ReadFailure("timeout", "credential_report_generation_timeout")
+                    requests._sleep(min(1, remaining))
+        except Exception as exc:
+            failure = _failure(exc)
+            return ReadResult([], failure.status, {"code": failure.code})
     if read.items:
         response = read.items[0]
         content = response.get("Content")
@@ -597,17 +695,68 @@ def _credentials_report(requests, session, region):
 
 
 def _scp_policies(requests, session, region, account):
-    attached = requests.pages(session, "organizations", region, "list_policies_for_target", "Policies",
-        TargetId=account, Filter="SERVICE_CONTROL_POLICY")
-    for item in attached.items:
-        response = requests.detail(session, "organizations", region, "describe_policy", PolicyId=item["Id"])
-        content = response.get("Policy", {}).get("Content")
-        if content is not None:
-            response["Policy"]["Content"] = _policy(content)
-        item["Detail"] = response
-        item["TargetId"] = account
-        item["InheritedPolicies"] = {"collection_status": "not_collected", "error": {"code": "organization_parent_inheritance_not_collected"}}
-    return attached
+    policies, path, seen = {}, [{"Id": account, "Type": "ACCOUNT"}], {account}
+    target = path[0]
+    failure = None
+    while True:
+        attached = requests.pages(session, "organizations", region, "list_policies_for_target", "Policies",
+            TargetId=target["Id"], Filter="SERVICE_CONTROL_POLICY")
+        if attached.status not in {"collected", "empty"}:
+            failure = ReadFailure((attached.error or {}).get("cause_status", attached.status), (attached.error or {}).get("code", "scp_attachment_collection_incomplete"))
+        for original in attached.items:
+            if not isinstance(original, dict) or not isinstance(original.get("Id"), str):
+                failure = ReadFailure("malformed", "malformed_scp_policy")
+                continue
+            policy_id = original["Id"]
+            item = policies.setdefault(policy_id, {**original, "TargetId": account, "Attachments": []})
+            item["Attachments"].append({"TargetId": target["Id"], "TargetType": target["Type"],
+                "Inherited": target["Type"] != "ACCOUNT", "ParentPath": copy.deepcopy(path), "collection_status": "collected"})
+            if "Detail" not in item:
+                response = requests.detail(session, "organizations", region, "describe_policy", PolicyId=policy_id)
+                if response.get("collection_status") not in (None, "collected", "empty"):
+                    failure = ReadFailure(response["collection_status"], response.get("error", {}).get("code", "scp_document_unavailable"))
+                content = response.get("Policy", {}).get("Content")
+                if content is not None:
+                    response["Policy"]["Content"] = _policy(content)
+                    document = response["Policy"]["Content"]
+                    if not isinstance(document, dict) or not isinstance(document.get("Statement"), (list, dict)):
+                        failure = ReadFailure("malformed", "malformed_scp_document")
+                elif response.get("collection_status") is None:
+                    failure = ReadFailure("malformed", "missing_scp_document")
+                item["Detail"] = response
+        if attached.status not in {"collected", "empty"} or target["Type"] == "ROOT":
+            break
+        parents = requests.pages(session, "organizations", region, "list_parents", "Parents", ChildId=target["Id"])
+        if parents.status not in {"collected", "empty"}:
+            failure = ReadFailure((parents.error or {}).get("cause_status", parents.status), (parents.error or {}).get("code", "organization_parent_visibility_incomplete"))
+            break
+        if len(parents.items) != 1 or not isinstance(parents.items[0], dict):
+            failure = ReadFailure("malformed", "missing_or_ambiguous_organization_parent")
+            break
+        parent = parents.items[0]
+        parent_id, parent_type = parent.get("Id"), parent.get("Type")
+        valid = isinstance(parent_id, str) and parent_type in {"ORGANIZATIONAL_UNIT", "ROOT"}
+        valid = valid and bool(re.fullmatch(r"r-[a-z0-9]+" if parent_type == "ROOT" else r"ou-[a-z0-9]+-[a-z0-9]+", parent_id))
+        if not valid:
+            failure = ReadFailure("malformed", "malformed_organization_parent")
+            break
+        if parent_id in seen:
+            failure = ReadFailure("malformed", "organization_parent_cycle")
+            break
+        seen.add(parent_id)
+        target = {"Id": parent_id, "Type": parent_type}
+        path.append(target)
+    complete = failure is None and target["Type"] == "ROOT"
+    for item in policies.values():
+        item["InheritanceComplete"] = complete
+        item["InheritedPolicies"] = {"collection_status": "collected" if complete else (failure.status if failure else "unknown"),
+            "ParentPath": copy.deepcopy(path), "complete": complete}
+        if failure:
+            item["InheritedPolicies"]["error"] = {"code": failure.code}
+    items = list(policies.values())
+    if failure:
+        return ReadResult(items, "partial" if items else failure.status, {"code": failure.code, "cause_status": failure.status})
+    return ReadResult(items, "collected" if items else "empty")
 
 
 def _identity(requests, session, region, expected=None):
@@ -623,8 +772,8 @@ def _identity(requests, session, region, expected=None):
 def _selection(connector):
     options, auth = connector.get("options", {}), connector.get("auth", {})
     scopes = connector.get("scopes") or []
-    if not isinstance(scopes, list) or len(scopes) > 100 or any(not isinstance(x, str) for x in scopes):
-        raise ValueError("scopes must be a list of at most 100 account IDs or legacy regions")
+    if not isinstance(scopes, list) or any(not isinstance(x, str) for x in scopes):
+        raise ValueError("scopes must be a list of account IDs or account/region scopes")
     selected_regions = options.get("regions") or []
     if not isinstance(selected_regions, list):
         raise ValueError("regions must be a list")
@@ -642,8 +791,8 @@ def _selection(connector):
         else:
             raise ValueError("AWS scope must be an account ID, account/region or AWS region")
     regions = list(dict.fromkeys(regions or [auth.get("region_name", "us-east-1")]))
-    if len(regions) > 100 or any(not isinstance(r, str) or not re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-[0-9]", r) for r in regions):
-        raise ValueError("regions must contain at most 100 AWS region names")
+    if any(not isinstance(r, str) or not re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-[0-9]", r) for r in regions):
+        raise ValueError("regions must contain AWS region names")
     return list(dict.fromkeys(accounts)), regions
 
 
@@ -660,6 +809,9 @@ def collect(connector, requirements=None):
     if not isinstance(options, dict) or not isinstance(auth, dict):
         raise ValueError("auth and options must be objects")
     selected_accounts, regions = _selection(connector)
+    explicit_regions = bool(options.get("regions") or auth.get("region_name")) or any(not re.fullmatch(r"[0-9]{12}", scope) for scope in connector.get("scopes") or [])
+    discovered_regions = {}
+    region_discovery_errors = {}
     # Preserve explicitly selected account/region pairs; account-only scopes
     # use options.regions. Avoid broadening pairs into a Cartesian product.
     plain_accounts = {s for s in (connector.get("scopes") or []) if re.fullmatch(r"[0-9]{12}", s)}
@@ -670,7 +822,9 @@ def collect(connector, requirements=None):
             paired_regions.setdefault(account, []).append(region)
 
     def regions_for(account):
-        return list(dict.fromkeys(paired_regions[account])) if account in paired_regions and account not in plain_accounts else regions
+        if account in paired_regions and account not in plain_accounts:
+            return list(dict.fromkeys(paired_regions[account]))
+        return discovered_regions.get(account, regions)
 
     requests = Requests(options)
     scope_workers = _bound(options, "scope_concurrency", 2, maximum=8)
@@ -720,12 +874,15 @@ def collect(connector, requirements=None):
             rid = _native_id(kind, item)
             if rid in unique:
                 continue
-            if total_items >= requests.max_items:
+            if requests.max_items is not None and total_items >= requests.max_items:
                 status, error = ("partial" if unique else "not_collected"), {"code": "resource_limit"}
                 break
             unique[rid] = item
             total_items += 1
         envelope = {"type": kind, "scope": scope, "service": service, "status": status, "items": list(unique.values())}
+        if account:
+            envelope["account_id"] = account
+            envelope["global"] = kind in GLOBAL_TYPES
         if error:
             envelope["error"] = error
         collections.append(envelope)
@@ -735,7 +892,7 @@ def collect(connector, requirements=None):
         account_regions = regions_for(account)
         for region in account_regions:
             current_scope = f"{account}/{region}"
-            kinds = AWS_TYPES if region == account_regions[0] else sorted(SPECS)
+            kinds = AWS_TYPES if region == account_regions[0] else sorted(set(SPECS) - GLOBAL_TYPES)
             for kind in kinds + sorted(unsupported):
                 if any(c["scope"] == current_scope and c["type"] == kind for c in collections):
                     continue
@@ -744,7 +901,9 @@ def collect(connector, requirements=None):
                         {"code": failure.code if kind in wanted or kind in unsupported else "inventory_not_requested"}))
 
     try:
-        session, credential_method = _session(auth, regions[0])
+        session, credential_method = _session(auth, regions[0] if explicit_regions else None)
+        if not explicit_regions:
+            regions[:] = [session.region_name or "us-east-1"]
         metadata["credential_method"] = credential_method
         chain = auth.get("role_chain", [])
         if not isinstance(chain, list) or len(chain) > 10:
@@ -759,8 +918,8 @@ def collect(connector, requirements=None):
             contexts.append((session, identity))
             identities.append(identity)
         targets = auth.get("assume_roles", [])
-        if not isinstance(targets, list) or len(targets) > 100:
-            raise ValueError("assume_roles must contain at most 100 role targets")
+        if not isinstance(targets, list):
+            raise ValueError("assume_roles must be a list of role targets")
         targets = list(targets)
         organization_role = options.get("organization_role_name")
         org_inventory = None
@@ -778,9 +937,8 @@ def collect(connector, requirements=None):
                 if account != base_account and (not selected_accounts or account in selected_accounts):
                     targets.append({"role_arn": f"arn:{partition}:iam::{account}:role/{organization_role}"})
         seen_targets = set()
-        metadata["role_target_selection"] = {"requested": len(targets), "scheduled_limit": 100,
-            "status": "partial" if len(targets) > 100 else "collected"}
-        for target in targets[:100]:
+        metadata["role_target_selection"] = {"requested": len(targets), "scheduled_limit": None, "status": "collected"}
+        for target in targets:
             target_info = {"role_arn": target} if isinstance(target, str) else target
             if not isinstance(target_info, dict):
                 raise ValueError("assume_roles entries must be role ARNs or objects")
@@ -815,9 +973,29 @@ def collect(connector, requirements=None):
             failed_scope(f"{account}/{regions[0]}", failure)
         org_inventory = None
 
+    if not explicit_regions:
+        metadata["region_discovery"] = []
+        for account_session, identity in contexts:
+            account = identity["Account"]
+            read = requests.pages(account_session, "ec2", regions[0], "describe_regions", "Regions", AllRegions=True)
+            valid = read.status in {"collected", "empty"} and all(isinstance(row, dict) and isinstance(row.get("RegionName"), str) and row.get("OptInStatus") in {"opt-in-not-required", "opted-in", "not-opted-in"} for row in read.items)
+            enabled = sorted({row["RegionName"] for row in read.items if isinstance(row, dict) and row.get("OptInStatus") in {"opt-in-not-required", "opted-in"}}) if valid else []
+            if not valid or not enabled:
+                failure = ReadFailure(read.status if read.status not in {"collected", "empty"} else "malformed", (read.error or {}).get("code", "enabled_region_discovery_unavailable"))
+                region_discovery_errors[account] = failure
+                metadata["region_discovery"].append({"account_id": account, "status": failure.status, "error": {"code": failure.code}})
+            else:
+                discovered_regions[account] = enabled
+                metadata["region_discovery"].append({"account_id": account, "status": "collected", "regions": enabled})
+        if discovered_regions:
+            regions[:] = sorted({region for values in discovered_regions.values() for region in values})
+        metadata["regions"] = list(regions)
+
     def global_job(session, identity, kind):
         account = identity["Account"]
         region = regions_for(account)[0]
+        if kind in FETCHERS:
+            return FETCHERS[kind](requests, session, region, account)
         if kind == "aws_account":
             return ReadResult([identity])
         if kind == "bucket":
@@ -840,12 +1018,19 @@ def collect(connector, requirements=None):
             return _scp_policies(requests, session, region, account)
         return ReadResult([], "not_collected", {"code": "unsupported_inventory"})
 
-    def regional_job(session, region, kind):
+    def regional_job(session, identity, region, kind):
+        if kind in FETCHERS:
+            read = FETCHERS[kind](requests, session, region, identity["Account"])
+            if not isinstance(read, ReadResult):
+                return ReadResult([], "malformed", {"code": "malformed_extension_result"})
+            return read
         service, operation, expression = SPECS[kind]
-        args = {"includeShadowTrails": False} if kind == "cloudtrail" else {"MaxResults": 1000} if kind == "sqs_queue" else {}
-        read = requests.pages(session, service, region, operation, expression, **args)
+        args = {"includeShadowTrails": True} if kind == "cloudtrail" else {"MaxResults": 1000} if kind == "sqs_queue" else {}
+        read = _single(requests, session, region, service, operation, **args) if expression is None else requests.pages(session, service, region, operation, expression, **args)
         try:
             read.items = _enrich(requests, session, region, kind, read.items)
+            if kind in ENRICHERS:
+                read.items = ENRICHERS[kind](requests, session, region, read.items)
         except Exception as exc:
             failure = _failure(exc)
             # Retain original valid dictionary evidence, mark incomplete detail.
@@ -861,37 +1046,87 @@ def collect(connector, requirements=None):
             for session, identity in scope_batch:
                 for kind in sorted(GLOBAL_TYPES):
                     if kind in wanted:
-                        jobs.append((kind, identity, regions_for(identity["Account"])[0], pool.submit(global_job, session, identity, kind)))
-            for kind, identity, region, future in jobs:
+                        jobs.append((kind, identity, regions_for(identity["Account"])[0], session, pool.submit(global_job, session, identity, kind)))
+            for kind, identity, region, job_session, future in jobs:
                 try:
                     read = future.result()
+                    if not isinstance(read, ReadResult):
+                        raise ReadFailure("malformed", "malformed_extension_result")
+                    if kind in ENRICHERS and read.items:
+                        read.items = ENRICHERS[kind](requests, job_session, region, read.items)
                 except Exception as exc:
                     failure = _failure(exc)
                     read = ReadResult([], failure.status, {"code": failure.code})
-                append(kind, f"{identity['Account']}/{region}", "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"], region)
+                append(kind, f"{identity['Account']}/{region}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"], region)
             for region_offset in range(0, len(regions), region_workers):
                 jobs = []
                 for session, identity in scope_batch:
                     for region in regions[region_offset:region_offset + region_workers]:
                         if region not in regions_for(identity["Account"]):
                             continue
-                        for kind in sorted(SPECS):
+                        for kind in sorted(set(SPECS) - GLOBAL_TYPES):
                             if kind in wanted:
-                                jobs.append((kind, identity, region, pool.submit(regional_job, session, region, kind)))
-                for kind, identity, region, future in jobs:
-                    read = future.result()
+                                if identity["Account"] in region_discovery_errors:
+                                    failure = region_discovery_errors[identity["Account"]]
+                                    future = Future()
+                                    future.set_result(ReadResult([], failure.status, {"code": failure.code, "reason": "default_region_discovery_incomplete"}))
+                                else:
+                                    future = pool.submit(regional_job, session, identity, region, kind)
+                                jobs.append((kind, identity, region, session, future))
+                for kind, identity, region, job_session, future in jobs:
+                    try:
+                        read = future.result()
+                    except Exception as exc:
+                        failure = _failure(exc)
+                        read = ReadResult([], failure.status, {"code": failure.code})
                     append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
             for session, identity in scope_batch:
                 account_regions = regions_for(identity["Account"])
                 for region in account_regions:
-                    for kind in sorted((set(SPECS) - wanted) | unsupported | ((GLOBAL_TYPES - wanted) if region == account_regions[0] else set())):
+                    for kind in sorted((set(SPECS) - GLOBAL_TYPES - wanted) | unsupported | ((GLOBAL_TYPES - wanted) if region == account_regions[0] else set())):
                         append(kind, f"{identity['Account']}/{region}", SPECS.get(kind, ("aws",))[0], ReadResult([], "not_collected", {"code": "unsupported_inventory" if kind in unsupported else "inventory_not_requested"}))
     collections.sort(key=lambda c: (c["scope"], c["type"]))
     metadata.update({"calls": requests.calls, "cache_hits": requests.cache_hits,
         "max_calls": requests.max_calls, "max_pages": requests.max_pages,
         "max_resources": requests.max_items, "resource_count": total_items,
         "credential_resolution_calls": "sdk_managed_not_counted",
+        "intentional_limits": {key: options[key] for key in ("max_calls", "max_pages", "max_resources", "deadline_seconds") if options.get(key) is not None},
+        "authorized_evidence_generation": {"iam_credential_report": True, "generation_requests": requests.evidence_generations},
         "caller_identities": identities, "authentication_errors": auth_errors,
         "network_relationships": network_relationships(collections)})
     scopes = sorted({c["scope"] for c in collections})
     return make_snapshot("aws", scopes, collections, metadata=_safe(metadata))
+
+
+def _load_metadata_extension():
+    """Trusted in-repository read-only specs, sharing the scan request context."""
+    from importlib import import_module
+    name = "peaso.collectors.aws_b_services"
+    try:
+        extension = import_module(name)
+    except ModuleNotFoundError as exc:
+        if exc.name != name:
+            raise
+        return
+    specs = getattr(extension, "SPECS", {})
+    for kind, spec in specs.items():
+        if not isinstance(kind, str) or not isinstance(spec, tuple) or len(spec) != 3:
+            raise ValueError("invalid AWS extension service specification")
+        if kind in SPECS and SPECS[kind] != spec:
+            raise ValueError("AWS extension cannot replace existing service specification")
+    actions = set(getattr(extension, "READ_ACTIONS", set()))
+    prohibited = {"get_secret_value", "batch_get_secret_value", "get_object", "get_log_events", "filter_log_events", "get_parameter", "get_parameters", "get_parameters_by_path"}
+    for service, operation in actions | {(s, o) for s, o, expression in specs.values()}:
+        if operation in prohibited or not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")):
+            raise ValueError("AWS extension includes a prohibited operation")
+    SPECS.update(specs)
+    READ_ACTIONS.update(actions)
+    READ_ACTIONS.update((s, o) for s, o, expression in specs.values())
+    _NATIVE_IDS.update(getattr(extension, "NATIVE_IDS", {}))
+    GLOBAL_TYPES.update(getattr(extension, "GLOBAL_TYPES", set()))
+    FETCHERS.update(getattr(extension, "FETCHERS", {}))
+    ENRICHERS.update(getattr(extension, "ENRICHERS", {}))
+    AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
+
+
+_load_metadata_extension()

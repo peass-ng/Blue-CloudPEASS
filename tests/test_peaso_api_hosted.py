@@ -19,7 +19,9 @@ def store():
         name = "peaso-test-" + uuid.uuid4().hex
         client.create_table(TableName=name, KeySchema=[{"AttributeName": "PK", "KeyType": "HASH"}, {"AttributeName": "SK", "KeyType": "RANGE"}], AttributeDefinitions=[{"AttributeName": "PK", "AttributeType": "S"}, {"AttributeName": "SK", "AttributeType": "S"}], BillingMode="PAY_PER_REQUEST")
         try:
-            yield DynamoStore(name, client)
+            instance = DynamoStore(name, client)
+            instance.clock = lambda: 1000
+            yield instance
         finally:
             client.delete_table(TableName=name)
         return
@@ -39,7 +41,9 @@ def store():
                     with lock:
                         return operation(*args, **kwargs)
                 return call
-        yield DynamoStore("peaso", AtomicService())
+        instance = DynamoStore("peaso", AtomicService())
+        instance.clock = lambda: 1000
+        yield instance
 
 
 @pytest.mark.parametrize("limit", [1, 10])

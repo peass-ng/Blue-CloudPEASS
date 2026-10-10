@@ -1,0 +1,1896 @@
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import {
+  Background,
+  Controls,
+  Handle,
+  MarkerType,
+  MiniMap,
+  Position,
+  ReactFlow,
+} from "@xyflow/react";
+import type { Edge, Node, NodeProps, ReactFlowInstance } from "@xyflow/react";
+import ELK from "elkjs/lib/elk-api.js";
+import elkWorkerUrl from "elkjs/lib/elk-worker.min.js?url";
+import type { ELK as ElkInstance, ElkNode } from "elkjs";
+import {
+  ArrowRight,
+  Crown,
+  ExternalLink,
+  Filter,
+  Focus,
+  Layers,
+  Minimize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Radar,
+  Route,
+  Search,
+  ShieldAlert,
+  UserRound,
+  X,
+} from "lucide-react";
+import {
+  ApiError,
+  listOf,
+  privescApi,
+  useApi,
+  usePrivescAdmins,
+  usePrivescBroad,
+  usePrivescGraph,
+  usePrivescPaths,
+  usePrivescPrincipal,
+} from "./api";
+import { PrivescIndex, principalCard } from "./privescQueries";
+import type {
+  Finding,
+  PrivescConfidence,
+  PrivescEdge,
+  PrivescEvidenceRef,
+  PrivescFindingEvidence,
+  PrivescNode,
+  PrivescPath,
+} from "./types";
+import { Badge, Inspector, Panel, ProviderIcon, State } from "./ui";
+import "@xyflow/react/dist/style.css";
+
+const INITIAL_CAP = 150,
+  CAP_STEP = 150,
+  MEMBER_CAP = 40,
+  FOCUS_DEPTH = 2;
+// Node card geometry (shared by ELK, React Flow and the minimap).
+const NODE_W = 300,
+  AGG_W = 330,
+  NODE_H = 78;
+// Below this zoom node labels stop being legible, so the initial view anchors
+// on the admin targets instead of fitting the whole (possibly huge) map.
+const READABLE_ZOOM = 0.62,
+  ANCHOR_ZOOM = 0.72;
+const nodeWidth = (n: { kind?: string }) => (n.kind === "aggregate" ? AGG_W : NODE_W);
+const SIDEBAR_KEY = "peaso.privesc.sidebar";
+const SEV_RANK: Record<string, number> = {
+  critical: 4,
+  high: 3,
+  medium: 2,
+  low: 1,
+  info: 0,
+};
+const SEV_COLOR: Record<string, string> = {
+  critical: "#ff6b85",
+  high: "#f7a75c",
+  medium: "#e8d27a",
+  low: "#7fb6ff",
+  info: "#7f97a8",
+};
+const CONF_DASH: Record<string, string | undefined> = {
+  derived: undefined,
+  conditional: "7 5",
+  unknown: "2 5",
+};
+const PROVIDERS = ["aws", "gcp", "azure", "k8s"];
+const PROVIDER_NAME: Record<string, string> = {
+  aws: "AWS",
+  gcp: "GCP",
+  azure: "Azure",
+  k8s: "K8s",
+  entra: "Entra",
+};
+
+type VNode = PrivescNode & { synthetic?: boolean };
+type VEdge = {
+  id: string;
+  source: string;
+  target: string;
+  techniques: string[];
+  confidence: PrivescConfidence;
+  severity: string;
+  membership?: boolean;
+};
+type Highlight = { nodes: Set<string>; edges: Set<string>; label: string };
+type Card = { type: "principal"; id: string } | { type: "edge"; id: string };
+type QueryKind = "admins" | "path" | "broad" | "from";
+type PeFlowNode = Node<
+  {
+    node: VNode;
+    admin: boolean;
+    expanded: boolean;
+    highlighted: boolean;
+    dimmed: boolean;
+    focused: boolean;
+  },
+  "pe"
+>;
+
+export function hacktricksUrl(source?: string | null) {
+  if (!source) return undefined;
+  const [path, hash] = source.split("#");
+  const page = path.replace(/^src\//, "").replace(/\.md$/, ".html");
+  return `https://cloud.hacktricks.wiki/en/${page}${hash ? `#${hash}` : ""}`;
+}
+export function humanType(type?: string | null) {
+  if (!type) return "Principal";
+  const [head, ...rest] = type.split("_");
+  const name = PROVIDER_NAME[head];
+  return name
+    ? `${name} ${rest.join(" ")}`.trim()
+    : type.replaceAll("_", " ");
+}
+const shortId = (id: string) => id.split(/[/:]/).filter(Boolean).pop() || id;
+const nodeLabel = (n?: PrivescNode, id = "") =>
+  n?.label || (n ? shortId(n.id) : shortId(id));
+const plural = (n: number, word: string) =>
+  `${n} ${word}${n === 1 ? "" : "s"}`;
+
+export function formatRef(ref: PrivescEvidenceRef): string {
+  const v = (k: string) => (ref[k] == null ? "" : String(ref[k]));
+  if ("policy_name" in ref || "policy_type" in ref)
+    return `${v("policy_type") || "policy"} policy ${v("policy_name") || v("policy")} · statement ${v("statement") || "0"}${v("sid") ? ` (${v("sid")})` : ""} · ${v("effect") || "Allow"}`;
+  if ("assignment" in ref)
+    return `${v("role")} at ${v("scope") || "/"}${v("via") ? ` · via ${v("via")}` : ""}`;
+  if ("binding" in ref && "namespace" in ref)
+    return `${v("binding")} → ${v("role")}${v("namespace") ? ` in ${v("namespace")}` : " (cluster-wide)"}`;
+  if ("role" in ref)
+    return `${v("role")} on ${v("policy") || v("binding")}${v("condition") ? ` · condition: ${v("condition")}` : ""}`;
+  return JSON.stringify(ref);
+}
+
+const PeNodeView = memo(function PeNodeView({ data }: NodeProps<PeFlowNode>) {
+  const n = data.node;
+  const aggregate = n.kind === "aggregate";
+  const count = aggregate ? n.underlying_count : undefined;
+  const subtitle = aggregate
+    ? `${count == null ? "Unknown" : count} ${n.type === "principal_group" ? "possible sources" : "members"} · ${data.expanded ? "collapse" : "expand"}`
+    : n.kind === "entity"
+      ? data.admin
+        ? `Admin scope · ${n.scope || humanType(n.type)}`
+        : humanType(n.type)
+      : `${humanType(n.type)} · ${n.scope || "unscoped"}`;
+  return (
+    <div
+      className={[
+        "pe-node",
+        `pe-kind-${n.kind || "principal"}`,
+        `pe-prov-${n.provider || "generic"}`,
+        data.admin ? "pe-admin" : "",
+        data.expanded ? "is-expanded" : "",
+        data.highlighted ? "is-hl" : "",
+        data.dimmed ? "is-dim" : "",
+        data.focused ? "is-focus" : "",
+        n.confidence === "unknown" ? "is-unknown" : "",
+      ].join(" ")}
+      title={n.id}
+    >
+      <Handle type="target" position={Position.Left} />
+      <span className="pe-node-icon">
+        {data.admin ? (
+          <Crown size={18} />
+        ) : (
+          <ProviderIcon provider={String(n.provider || "generic")} size={22} />
+        )}
+      </span>
+      <span className="pe-node-text">
+        <strong>{nodeLabel(n)}</strong>
+        <span>{subtitle}</span>
+      </span>
+      {aggregate && (
+        <span className="pe-node-count" aria-label={`${count ?? "unknown"} members`}>
+          {count ?? "?"}
+        </span>
+      )}
+      <Handle type="source" position={Position.Right} />
+    </div>
+  );
+});
+const nodeTypes = { pe: PeNodeView };
+
+export function PrivescMap({
+  scanId,
+  demo,
+  categories,
+  onNavigate,
+}: {
+  scanId: string;
+  demo: boolean;
+  categories?: string[];
+  onNavigate?: (page: string) => void;
+}) {
+  const graphQ = usePrivescGraph(scanId, demo);
+  const findingsQ = useApi<{ items: Finding[] }>(
+    privescApi.findings(scanId),
+    demo,
+    !!scanId && !!graphQ.data?.nodes?.length,
+  );
+  const graph = useMemo(
+    () => ({
+      nodes: graphQ.data?.nodes || [],
+      edges: graphQ.data?.edges || [],
+    }),
+    [graphQ.data],
+  );
+  const index = useMemo(() => new PrivescIndex(graph), [graph]);
+  const findingList = useMemo(() => listOf(findingsQ.data), [findingsQ.data]);
+  const techSeverity = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const f of findingList) {
+      const sev = String(f.severity || "").toLowerCase();
+      const old = map.get(f.check_id);
+      if (!old || (SEV_RANK[sev] ?? 0) > (SEV_RANK[old] ?? 0))
+        map.set(f.check_id, sev);
+    }
+    return map;
+  }, [findingList]);
+  const edgeSeverity = useCallback(
+    (e: PrivescEdge) => {
+      let best = "";
+      for (const t of e.techniques) {
+        const s = techSeverity.get(t);
+        if (s && (!best || SEV_RANK[s] > SEV_RANK[best])) best = s;
+      }
+      if (best) return best;
+      return index.isAdmin(e.target) ? "critical" : "high";
+    },
+    [techSeverity, index],
+  );
+
+  const [provider, setProvider] = useState(""),
+    [minSeverity, setMinSeverity] = useState(""),
+    [confidence, setConfidence] = useState(""),
+    [hideUnknown, setHideUnknown] = useState(false),
+    [expanded, setExpanded] = useState<Set<string>>(() => new Set()),
+    [focus, setFocus] = useState(""),
+    [highlight, setHighlight] = useState<Highlight | null>(null),
+    [selected, setSelected] = useState(""),
+    [card, setCard] = useState<Card | null>(null),
+    [query, setQuery] = useState<QueryKind | null>(null),
+    [cap, setCap] = useState(INITIAL_CAP);
+
+  useEffect(() => {
+    setExpanded(new Set());
+    setFocus("");
+    setHighlight(null);
+    setSelected("");
+    setCard(null);
+    setQuery(null);
+    setCap(INITIAL_CAP);
+  }, [scanId, demo]);
+
+  const visible = useMemo(() => {
+    const hlNodes = highlight?.nodes || new Set<string>();
+    const passNode = (n?: PrivescNode) =>
+      !!n &&
+      (!provider || n.provider === provider) &&
+      !(
+        hideUnknown &&
+        (n.id.startsWith("unknown:") ||
+          (n.kind === "aggregate" && n.confidence === "unknown"))
+      );
+    const edges: VEdge[] = [];
+    const ids = new Set<string>();
+    for (const e of graph.edges) {
+      if (!passNode(index.nodes.get(e.source))) continue;
+      if (!passNode(index.nodes.get(e.target))) continue;
+      if (hideUnknown && e.confidence === "unknown") continue;
+      if (confidence && e.confidence !== confidence) continue;
+      const severity = edgeSeverity(e);
+      if (minSeverity && (SEV_RANK[severity] ?? 0) < SEV_RANK[minSeverity])
+        continue;
+      edges.push({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        techniques: e.techniques,
+        confidence: e.confidence,
+        severity,
+      });
+      ids.add(e.source);
+      ids.add(e.target);
+    }
+    const extra = new Map<string, VNode>();
+    for (const aggId of expanded) {
+      const agg = index.nodes.get(aggId);
+      if (!agg || !ids.has(aggId)) continue;
+      const all = agg.members || [];
+      const members = new Set(all.slice(0, MEMBER_CAP));
+      for (const m of all) if (hlNodes.has(m) || m === focus) members.add(m);
+      const group = agg.type === "principal_group";
+      for (const m of members) {
+        const node: VNode = index.nodes.get(m) ||
+          agg.member_sample?.find((s) => s.id === m) || {
+            id: m,
+            label: shortId(m),
+            type: group ? "principal" : agg.type,
+            provider: agg.provider,
+            scope: agg.scope,
+            kind: "principal",
+            synthetic: true,
+          };
+        if (!passNode(node)) continue;
+        if (!index.nodes.has(m)) extra.set(m, node);
+        ids.add(m);
+        edges.push({
+          id: `m:${aggId}->${m}`,
+          source: group ? m : aggId,
+          target: group ? aggId : m,
+          techniques: [],
+          confidence: agg.confidence || "derived",
+          severity: "info",
+          membership: true,
+        });
+      }
+    }
+    let keep = ids;
+    if (focus && ids.has(focus)) {
+      const adj = new Map<string, string[]>();
+      for (const e of edges) {
+        (adj.get(e.source) || adj.set(e.source, []).get(e.source)!).push(
+          e.target,
+        );
+        (adj.get(e.target) || adj.set(e.target, []).get(e.target)!).push(
+          e.source,
+        );
+      }
+      keep = new Set([focus]);
+      let frontier = [focus];
+      for (let d = 0; d < FOCUS_DEPTH; d++) {
+        const next: string[] = [];
+        for (const id of frontier)
+          for (const n of adj.get(id) || [])
+            if (!keep.has(n)) {
+              keep.add(n);
+              next.push(n);
+            }
+        frontier = next;
+      }
+      for (const id of hlNodes) if (ids.has(id)) keep.add(id);
+    }
+    const total = keep.size;
+    if (keep.size > cap) {
+      const degree = new Map<string, number>();
+      for (const e of edges) {
+        degree.set(e.source, (degree.get(e.source) || 0) + 1);
+        degree.set(e.target, (degree.get(e.target) || 0) + 1);
+      }
+      const score = (id: string) =>
+        (hlNodes.has(id) ? 1e6 : 0) +
+        (id === focus ? 1e6 : 0) +
+        (index.isAdmin(id) ? 1e5 : 0) +
+        (degree.get(id) || 0);
+      keep = new Set([...keep].sort((a, b) => score(b) - score(a)).slice(0, cap));
+    }
+    const nodes = [...keep].map((id) => index.nodes.get(id) || extra.get(id)!);
+    return {
+      nodes,
+      edges: edges.filter((e) => keep.has(e.source) && keep.has(e.target)),
+      total,
+      hidden: total - nodes.length,
+    };
+  }, [
+    graph,
+    index,
+    provider,
+    hideUnknown,
+    confidence,
+    minSeverity,
+    edgeSeverity,
+    expanded,
+    focus,
+    highlight,
+    cap,
+  ]);
+
+  // ELK layout in a web worker, keyed by the visible structure only so that
+  // highlighting and selection never re-run the layout.
+  const layoutKey = useMemo(
+    () =>
+      visible.nodes.map((n) => n.id).join("|") +
+      "#" +
+      visible.edges.map((e) => e.id).join("|"),
+    [visible],
+  );
+  const elk = useRef<ElkInstance | null>(null);
+  const flow = useRef<ReactFlowInstance<PeFlowNode, Edge> | null>(null);
+  const [layout, setLayout] = useState<{
+    key: string;
+    nodes: VNode[];
+    edges: VEdge[];
+    pos: Record<string, { x: number; y: number }>;
+  } | null>(null);
+  const [layingOut, setLayingOut] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_KEY) !== "closed";
+    } catch {
+      return true;
+    }
+  });
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((open) => {
+      try {
+        localStorage.setItem(SIDEBAR_KEY, open ? "closed" : "open");
+      } catch {
+        /* per-viewer convenience only */
+      }
+      return !open;
+    });
+  }, []);
+  const [layoutError, setLayoutError] = useState("");
+  useEffect(() => {
+    elk.current = new ELK({ workerFactory: () => new Worker(elkWorkerUrl) });
+    return () => {
+      elk.current?.terminateWorker();
+      elk.current = null;
+    };
+  }, []);
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
+  useEffect(() => {
+    const snapshot = visibleRef.current;
+    if (!snapshot.nodes.length) {
+      setLayout({ key: layoutKey, nodes: [], edges: [], pos: {} });
+      return;
+    }
+    let active = true;
+    setLayingOut(true);
+    setLayoutError("");
+    const input: ElkNode = {
+      id: "root",
+      layoutOptions: {
+        "elk.algorithm": "layered",
+        "elk.direction": "RIGHT",
+        "elk.spacing.nodeNode": "22",
+        "elk.layered.spacing.nodeNodeBetweenLayers": "170",
+        "elk.layered.spacing.edgeNodeBetweenLayers": "40",
+        "elk.separateConnectedComponents": "true",
+        "elk.spacing.componentComponent": "60",
+        "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+        "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
+        "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
+        "elk.aspectRatio": "1.8",
+      },
+      children: snapshot.nodes.map((n) => ({
+        id: n.id,
+        width: nodeWidth(n),
+        height: NODE_H,
+        // Admin targets always close the left-to-right escalation flow.
+        ...(index.isAdmin(n.id) || (n.kind === "entity" && n.attrs?.admin === true)
+          ? { layoutOptions: { "elk.layered.layering.layerConstraint": "LAST" } }
+          : {}),
+      })),
+      edges: snapshot.edges.map((e) => ({
+        id: e.id,
+        sources: [e.source],
+        targets: [e.target],
+      })),
+    };
+    elk.current
+      ?.layout(input)
+      .then((result) => {
+        if (!active) return;
+        const pos: Record<string, { x: number; y: number }> = {};
+        for (const c of result.children || [])
+          pos[c.id] = { x: c.x || 0, y: c.y || 0 };
+        setLayout({
+          key: layoutKey,
+          nodes: snapshot.nodes,
+          edges: snapshot.edges,
+          pos,
+        });
+        setLayingOut(false);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setLayoutError(
+          error instanceof Error ? error.message : "Graph layout failed",
+        );
+        setLayingOut(false);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layoutKey]);
+
+  const hl = highlight;
+  const flowNodes = useMemo<PeFlowNode[]>(
+    () =>
+      (layout?.nodes || []).map((n) => ({
+        id: n.id,
+        type: "pe",
+        position: layout!.pos[n.id] || { x: 0, y: 0 },
+        width: nodeWidth(n),
+        height: NODE_H,
+        selected: card?.type === "principal" && card.id === n.id,
+        data: {
+          node: n,
+          admin: index.isAdmin(n.id) || (n.kind === "entity" && n.attrs?.admin === true),
+          expanded: expanded.has(n.id),
+          highlighted: !!hl?.nodes.has(n.id),
+          dimmed: !!hl && !hl.nodes.has(n.id),
+          focused: focus === n.id || selected === n.id,
+        },
+        sourcePosition: Position.Right,
+        targetPosition: Position.Left,
+      })),
+    [layout, index, expanded, hl, focus, selected, card],
+  );
+  const flowEdges = useMemo<Edge[]>(
+    () =>
+      (layout?.edges || []).map((e) => {
+        const on = !!hl?.edges.has(e.id);
+        const dim = !!hl && !on;
+        const color = e.membership ? "#6f8796" : SEV_COLOR[e.severity] || SEV_COLOR.high;
+        const n = e.techniques.length;
+        return {
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          type: "default",
+          className: [
+            "pe-edge",
+            `sev-${e.severity}`,
+            `conf-${e.confidence}`,
+            e.membership ? "pe-membership" : "",
+            on ? "is-hl" : "",
+            dim ? "is-dim" : "",
+          ].join(" "),
+          label: e.membership
+            ? undefined
+            : `${plural(n, "technique")}${e.confidence === "derived" ? "" : ` · ${e.confidence}`}`,
+          labelStyle: { fill: color, fontSize: 11.5, fontWeight: 600 },
+          labelBgStyle: { fill: "#0b1624", fillOpacity: 0.92 },
+          labelBgPadding: [7, 4] as [number, number],
+          labelBgBorderRadius: 4,
+          style: {
+            stroke: color,
+            strokeWidth: on ? 3.2 : e.membership ? 1.1 : 1.7,
+            strokeDasharray: e.membership ? "3 4" : CONF_DASH[e.confidence],
+            opacity: dim ? 0.16 : 1,
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color,
+            width: 15,
+            height: 15,
+          },
+          zIndex: on ? 10 : 0,
+          focusable: !e.membership,
+          ariaLabel: e.membership
+            ? `${nodeLabel(index.nodes.get(e.source), e.source)} member ${nodeLabel(index.nodes.get(e.target), e.target)}`
+            : `${nodeLabel(index.nodes.get(e.source), e.source)} to ${nodeLabel(index.nodes.get(e.target), e.target)}: ${e.techniques.join(", ")}`,
+        };
+      }),
+    [layout, hl, index],
+  );
+
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  // Readable initial viewport: fit when the whole map stays legible, otherwise
+  // anchor the admin targets near the right edge at a readable zoom.
+  const readableView = useCallback(
+    (ids?: string[]) => {
+      const inst = flow.current,
+        el = canvasRef.current;
+      if (!inst || !el || !layout) return;
+      const w = el.clientWidth || 800,
+        h = el.clientHeight || 600;
+      const box = (list: VNode[]) => {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const n of list) {
+          const p = layout.pos[n.id];
+          if (!p) continue;
+          x0 = Math.min(x0, p.x);
+          y0 = Math.min(y0, p.y);
+          x1 = Math.max(x1, p.x + nodeWidth(n));
+          y1 = Math.max(y1, p.y + NODE_H);
+        }
+        return { x0, y0, x1, y1, ok: x0 !== Infinity };
+      };
+      const pad = 0.1;
+      const fitZoom = (b: ReturnType<typeof box>) =>
+        Math.min(
+          (w * (1 - 2 * pad)) / Math.max(1, b.x1 - b.x0),
+          (h * (1 - 2 * pad)) / Math.max(1, b.y1 - b.y0),
+        );
+      const subset = ids?.length
+        ? layout.nodes.filter((n) => ids.includes(n.id))
+        : layout.nodes;
+      const all = box(subset);
+      if (!all.ok) return;
+      const z = fitZoom(all);
+      if (z >= READABLE_ZOOM) {
+        const zoom = Math.min(z, 1.15);
+        void inst.setViewport(
+          {
+            zoom,
+            x: w / 2 - ((all.x0 + all.x1) / 2) * zoom,
+            y: h / 2 - ((all.y0 + all.y1) / 2) * zoom,
+          },
+          { duration: 0 },
+        );
+        return;
+      }
+      if (ids?.length && subset.length <= 12) {
+        // A traced path reads from its source: left-align it at a readable zoom.
+        const zoom = Math.max(READABLE_ZOOM, Math.min(ANCHOR_ZOOM, z));
+        const tall = (all.y1 - all.y0) * zoom > h * 0.84;
+        void inst.setViewport(
+          {
+            zoom,
+            x: w * 0.05 - all.x0 * zoom,
+            y: tall ? h * 0.08 - all.y0 * zoom : h / 2 - ((all.y0 + all.y1) / 2) * zoom,
+          },
+          { duration: 0 },
+        );
+        return;
+      }
+      // Too large to read when fitted: anchor where the paths end (admin
+      // targets, or the right-most nodes of the subset) at a readable zoom.
+      const admins = subset.filter(
+        (n) => index.isAdmin(n.id) || (n.kind === "entity" && n.attrs?.admin === true),
+      );
+      const right = all.x1;
+      const anchorNodes = admins.length
+        ? admins
+        : subset.filter((n) => (layout.pos[n.id]?.x ?? -Infinity) + nodeWidth(n) >= right - 1);
+      const a = box(anchorNodes);
+      const zoom = Math.max(READABLE_ZOOM, Math.min(ANCHOR_ZOOM, fitZoom(a)));
+      const tall = (a.y1 - a.y0) * zoom > h * 0.8;
+      void inst.setViewport(
+        {
+          zoom,
+          x: w * 0.9 - a.x1 * zoom,
+          // A tall admin column starts at its top; a compact cluster is centred.
+          y: tall ? h * 0.08 - a.y0 * zoom : h / 2 - ((a.y0 + a.y1) / 2) * zoom,
+        },
+        { duration: 0 },
+      );
+    },
+    [layout, index],
+  );
+  useEffect(() => {
+    if (!layout || layingOut || !flow.current) return;
+    const targets = hl ? [...hl.nodes].filter((id) => layout.pos[id]) : [];
+    const id = requestAnimationFrame(() => readableView(targets));
+    return () => cancelAnimationFrame(id);
+  }, [layout, layingOut, hl, readableView, sidebarOpen]);
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+  const highlightPaths = useCallback(
+    (paths: PrivescPath[], label: string) => {
+      const nodes = new Set<string>(),
+        edges = new Set<string>(),
+        aggs: string[] = [];
+      for (const p of paths)
+        for (const s of p.steps) {
+          nodes.add(s.from);
+          nodes.add(s.to);
+          if (s.via === "edge" && s.edge) edges.add(s.edge);
+          else {
+            const fromNode = index.nodes.get(s.from);
+            const group = index.nodes.get(s.to)?.type === "principal_group";
+            const agg = group ? s.to : s.from;
+            edges.add(`m:${agg}->${group ? s.from : s.to}`);
+            if (fromNode?.kind === "aggregate" || group) aggs.push(agg);
+          }
+        }
+      if (aggs.length)
+        setExpanded((prev) => new Set([...prev, ...aggs]));
+      setFocus("");
+      setHighlight(nodes.size ? { nodes, edges, label } : null);
+    },
+    [index],
+  );
+  const highlightSet = useCallback(
+    (nodes: Set<string>, edges: Set<string>, label: string) => {
+      setFocus("");
+      setHighlight(nodes.size ? { nodes, edges, label } : null);
+    },
+    [],
+  );
+  const openPrincipal = useCallback((id: string) => {
+    setSelected(id);
+    setCard({ type: "principal", id });
+  }, []);
+  const focusOn = useCallback((id: string) => {
+    setFocus(id);
+    setSelected(id);
+    setHighlight(null);
+    // Make sure a member hidden inside a collapsed aggregate becomes visible.
+    const parents = index.memberOfTarget.get(id) || [];
+    if (!index.out.has(id) && !index.inc.has(id) && parents.length)
+      setExpanded((prev) => new Set([...prev, parents[0]]));
+  }, [index]);
+
+  const counts = useMemo(() => {
+    let principals = 0,
+      aggregates = 0,
+      admins = 0;
+    for (const n of graph.nodes) {
+      if (n.kind === "aggregate") aggregates++;
+      else if (n.kind === "principal") principals++;
+      if (index.isAdmin(n.id)) admins++;
+    }
+    return { principals, aggregates, admins };
+  }, [graph, index]);
+  const pickable = useMemo(
+    () => graph.nodes.filter((n) => n.type !== "principal_group"),
+    [graph],
+  );
+  const filtered = !!(provider || minSeverity || confidence || hideUnknown);
+
+  if (!scanId) return <State empty title="Select a scan to explore the map" />;
+  if (graphQ.isPending) return <State loading />;
+  const missing =
+    graphQ.error instanceof ApiError &&
+    [404, 422].includes(graphQ.error.status);
+  if (graphQ.error && !missing)
+    return (
+      <State error={graphQ.error} onRetry={() => void graphQ.refetch()} />
+    );
+  if (missing || !graph.nodes.length)
+    return (
+      <PrivescEmpty
+        ran={!!categories?.includes("privesc")}
+        onNavigate={onNavigate}
+      />
+    );
+
+  return (
+    <>
+      <div className="section-top pe-top">
+        <p>
+          Catalog-driven escalation paths between identities · defensive
+          attack-path review.
+        </p>
+        <span className="count-pill">
+          {counts.principals} principals · {counts.aggregates} aggregates ·{" "}
+          {counts.admins} admin scopes · {graph.edges.length} escalation edges
+        </span>
+      </div>
+      <div className="notice">
+        <ShieldAlert size={18} />
+        <p>
+          Each edge means the source effectively holds permissions that a
+          HackTricks Cloud technique needs to obtain the target&apos;s
+          privileges. Dashed edges are conditional (a condition or an
+          unevaluated guardrail); dotted edges are unknown because facts were
+          missing. Nothing was executed against your cloud.
+        </p>
+      </div>
+      {graphQ.data?.truncated && (
+        <div className="notice">
+          <Layers size={18} />
+          <p>
+            The API truncated this graph to whole edges (
+            {graphQ.data.total_nodes} nodes, {graphQ.data.total_edges} edges in
+            the report). {graphQ.data.projection}
+          </p>
+        </div>
+      )}
+      <Panel className="graph-panel pe-panel">
+        <div className="graph-toolbar pe-toolbar">
+          <NodePicker
+            label="Search principals"
+            placeholder="Find a principal, role or scope…"
+            icon={<Search size={16} />}
+            options={pickable}
+            value=""
+            onChange={(id) => focusOn(id)}
+            clearOnPick
+          />
+          <div className="pe-filters" role="group" aria-label="Map filters">
+            <Filter size={15} aria-hidden />
+            <select
+              aria-label="Provider filter"
+              value={provider}
+              onChange={(e) => setProvider(e.target.value)}
+            >
+              <option value="">All providers</option>
+              {PROVIDERS.map((p) => (
+                <option key={p} value={p}>
+                  {PROVIDER_NAME[p]}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Severity filter"
+              value={minSeverity}
+              onChange={(e) => setMinSeverity(e.target.value)}
+            >
+              <option value="">All severities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High and above</option>
+              <option value="medium">Medium and above</option>
+            </select>
+            <select
+              aria-label="Confidence filter"
+              value={confidence}
+              onChange={(e) => setConfidence(e.target.value)}
+            >
+              <option value="">All confidence</option>
+              <option value="derived">Derived</option>
+              <option value="conditional">Conditional</option>
+              <option value="unknown">Unknown</option>
+            </select>
+            <label className="pe-check">
+              <input
+                type="checkbox"
+                checked={hideUnknown}
+                onChange={(e) => setHideUnknown(e.target.checked)}
+              />
+              Hide unknown
+            </label>
+          </div>
+        </div>
+        <div className="graph-breadcrumb pe-status">
+          {focus ? (
+            <span className="pe-chip">
+              <Focus size={12} /> Neighbourhood of{" "}
+              <strong>{nodeLabel(index.nodes.get(focus), focus)}</strong> ·{" "}
+              {FOCUS_DEPTH} hops
+              <button
+                className="icon-button pe-chip-close"
+                aria-label="Clear focus"
+                onClick={() => setFocus("")}
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ) : (
+            <span>All escalation paths</span>
+          )}
+          {highlight && (
+            <span className="pe-chip hl">
+              <Route size={12} /> {highlight.label}
+              <button
+                className="icon-button pe-chip-close"
+                aria-label="Clear highlight"
+                onClick={() => setHighlight(null)}
+              >
+                <X size={12} />
+              </button>
+            </span>
+          )}
+          <span className="push-right" />
+          {expanded.size > 0 && (
+            <button
+              className="text-button"
+              onClick={() => setExpanded(new Set())}
+            >
+              <Minimize2 size={13} /> Collapse aggregates
+            </button>
+          )}
+          <button
+            className="text-button"
+            onClick={() =>
+              readableView(
+                highlight ? [...highlight.nodes].filter((id) => layout?.pos[id]) : [],
+              )
+            }
+          >
+            <Crown size={13} /> Admin view
+          </button>
+          <button
+            className="text-button"
+            onClick={() => void flow.current?.fitView({ padding: 0.12 })}
+          >
+            <Focus size={13} /> Fit view
+          </button>
+        </div>
+        <div className={`pe-layout${sidebarOpen ? "" : " is-collapsed"}`}>
+          {sidebarOpen && (
+          <QuerySidebar
+            scanId={scanId}
+            demo={demo}
+            query={query}
+            setQuery={setQuery}
+            index={index}
+            pickable={pickable}
+            selected={selected}
+            setSelected={setSelected}
+            highlightPaths={highlightPaths}
+            highlightSet={highlightSet}
+            openPrincipal={openPrincipal}
+          />
+          )}
+          <div
+            className="graph-canvas pe-canvas"
+            aria-label="Privilege escalation map"
+            ref={canvasRef}
+          >
+            <button
+              className="pe-sidebar-toggle"
+              aria-expanded={sidebarOpen}
+              aria-label={sidebarOpen ? "Hide query sidebar" : "Show query sidebar"}
+              title={sidebarOpen ? "Hide queries (full-width map)" : "Show queries"}
+              onClick={() => toggleSidebar()}
+            >
+              {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+              <span>{sidebarOpen ? "Hide queries" : "Queries"}</span>
+            </button>
+            {layoutError ? (
+              <State error={new Error(layoutError)} />
+            ) : (
+              <>
+                <ReactFlow
+                  nodes={flowNodes}
+                  edges={flowEdges}
+                  nodeTypes={nodeTypes}
+                  onInit={(instance) => {
+                    flow.current = instance;
+                  }}
+                  nodesDraggable={false}
+                  nodesConnectable={false}
+                  edgesReconnectable={false}
+                  deleteKeyCode={null}
+                  onlyRenderVisibleElements
+                  minZoom={0.05}
+                  maxZoom={2}
+                  onNodeClick={(_, n) => {
+                    const node = (n as PeFlowNode).data.node;
+                    if (node.kind === "aggregate") toggleExpand(node.id);
+                    else openPrincipal(node.id);
+                  }}
+                  onEdgeClick={(_, e) => {
+                    if (!e.id.startsWith("m:"))
+                      setCard({ type: "edge", id: e.id });
+                  }}
+                  colorMode="dark"
+                >
+                  <Background color="#1f3444" gap={26} />
+                  <Controls showInteractive={false} />
+                  <MiniMap
+                    pannable
+                    zoomable
+                    ariaLabel="Map overview"
+                    nodeColor={(n) => {
+                      const d = (n as PeFlowNode).data;
+                      if (d.admin) return "#ff6b85";
+                      if (d.node.kind === "aggregate") return "#b59cff";
+                      return (
+                        {
+                          aws: "#f7a75c",
+                          gcp: "#7fb6ff",
+                          azure: "#5ad1ff",
+                          k8s: "#8ef0c8",
+                        }[String(d.node.provider)] || "#8fa3b5"
+                      );
+                    }}
+                    nodeStrokeWidth={0}
+                    maskColor="rgba(5, 12, 22, 0.72)"
+                    style={{ background: "#0b1624" }}
+                  />
+                </ReactFlow>
+                {layingOut && (
+                  <div className="graph-loading" role="status">
+                    Laying out escalation paths…
+                  </div>
+                )}
+                {!layingOut && layout && !layout.nodes.length && (
+                  <div className="graph-empty">
+                    <State
+                      empty
+                      title={
+                        filtered
+                          ? "No escalation edges match these filters"
+                          : "No escalation edges to display"
+                      }
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+        <div className="graph-footer">
+          <span>
+            {visible.nodes.length} visible nodes · {visible.edges.length}{" "}
+            visible edges
+            {visible.hidden > 0 &&
+              ` · ${visible.hidden} nodes hidden by the render cap`}
+          </span>
+          <Legend />
+          {visible.hidden > 0 && (
+            <button className="button" onClick={() => setCap(cap + CAP_STEP)}>
+              Show {Math.min(CAP_STEP, visible.hidden)} more nodes
+            </button>
+          )}
+        </div>
+        {visible.hidden > 0 && (
+          <p className="notice small pe-cap-notice">
+            Large map: the view renders the {cap} most connected nodes (admin
+            scopes and highlighted paths first). Search, focus a neighbourhood,
+            run a query or filter by provider to narrow it.
+          </p>
+        )}
+      </Panel>
+      {card?.type === "principal" && (
+        <PrincipalCard
+          key={card.id}
+          scanId={scanId}
+          demo={demo}
+          id={card.id}
+          index={index}
+          findings={findingList}
+          onClose={() => setCard(null)}
+          onEdge={(id) => setCard({ type: "edge", id })}
+          onPrincipal={openPrincipal}
+          onFocus={(id) => {
+            focusOn(id);
+            setCard(null);
+          }}
+          onPaths={(id) => {
+            setSelected(id);
+            setQuery("from");
+            setCard(null);
+          }}
+        />
+      )}
+      {card?.type === "edge" && (
+        <EdgeCard
+          key={card.id}
+          scanId={scanId}
+          demo={demo}
+          id={card.id}
+          index={index}
+          findings={findingList}
+          severity={edgeSeverity}
+          onClose={() => setCard(null)}
+          onPrincipal={openPrincipal}
+        />
+      )}
+    </>
+  );
+}
+
+function PrivescEmpty({
+  ran,
+  onNavigate,
+}: {
+  ran: boolean;
+  onNavigate?: (page: string) => void;
+}) {
+  return (
+    <Panel className="pe-empty">
+      <div className="state">
+        <Radar />
+        <h3>
+          {ran
+            ? "No privilege-escalation paths in this scan"
+            : "This scan has no privilege-escalation data"}
+        </h3>
+        <p>
+          {ran
+            ? "The privesc analysis ran but drew no escalation edges. Check coverage: denied or missing collections make edges unknown rather than absent, and missing evidence does not mean identities are safe."
+            : "The privilege-escalation category was not run for this assessment. Run a new scan with the Privilege escalation (privesc) category selected to build the map."}
+        </p>
+        {onNavigate && (
+          <button className="button primary" onClick={() => onNavigate("Scans")}>
+            Rescan with privesc
+            <ArrowRight size={16} />
+          </button>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+function Legend() {
+  return (
+    <div className="pe-legend" aria-label="Map legend">
+      {["critical", "high", "medium", "low"].map((s) => (
+        <span key={s}>
+          <i style={{ background: SEV_COLOR[s] }} />
+          {s}
+        </span>
+      ))}
+      <span>
+        <svg width="22" height="6" aria-hidden>
+          <line x1="0" y1="3" x2="22" y2="3" stroke="#b9cad6" strokeWidth="2" />
+        </svg>
+        derived
+      </span>
+      <span>
+        <svg width="22" height="6" aria-hidden>
+          <line x1="0" y1="3" x2="22" y2="3" stroke="#b9cad6" strokeWidth="2" strokeDasharray="7 5" />
+        </svg>
+        conditional
+      </span>
+      <span>
+        <svg width="22" height="6" aria-hidden>
+          <line x1="0" y1="3" x2="22" y2="3" stroke="#b9cad6" strokeWidth="2" strokeDasharray="2 5" />
+        </svg>
+        unknown
+      </span>
+    </div>
+  );
+}
+
+function NodePicker({
+  label,
+  placeholder,
+  options,
+  value,
+  onChange,
+  icon,
+  clearOnPick,
+}: {
+  label: string;
+  placeholder?: string;
+  options: PrivescNode[];
+  value: string;
+  onChange: (id: string) => void;
+  icon?: ReactNode;
+  clearOnPick?: boolean;
+}) {
+  const listId = useId();
+  const current = options.find((o) => o.id === value);
+  const [text, setText] = useState(current ? nodeLabel(current) : "");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    if (!clearOnPick) setText(current ? nodeLabel(current) : "");
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  const matches = useMemo(() => {
+    const q = text.trim().toLowerCase();
+    const out: PrivescNode[] = [];
+    for (const o of options) {
+      if (
+        !q ||
+        `${o.label || ""} ${o.id} ${o.type || ""} ${o.scope || ""}`
+          .toLowerCase()
+          .includes(q)
+      )
+        out.push(o);
+      if (out.length >= 8) break;
+    }
+    return out;
+  }, [text, options]);
+  function pick(o: PrivescNode) {
+    onChange(o.id);
+    setText(clearOnPick ? "" : nodeLabel(o));
+    setOpen(false);
+  }
+  return (
+    <div className={`pe-picker ${icon ? "search-field" : ""}`}>
+      {icon}
+      <input
+        role="combobox"
+        aria-label={label}
+        aria-expanded={open && matches.length > 0}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        placeholder={placeholder || label}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          setOpen(true);
+          setActive(0);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActive((a) => Math.min(a + 1, matches.length - 1));
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActive((a) => Math.max(a - 1, 0));
+          } else if (e.key === "Enter" && matches[active]) {
+            e.preventDefault();
+            pick(matches[active]);
+          } else if (e.key === "Escape") setOpen(false);
+        }}
+      />
+      {open && matches.length > 0 && (
+        <ul className="pe-options" role="listbox" id={listId} aria-label={label}>
+          {matches.map((o, i) => (
+            <li
+              key={o.id}
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                pick(o);
+              }}
+            >
+              <ProviderIcon provider={String(o.provider || "generic")} size={16} />
+              <span>{nodeLabel(o)}</span>
+              <small>{o.kind === "aggregate" ? "aggregate" : humanType(o.type)}</small>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+type SidebarProps = {
+  scanId: string;
+  demo: boolean;
+  query: QueryKind | null;
+  setQuery: (q: QueryKind | null) => void;
+  index: PrivescIndex;
+  pickable: PrivescNode[];
+  selected: string;
+  setSelected: (id: string) => void;
+  highlightPaths: (paths: PrivescPath[], label: string) => void;
+  highlightSet: (nodes: Set<string>, edges: Set<string>, label: string) => void;
+  openPrincipal: (id: string) => void;
+};
+const QUERIES: { id: QueryKind; label: string; icon: typeof Crown }[] = [
+  { id: "admins", label: "Who can reach admin", icon: Crown },
+  { id: "path", label: "Shortest path", icon: Route },
+  { id: "broad", label: "Techniques reaching everyone/broad", icon: Radar },
+  { id: "from", label: "Paths from selected principal", icon: UserRound },
+];
+function QuerySidebar(props: SidebarProps) {
+  const { query, setQuery } = props;
+  return (
+    <aside className="pe-sidebar" aria-label="Escalation queries">
+      <div className="eyebrow">QUERIES</div>
+      <div className="pe-query-buttons">
+        {QUERIES.map((q) => (
+          <button
+            key={q.id}
+            className="pe-query-button"
+            aria-pressed={query === q.id}
+            onClick={() => setQuery(query === q.id ? null : q.id)}
+          >
+            <q.icon size={15} />
+            {q.label}
+          </button>
+        ))}
+      </div>
+      <div className="pe-query-body">
+        {!query && (
+          <p className="muted small-text">
+            Run a query to highlight escalation paths. Click a principal for
+            its card, an edge for the technique, and an aggregate to expand
+            it.
+          </p>
+        )}
+        {query === "admins" && <AdminsQuery {...props} />}
+        {query === "path" && <PathQuery {...props} />}
+        {query === "broad" && <BroadQuery {...props} />}
+        {query === "from" && <FromQuery {...props} />}
+      </div>
+    </aside>
+  );
+}
+
+function PathList({
+  paths,
+  index,
+  onPick,
+  active,
+}: {
+  paths: PrivescPath[];
+  index: PrivescIndex;
+  onPick: (i: number) => void;
+  active: number;
+}) {
+  return (
+    <ol className="pe-paths">
+      {paths.map((p, i) => (
+        <li key={i}>
+          <button
+            className={`pe-result ${active === i ? "active" : ""}`}
+            onClick={() => onPick(i)}
+          >
+            <span className="pe-result-title">
+              {nodeLabel(index.nodes.get(p.target), p.target)}
+            </span>
+            <span className="pe-steps">
+              {p.steps.map((s, j) => (
+                <span key={j}>
+                  {j === 0 && nodeLabel(index.nodes.get(s.from), s.from)}
+                  <em>
+                    {s.via === "membership" ? " ∈ " : ` —${s.techniques.length}→ `}
+                  </em>
+                  {nodeLabel(index.nodes.get(s.to), s.to)}
+                </span>
+              ))}
+            </span>
+            <span className="pe-result-meta">
+              {plural(p.length, "hop")} <Badge value={p.confidence} />
+            </span>
+          </button>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function AdminsQuery({ scanId, demo, index, highlightPaths, highlightSet }: SidebarProps) {
+  const q = usePrivescAdmins(scanId, demo);
+  const rows = useMemo(() => listOf(q.data), [q.data]);
+  const [pick, setPick] = useState<{ from: string; to: string } | null>(null);
+  const paths = usePrivescPaths(scanId, demo, pick?.from || "", pick?.to || "");
+  useEffect(() => {
+    if (!rows.length) return;
+    const nodes = new Set<string>(),
+      edges = new Set<string>();
+    for (const r of rows) {
+      nodes.add(r.principal);
+      nodes.add(r.admin);
+      if (r.next) {
+        nodes.add(r.next);
+        const e = index.out.get(r.principal)?.find((x) => x.target === r.next);
+        if (e) edges.add(e.id);
+      }
+    }
+    // Edges between highlighted nodes complete the visible chains.
+    for (const id of nodes)
+      for (const e of index.out.get(id) || [])
+        if (nodes.has(e.target)) edges.add(e.id);
+    highlightSet(nodes, edges, `${plural(rows.length, "principal")} reach admin`);
+  }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pathRows = useMemo(() => listOf(paths.data), [paths.data]);
+  useEffect(() => {
+    if (pathRows.length && pick)
+      highlightPaths(
+        pathRows.slice(0, 1),
+        `Path ${nodeLabel(index.nodes.get(pick.from), pick.from)} → ${nodeLabel(index.nodes.get(pick.to), pick.to)}`,
+      );
+  }, [pathRows]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <QueryState q={q} empty={!rows.length} emptyText="No principal reaches an admin-equivalent scope within 6 hops.">
+      <p className="pe-query-summary">
+        {plural(rows.length, "principal")} can reach an admin-equivalent scope.
+        Select one to trace its path.
+      </p>
+      <ul className="pe-results" aria-label="Principals reaching admin">
+        {rows.map((r) => (
+          <li key={`${r.principal}-${r.admin}`}>
+            <button
+              className={`pe-result ${pick?.from === r.principal ? "active" : ""}`}
+              onClick={() => setPick({ from: r.principal, to: r.admin })}
+            >
+              <span className="pe-result-title">
+                {r.label || nodeLabel(index.nodes.get(r.principal), r.principal)}
+              </span>
+              <span className="pe-result-sub">
+                → {r.admin_label || nodeLabel(index.nodes.get(r.admin), r.admin)}
+              </span>
+              <span className="pe-result-meta">
+                {plural(r.distance, "hop")} <Badge value={r.confidence} />
+              </span>
+            </button>
+            {pick?.from === r.principal && pathRows.length > 0 && (
+              <PathList paths={pathRows.slice(0, 1)} index={index} active={0} onPick={() => undefined} />
+            )}
+          </li>
+        ))}
+      </ul>
+    </QueryState>
+  );
+}
+
+function PathQuery({ scanId, demo, index, pickable, highlightPaths }: SidebarProps) {
+  const [from, setFrom] = useState(""),
+    [to, setTo] = useState(""),
+    [req, setReq] = useState<{ from: string; to: string } | null>(null),
+    [active, setActive] = useState(0);
+  const q = usePrivescPaths(scanId, demo, req?.from || "", req?.to || "");
+  const rows = useMemo(() => listOf(q.data), [q.data]);
+  useEffect(() => {
+    if (rows.length && req) {
+      setActive(0);
+      highlightPaths(
+        rows.slice(0, 1),
+        `Shortest path ${nodeLabel(index.nodes.get(req.from), req.from)} → ${nodeLabel(index.nodes.get(req.to), req.to)}`,
+      );
+    }
+  }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <form
+      className="pe-path-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (from && to) setReq({ from, to });
+      }}
+    >
+      <label className="pe-field-label">From</label>
+      <NodePicker label="Path source" placeholder="Search source principal…" options={pickable} value={from} onChange={setFrom} />
+      <label className="pe-field-label">To</label>
+      <NodePicker label="Path target" placeholder="Search target principal or scope…" options={pickable} value={to} onChange={setTo} />
+      <button className="button primary" type="submit" disabled={!from || !to}>
+        <Route size={15} /> Find shortest path
+      </button>
+      {req && (
+        <QueryState q={q} empty={!rows.length} emptyText="No escalation path within 6 hops between these nodes.">
+          <PathList
+            paths={rows}
+            index={index}
+            active={active}
+            onPick={(i) => {
+              setActive(i);
+              highlightPaths([rows[i]], `Path ${i + 1} of ${rows.length}`);
+            }}
+          />
+        </QueryState>
+      )}
+    </form>
+  );
+}
+
+function BroadQuery({ scanId, demo, index, highlightSet, openPrincipal }: SidebarProps) {
+  const q = usePrivescBroad(scanId, demo, true, 10);
+  const rows = useMemo(() => listOf(q.data), [q.data]);
+  const [active, setActive] = useState("");
+  function show(principal: string, aggregates: string[]) {
+    setActive(principal);
+    const nodes = new Set<string>([principal]),
+      edges = new Set<string>();
+    for (const e of index.out.get(principal) || []) {
+      nodes.add(e.target);
+      edges.add(e.id);
+    }
+    for (const a of aggregates) nodes.add(a);
+    highlightSet(nodes, edges, `Broad reach of ${nodeLabel(index.nodes.get(principal), principal)}`);
+  }
+  return (
+    <QueryState q={q} empty={!rows.length} emptyText="No principal reaches an admin scope or 10+ principals directly.">
+      <p className="pe-query-summary">
+        Principals whose direct techniques reach an admin scope or at least 10
+        principals.
+      </p>
+      <ul className="pe-results" aria-label="Broad reach">
+        {rows.map((r) => (
+          <li key={r.principal}>
+            <button
+              className={`pe-result ${active === r.principal ? "active" : ""}`}
+              onClick={() => show(r.principal, r.aggregates)}
+              onDoubleClick={() => openPrincipal(r.principal)}
+            >
+              <span className="pe-result-title">
+                {r.label || nodeLabel(index.nodes.get(r.principal), r.principal)}
+              </span>
+              <span className="pe-result-sub">
+                Reaches {plural(r.reached, "target")}
+                {r.aggregates.length ? ` · ${plural(r.aggregates.length, "aggregate")}` : ""}
+              </span>
+              <span className="pe-result-meta">
+                {r.admin && <Badge value="critical" />}
+                {r.admin ? "admin" : ""}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </QueryState>
+  );
+}
+
+function FromQuery({ scanId, demo, index, pickable, selected, setSelected, highlightPaths, highlightSet }: SidebarProps) {
+  const q = usePrivescPaths(scanId, demo, selected);
+  const rows = useMemo(() => listOf(q.data), [q.data]);
+  const [active, setActive] = useState(-1);
+  useEffect(() => {
+    if (!selected || !q.data) return;
+    setActive(-1);
+    if (rows.length)
+      highlightPaths(rows, `Paths from ${nodeLabel(index.nodes.get(selected), selected)}`);
+    else {
+      const nodes = new Set<string>([selected]),
+        edges = new Set<string>();
+      for (const e of index.out.get(selected) || []) {
+        nodes.add(e.target);
+        edges.add(e.id);
+      }
+      highlightSet(nodes, edges, `Direct edges from ${nodeLabel(index.nodes.get(selected), selected)}`);
+    }
+  }, [q.data, selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  const direct = index.out.get(selected) || [];
+  return (
+    <div className="pe-path-form">
+      <label className="pe-field-label">Principal</label>
+      <NodePicker label="Selected principal" placeholder="Click a node or search…" options={pickable} value={selected} onChange={setSelected} />
+      {!selected ? (
+        <p className="muted small-text">Click a principal on the map or search for one.</p>
+      ) : (
+        <QueryState q={q} empty={false}>
+          <p className="pe-query-summary">
+            {rows.length
+              ? `${plural(rows.length, "path")} to admin-equivalent scopes.`
+              : `No path to an admin scope within 6 hops. ${plural(direct.length, "direct escalation edge")}.`}
+          </p>
+          <PathList
+            paths={rows}
+            index={index}
+            active={active}
+            onPick={(i) => {
+              setActive(i);
+              highlightPaths([rows[i]], `Path ${i + 1} from ${nodeLabel(index.nodes.get(selected), selected)}`);
+            }}
+          />
+        </QueryState>
+      )}
+    </div>
+  );
+}
+
+function QueryState({
+  q,
+  empty,
+  emptyText,
+  children,
+}: {
+  q: { isPending: boolean; isFetching?: boolean; error: unknown; refetch: () => unknown };
+  empty: boolean;
+  emptyText?: string;
+  children: ReactNode;
+}) {
+  if (q.isPending) return <p className="muted small-text" role="status">Running query…</p>;
+  if (q.error)
+    return (
+      <div className="pe-query-error" role="alert">
+        {q.error instanceof Error ? q.error.message : "Query failed"}
+        <button className="text-button" onClick={() => void q.refetch()}>
+          Retry
+        </button>
+      </div>
+    );
+  if (empty) return <p className="muted small-text">{emptyText}</p>;
+  return <>{children}</>;
+}
+
+function findingFor(
+  technique: string,
+  source: string,
+  ...lists: (Finding[] | undefined)[]
+) {
+  const id = `privesc:${technique}:${source}`;
+  for (const list of lists) {
+    const hit =
+      list?.find((f) => f.id === id) ||
+      list?.find((f) => f.check_id === technique && f.resource_id === source);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+const text = (v: unknown) =>
+  v == null ? "" : typeof v === "string" ? v : JSON.stringify(v);
+
+function PrincipalCard({
+  scanId,
+  demo,
+  id,
+  index,
+  findings,
+  onClose,
+  onEdge,
+  onPrincipal,
+  onFocus,
+  onPaths,
+}: {
+  scanId: string;
+  demo: boolean;
+  id: string;
+  index: PrivescIndex;
+  findings: Finding[];
+  onClose: () => void;
+  onEdge: (id: string) => void;
+  onPrincipal: (id: string) => void;
+  onFocus: (id: string) => void;
+  onPaths: (id: string) => void;
+}) {
+  const q = usePrivescPrincipal(scanId, demo, id);
+  const local = useMemo(() => principalCard(index, id), [index, id]);
+  const card = q.data || local;
+  const node = { ...local.principal, ...(card.principal || {}) };
+  const admin = index.isAdmin(id);
+  const label = (nid: string) => nodeLabel(index.nodes.get(nid), nid);
+  const attrs = Object.entries(node.attrs || {});
+  return (
+    <Inspector title="Principal" onClose={onClose}>
+      <div className="pe-card-head">
+        <ProviderIcon provider={String(node.provider || "generic")} size={34} />
+        <div>
+          <h3>{nodeLabel(node)}</h3>
+          <code className="pe-id">{node.id}</code>
+        </div>
+      </div>
+      <div className="inspector-badges pe-badges">
+        <Badge value={humanType(node.type)} />
+        <Badge value={String(node.kind || "principal")} />
+        {(admin || card.is_admin) && <Badge value="critical" />}
+        {(admin || card.is_admin) && (
+          <span className="pe-admin-tag">
+            <Crown size={12} /> {admin ? "Admin scope" : "Reaches admin directly"}
+          </span>
+        )}
+      </div>
+      {q.isPending && <p className="muted small-text">Loading the principal card…</p>}
+      <h3>Identity</h3>
+      <dl className="pe-dl">
+        <dt>Provider</dt>
+        <dd>{PROVIDER_NAME[String(node.provider)] || String(node.provider || "—")}</dd>
+        <dt>Type</dt>
+        <dd>{humanType(node.type)}</dd>
+        <dt>Scope</dt>
+        <dd>{node.scope || "—"}</dd>
+        {attrs.map(([k, v]) => (
+          <div key={k} className="pe-dl-row">
+            <dt>{k.replaceAll("_", " ")}</dt>
+            <dd>{text(v)}</dd>
+          </div>
+        ))}
+      </dl>
+      {(card.member_of_aggregates?.length > 0 || card.may_act_as?.length > 0) && (
+        <>
+          <h3>Membership</h3>
+          {card.member_of_aggregates.map((a) => (
+            <p key={a} className="pe-membership-line">
+              Member of <strong>{label(a)}</strong>: every edge into it reaches this principal.
+            </p>
+          ))}
+          {card.may_act_as.map((a) => (
+            <p key={a} className="pe-membership-line">
+              May act through <strong>{label(a)}</strong> (facts missing, unknown confidence).
+            </p>
+          ))}
+        </>
+      )}
+      <div className="button-row">
+        <button className="button" onClick={() => onFocus(id)}>
+          <Focus size={14} /> Focus neighbourhood
+        </button>
+        <button className="button" onClick={() => onPaths(id)}>
+          <Route size={14} /> Paths from this principal
+        </button>
+      </div>
+      <h3>
+        Outgoing escalation · {card.outgoing_total ?? card.outgoing.length}
+      </h3>
+      {!card.outgoing.length && (
+        <p className="muted small-text">No escalation edges start at this node.</p>
+      )}
+      {card.outgoing.map((e) => (
+        <div key={e.id} className="pe-edge-row">
+          <div className="pe-edge-row-head">
+            <span>
+              → <button className="text-button inline" onClick={() => onPrincipal(e.target)}>{label(e.target)}</button>
+            </span>
+            <Badge value={e.confidence} />
+          </div>
+          {e.techniques.map((t) => {
+            const f = findingFor(t, e.source, card.findings, findings);
+            return (
+              <div key={t} className="pe-tech-line">
+                <strong>{f?.title || t}</strong>
+                {f && <Badge value={String(f.severity)} />}
+                {!!f?.remediation && (
+                  <p><span className="pe-k">Mitigation</span> {text(f.remediation)}</p>
+                )}
+              </div>
+            );
+          })}
+          {(e.evidence_refs || []).map((r, i) => (
+            <p key={i} className="pe-ref"><span className="pe-k">Evidence</span> {formatRef(r)}</p>
+          ))}
+          <button className="text-button" onClick={() => onEdge(e.id)}>
+            View technique details <ArrowRight size={13} />
+          </button>
+        </div>
+      ))}
+      <h3>Inbound · {card.incoming_total ?? card.incoming.length}</h3>
+      {!card.incoming.length && (
+        <p className="muted small-text">No principal escalates into this node.</p>
+      )}
+      {card.incoming.map((e, i) => (
+        <div key={`${e.id}-${i}`} className="pe-edge-row inbound">
+          <div className="pe-edge-row-head">
+            <span>
+              ← <button className="text-button inline" onClick={() => onPrincipal(e.source)}>{label(e.source)}</button>
+              {e.via_aggregate && <small> via {label(e.via_aggregate)}</small>}
+            </span>
+            <Badge value={e.confidence} />
+          </div>
+          <p className="pe-ref">{e.techniques.map((t) => findingFor(t, e.source, findings)?.title || t).join(" · ")}</p>
+          <button className="text-button" onClick={() => onEdge(e.id)}>
+            View technique details <ArrowRight size={13} />
+          </button>
+        </div>
+      ))}
+    </Inspector>
+  );
+}
+
+function EdgeCard({
+  scanId,
+  demo,
+  id,
+  index,
+  findings,
+  severity,
+  onClose,
+  onPrincipal,
+}: {
+  scanId: string;
+  demo: boolean;
+  id: string;
+  index: PrivescIndex;
+  findings: Finding[];
+  severity: (e: PrivescEdge) => string;
+  onClose: () => void;
+  onPrincipal: (id: string) => void;
+}) {
+  const edge = useMemo(() => {
+    for (const list of index.out.values()) {
+      const hit = list.find((e) => e.id === id);
+      if (hit) return hit;
+    }
+    return undefined;
+  }, [index, id]);
+  if (!edge)
+    return (
+      <Inspector title="Escalation technique" onClose={onClose}>
+        <p>This edge is no longer in the map.</p>
+      </Inspector>
+    );
+  const label = (nid: string) => nodeLabel(index.nodes.get(nid), nid);
+  const target = index.nodes.get(edge.target);
+  return (
+    <Inspector title="Escalation technique" onClose={onClose}>
+      <div className="pe-edge-title">
+        <button className="text-button inline" onClick={() => onPrincipal(edge.source)}>
+          {label(edge.source)}
+        </button>
+        <ArrowRight size={15} />
+        <button className="text-button inline" onClick={() => onPrincipal(edge.target)}>
+          {label(edge.target)}
+        </button>
+      </div>
+      <div className="inspector-badges pe-badges">
+        <Badge value={severity(edge)} />
+        <Badge value={edge.confidence} />
+        {target?.kind === "aggregate" && (
+          <span className="pe-admin-tag">
+            <Layers size={12} /> reaches {target.underlying_count ?? "unknown"} members
+          </span>
+        )}
+      </div>
+      <h3>Granting evidence</h3>
+      {(edge.evidence_refs || []).length ? (
+        edge.evidence_refs!.map((r, i) => (
+          <p key={i} className="pe-ref">{formatRef(r)}</p>
+        ))
+      ) : (
+        <p className="muted small-text">No granting statement recorded.</p>
+      )}
+      {edge.techniques.map((t, i) => (
+        <TechniqueSection
+          key={t}
+          scanId={scanId}
+          demo={demo}
+          technique={t}
+          findingId={edge.findings?.[i] || `privesc:${t}:${edge.source}`}
+          summary={findingFor(t, edge.source, findings)}
+        />
+      ))}
+    </Inspector>
+  );
+}
+
+function TechniqueSection({
+  scanId,
+  demo,
+  technique,
+  findingId,
+  summary,
+}: {
+  scanId: string;
+  demo: boolean;
+  technique: string;
+  findingId: string;
+  summary?: Finding;
+}) {
+  const q = useApi<Finding>(
+    privescApi.finding(scanId, findingId),
+    demo,
+    !!scanId && technique !== "admin-equivalent",
+  );
+  const finding = q.data || summary;
+  const ev = (finding?.evidence || {}) as PrivescFindingEvidence;
+  const tech = ev.technique || {};
+  const requires = tech.requires ?? ev.required_permissions;
+  const href = hacktricksUrl(tech.source);
+  const conditions = [
+    ...(ev.conditions || []).map((c) => ({ id: c, description: "" })),
+    ...(ev.technique_conditions || []),
+    ...(ev.blockers_not_evaluated || []).map((b) => ({
+      id: b,
+      description: "Blocker not evaluated",
+    })),
+  ];
+  return (
+    <section className="pe-technique" aria-label={`Technique ${technique}`}>
+      <div className="pe-technique-head">
+        <h3>{finding?.title || tech.title || (technique === "admin-equivalent" ? "Already administers the target scope" : technique)}</h3>
+        {finding?.severity && <Badge value={String(finding.severity)} />}
+      </div>
+      <code className="pe-id">{technique}</code>
+      {q.isPending && technique !== "admin-equivalent" && !summary && (
+        <p className="muted small-text">Loading technique evidence…</p>
+      )}
+      {tech.summary && <p>{tech.summary}</p>}
+      {technique === "admin-equivalent" && (
+        <p>The source already holds an administrator-equivalent grant on this scope; no technique is needed.</p>
+      )}
+      <h4>Required permissions</h4>
+      {Array.isArray(requires) && requires.length ? (
+        <ul className="pe-perms">
+          {requires.map((r, i) => (
+            <li key={i}>
+              {typeof r === "object" && r
+                ? Object.entries(r as Record<string, unknown>).map(([k, v]) => (
+                    <span key={k}><span className="pe-k">{k}</span> {text(v)} </span>
+                  ))
+                : text(r)}
+            </li>
+          ))}
+        </ul>
+      ) : ev.granting_statements?.length ? (
+        <ul className="pe-perms">
+          {ev.granting_statements.map((r, i) => <li key={i}>{formatRef(r)}</li>)}
+        </ul>
+      ) : (
+        <p className="muted small-text">
+          The catalog requirement list is in the technique source; the granting evidence above shows the statements that satisfy it.
+        </p>
+      )}
+      {href && (
+        <a className="button pe-source" href={href} target="_blank" rel="noopener noreferrer">
+          HackTricks Cloud source <ExternalLink size={13} />
+        </a>
+      )}
+      {tech.source_revision && <p className="muted small-text">Catalog revision {tech.source_revision}</p>}
+      <h4>Mitigation</h4>
+      <p>{text(finding?.remediation) || "Remove the granting permission or scope it to the intended resources."}</p>
+      {conditions.length > 0 && (
+        <>
+          <h4>Conditions</h4>
+          <ul className="pe-conditions">
+            {conditions.map((c, i) => (
+              <li key={i}>
+                <code>{c.id}</code> {c.description}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {typeof ev.target_count === "number" && (
+        <p className="muted small-text">Reaches {plural(ev.target_count, "underlying target")}.</p>
+      )}
+    </section>
+  );
+}
+

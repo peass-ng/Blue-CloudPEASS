@@ -6,10 +6,12 @@ import os
 import signal
 import threading
 import time
+from pathlib import Path
+from fastapi import HTTPException
 from peaso.auth import Authenticator, CredentialCipher, redact
 from peaso.auth.secrets import credential_values
 from peaso.server.config import Settings
-from peaso.storage import SQLiteStore, FileArtifacts
+from peaso.storage import SQLiteStore, FileArtifacts, S3Artifacts
 from peaso.storage.runtime import stores, WorkflowDispatcher
 
 
@@ -19,19 +21,29 @@ def _process(role, request, connection):
         os.dup2(sink.fileno(), 1)
         os.dup2(sink.fileno(), 2)
     try:
+        config = request.pop("artifact_config")
+        artifacts = FileArtifacts(Path(config["root"])) if config["mode"] == "file" else S3Artifacts(config["bucket"], kms_key=config.get("kms_key"))
+        tenant, ident = request["tenant_id"], request["scan_id"]
         if role == "collector":
             from peaso.engine import collect_snapshot
             from peaso.snapshot import seal
             snapshot = collect_snapshot(request)
             snapshot.setdefault("metadata", {})["input_mode"] = request["connector"].get("input_mode", "live")
             value = seal(redact(snapshot, tuple(credential_values(request["connector"].get("auth", {})))))
+            reference = artifacts.put(tenant, ident, "snapshot", value)
         else:
             from peaso.engine import evaluate_snapshot
             selectors = request["selectors"]
-            value = redact(evaluate_snapshot(request["snapshot"], categories=selectors.get("categories") or None,
+            snapshot = artifacts.get(tenant, request["snapshot_ref"])
+            value = redact(evaluate_snapshot(snapshot, categories=selectors.get("categories") or None,
                            checks=selectors.get("checks") or None, frameworks=selectors.get("frameworks") or None))
-            value["input_mode"] = request["snapshot"].get("metadata", {}).get("input_mode", "live")
-        connection.send((True, value))
+            value["input_mode"] = snapshot.get("metadata", {}).get("input_mode", "live")
+            from peaso.storage.cost import runtime_estimate
+            value["runtime"] = runtime_estimate(request["timeline"])
+            from peaso.storage.reports import publish_report
+            reference = publish_report(artifacts, tenant, ident, value, snapshot)
+        # Large evidence/report objects never cross the supervisor process pipe.
+        connection.send((True, reference))
     except BaseException as exc:
         code = "invalid_input" if isinstance(exc, (ValueError, TypeError, KeyError)) else "dependency_unavailable" if isinstance(exc, ImportError) else "credential_access_denied" if isinstance(exc, PermissionError) else "collector_timeout" if isinstance(exc, TimeoutError) else "provider_error"
         connection.send((False, code))
@@ -58,7 +70,13 @@ class Worker:
             return []
         results = []
         for row in self.store.due_schedules(now):
-            paid = self.authenticator.is_paid(row["tenant"])
+            try:
+                paid = self.authenticator.is_paid(row["tenant"])
+            except HTTPException as exc:
+                if exc.status_code == 401:
+                    self.store.pause_schedule(row["tenant"], row["id"])
+                # An outage leaves the occurrence due for a later retry.
+                continue
             result = self.store.trigger_schedule(row, 10 if paid else 1, self.settings.scan_timeout, now)
             if result:
                 results.append(result)
@@ -81,10 +99,17 @@ class Worker:
                     validate_connector(connector["provider"], connector["auth"], connector["options"], self.settings, server_external_id=True)
                     connector["options"] = dict(connector["options"], hosted=True)
                     if connector["provider"] == "aws" and connector["auth"].get("method") == "assume_role":
-                        connector["auth"]["method"] = "task_role"
+                        connector["auth"]["method"] = "access_keys" if connector["auth"].get("aws_access_key_id") else "task_role"
+                elif connector["provider"] == "aws" and connector["auth"].get("method") == "assume_role":
+                    connector["auth"]["method"] = "profile" if connector["auth"].get("profile") else "access_keys" if connector["auth"].get("aws_access_key_id") else "default"
+                if connector["provider"] == "k8s":
+                    aliases = {"inline": "kubeconfig", "client-cert": "cert"}
+                    connector["auth"]["method"] = aliases.get(connector["auth"].get("method"), connector["auth"].get("method", "auto"))
                 request = dict(selectors, connector=connector)
             else:
-                request = {"snapshot": self.artifacts.get(job["tenant"], job["snapshot"]), "selectors": selectors}
+                request = {"snapshot_ref": job["snapshot"], "selectors": selectors}
+            request.update(tenant_id=job["tenant"], scan_id=job["id"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
+            request["timeline"] = self.store.public_job(job)["timeline"]
             context = multiprocessing.get_context("spawn")
             parent, child = context.Pipe(duplex=False)
             process = context.Process(target=_process, args=(self.role, request, child), daemon=True)
@@ -114,8 +139,7 @@ class Worker:
                 return True
             if result and result[0]:
                 kind = "snapshot" if self.role == "collector" else "report"
-                reference = self.artifacts.put(job["tenant"], job["id"], kind, result[1])
-                self.store.finish(job["id"], job["owner"], "collected" if kind == "snapshot" else "completed", reference)
+                self.store.finish(job["id"], job["owner"], "collected" if kind == "snapshot" else "completed", result[1])
             else:
                 self.store.finish(job["id"], job["owner"], "failed", error_code=result[1] if result else "worker_interrupted")
             return True

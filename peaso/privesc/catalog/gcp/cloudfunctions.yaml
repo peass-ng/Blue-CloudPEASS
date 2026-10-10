@@ -1,0 +1,172 @@
+# GCP Cloud Functions privilege escalation techniques.
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-cloudfunctions-privesc.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+# Deploying/updating a function requires actAs on the runtime SA and, per HackTricks, on the build SA (Compute default SA
+# or the configured build SA). Triggering the function may need cloudfunctions.functions.invoke (gen1) or run.routes.invoke (gen2).
+
+- id: gcp-cloudfunctions-create-actas
+  provider: gcp
+  service: cloudfunctions
+  title: Create a Cloud Function running as a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#cloudfunctionsfunctionscreate--cloudfunctionsfunctionssourcecodeset__-iamserviceaccountsactas
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+      - action: cloudfunctions.functions.create
+        resource: "*"
+      - action: cloudfunctions.functions.sourceCodeSet
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts usable as Cloud Functions runtime SA in {project}"
+  conditions:
+    - id: build_sa_actas
+      description: actAs is also needed on the SA used to build the function image (Compute default SA unless a build SA is set).
+    - id: trigger
+      description: Triggering the function may require invoke permission (cloudfunctions.functions.invoke for gen1, run.routes.invoke for gen2) or an event trigger the source controls.
+    - id: cross_project_sa
+      description: Cross-project SAs only when iam.disableCrossProjectServiceAccountUsage is not enforced; not modelled.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: critical
+  mitigation: Grant roles/iam.serviceAccountUser only on specific SAs and restrict roles/cloudfunctions.developer.
+  references:
+    - https://cloud.google.com/functions/docs/securing/function-identity
+
+- id: gcp-cloudfunctions-update-sourcecodeset-actas
+  provider: gcp
+  service: cloudfunctions
+  title: Replace an existing function's code or attached service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#cloudfunctionsfunctionsupdate--cloudfunctionsfunctionssourcecodeset__-iamserviceaccountsactas
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs, by redeploying an existing function.
+  requires:
+    all_of:
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+      - action: cloudfunctions.functions.update
+        resource: "*"
+      - action: cloudfunctions.functions.sourceCodeSet
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts attachable to existing functions in {project}"
+  conditions:
+    - id: existing_function
+      description: Needs at least one existing function on which update and sourceCodeSet hold.
+    - id: build_sa_actas
+      description: actAs is also needed on the build SA (Compute default SA or the configured build SA).
+    - id: trigger
+      description: Triggering may require invoke permission or an event the source controls.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict cloudfunctions.functions.update and grant actAs only on specific SAs.
+  notes: HackTricks states update without actAs is not a valid privesc.
+
+- id: gcp-cloudfunctions-update-env-actas
+  provider: gcp
+  service: cloudfunctions
+  title: Inject interpreter startup hooks through a function's environment variables
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#cloudfunctionsfunctionsupdate-iamserviceaccountsactas
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account attached to every function on which it holds cloudfunctions.functions.update and actAs on that SA.
+  requires:
+    all_of:
+      - action: cloudfunctions.functions.update
+        resource: "{target.host_resource}"
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: cloudfunctions_function
+      gcp_actas_granted_on_target: true
+    scope: same_project
+    aggregate_as: "SAs of functions whose configuration the source can update"
+  conditions:
+    - id: preload_payload_present
+      description: Most interpreter startup-hook variants need an attacker-controlled module/script already present in the deployment or another readable path.
+    - id: build_sa_actas
+      description: Google's service-account authorization for the update (runtime and build SA) still applies.
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: high
+  mitigation: Restrict cloudfunctions.functions.update and actAs on function SAs.
+  notes: Does not need sourceCodeSet; effectiveness depends on the runtime's interpreter honoring the injected variable.
+
+- id: gcp-cloudfunctions-setiampolicy-actas
+  provider: gcp
+  service: cloudfunctions
+  title: Self-grant function update rights through the function IAM policy
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#cloudfunctionsfunctionssetiampolicy--iamserviceaccountsactas
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account attached to every function on which it holds cloudfunctions.functions.setIamPolicy and actAs on that SA.
+  requires:
+    all_of:
+      - action: cloudfunctions.functions.setIamPolicy
+        resource: "{target.host_resource}"
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: cloudfunctions_function
+      gcp_actas_granted_on_target: true
+    scope: same_project
+    aggregate_as: "SAs of functions whose IAM policy the source controls"
+  conditions:
+    - id: followup_update
+      description: After self-granting update/sourceCodeSet on the function, the redeploy keeps the build-SA actAs requirement.
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: high
+  mitigation: Restrict cloudfunctions.functions.setIamPolicy (roles/cloudfunctions.admin).
+
+- id: gcp-cloudfunctions-source-bucket-write
+  provider: gcp
+  service: cloudfunctions
+  title: Swap function source in its staging bucket during a deployment
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudfunctions-privesc.md#read--write-access-over-the-bucket
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account of functions whose source bucket it can read and write, when that function is next deployed.
+  requires:
+    all_of:
+      - action: storage.objects.get
+        resource: "{target.host_resource.content_storage}"
+      - action: storage.objects.create
+        resource: "{target.host_resource.content_storage}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: cloudfunctions_function
+    scope: any
+    aggregate_as: "SAs of functions whose source bucket the source can write"
+  conditions:
+    - id: deployment_window
+      description: Requires a legitimate deployment to happen and the replacement to win the race between upload and build.
+    - id: overwrite_rights
+      description: Replacing an existing object may also need storage.objects.delete (or storage.objects.update when overwriting).
+  blockers:
+    - gcp_deny_policy
+  confidence: conditional
+  severity: medium
+  mitigation: Restrict write access to the Cloud Functions source/staging buckets to the deployment pipeline.
+  notes: Cannot be used to pre-compromise functions of other projects through an attacker-owned bucket (HackTricks).

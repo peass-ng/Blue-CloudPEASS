@@ -21,12 +21,12 @@ export function Settings({ demo }: { demo: boolean }) {
     sessionStorage.setItem(tokenKey, token.trim());
     setToken("");
     setSaved(true);
-    void client.invalidateQueries({ queryKey: ["live"] });
+    void client.resetQueries({ queryKey: ["live"] });
   }
   function clear() {
     sessionStorage.removeItem(tokenKey);
     setSaved(false);
-    void client.invalidateQueries({ queryKey: ["live"] });
+    void client.resetQueries({ queryKey: ["live"] });
   }
   const checks = Array.isArray(catalog.data?.checks) ? catalog.data.checks : [];
   return (
@@ -211,6 +211,100 @@ export function Settings({ demo }: { demo: boolean }) {
             <Evidence data={catalog.data} />
           </details>
         </State>
+      </Panel>
+      <Panel
+        title="Exact framework and checklist coverage"
+        kicker="REVIEWED SOURCE VERSIONS"
+      >
+        <p className="muted small">
+          A family label does not establish coverage of every version. Pending
+          source checks remain unimplemented; choosing a pending checklist
+          records an unknown coverage result.
+        </p>
+        {catalog.isPending && <State loading />}
+        {catalog.error && (
+          <State error={catalog.error} onRetry={() => void catalog.refetch()} />
+        )}
+        {catalog.data?.upstream_coverage && (
+          <div className="catalog-totals">
+            <span>
+              Native checks:{" "}
+              {String(
+                catalog.data.upstream_coverage.native_checks ?? "Unavailable",
+              )}
+            </span>
+            <span>
+              Supported upstream references:{" "}
+              {String(
+                catalog.data.upstream_coverage.supported_upstream ??
+                  "Unavailable",
+              )}
+            </span>
+            <span>
+              Pending references:{" "}
+              {String(
+                (
+                  catalog.data.upstream_coverage.upstream as
+                    | Record<string, unknown>
+                    | undefined
+                )?.pending ?? "Unavailable",
+              )}
+            </span>
+            <span>
+              Outside runtime provider scope:{" "}
+              {String(
+                catalog.data.upstream_coverage.outside_runtime_provider_scope ??
+                  "Unavailable",
+              )}
+            </span>
+          </div>
+        )}
+        <div className="framework-list">
+          {(catalog.data?.framework_versions || [])
+            .filter((row) =>
+              JSON.stringify(row)
+                .toLowerCase()
+                .includes(catalogSearch.toLowerCase()),
+            )
+            .map((row, i) => (
+              <div className="framework-row" key={String(row.id || i)}>
+                <div className="grow">
+                  <strong>{String(row.name || row.id)}</strong>
+                  <p>
+                    {String(row.provider)} · Version{" "}
+                    {String(
+                      row.version || row.declared_version || "not specified",
+                    )}{" "}
+                    · {String(row.id)}
+                  </p>
+                  <span>
+                    Source: {String(row.repository || "reviewed catalog")} @{" "}
+                    {String(row.source_revision || "not specified").slice(
+                      0,
+                      12,
+                    )}
+                  </span>
+                </div>
+                <div className="framework-coverage">
+                  <Badge value={String(row.status || "unknown")} />
+                  <span>
+                    {String(row.supported_native_checks ?? 0)} native /{" "}
+                    {String(row.source_checks ?? "unknown")} source checks
+                  </span>
+                  <span>
+                    {String(row.pending_source_checks ?? "unknown")} pending
+                  </span>
+                </div>
+              </div>
+            ))}
+        </div>
+        {!catalog.isPending &&
+          !catalog.error &&
+          !catalog.data?.framework_versions?.length && (
+            <p className="muted small">
+              The API has not supplied checklist version coverage.
+            </p>
+          )}
       </Panel>
       <div className="dashboard-grid">
         <Panel title="Help & evidence">

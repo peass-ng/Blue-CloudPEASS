@@ -67,6 +67,7 @@
     any_of:
       - - graph_app_permission: Group.ReadWrite.All
       - - graph_app_permission: GroupMember.ReadWrite.All
+      - - graph_app_permission: Directory.ReadWrite.All
   target:
     kind: entra_group
     selector:
@@ -78,6 +79,8 @@
   conditions:
     - id: on_prem_synced_group
       description: Membership of groups synchronised from on-premises AD cannot be changed in Entra.
+    - id: service_principal_member_needs_application_permission
+      description: Adding a service principal (e.g. the source itself) as a member additionally requires Application.ReadWrite.All app-only; without it the source must add a user it controls.
   blockers:
     - restricted_management_au
   confidence: derived
@@ -171,6 +174,8 @@
           scope: "{target.scope}"
       - - entra_permission: microsoft.directory/groups/allProperties/update
           scope: "{target.scope}"
+      - - graph_app_permission: Group.ReadWrite.All
+      - - graph_app_permission: Directory.ReadWrite.All
   target:
     kind: entra_group
     selector:
@@ -191,7 +196,7 @@
   mitigation: Restrict dynamicMembershipRule update and avoid granting Azure RBAC or sensitive app roles to dynamic groups.
   references:
     - https://learn.microsoft.com/en-us/graph/api/group-update?view=graph-rest-1.0
-  notes: Role-assignable groups cannot be dynamic, so directory roles are never reached directly; the gain is the group's Azure RBAC / app access.
+  notes: Role-assignable groups cannot be dynamic, so directory roles are never reached directly; the gain is the group's Azure RBAC / app access. Group.ReadWrite.All / Directory.ReadWrite.All application permissions can update membershipRule (Update group API) outside restricted management AUs; built-in holders of dynamicMembershipRule/update are Groups Administrator, User Administrator and Directory Writers.
 
 - id: azure-entraid-dynamic-group-attribute-control
   provider: azure
@@ -203,9 +208,9 @@
   requires:
     any_of:
       - - entra_permission: microsoft.directory/users/basic/update
-          scope: "{target.scope}"
+          scope: "{source.controlled_user}"
       - - entra_permission: microsoft.directory/users/manager/update
-          scope: "{target.scope}"
+          scope: "{source.controlled_user}"
       - - graph_app_permission: User.ReadWrite.All
       - - graph_app_permission: User-Mail.ReadWrite.All
   target:
@@ -218,7 +223,7 @@
     aggregate_as: "Dynamic groups whose rule uses attributes {source} can write"
   conditions:
     - id: controlled_user_required
-      description: The source must control a user object to modify (itself, or a user whose credentials it can reset); the controlled user then becomes the group member.
+      description: The source must control a user object to modify, and the permission scope is that user ({source.controlled_user}). For a user source this is the source itself. For any other source the controlled user is not identified and the edge is conditional (controlled_user_not_identified). The controlled user then becomes the group member.
     - id: sensitive_attribute
       description: Sensitive attributes (otherMails, mobilePhone, businessPhones, accountEnabled, userPrincipalName) require roles per Microsoft's "who can perform sensitive actions" table, and app-only writes need a supporting directory role.
     - id: synced_attribute

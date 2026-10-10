@@ -11,14 +11,14 @@ class ConnectorCreate(StrictModel):
     name: str = Field(min_length=1, max_length=200)
     provider: Literal["aws", "gcp", "azure", "k8s"]
     auth: dict = Field(default_factory=dict)
-    scopes: list[str] = Field(default_factory=list, max_length=100)
+    scopes: list[str] = Field(default_factory=list)
     options: dict = Field(default_factory=dict)
 
 
 class ConnectorPatch(StrictModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     auth: dict | None = None
-    scopes: list[str] | None = Field(default=None, max_length=100)
+    scopes: list[str] | None = None
     options: dict | None = None
 
 
@@ -57,3 +57,12 @@ class SchedulePatch(StrictModel):
         if value is not None and value.tzinfo is None:
             raise ValueError("Timezone required")
         return value
+
+
+class ReachabilityQuery(StrictModel):
+    source_resource_id: str = Field(min_length=1, max_length=2000)
+    destination_resource_id: str = Field(min_length=1, max_length=2000)
+    protocol: Literal["tcp", "udp"]
+    destination_port: int = Field(ge=1, le=65535, strict=True)
+    source_port: int | None = Field(default=None, ge=1, le=65535, strict=True)
+    address_family: Literal["ipv4", "ipv6"] = "ipv4"

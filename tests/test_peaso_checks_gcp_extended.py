@@ -88,6 +88,14 @@ def test_conditional_public_kms_binding_is_declared_member_evidence_only():
     assert "no effective-access claim" in evidence["semantics"]
 
 
+def test_bigquery_public_principals_are_exact_matches_not_substrings():
+    item = {"access": [{"userByEmail": "allUsers@example.org", "role": "READER"},
+                        {"view": {"datasetId": "allAuthenticatedUsers", "projectId": "p", "tableId": "t"}}]}
+    assert evaluate("bigquery.no_public_acl", item)[0] == "PASS"
+    assert evaluate("bigquery.no_public_acl", {"access": [{"iamMember": "allUsers", "role": "READER"}]})[0] == "FAIL"
+    assert evaluate("bigquery.cmek", {"defaultEncryptionConfiguration": {"kmsKeyName": ""}})[0] == "UNKNOWN"
+
+
 def test_reviewed_shard_claims_only_exact_supported_upstream_predicates():
     pack = Path(__file__).resolve().parents[1] / "peaso" / "rulepacks"
     reviewed = json.loads((pack / "reviewed_gcp.json").read_text())

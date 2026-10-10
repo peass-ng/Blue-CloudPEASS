@@ -34,7 +34,7 @@
   mitigation: Restrict cognito-identity:SetIdentityPoolRoles and iam:PassRole; always condition Cognito role trusts on aud and amr.
   references:
     - https://docs.aws.amazon.com/cognito/latest/developerguide/role-trust-and-permissions.html
-  notes: "AWS rejects SetIdentityPoolRoles for roles whose trust does not allow cognito-identity.amazonaws.com. Roles without an aud condition are reachable through any pool. Critical when such a role is admin-equivalent."
+  notes: "Roles whose trust does not allow cognito-identity.amazonaws.com cannot be used through the pool. Roles without an aud condition are reachable through any pool. Critical when such a role is admin-equivalent."
 
 - id: aws-cognito-updateidentitypool
   provider: aws

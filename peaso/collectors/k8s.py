@@ -9,6 +9,7 @@ import os
 import re
 import socket
 import tempfile
+from itertools import count
 from urllib.parse import quote, urlsplit
 
 from peaso.snapshot import make_snapshot
@@ -30,6 +31,8 @@ ENDPOINTS = {
     "replicaset": ("/apis/apps/v1/replicasets", True),
     "job": ("/apis/batch/v1/jobs", True),
     "cronjob": ("/apis/batch/v1/cronjobs", True),
+    "replicationcontroller": ("/api/v1/replicationcontrollers", True),
+    "podtemplate": ("/api/v1/podtemplates", True),
     "service": ("/api/v1/services", True),
     "endpointslice": ("/apis/discovery.k8s.io/v1/endpointslices", True),
     "ingress": ("/apis/networking.k8s.io/v1/ingresses", True),
@@ -37,7 +40,53 @@ ENDPOINTS = {
     "resourcequota": ("/api/v1/resourcequotas", True),
     "limitrange": ("/api/v1/limitranges", True),
 }
-TYPES = tuple(ENDPOINTS) + ("network_interface", "admission_configuration")
+TYPES = tuple(ENDPOINTS) + ("network_interface", "admission_configuration", "api_discovery", "securitycontextconstraint")
+
+# Only configuration declarations needed for reviewed component predicates are
+# preserved. Shell text, arbitrary argv and credential values remain redacted.
+COMPONENTS = frozenset(("kube-apiserver", "kube-controller-manager", "kube-scheduler", "kubelet", "etcd"))
+CONFIG_FLAGS = frozenset(("anonymous-auth", "profiling", "authorization-mode", "audit-log-maxage", "audit-log-maxbackup",
+    "audit-log-maxsize", "audit-log-path", "etcd-cafile", "etcd-certfile", "etcd-keyfile", "kubelet-client-certificate",
+    "kubelet-client-key", "kubelet-certificate-authority", "tls-cert-file", "tls-private-key-file", "client-ca-file",
+    "cert-file", "key-file", "peer-cert-file", "peer-key-file", "client-cert-auth", "peer-client-cert-auth",
+    "auto-tls", "peer-auto-tls", "rotate-certificates", "protect-kernel-defaults", "make-iptables-util-chains",
+    "event-qps", "read-only-port", "secure-port", "insecure-port", "insecure-bind-address", "bind-address",
+    "hostname-override", "kubelet-https", "use-service-account-credentials", "service-account-private-key-file",
+    "root-ca-file", "service-account-key-file", "service-account-lookup", "enable-admission-plugins",
+    "disable-admission-plugins", "feature-gates", "terminated-pod-gc-threshold", "tls-cipher-suites",
+    "request-timeout", "streaming-connection-idle-timeout", "encryption-provider-config", "basic-auth-file", "token-auth-file"))
+
+
+def _component_config(value):
+    command, args = value.get("command"), value.get("args", [])
+    if command is None:
+        return None
+    if not isinstance(command, list) or not isinstance(args, list) or any(not isinstance(x, str) for x in command + args):
+        return {"collection_status": "malformed", "error": {"code": "invalid_component_argv"}}
+    if len(command) + len(args) > 1024:
+        return {"collection_status": "partial", "error": {"code": "component_argv_limit"}}
+    binaries = {token.rsplit("/", 1)[-1] for token in command if not token.startswith("--")}
+    selected = sorted(binaries.intersection(COMPONENTS))
+    if len(selected) != 1:
+        return {"component": None, "component_identification": "not_a_unique_explicit_component", "flags_complete": False}
+    tokens, flags = command + args, {}
+    for index, token in enumerate(tokens):
+        if not token.startswith("--"):
+            continue
+        name, separator, captured = token[2:].partition("=")
+        if name not in CONFIG_FLAGS:
+            continue
+        if not separator:
+            captured = tokens[index + 1] if index + 1 < len(tokens) and not tokens[index + 1].startswith("--") else "true"
+        # Fixed flag names, simple paths/lists/durations/enums; no URI credentials,
+        # shell expressions, token payloads or multiline values cross the boundary.
+        if len(captured) > 2048 or not re.fullmatch(r"[A-Za-z0-9_.,/:=+@-]*", captured) or "://" in captured:
+            return {"collection_status": "malformed", "error": {"code": "unsafe_component_flag_value"}}
+        if name in flags:
+            return {"collection_status": "malformed", "error": {"code": "duplicate_component_flag"}}
+        flags[name] = captured
+    return {"component": selected[0], "flags": flags, "flags_complete": True,
+            "evidence": "explicit PodSpec command/args declarations; no host or runtime configuration read"}
 
 
 def validate_inline_kubeconfig(data, context=None):
@@ -146,6 +195,10 @@ def _new_api(auth):
     from kubernetes import client, config
     from bluepeass.k8s import KubernetesApi
     method = auth.get("method", "auto")
+    if method == "inline":
+        if auth.get("kubeconfig_data") is None:
+            raise ValueError("inline authentication requires kubeconfig_data")
+        method = "kubeconfig"
     if method not in ("auto", "kubeconfig", "context", "in_cluster", "in-cluster", "token", "certificate", "client-cert", "direct"):
         raise ValueError("unsupported Kubernetes authentication method")
     if method in ("token", "certificate", "client-cert", "direct") and not auth.get("server"):
@@ -248,6 +301,10 @@ def _sanitize(value):
     if not isinstance(value, dict):
         return value
     result = {}
+    if "command" in value or "args" in value:
+        component = _component_config(value)
+        if component is not None:
+            result["_component_config"] = component
     for key, child in value.items():
         if key in ("managedFields",):
             continue
@@ -257,7 +314,8 @@ def _sanitize(value):
                 "eks.amazonaws.com/role-arn", "iam.gke.io/gcp-service-account",
                 "azure.workload.identity/client-id", "azure.workload.identity/tenant-id",
                 "k8s.v1.cni.cncf.io/networks", "k8s.v1.cni.cncf.io/network-status",
-                "kubernetes.io/ingress.class", "kubernetes.io/psp")}
+                "kubernetes.io/ingress.class", "kubernetes.io/psp", "iam.amazonaws.com/permitted",
+                "iam.amazonaws.com/role", "openshift.io/scc", "openshift.io/required-scc")}
         elif key == "env" and isinstance(child, list):
             result[key] = [{"name": entry.get("name"), **({"valueFrom": _sanitize(entry["valueFrom"])} if "valueFrom" in entry else {"value_redacted": True})} for entry in child if isinstance(entry, dict)]
         elif key in ("command", "args"):
@@ -291,7 +349,7 @@ def _pages(reader, api, path, kind, cluster, scope, namespaced):
     continuation = None
     seen = set()
     version = None
-    for _ in range(reader.budget.max_pages):
+    for page in count():
         params = {"limit": reader.page_size}
         if continuation:
             params["continue"] = continuation
@@ -310,7 +368,8 @@ def _pages(reader, api, path, kind, cluster, scope, namespaced):
         if not isinstance(continuation, str) or continuation in seen:
             raise ValueError("repeated or malformed continuation")
         seen.add(continuation)
-    raise AzureReadError("page_limit")
+        if reader.budget.max_pages is not None and page + 1 >= reader.budget.max_pages:
+            raise AzureReadError("page_limit")
 
 
 def collect(connector, requirements=None, *, api=None):
@@ -333,14 +392,48 @@ def collect(connector, requirements=None, *, api=None):
                 raise ValueError("hosted Kubernetes requires tenant inline credentials")
             if not auth.get("server") and auth.get("kubeconfig_data") is None:
                 raise ValueError("hosted Kubernetes requires an explicit API server")
+            if auth.get("method") in ("kubeconfig", "context", "inline") and auth.get("kubeconfig_data") is None:
+                raise ValueError("hosted kubeconfig selection requires inline material")
             auth = {**auth, "_hosted": True}
         if owned:
             api = _new_api(auth)
         cluster = _cluster_id(api, auth)
         jobs = []
         actual = wanted | ({"pod", "node"} if "network_interface" in wanted else set())
+        if actual.intersection({"api_discovery", "securitycontextconstraint"}):
+            def discovery():
+                document = reader.call(api.get_json, "/apis")
+                groups = document.get("groups") if isinstance(document, dict) else None
+                if not isinstance(groups, list) or any(not isinstance(group, dict) or not isinstance(group.get("name"), str) for group in groups):
+                    raise ValueError("malformed Kubernetes API group discovery")
+                yield [{"id": f"k8s://{quote(cluster, safe='')}/api-discovery", "groups": _sanitize(groups),
+                    "provenance": {"cluster_id": cluster, "source": "GET /apis", "authoritative_for": "advertised API groups only"}}]
+            reader.run([("api_discovery", scopes[0], "kubernetes", discovery)])
+            discovered = reader.collections[-1]
+            groups = {group["name"] for item in discovered["items"] for group in item["groups"]}
+            if "securitycontextconstraint" in actual:
+                if discovered["status"] not in ("collected", "empty"):
+                    reader.collections.append({"type": "securitycontextconstraint", "scope": scopes[0], "service": "kubernetes",
+                        "status": "unknown", "items": [], "error": {"code": "api_discovery_incomplete"}})
+                elif "security.openshift.io" not in groups:
+                    reader.collections.append({"type": "securitycontextconstraint", "scope": scopes[0], "service": "kubernetes",
+                        "status": "not_collected", "coverage_status": "not_applicable", "items": [],
+                        "error": {"kind": "not_applicable", "code": "openshift_api_group_absent"},
+                        "applicability": {"observed_api_group_absent": "security.openshift.io", "source": "GET /apis"}})
+                else:
+                    jobs.append(("securitycontextconstraint", scopes[0], "kubernetes", lambda: _pages(reader, api,
+                        "/apis/security.openshift.io/v1/securitycontextconstraints", "securitycontextconstraint", cluster, scopes[0], False)))
         for kind in sorted(actual.intersection(ENDPOINTS)):
             path, namespaced = ENDPOINTS[kind]
+            if kind == "namespace" and scopes != ["*"]:
+                for scope in scopes:
+                    def namespace(scope=scope):
+                        item = reader.call(api.get_json, "/api/v1/namespaces/" + quote(scope, safe=""))
+                        if not isinstance(item, dict) or not isinstance(item.get("metadata"), dict) or item["metadata"].get("name") != scope:
+                            raise ValueError("namespace object does not match selected scope")
+                        yield [_native(item, "namespace", cluster, scope, False)]
+                    jobs.append((kind, scope, "kubernetes", namespace))
+                continue
             for scope in scopes if namespaced else [scopes[0]]:
                 scoped_path = path
                 if namespaced and scope != "*":

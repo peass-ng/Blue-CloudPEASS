@@ -1,0 +1,779 @@
+{
+  "aws-compliance.control.cis_compute_service_v100_2_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "2.1.1 Ensure Consistent Naming Convention is used for Organizational AMI",
+      "title": "2.1.1 Ensure Consistent Naming Convention is used for Organizational AMI",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L60"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "2.1.3 Ensure Only Approved AMIs (Images) are Used",
+      "title": "2.1.3 Ensure Only Approved AMIs (Images) are Used",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L88"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "2.4 Ensure an Organizational EC2 Tag Policy has been created",
+      "title": "2.4 Ensure an Organizational EC2 Tag Policy has been created",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L216"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v120_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Avoid the use of the \"root\" account",
+      "title": "1.1 Avoid the use of the \"root\" account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L40"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v120_1_15": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.15 Ensure security questions are registered in the AWS account",
+      "title": "1.15 Ensure security questions are registered in the AWS account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L236"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v120_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.17 Maintain current contact details",
+      "title": "1.17 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L264"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v120_4_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "4.4 Ensure routing tables for VPC peering are \"least access\"",
+      "title": "4.4 Ensure routing tables for VPC peering are \"least access\"",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_4.pp#L65"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v130_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Maintain current contact details",
+      "title": "1.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L40"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v130_1_22": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.22 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "1.22 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L334"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v130_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.3 Ensure security questions are registered in the AWS account",
+      "title": "1.3 Ensure security questions are registered in the AWS account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L68"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v130_5_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.4 Ensure routing tables for VPC peering are 'least access'",
+      "title": "5.4 Ensure routing tables for VPC peering are 'least access'",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_5.pp#L65"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v140_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Maintain current contact details",
+      "title": "1.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L39"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v140_1_21": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L319"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v140_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.3 Ensure security questions are registered in the AWS account",
+      "title": "1.3 Ensure security questions are registered in the AWS account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L67"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v140_5_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.4 Ensure routing tables for VPC peering are \"least access\"",
+      "title": "5.4 Ensure routing tables for VPC peering are \"least access\"",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_5.pp#L65"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v150_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Maintain current contact details",
+      "title": "1.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L39"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v150_1_21": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L319"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v150_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.3 Ensure security questions are registered in the AWS account",
+      "title": "1.3 Ensure security questions are registered in the AWS account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L67"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v150_5_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.5 Ensure routing tables for VPC peering are \"least access\"",
+      "title": "5.5 Ensure routing tables for VPC peering are \"least access\"",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_5.pp#L80"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v200_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Maintain current contact details",
+      "title": "1.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L40"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v200_1_21": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L320"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v200_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.3 Ensure security questions are registered in the AWS account",
+      "title": "1.3 Ensure security questions are registered in the AWS account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L68"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v200_5_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.5 Ensure routing tables for VPC peering are \"least access\"",
+      "title": "5.5 Ensure routing tables for VPC peering are \"least access\"",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_5.pp#L81"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v300_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Maintain current contact details",
+      "title": "1.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L40"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v300_1_21": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L320"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v300_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.3 Ensure security questions are registered in the AWS account",
+      "title": "1.3 Ensure security questions are registered in the AWS account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L68"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v300_5_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.5 Ensure routing tables for VPC peering are \"least access\"",
+      "title": "5.5 Ensure routing tables for VPC peering are \"least access\"",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_5.pp#L81"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v400_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Maintain current contact details",
+      "title": "1.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L40"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v400_1_21": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "1.21 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L320"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v400_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.3 Ensure security questions are registered in the AWS account",
+      "title": "1.3 Ensure security questions are registered in the AWS account",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L68"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v400_5_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.6 Ensure routing tables for VPC peering are \"least access\"",
+      "title": "5.6 Ensure routing tables for VPC peering are \"least access\"",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L130"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v500_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.1 Maintain current contact details",
+      "title": "1.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L39"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v500_1_20": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "1.20 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "1.20 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L305"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v500_5_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "5.6 Ensure routing tables for VPC peering are \"least access\"",
+      "title": "5.6 Ensure routing tables for VPC peering are \"least access\"",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L130"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v600_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "2.1 Maintain current contact details",
+      "title": "2.1 Maintain current contact details",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L39"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v600_2_20": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "2.20 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "title": "2.20 Ensure IAM users are managed centrally via identity federation or AWS Organizations for multi-account environments",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L305"
+    },
+    "reviewed_query_id": "manual_control"
+  },
+  "aws-compliance.control.cis_v600_6_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "manual_attestation",
+    "manual_requirement": {
+      "question": "6.6 Ensure routing tables for VPC peering are 'least access'",
+      "title": "6.6 Ensure routing tables for VPC peering are 'least access'",
+      "guidance": "Pinned control explicitly invokes the constant-info manual_control query. An account owner must attest this exact question; automatic snapshot facts alone cannot produce the source result."
+    },
+    "reason": "Individually inspected this exact control block: it directly invokes query.manual_control with no automatic SQL override or condition. Reviewed query emits constant info and Manual verification required for account identity. Rejected AS AUTOMATIC only and preserved separately as a manual attestation requirement with exact question/source/framework/control/version metadata, not discarded or counted as an automatic predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct.html"
+    ],
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "eccb0cf510bd80245b3ff9a733e7886c8fa7fd42fe8e697ba27223e8ea86a618",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L128"
+    },
+    "reviewed_query_id": "manual_control"
+  }
+}

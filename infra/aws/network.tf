@@ -38,10 +38,19 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.tasks.id]
-  policy = jsonencode({ Version = "2012-10-17", Statement = [{
-    Effect   = "Allow", Principal = "*", Action = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
-    Resource = [aws_s3_bucket.artifacts.arn, "${aws_s3_bucket.artifacts.arn}/*", "arn:aws:s3:::prod-${var.region}-starport-layer-bucket/*"]
-  }] })
+  policy = jsonencode({ Version = "2012-10-17", Statement = [
+    {
+      Effect   = "Allow", Principal = "*", Action = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+      Resource = [aws_s3_bucket.artifacts.arn, "${aws_s3_bucket.artifacts.arn}/*", "arn:aws:s3:::prod-${var.region}-starport-layer-bucket/*"]
+    },
+    {
+      # Customer roles still control authorization. Endpoint routing allows
+      # configuration-only inventory while denying customer object contents.
+      Effect   = "Allow", Principal = "*",
+      Action   = ["s3:ListAllMyBuckets", "s3:GetAccountPublicAccessBlock", "s3:GetBucketAcl", "s3:GetBucketLocation", "s3:GetBucketLogging", "s3:GetBucketPolicy", "s3:GetBucketPolicyStatus", "s3:GetBucketPublicAccessBlock", "s3:GetBucketVersioning", "s3:GetEncryptionConfiguration", "s3:GetBucketOwnershipControls"],
+      Resource = "*"
+    }
+  ] })
 }
 resource "aws_vpc_endpoint" "dynamodb" {
   vpc_id            = aws_vpc.cspm.id

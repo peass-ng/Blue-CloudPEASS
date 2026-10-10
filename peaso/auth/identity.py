@@ -58,7 +58,8 @@ class Authenticator:
                 raise ValueError("Invalid subject")
         except Exception:
             raise HTTPException(401, "Invalid authentication") from None
-        return Identity(tenant, self.is_paid(tenant, claims.get("cognito:username", tenant)))
+        attributes = self.live_user(tenant, claims.get("cognito:username", tenant))
+        return Identity(tenant, self.is_paid(tenant, attributes=attributes))
 
     def authenticate_refresh(self, refresh_token: str) -> Identity:
         if self.settings.auth_mode != "cognito":
@@ -70,20 +71,31 @@ class Authenticator:
             raise HTTPException(401, "Invalid authentication") from None
         return self.authenticate("Bearer " + token)
 
-    def is_paid(self, tenant: str, username: str | None = None) -> bool:
+    def live_user(self, tenant, username=None):
+        pool = self.settings.issuer.rsplit("/", 1)[1]
+        try:
+            user = self.cognito.admin_get_user(UserPoolId=pool, Username=username or tenant)
+        except Exception as exc:
+            code = getattr(exc, "response", {}).get("Error", {}).get("Code")
+            if code in {"UserNotFoundException", "NotAuthorizedException"}:
+                raise HTTPException(401, "Invalid authentication") from None
+            raise HTTPException(503, "Identity verification temporarily unavailable") from None
+        attrs = {a["Name"]: a["Value"] for a in user.get("UserAttributes", [])}
+        if user.get("Enabled") is not True or attrs.get("sub") != tenant:
+            raise HTTPException(401, "Invalid authentication")
+        return attrs
+
+    def is_paid(self, tenant: str, username: str | None = None, attributes=None) -> bool:
         """Resolve live Cognito identity and independently verify Stripe billing."""
         if self.settings.auth_mode == "local":
             return False
-        pool = self.settings.issuer.rsplit("/", 1)[1]
+        # Identity eligibility is independent of the cached billing result.
+        attrs = self.live_user(tenant, username) if attributes is None else attributes
         try:
             if self.store is not None:
                 cached = self.store.get_entitlement(tenant)
                 if cached is not None:
                     return cached
-            user = self.cognito.admin_get_user(UserPoolId=pool, Username=username or tenant)
-            attrs = {a["Name"]: a["Value"] for a in user.get("UserAttributes", [])}
-            if user.get("Enabled") is not True or attrs.get("sub") != tenant:
-                return False
             if self.entitlements is None:
                 from .billing import StripeEntitlements
                 self.entitlements = StripeEntitlements()

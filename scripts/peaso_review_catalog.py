@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import gzip
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -125,7 +126,7 @@ def turbot_rows(directory, source):
         refs = sorted(set(re.findall(r'\bquery\.([\w]+)', body)))
         query_bodies = [definitions["query"][ref]["body"] for ref in refs if ref in definitions["query"]]
         sql = "\n".join(query_bodies) if query_bodies else body
-        dependencies = sorted(set(re.findall(r'\b(?:from|join)\s+((?:aws|gcp|azure|kubernetes)_[\w]+)', sql, re.I)))
+        dependencies = sorted(set(re.findall(r'\b(?:from|join)\s+((?:aws|gcp|azure|azuread|kubernetes)_[\w]+)', sql, re.I)))
         lineage = ancestors("control", name)
         roots = [b for b in lineage if not parents[("benchmark", b)]]
         framework_roots = [b for b in roots if b != "all_controls"]
@@ -134,10 +135,17 @@ def turbot_rows(directory, source):
             framework = quoted(definitions["benchmark"][b]["body"], "title") or b
             # Preserve all ancestor IDs without turning sections/headings into frameworks.
             branch = [a for a in lineage if a == b or b in ancestors("benchmark", a)]
+            version_match = re.search(r"\bv?(\d+\.\d+(?:\.\d+)*)\b", framework)
+            revision_match = re.search(r"\b(?:Revision|Rev\.?)\s+(\d+)\b", framework, re.I)
+            integer_version = re.search(r"\bv(\d+)\b", framework, re.I)
+            edition_year = re.search(r"\b((?:19|20)\d{2})\b", framework)
+            declared_version = (version_match[1] if version_match else revision_match[0] if revision_match else
+                integer_version[1] if integer_version else edition_year[1] if edition_year else None)
             mappings.append({"framework": framework, "framework_family": framework_family(b, framework),
                 "framework_id": suite + ".benchmark." + b, "control_id": suite + ".control." + name,
                 "benchmark_ids": [suite + ".benchmark." + a for a in branch],
-                "version": source["revision"], "source": definitions["benchmark"][b]["path"]})
+                "version": declared_version or source["revision"], "declared_version": declared_version,
+                "source_revision": source["revision"], "source": definitions["benchmark"][b]["path"]})
         result.append({"check_id": suite + ".control." + name, "upstream_id": name, "provider": "k8s" if provider == "kubernetes" else provider,
             "title": quoted(body, "title"), "service": quoted(body, "service") or "unknown", "severity": "unspecified", "catalog_entry_type": "definition",
             "rationale": quoted(body, "description"), "dependencies": dependencies,
@@ -173,11 +181,15 @@ def build(sources_root):
     registry = {c.id: c for c in CHECKS}
     sources = read_json(PACK / "sources.json")
     reviewed = {}
-    for path in sorted(PACK.glob("reviewed*.json")):
+    active = PACK / "active_reviews.json"
+    paths = [PACK / name for name in read_json(active)["shards"]] if active.exists() else sorted(PACK.glob("reviewed*.json"))
+    for path in paths:
         shard = read_json(path)
         duplicate = set(reviewed).intersection(shard)
-        if duplicate:
-            raise ValueError("duplicate review ownership: " + ", ".join(sorted(duplicate)))
+        for key in duplicate:
+            if shard[key].get("supersedes") != key or reviewed[key]["disposition"] != "pending":
+                raise ValueError("duplicate review ownership requires explicit supersedes of pending row: " + key)
+            shard[key] = {**shard[key], "review_history": [reviewed[key]]}
         reviewed.update(shard)
     rows = []
     for source in sources["sources"]:
@@ -205,13 +217,17 @@ def build(sources_root):
             row.update(disposition="pending", native_checks=[], reason="Not yet reviewed/ported; native facts, version applicability and predicate equivalence require review")
         row["runtime_provider_supported"] = row["provider"] in ("aws", "gcp", "azure", "k8s")
         if not row["runtime_provider_supported"]:
+            row.update(disposition="out_of_scope", native_checks=[])
             row["reason"] = "Reference inventory retained; provider is outside the current four-provider runtime and no predicate is implemented"
-        row["expected_cost"] = {"cloud_calls_at_evaluation": 0, "snapshot": "linear in applicable resources" if row["native_checks"] else "not implemented"}
+        unregistered = [cid for cid in row["native_checks"] if cid not in registry]
+        if unregistered:
+            raise ValueError("review shard references unregistered native checks; finish registry integration first: " + ", ".join(unregistered))
+        row["expected_cost"] = {"cloud_calls_at_evaluation": 0 if row["native_checks"] else None, "snapshot": "linear in applicable resources" if row["native_checks"] else "not implemented"}
         row["native_evaluators"] = [{"check_id": cid, "version": "1.0.0", "language": "python", "entrypoint": "peaso.checks:evaluate_check", "dependencies": registry[cid].dependencies} for cid in row["native_checks"]]
     unmatched = sorted(set(reviewed) - matched_reviews)
     if unmatched:
         raise ValueError("reviewed IDs absent from pinned source: " + ", ".join(unmatched))
-    return {"schema_version": "1.0", "reviewed_at": sources["reviewed_at"], "sources": sources["sources"], "checks": sorted(rows, key=lambda r: r["check_id"])}
+    return {"schema_version": "1.1", "reviewed_at": sources["reviewed_at"], "sources": sources["sources"], "checks": sorted(rows, key=lambda r: r["check_id"])}
 
 
 def validate_manifest(data):
@@ -222,8 +238,13 @@ def validate_manifest(data):
         if row["check_id"] in ids:
             raise ValueError("duplicate upstream check ID")
         ids.add(row["check_id"])
-        if row["disposition"] not in ("ported", "merged", "rejected", "pending") or not row["reason"]:
+        if row["disposition"] not in ("ported", "merged", "rejected", "pending", "out_of_scope") or not row["reason"]:
             raise ValueError("explicit review disposition/reason required")
+        if row["disposition"] == "out_of_scope" and row.get("runtime_provider_supported", True):
+            raise ValueError("target provider cannot be marked out_of_scope")
+        if row.get("review_classification") == "manual_attestation":
+            if row["disposition"] != "rejected" or row["native_checks"] or not isinstance(row.get("manual_requirement"), dict) or not row["manual_requirement"].get("question"):
+                raise ValueError("manual attestation requires source question and rejection as automated check")
         if row["disposition"] in ("ported", "merged"):
             if not row["native_checks"] or any(cid not in registry for cid in row["native_checks"]):
                 raise ValueError("supported reference requires real native evaluator")
@@ -238,7 +259,8 @@ def validate_manifest(data):
         public = check.public()
         if HACKTRICKS not in public["frameworks"] or not public["dependencies"]:
             raise ValueError("native security check needs mapping and dependencies")
-    return {"native_checks": len(CHECKS), "upstream_total": len(ids), "entry_types": dict(Counter(r.get("catalog_entry_type", "definition") for r in data["checks"])), "dispositions": dict(Counter(r["disposition"] for r in data["checks"])),
+    totals = Counter(r["disposition"] for r in data["checks"])
+    return {"native_checks": len(CHECKS), "upstream_total": len(ids), "entry_types": dict(Counter(r.get("catalog_entry_type", "definition") for r in data["checks"])), "dispositions": {key: totals[key] for key in ("ported", "merged", "rejected", "pending", "out_of_scope")},
         "outside_runtime_provider_scope": sum(not r.get("runtime_provider_supported", True) for r in data["checks"]),
         "by_provider": {provider: dict(Counter(r["disposition"] for r in data["checks"] if r["provider"] == provider)) for provider in ("aws", "gcp", "azure", "k8s")}}
 
@@ -259,12 +281,18 @@ def main():
             parser.error("--write requires --sources-root pinned reference checkouts")
         data = build(args.sources_root)
         validate_manifest(data)
-        (PACK / "upstream_manifest.json").write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
-        from peaso.checks.catalog import manifest, _mappings
+        serialized = json.dumps(data, separators=(",", ":"), ensure_ascii=False) + "\n"
+        (PACK / "upstream_manifest.json").write_text(serialized)
+        (PACK / "upstream_manifest.json.gz").write_bytes(gzip.compress(serialized.encode(), mtime=0))
+        from peaso.checks.catalog import manifest, _mappings, _runtime, framework_catalog, runtime_metadata, manual_requirements
+        (PACK / "runtime_metadata.json").write_text(json.dumps(runtime_metadata(data), separators=(",", ":"), ensure_ascii=False) + "\n")
         manifest.cache_clear()
         _mappings.cache_clear()
+        _runtime.cache_clear()
         from peaso.checks import CHECKS
         (PACK / "native_catalog.json").write_text(json.dumps({"schema_version": "1.0", "evaluator_version": "1.0.0", "checks": [c.public() for c in CHECKS]}, indent=2) + "\n")
+        (PACK / "framework_catalog.json").write_text(json.dumps({"schema_version": "1.0", "frameworks": framework_catalog()}, indent=2) + "\n")
+        (PACK / "manual_catalog.json").write_text(json.dumps({"schema_version": "1.1", "requirements": manual_requirements()}, indent=2) + "\n")
     else:
         data = read_json(PACK / "upstream_manifest.json")
     print(json.dumps(validate_manifest(data), indent=2))

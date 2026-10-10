@@ -15,6 +15,20 @@ frontend/node_modules
 frontend/dist
 frontend/evidence
 .peaso
+.cache
+.benchmarks
+.aws
+.azure
+.kube
+infra
+tests
+docs
+examples
+*.tfstate
+*.tfstate.*
+*.pem
+*.key
+*.zip
 .env
 .env.*
 !.env.example
@@ -26,3 +40,5 @@ untitled*.md
 !frontend/tsconfig.json
 !frontend/public/**
 !frontend/src/**
+**/__pycache__/**
+**/*.pyc

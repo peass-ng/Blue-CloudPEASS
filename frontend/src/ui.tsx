@@ -26,8 +26,11 @@ export function ProviderIcon({
 }
 export function Badge({ value }: { value: string }) {
   return (
-    <span className={`badge ${value.toLowerCase().replace(/[^a-z_]/g, "")}`}>
-      {value.replaceAll("_", " ")}
+    <span
+      className={`badge ${value.toLowerCase().replace(/[^a-z_]/g, "")}`}
+      title={value.replaceAll("_", " ")}
+    >
+      {value.toLowerCase().replaceAll("_", " ")}
     </span>
   );
 }
@@ -157,12 +160,37 @@ export function Inspector({
   );
 }
 export function Evidence({ data }: { data: unknown }) {
+  const full =
+    typeof data === "string"
+      ? data
+      : JSON.stringify(data ?? "No evidence supplied", null, 2);
+  const limit = 100000;
+  function download() {
+    const blob = new Blob([full], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "peaso-evidence.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
   return (
-    <pre className="evidence">
-      {typeof data === "string"
-        ? data
-        : JSON.stringify(data ?? "No evidence supplied", null, 2)}
-    </pre>
+    <>
+      <pre className="evidence">
+        {full.length > limit ? full.slice(0, limit) : full}
+      </pre>
+      {full.length > limit && (
+        <div className="notice">
+          <p>
+            Evidence preview limited to {limit.toLocaleString()} characters. The
+            full evidence remains available.
+          </p>
+          <button className="button" onClick={download}>
+            Download full evidence
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 export function date(value?: string) {

@@ -31,6 +31,8 @@
       description: The source needs a template location (S3 or GitHub) the service accepts.
     - id: resource_constraints
       description: Launch-role permission boundaries or template/resource constraints may limit what the role can create.
+    - id: launch_role_confused_deputy_conditions
+      description: aws:SourceAccount / aws:SourceArn conditions in the launch-role trust policy limit which account's provisioning calls can use the role.
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
@@ -38,4 +40,5 @@
   mitigation: Restrict servicecatalog:CreateProvisioningArtifact to catalog administrators and keep launch-constraint roles least-privileged.
   references:
     - https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html
-  notes: No iam:PassRole is needed by the end user. The launch role may also trust cloudformation.amazonaws.com depending on configuration; the evaluator should take the role from the launch constraint rather than from the trust policy alone.
+    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsservicecatalog.html
+  notes: The launch-constraint guide states the launch role's trust policy must allow the Service Catalog service to assume it, which matches the selector. The Service Authorization Reference lists no dependent actions for servicecatalog:ProvisionProduct, so the end user needs no iam:PassRole; iam:PassRole is only needed by the administrator who creates the launch constraint. The evaluator should still take the role from the launch constraint rather than from the trust policy alone.

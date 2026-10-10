@@ -5,8 +5,6 @@ from .base import Collector, TYPES
 def collect_live(connector, requirements=None):
     provider = connector["provider"]
     scopes = connector.get("scopes", [])
-    if len(scopes) > 100:
-        raise ValueError("at most 100 scopes per scan")
     normalized = {**connector, "scopes": list(dict.fromkeys(scopes))}
     from importlib import import_module
     return import_module("peaso.collectors." + provider).collect(normalized, requirements)

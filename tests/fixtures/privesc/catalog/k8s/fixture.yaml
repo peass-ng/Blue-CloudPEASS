@@ -1,0 +1,31 @@
+# Frozen copies of peaso/privesc/catalog/k8s entries used by tests (rev a53b46392c).
+- id: k8s-workloads-pods-create
+  provider: k8s
+  service: workloads
+  title: Create a pod that runs as any ServiceAccount of the namespace
+  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#pod-create---steal-token
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of every ServiceAccount in the namespace where it can create pods.
+  requires:
+    all_of:
+    - verb: create
+      resource: pods
+      namespace: '{target.namespace}'
+  target:
+    kind: k8s_service_account
+    selector:
+      k8s_sa_in_namespace: '{target.namespace}'
+    scope: same_namespace
+    aggregate_as: All ServiceAccounts in {target.namespace}
+  conditions:
+  - id: admission_restricts_service_account
+    description: A validating/mutating admission policy (VAP, webhook, Kyverno, Gatekeeper, OpenShift SCC) that restricts serviceAccountName, token automount or images could remove the edge. Pod Security
+      Admission does not restrict the ServiceAccount.
+  blockers: []
+  confidence: derived
+  severity: high
+  mitigation: Do not grant pods create in namespaces that host privileged ServiceAccounts (kube-system, operator namespaces); keep powerful ServiceAccounts in dedicated namespaces.
+  references:
+  - https://kubernetes.io/docs/concepts/security/rbac-good-practices/#workload-creation
+  notes: The pod-level automountServiceAccountToken overrides the ServiceAccount's setting, so automount=false on the ServiceAccount is not a blocker. Severity is raised by the evaluator when a reachable
+    ServiceAccount is admin-equivalent.

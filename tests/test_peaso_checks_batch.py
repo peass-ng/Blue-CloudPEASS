@@ -1,6 +1,6 @@
 import copy
 import pytest
-from peaso.checks.batch import evaluate_many, scalar_sql
+from peaso.checks.batch import evaluate_many, scalar_sql, summarize_many
 from peaso.checks.facts import FIELD_SPECS
 from peaso.checks.fixtures import nest
 
@@ -28,3 +28,9 @@ def test_duckdb_scalar_parity(check_id):
 def test_batch_rejects_unsupported_semantic_rule():
     with pytest.raises(ValueError, match="strict scalar"):
         evaluate_many(["aws.iam.no_full_admin"], [], "duckdb")
+
+
+def test_duckdb_summary_preserves_unknown_and_failure_counts():
+    pytest.importorskip("duckdb")
+    rows = [{"Encrypted": True}, {"Encrypted": False}, {}, {"Encrypted": True, "collection_status": "denied"}]
+    assert summarize_many(["aws.ebs.encryption"], rows) == {"aws.ebs.encryption": {"PASS": 1, "FAIL": 1, "UNKNOWN": 2}}

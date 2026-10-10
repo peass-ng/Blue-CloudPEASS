@@ -1,0 +1,467 @@
+{
+  "prowler.azure.storage_cross_tenant_replication_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.cross_tenant_replication"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Explicit allowCrossTenantReplication=false; no default/null inference.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Explicit allowCrossTenantReplication=false; no default/null inference."
+  },
+  "azure-compliance.control.storage_account_cross_tenant_replication_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.cross_tenant_replication"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Known boolean false/true outcomes agree; absent metadata is unknown.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Known boolean false/true outcomes agree; absent metadata is unknown."
+  },
+  "prowler.azure.storage_infrastructure_encryption_is_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.infrastructure_encryption"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. properties.encryption.requireInfrastructureEncryption boolean; no content/key reads.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "properties.encryption.requireInfrastructureEncryption boolean; no content/key reads."
+  },
+  "azure-compliance.control.storage_account_infrastructure_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.infrastructure_encryption"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Infrastructure encryption flag only; customer-managed key selection is independent.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties"
+    ],
+    "review_notes": "Infrastructure encryption flag only; customer-managed key selection is independent."
+  },
+  "prowler.azure.storage_blob_versioning_is_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.blob_versioning"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Applicable to blobServices metadata only; other storage services are NOT_APPLICABLE.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties"
+    ],
+    "review_notes": "Applicable to blobServices metadata only; other storage services are NOT_APPLICABLE."
+  },
+  "azure-compliance.control.storage_account_blob_versioning_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.blob_versioning"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Upstream account/blob-service join becomes the parent-scoped native blobServices resource; account completeness and missing services remain unknown.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties"
+    ],
+    "review_notes": "Upstream account/blob-service join becomes the parent-scoped native blobServices resource; account completeness and missing services remain unknown."
+  },
+  "azure-compliance.control.storage_account_blob_soft_delete_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.blob_soft_delete_retention"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Requires enabled and days between7 and365 inclusive; bool/string retention values are malformed.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties"
+    ],
+    "review_notes": "Requires enabled and days between7 and365 inclusive; bool/string retention values are malformed."
+  },
+  "prowler.azure.storage_ensure_soft_delete_is_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.storage.container_soft_delete"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Despite the upstream generic title, source specifically checks container_delete_retention_policy.enabled; native check follows that exact container predicate.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties"
+    ],
+    "review_notes": "Despite the upstream generic title, source specifically checks container_delete_retention_policy.enabled; native check follows that exact container predicate."
+  },
+  "azure-compliance.control.storage_account_container_soft_delete_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream also requires7\u2013365 day retention, which this enabled-only native baseline does not establish.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties"
+    ],
+    "review_notes": "Upstream also requires7\u2013365 day retention, which this enabled-only native baseline does not establish.",
+    "related_native_checks": [
+      "azure.storage.container_soft_delete"
+    ]
+  },
+  "azure-compliance.control.compute_vm_and_sacle_set_encryption_at_host_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream unions VMs and VM scale sets; native implementation covers VM configuration only.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-07-01"
+    ],
+    "review_notes": "Upstream unions VMs and VM scale sets; native implementation covers VM configuration only.",
+    "related_native_checks": [
+      "azure.vm.encryption_at_host"
+    ]
+  },
+  "prowler.azure.vm_linux_enforce_ssh_authentication": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.vm.linux_ssh_keys"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Linux disablePasswordAuthentication ARM metadata only; Windows is inapplicable and guest sshd runtime is not asserted.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-07-01"
+    ],
+    "review_notes": "Linux disablePasswordAuthentication ARM metadata only; Windows is inapplicable and guest sshd runtime is not asserted."
+  },
+  "azure-compliance.control.compute_vm_ssh_key_authentication_linux": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream reads guestConfiguration LinuxNoPasswordForSSH compliance; native ARM osProfile cannot establish that guest runtime predicate.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-07-01"
+    ],
+    "review_notes": "Upstream reads guestConfiguration LinuxNoPasswordForSSH compliance; native ARM osProfile cannot establish that guest runtime predicate.",
+    "related_native_checks": [
+      "azure.vm.linux_ssh_keys"
+    ]
+  },
+  "prowler.azure.vm_trusted_launch_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.vm.trusted_launch"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Requires securityType=TrustedLaunch AND secureBootEnabled AND vTpmEnabled; confidential VM alternatives do not pass this specific baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-07-01"
+    ],
+    "review_notes": "Requires securityType=TrustedLaunch AND secureBootEnabled AND vTpmEnabled; confidential VM alternatives do not pass this specific baseline."
+  },
+  "azure-compliance.control.compute_vm_trust_launch_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream skips non-TrustedLaunch security types; native baseline evaluates explicit known Standard/ConfidentialVM as outside Trusted Launch and fails.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-07-01"
+    ],
+    "review_notes": "Upstream skips non-TrustedLaunch security types; native baseline evaluates explicit known Standard/ConfidentialVM as outside Trusted Launch and fails.",
+    "related_native_checks": [
+      "azure.vm.trusted_launch"
+    ]
+  },
+  "prowler.azure.vm_ensure_using_managed_disks": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Native skips explicit ephemeral OS disks and treats missing disk-type metadata as unknown; full upstream applicability therefore differs.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-07-01"
+    ],
+    "review_notes": "Native skips explicit ephemeral OS disks and treats missing disk-type metadata as unknown; full upstream applicability therefore differs.",
+    "related_native_checks": [
+      "azure.vm.managed_disks"
+    ]
+  },
+  "azure-compliance.control.compute_disk_public_access_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.disk.private_export"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Requires publicNetworkAccess=Disabled together with networkAccessPolicy in AllowPrivate/DenyAll; no export SAS or disk content read.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2024-07-01"
+    ],
+    "review_notes": "Requires publicNetworkAccess=Disabled together with networkAccessPolicy in AllowPrivate/DenyAll; no export SAS or disk content read."
+  },
+  "azure-compliance.control.compute_disk_data_access_auth_mode_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.disk.entra_export_auth"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. dataAccessAuthMode=AzureActiveDirectory; applies to disk upload/export authentication, not general VM permissions.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2024-07-01"
+    ],
+    "review_notes": "dataAccessAuthMode=AzureActiveDirectory; applies to disk upload/export authentication, not general VM permissions."
+  },
+  "azure-compliance.control.network_interface_ip_forwarding_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream joins NICs to VMs and reports per VM; native checks all collected NICs without claiming equivalent eligibility or result units.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-interfaces/get"
+    ],
+    "review_notes": "Upstream joins NICs to VMs and reports per VM; native checks all collected NICs without claiming equivalent eligibility or result units.",
+    "related_native_checks": [
+      "azure.network.nic_no_ip_forwarding"
+    ]
+  },
+  "azure-compliance.control.network_lb_no_basic_sku": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.network.load_balancer_standard"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Known Basic/Standard SKU metadata; future unrecognized SKU values are unknown, with no runtime exposure claims.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/load-balancer/load-balancers/get"
+    ],
+    "review_notes": "Known Basic/Standard SKU metadata; future unrecognized SKU values are unknown, with no runtime exposure claims."
+  },
+  "azure-compliance.control.network_public_ip_no_basic_sku": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.network.public_ip_standard"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Known Basic/Standard SKU metadata; the check does not infer public reachability.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/public-ip-addresses/get"
+    ],
+    "review_notes": "Known Basic/Standard SKU metadata; the check does not infer public reachability."
+  },
+  "prowler.azure.network_vnet_ddos_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.network.ddos_configured"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. enableDdosProtection flag only; observed DDoS mitigation efficacy is not inferred.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/virtual-networks/get"
+    ],
+    "review_notes": "enableDdosProtection flag only; observed DDoS mitigation efficacy is not inferred."
+  },
+  "azure-compliance.control.network_ddos_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream checks only VNets joined to application gateways; generic native VNet baseline does not reproduce that join.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/virtual-networks/get"
+    ],
+    "review_notes": "Upstream checks only VNets joined to application gateways; generic native VNet baseline does not reproduce that join.",
+    "related_native_checks": [
+      "azure.network.ddos_configured"
+    ]
+  },
+  "prowler.azure.aks_cluster_defender_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.aks.defender_monitoring"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. securityProfile.defender.securityMonitoring.enabled; sensor/asset protection coverage is separate.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.containerservice/2024-05-01/managedclusters"
+    ],
+    "review_notes": "securityProfile.defender.securityMonitoring.enabled; sensor/asset protection coverage is separate."
+  },
+  "prowler.azure.aks_cluster_auto_upgrade_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.aks.auto_upgrade"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Recognized non-none upgradeChannel config; patch rollout completion is not inferred.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.containerservice/2024-05-01/managedclusters"
+    ],
+    "review_notes": "Recognized non-none upgradeChannel config; patch rollout completion is not inferred."
+  },
+  "prowler.azure.app_ensure_http_is_redirected_to_https": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.app.https_only"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Native httpsOnly boolean corresponds to upstream app.https_only; no HTTP request or redirect probe.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get"
+    ],
+    "review_notes": "Native httpsOnly boolean corresponds to upstream app.https_only; no HTTP request or redirect probe."
+  },
+  "prowler.azure.app_client_certificates_on": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Native requires both clientCertEnabled and clientCertMode=Required; upstream checks mode alone, so the stricter combined predicate remains related.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get"
+    ],
+    "review_notes": "Native requires both clientCertEnabled and clientCertMode=Required; upstream checks mode alone, so the stricter combined predicate remains related.",
+    "related_native_checks": [
+      "azure.app.client_certificates"
+    ]
+  },
+  "prowler.azure.app_ensure_using_http20": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.app.http2"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. http20Enabled boolean; endpoint protocol configuration only.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "http20Enabled boolean; endpoint protocol configuration only."
+  },
+  "azure-compliance.control.appservice_web_app_http_logs_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.app.request_logging"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. httpLoggingEnabled source query has no diagnostic-category join; native checks that exact configuration flag.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "httpLoggingEnabled source query has no diagnostic-category join; native checks that exact configuration flag."
+  },
+  "prowler.azure.app_http_logs_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream checks diagnostic log category AppServiceHTTPLogs/allLogs and excludes functions; native HTTP logging flag does not establish that target routing/category predicate.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Upstream checks diagnostic log category AppServiceHTTPLogs/allLogs and excludes functions; native HTTP logging flag does not establish that target routing/category predicate.",
+    "related_native_checks": [
+      "azure.app.request_logging"
+    ]
+  },
+  "azure-compliance.control.appservice_web_app_remote_debugging_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Upstream excludes kind=api; native configuration baseline has no such eligibility restriction.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Upstream excludes kind=api; native configuration baseline has no such eligibility restriction.",
+    "related_native_checks": [
+      "azure.app.remote_debugging_off"
+    ]
+  },
+  "prowler.azure.app_minimum_tls_version_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.app.minimum_tls"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Recognized TLS1.2/1.3 pass,1.0/1.1 fail; future versions unknown.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Recognized TLS1.2/1.3 pass,1.0/1.1 fail; future versions unknown."
+  },
+  "azure-compliance.control.appservice_web_app_latest_tls_version": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Historical upstream exact TLS1.2 predicate differs from current1.2-or1.3 native support.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Historical upstream exact TLS1.2 predicate differs from current1.2-or1.3 native support.",
+    "related_native_checks": [
+      "azure.app.minimum_tls"
+    ]
+  },
+  "prowler.azure.app_ftp_deployment_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.app.ftps_only"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Actual upstream ftps_state != AllAllowed allows FtpsOnly/Disabled; native title explicitly forbids plain FTP without claiming FTPS itself is disabled.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Actual upstream ftps_state != AllAllowed allows FtpsOnly/Disabled; native title explicitly forbids plain FTP without claiming FTPS itself is disabled."
+  },
+  "azure-compliance.control.appservice_web_app_cors_no_star": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.app.cors_no_wildcards"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Explicit cors.allowedOrigins wildcard membership; network access and application authorization are separate.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration"
+    ],
+    "review_notes": "Explicit cors.allowedOrigins wildcard membership; network access and application authorization are separate."
+  },
+  "azure-compliance.control.sql_server_auditing_retention_period_90": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.sql.audit_retention"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. retentionDays=0 means unlimited and passes; otherwise require>=90, independent of destination lifecycle and enablement.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-blob-auditing-policies/get"
+    ],
+    "review_notes": "retentionDays=0 means unlimited and passes; otherwise require>=90, independent of destination lifecycle and enablement."
+  },
+  "azure-compliance.control.sql_server_threat_detection_all_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Native treats both empty[] and sentinel[empty-string] as no exclusions; upstream exact sentinel comparison differs, so do not claim equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/get"
+    ],
+    "review_notes": "Native treats both empty[] and sentinel[empty-string] as no exclusions; upstream exact sentinel comparison differs, so do not claim equivalence.",
+    "related_native_checks": [
+      "azure.sql.threat_alerts_all"
+    ]
+  },
+  "prowler.azure.sqlserver_tde_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. User databases only; master excluded; modern2023-08-01 properties.state maps legacy SDK status to the same Enabled/Disabled semantic, without data reads.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "User databases only; master excluded; modern2023-08-01 properties.state maps legacy SDK status to the same Enabled/Disabled semantic, without data reads."
+  },
+  "azure-compliance.control.sql_database_transparent_data_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.sql.tde_enabled"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. Source explicitly accepts native state or legacy status Enabled and excludes master; collector uses modern properties.state from2023-08-01.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Source explicitly accepts native state or legacy status Enabled and excludes master; collector uses modern properties.state from2023-08-01."
+  },
+  "azure-compliance.control.keyvault_secret_expiration_set": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Enabled secret metadata with explicit exp:null fails; omitted exp is unknown and disabled metadata is inapplicable, while upstream labels disabled as safe.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2023-07-01/vaults/secrets"
+    ],
+    "review_notes": "Enabled secret metadata with explicit exp:null fails; omitted exp is unknown and disabled metadata is inapplicable, while upstream labels disabled as safe.",
+    "related_native_checks": [
+      "azure.vault.secret_expiration"
+    ]
+  },
+  "azure-compliance.control.keyvault_vault_private_link_used": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Related native metadata baseline; full upstream equivalence is not claimed. Explicit defaultAction=Deny and approved connection state; source null-connection INFO handling differs from strict missing UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/vaults/get"
+    ],
+    "review_notes": "Explicit defaultAction=Deny and approved connection state; source null-connection INFO handling differs from strict missing UNKNOWN.",
+    "related_native_checks": [
+      "azure.vault.approved_private_endpoint"
+    ]
+  },
+  "prowler.azure.defender_ensure_defender_for_storage_is_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.defender.standard_tier"
+    ],
+    "reason": "Reviewed pinned upstream predicate against current native ARM fields; known collected configurations preserve the predicate, while missing/denied/malformed facts return UNKNOWN. StorageAccounts pricingTier=Standard, evaluated per native pricing resource; plan configuration only, not all asset/sensor coverage.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "StorageAccounts pricingTier=Standard, evaluated per native pricing resource; plan configuration only, not all asset/sensor coverage."
+  }
+}

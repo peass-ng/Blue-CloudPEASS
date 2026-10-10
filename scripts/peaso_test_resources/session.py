@@ -99,6 +99,8 @@ class Session:
 
     def create_aws(self):
         name = "peaso-test-" + uuid.uuid4().hex[:16]
+        if self.aws("s3api", "head-bucket", "--bucket", name, "--expected-bucket-owner", AWS_ACCOUNT, absent=("404", "NoSuchBucket")) is not None:
+            raise OperationError("Generated bucket name exists; refusing existing-resource mutation")
         tags = [{"Key": "peaso-test-owner", "Value": self.owner}, {"Key": "peaso-test-task", "Value": TASK}, {"Key": "Name", "Value": name}]
         bucket = self.record("aws", "bucket", name, "s3api delete-bucket with expected-bucket-owner")
         self.write("aws", ["s3api", "create-bucket", "--bucket", name], bucket)
@@ -120,6 +122,8 @@ class Session:
 
     def create_azure(self):
         name = "peaso-test-" + uuid.uuid4().hex[:16]
+        if self.az("group", "show", "--name", name, absent=("ResourceGroupNotFound",)) is not None:
+            raise OperationError("Generated resource group exists; refusing existing-resource mutation")
         group = self.record("azure", "resource_group", name, "az group delete exact group; no force dependencies")
         result = self.write("azure", ["group", "create", "--name", name, "--location", "westeurope", "--tags", "peaso-test-owner=" + self.owner, "peaso-test-task=" + TASK], group)
         group["id"] = result["id"]
@@ -136,8 +140,15 @@ class Session:
                               "--subnet-name", name, "--subnet-prefixes", "10.248.0.0/27", "--tags", "peaso-test-owner=" + self.owner, "peaso-test-task=" + TASK], vnet)
         return {"PEASO_TEST_RESOURCE_GROUP": name, "PEASO_TEST_NSG": nsg["id"], "PEASO_TEST_VNET": vnet["id"]}
 
-    def create_audit_role(self):
+    def create_audit_role(self, reuse_name=None):
         name = "peaso-test-" + uuid.uuid4().hex[:16]
+        if reuse_name:
+            historical = [r for r in self.data["resources"] if r["kind"] == "iam_role" and r["name"] == reuse_name and r["creation_status"] == "deleted" and r["verification"] == "not_found"]
+            if not historical or any(r["creation_status"] != "deleted" for r in self.data["resources"] if r["kind"] == "iam_role" and r["name"] == reuse_name):
+                raise OperationError("Role reuse requires verified deleted prior ownership")
+            if self.aws("iam", "get-role", "--role-name", reuse_name, absent=("NoSuchEntity",)) is not None:
+                raise OperationError("Role name now exists; refusing reuse")
+            name = reuse_name
         external_id = "peaso-" + uuid.uuid4().hex
         collector = "arn:aws:iam::202533532952:role/hacktricks-cspm-collector"
         trust = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "sts:AssumeRole",
@@ -262,6 +273,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("provider", choices=("aws", "azure", "audit-role", "cleanup"))
     parser.add_argument("--ledger", required=True)
+    parser.add_argument("--reuse-role-name", help="Only a previously ledger-owned role verified deleted may be recreated")
     options, command = parser.parse_known_args()
     if command[:1] == ["--"]:
         command = command[1:]
@@ -276,7 +288,7 @@ def main():
     for signum in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signum, terminate)
     try:
-        environment = session.create_aws() if options.provider == "aws" else session.create_audit_role() if options.provider == "audit-role" else session.create_azure()
+        environment = session.create_aws() if options.provider == "aws" else session.create_audit_role(options.reuse_role_name) if options.provider == "audit-role" else session.create_azure()
         return subprocess.run(command, env={**os.environ, **environment}, timeout=3600 if options.provider == "audit-role" else 900).returncode
     finally:
         session.cleanup()

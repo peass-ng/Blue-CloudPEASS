@@ -1,0 +1,2983 @@
+{
+  "gcp-compliance.control.allow_only_private_cluster": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gke.private_endpoint"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_private_cluster_config_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 324,
+      "source_query_sha256": "057965263927fde30ec243746c96340f4ec8c0a7c8fc7f0de5f1fbb80bb2b81f",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.app_engine_application_iap_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.app_engine_application_iap_enabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps"
+    ],
+    "review_notes": {
+      "predicate": "app_engine_application_iap_enabled",
+      "source_path": "policy_bundle/appengine.pp",
+      "source_line": 25,
+      "source_query_sha256": "588c8e6ad3bfbb53577c1e4fd869e90a8f3c80c55084899750b03309b23c0fba",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_app_engine_application"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.flow_logs"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": {
+      "predicate": "compute_subnetwork_flow_log_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 897,
+      "source_query_sha256": "ceb68fffefe11505b3c6cd3589fa2a246d42b9137f8abe6c8576bcb1e16057f3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_compute_subnetwork"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_skip_show_database"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_skip_show_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 489,
+      "source_query_sha256": "612ab18a25d0578803f992981993110a027d4077141c97cb8c52fb49bcd820c0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_local_infile"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_local_infile_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 464,
+      "source_query_sha256": "3efe4dbdbe2d4619b492c3a6e30256409ae27a52e391bd5dc697312ed5954761",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_checkpoints_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_checkpoints_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 558,
+      "source_query_sha256": "a3b3588cab02491ec825e25a86f8845efdde8aca3e6001ea3fe20975a6853eb7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_planner_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_planner_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 853,
+      "source_query_sha256": "919e23470d8ccd45d30f4db2bafdb2bce83af70f8cd05d8eafab296404611709",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_executor_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_executor_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 681,
+      "source_query_sha256": "02c29ecd61700385c600ac9bb0e9a020f2951453c803b52e40e32c54dcee8182",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_statement_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_statement_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 903,
+      "source_query_sha256": "e6b15b6a4962bf6ad68e033a11ac5fd112f7fe70975afd72778df2b90603e6cc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_error_statement_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 781,
+      "source_query_sha256": "2a6294f0f645042ebf0cc2b4a3bea9e7df78f00741221da809fa9d0e0a5ba71b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_temp_files_database_flag_0"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_temp_files_database_flag_0",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 928,
+      "source_query_sha256": "74bfa4f3df0ba7ddbd0518937d72401268ead6c05d717b19d413da988d0abaf3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_16": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_duration_statement_database_flag_disabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 756,
+      "source_query_sha256": "516e9338409a56e0d25d06d8b6ea0452821f969790724e451459926764b74952",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_connections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_connections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 583,
+      "source_query_sha256": "15fd73678d25d7ebc5b692c2fbcb8296c3ea88bc62853007a1f5c3db5c641641",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_disconnections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_disconnections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 608,
+      "source_query_sha256": "c0c0964eabb9536ffde2affc54bb9db37cb5eb6324556644e559c22d6fae9668",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_duration_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_duration_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 633,
+      "source_query_sha256": "a74137b7f9954479a5d90c804fdd06283424a6380cc2f61408cdebe1c4a7eec1",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_lock_waits_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_lock_waits_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 731,
+      "source_query_sha256": "9ac82d1536b9cb880e9483b7096a70c0469b3c51281e8ca12dc59851b4cdb2b9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_hostname_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_hostname_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 706,
+      "source_query_sha256": "afd77c3053ec351dc220a9d50327db61b14977106a0be0d947767fd02b9849ad",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_2_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_parser_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_parser_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 828,
+      "source_query_sha256": "f76f98307d9e9411f31896fc6711400b1f4a239eefec6514c8338aafbf0e7f57",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_external_scripts_enabled_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1050,
+      "source_query_sha256": "d144863dea5f1cba08ba27231a05f676e7c2a1bef458bd739423b7e26d27c810",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_cross_db_ownership_chaining_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1025,
+      "source_query_sha256": "8a59ce461dd3f2cc953e6c9a2fb67e74c4d8037b5896e4a057b1a81a40520cb9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_connections_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_connections_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1100,
+      "source_query_sha256": "8e0edec94625ff71dccf99aa71083b9272f13a42a89bd0fcc2007c8574384e59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_options_database_flag_not_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_options_database_flag_not_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1123,
+      "source_query_sha256": "301624bce0a66130012e7127246281c92aa5af0f22e8588e43675f0b2f7f8eea",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_remote_access_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_remote_access_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1075,
+      "source_query_sha256": "4169f9560ab43c245b2caf1cedddc3d13301a7ad186c8012cffc2ec3cb576f17",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_3_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "The source requires trace flag3625off, which reverses its security effect: Microsoft documents that enabling3625 limits error-message detail for non-sysadmin users, and Cloud SQL supports the flag. Reject the anti-hardening condition while preserving source/framework lineage and the corrected3625on configuration check.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://learn.microsoft.com/en-us/sql/t-sql/database-console-commands/dbcc-traceon-trace-flags-transact-sql"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_3625_trace_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 953,
+      "source_query_sha256": "faf074c035ad64078e210dc8775e50d7cf155f6e916c5c62500c455b6c44fe56",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ]
+  },
+  "gcp-compliance.control.cis_v120_6_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_contained_database_authentication_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1000,
+      "source_query_sha256": "332b22828226b023310ac5c9b9bc088747e9d05afad02f926544bc93ee73e6bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.flow_logs"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": {
+      "predicate": "compute_subnetwork_flow_log_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 897,
+      "source_query_sha256": "ceb68fffefe11505b3c6cd3589fa2a246d42b9137f8abe6c8576bcb1e16057f3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_compute_subnetwork"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_skip_show_database"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_skip_show_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 489,
+      "source_query_sha256": "612ab18a25d0578803f992981993110a027d4077141c97cb8c52fb49bcd820c0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_local_infile"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_local_infile_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 464,
+      "source_query_sha256": "3efe4dbdbe2d4619b492c3a6e30256409ae27a52e391bd5dc697312ed5954761",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_connections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_connections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 583,
+      "source_query_sha256": "15fd73678d25d7ebc5b692c2fbcb8296c3ea88bc62853007a1f5c3db5c641641",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_disconnections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_disconnections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 608,
+      "source_query_sha256": "c0c0964eabb9536ffde2affc54bb9db37cb5eb6324556644e559c22d6fae9668",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_2_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_hostname_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_hostname_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 706,
+      "source_query_sha256": "afd77c3053ec351dc220a9d50327db61b14977106a0be0d947767fd02b9849ad",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_2_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_error_statement_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 781,
+      "source_query_sha256": "2a6294f0f645042ebf0cc2b4a3bea9e7df78f00741221da809fa9d0e0a5ba71b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_2_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_duration_statement_database_flag_disabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 756,
+      "source_query_sha256": "516e9338409a56e0d25d06d8b6ea0452821f969790724e451459926764b74952",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_2_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_pgaudit"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 533,
+      "source_query_sha256": "1f2003f5db6719b62f20ab4a3ef85fa98a53e896988545d13ce48d12898cf14b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_external_scripts_enabled_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1050,
+      "source_query_sha256": "d144863dea5f1cba08ba27231a05f676e7c2a1bef458bd739423b7e26d27c810",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_cross_db_ownership_chaining_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1025,
+      "source_query_sha256": "8a59ce461dd3f2cc953e6c9a2fb67e74c4d8037b5896e4a057b1a81a40520cb9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_connections_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_connections_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1100,
+      "source_query_sha256": "8e0edec94625ff71dccf99aa71083b9272f13a42a89bd0fcc2007c8574384e59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_options_database_flag_not_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_options_database_flag_not_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1123,
+      "source_query_sha256": "301624bce0a66130012e7127246281c92aa5af0f22e8588e43675f0b2f7f8eea",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_remote_access_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_remote_access_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1075,
+      "source_query_sha256": "4169f9560ab43c245b2caf1cedddc3d13301a7ad186c8012cffc2ec3cb576f17",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_3_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "The source requires trace flag3625off, which reverses its security effect: Microsoft documents that enabling3625 limits error-message detail for non-sysadmin users, and Cloud SQL supports the flag. Reject the anti-hardening condition while preserving source/framework lineage and the corrected3625on configuration check.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://learn.microsoft.com/en-us/sql/t-sql/database-console-commands/dbcc-traceon-trace-flags-transact-sql"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_3625_trace_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 953,
+      "source_query_sha256": "faf074c035ad64078e210dc8775e50d7cf155f6e916c5c62500c455b6c44fe56",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ]
+  },
+  "gcp-compliance.control.cis_v130_6_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_contained_database_authentication_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1000,
+      "source_query_sha256": "332b22828226b023310ac5c9b9bc088747e9d05afad02f926544bc93ee73e6bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.flow_logs"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": {
+      "predicate": "compute_subnetwork_flow_log_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 897,
+      "source_query_sha256": "ceb68fffefe11505b3c6cd3589fa2a246d42b9137f8abe6c8576bcb1e16057f3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_compute_subnetwork"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_skip_show_database"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_skip_show_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 489,
+      "source_query_sha256": "612ab18a25d0578803f992981993110a027d4077141c97cb8c52fb49bcd820c0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_local_infile"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_local_infile_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 464,
+      "source_query_sha256": "3efe4dbdbe2d4619b492c3a6e30256409ae27a52e391bd5dc697312ed5954761",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 658,
+      "source_query_sha256": "9514667b19653c2af4edf6fa33134deccebf887d295ea78002cac186db43c07a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_connections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_connections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 583,
+      "source_query_sha256": "15fd73678d25d7ebc5b692c2fbcb8296c3ea88bc62853007a1f5c3db5c641641",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_disconnections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_disconnections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 608,
+      "source_query_sha256": "c0c0964eabb9536ffde2affc54bb9db37cb5eb6324556644e559c22d6fae9668",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_statement"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_statement_database_flag_ddl",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 878,
+      "source_query_sha256": "37d2ca9d7f39dd846203d5a3493854a18a7e66d4eab0734af73977df3e9d5aae",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_messages_database_flag_error"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_messages_database_flag_error",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 804,
+      "source_query_sha256": "7ad1f3d88a5e4c58bc1b334e2de387e80e582a47ffe4a27de416c069bfb68c07",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_error_statement_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 781,
+      "source_query_sha256": "2a6294f0f645042ebf0cc2b4a3bea9e7df78f00741221da809fa9d0e0a5ba71b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_duration_statement_database_flag_disabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 756,
+      "source_query_sha256": "516e9338409a56e0d25d06d8b6ea0452821f969790724e451459926764b74952",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_pgaudit"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 533,
+      "source_query_sha256": "1f2003f5db6719b62f20ab4a3ef85fa98a53e896988545d13ce48d12898cf14b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_external_scripts_enabled_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1050,
+      "source_query_sha256": "d144863dea5f1cba08ba27231a05f676e7c2a1bef458bd739423b7e26d27c810",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_cross_db_ownership_chaining_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1025,
+      "source_query_sha256": "8a59ce461dd3f2cc953e6c9a2fb67e74c4d8037b5896e4a057b1a81a40520cb9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_connections_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_connections_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1100,
+      "source_query_sha256": "8e0edec94625ff71dccf99aa71083b9272f13a42a89bd0fcc2007c8574384e59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_options_database_flag_not_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_options_database_flag_not_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1123,
+      "source_query_sha256": "301624bce0a66130012e7127246281c92aa5af0f22e8588e43675f0b2f7f8eea",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_remote_access_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_remote_access_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1075,
+      "source_query_sha256": "4169f9560ab43c245b2caf1cedddc3d13301a7ad186c8012cffc2ec3cb576f17",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_3_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_3625_trace_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 978,
+      "source_query_sha256": "0cf0def53e65d9751674699de515a9a2ebd03254e24ff945df87418b66acf599",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_contained_database_authentication_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1000,
+      "source_query_sha256": "332b22828226b023310ac5c9b9bc088747e9d05afad02f926544bc93ee73e6bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.flow_logs"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": {
+      "predicate": "compute_subnetwork_flow_log_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 897,
+      "source_query_sha256": "ceb68fffefe11505b3c6cd3589fa2a246d42b9137f8abe6c8576bcb1e16057f3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_compute_subnetwork"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_skip_show_database"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_skip_show_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 489,
+      "source_query_sha256": "612ab18a25d0578803f992981993110a027d4077141c97cb8c52fb49bcd820c0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_local_infile"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_local_infile_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 464,
+      "source_query_sha256": "3efe4dbdbe2d4619b492c3a6e30256409ae27a52e391bd5dc697312ed5954761",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 658,
+      "source_query_sha256": "9514667b19653c2af4edf6fa33134deccebf887d295ea78002cac186db43c07a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_connections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_connections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 583,
+      "source_query_sha256": "15fd73678d25d7ebc5b692c2fbcb8296c3ea88bc62853007a1f5c3db5c641641",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_disconnections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_disconnections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 608,
+      "source_query_sha256": "c0c0964eabb9536ffde2affc54bb9db37cb5eb6324556644e559c22d6fae9668",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_statement"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_statement_database_flag_ddl",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 878,
+      "source_query_sha256": "37d2ca9d7f39dd846203d5a3493854a18a7e66d4eab0734af73977df3e9d5aae",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_messages_database_flag_error"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_messages_database_flag_error",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 804,
+      "source_query_sha256": "7ad1f3d88a5e4c58bc1b334e2de387e80e582a47ffe4a27de416c069bfb68c07",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_error_statement_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 781,
+      "source_query_sha256": "2a6294f0f645042ebf0cc2b4a3bea9e7df78f00741221da809fa9d0e0a5ba71b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_duration_statement_database_flag_disabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 756,
+      "source_query_sha256": "516e9338409a56e0d25d06d8b6ea0452821f969790724e451459926764b74952",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_2_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_pgaudit"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 533,
+      "source_query_sha256": "1f2003f5db6719b62f20ab4a3ef85fa98a53e896988545d13ce48d12898cf14b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_external_scripts_enabled_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1050,
+      "source_query_sha256": "d144863dea5f1cba08ba27231a05f676e7c2a1bef458bd739423b7e26d27c810",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_cross_db_ownership_chaining_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1025,
+      "source_query_sha256": "8a59ce461dd3f2cc953e6c9a2fb67e74c4d8037b5896e4a057b1a81a40520cb9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_connections_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_connections_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1100,
+      "source_query_sha256": "8e0edec94625ff71dccf99aa71083b9272f13a42a89bd0fcc2007c8574384e59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_options_database_flag_not_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_options_database_flag_not_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1123,
+      "source_query_sha256": "301624bce0a66130012e7127246281c92aa5af0f22e8588e43675f0b2f7f8eea",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_remote_access_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_remote_access_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1075,
+      "source_query_sha256": "4169f9560ab43c245b2caf1cedddc3d13301a7ad186c8012cffc2ec3cb576f17",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_3_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_3625_trace_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 978,
+      "source_query_sha256": "0cf0def53e65d9751674699de515a9a2ebd03254e24ff945df87418b66acf599",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_contained_database_authentication_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1000,
+      "source_query_sha256": "332b22828226b023310ac5c9b9bc088747e9d05afad02f926544bc93ee73e6bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.flow_logs"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": {
+      "predicate": "compute_subnetwork_flow_log_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 897,
+      "source_query_sha256": "ceb68fffefe11505b3c6cd3589fa2a246d42b9137f8abe6c8576bcb1e16057f3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_compute_subnetwork"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_skip_show_database"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_skip_show_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 489,
+      "source_query_sha256": "612ab18a25d0578803f992981993110a027d4077141c97cb8c52fb49bcd820c0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_local_infile"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_local_infile_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 464,
+      "source_query_sha256": "3efe4dbdbe2d4619b492c3a6e30256409ae27a52e391bd5dc697312ed5954761",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 658,
+      "source_query_sha256": "9514667b19653c2af4edf6fa33134deccebf887d295ea78002cac186db43c07a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_connections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_connections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 583,
+      "source_query_sha256": "15fd73678d25d7ebc5b692c2fbcb8296c3ea88bc62853007a1f5c3db5c641641",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_disconnections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_disconnections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 608,
+      "source_query_sha256": "c0c0964eabb9536ffde2affc54bb9db37cb5eb6324556644e559c22d6fae9668",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_statement"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_statement_database_flag_ddl",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 878,
+      "source_query_sha256": "37d2ca9d7f39dd846203d5a3493854a18a7e66d4eab0734af73977df3e9d5aae",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_messages_database_flag_error"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_messages_database_flag_error",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 804,
+      "source_query_sha256": "7ad1f3d88a5e4c58bc1b334e2de387e80e582a47ffe4a27de416c069bfb68c07",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_error_statement_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 781,
+      "source_query_sha256": "2a6294f0f645042ebf0cc2b4a3bea9e7df78f00741221da809fa9d0e0a5ba71b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_duration_statement_database_flag_disabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 756,
+      "source_query_sha256": "516e9338409a56e0d25d06d8b6ea0452821f969790724e451459926764b74952",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_2_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_pgaudit"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 533,
+      "source_query_sha256": "1f2003f5db6719b62f20ab4a3ef85fa98a53e896988545d13ce48d12898cf14b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_external_scripts_enabled_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1050,
+      "source_query_sha256": "d144863dea5f1cba08ba27231a05f676e7c2a1bef458bd739423b7e26d27c810",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_cross_db_ownership_chaining_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1025,
+      "source_query_sha256": "8a59ce461dd3f2cc953e6c9a2fb67e74c4d8037b5896e4a057b1a81a40520cb9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_connections_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_connections_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1100,
+      "source_query_sha256": "8e0edec94625ff71dccf99aa71083b9272f13a42a89bd0fcc2007c8574384e59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_options_database_flag_not_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_options_database_flag_not_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1123,
+      "source_query_sha256": "301624bce0a66130012e7127246281c92aa5af0f22e8588e43675f0b2f7f8eea",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_remote_access_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_remote_access_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1075,
+      "source_query_sha256": "4169f9560ab43c245b2caf1cedddc3d13301a7ad186c8012cffc2ec3cb576f17",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_3_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_3625_trace_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 978,
+      "source_query_sha256": "0cf0def53e65d9751674699de515a9a2ebd03254e24ff945df87418b66acf599",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_contained_database_authentication_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1000,
+      "source_query_sha256": "332b22828226b023310ac5c9b9bc088747e9d05afad02f926544bc93ee73e6bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.disable_gke_legacy_endpoints": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_legacy_endpoints_disabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_legacy_endpoints_disabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 400,
+      "source_query_sha256": "3126ddc8f1f6eeeb487a31bd711ae606bb8bd33aad2089c59f2dd188dca03bc2",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.enable_alias_ip_ranges": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_use_ip_aliases"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_use_ip_aliases",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 419,
+      "source_query_sha256": "7687d295cf55f46043c66b2a67c06706d553632a1741af189f96e85b682845de",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.enable_auto_repair": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_auto_repair_enabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_auto_repair_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 438,
+      "source_query_sha256": "8e8559edf60e02054c97c2b434ebe793fd5a535de208546f75198a81bb992711",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.enable_auto_upgrade": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_auto_upgrade_enabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_auto_upgrade_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 458,
+      "source_query_sha256": "392265217ae85e8122d624d296bfee85eb207a102f4c597ce8d84fde05413260",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.enable_gke_master_authorized_networks": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gke.authorized_networks"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_master_authorized_networks_config_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 478,
+      "source_query_sha256": "af24a7e36852e6726bdbbf428985e334e1c1c6eefeba9e0cce7dcdcde56b61f1",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.enable_network_flow_logs": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.flow_logs"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": {
+      "predicate": "compute_subnetwork_flow_log_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 897,
+      "source_query_sha256": "ceb68fffefe11505b3c6cd3589fa2a246d42b9137f8abe6c8576bcb1e16057f3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_compute_subnetwork"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.enable_network_private_google_access": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.subnetwork.private_google_access"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": {
+      "predicate": "compute_subnetwork_private_ip_google_access",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 916,
+      "source_query_sha256": "1450df9880aa5a370dfc92a2701bd3632977c157223c225150b8db350b1c419a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_compute_subnetwork"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.gke_container_optimized_os": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_node_config_image_cos_containerd"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_node_config_image_cos_containerd",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 497,
+      "source_query_sha256": "f37d155d978fb988dcee4d539c947f4f0039cf6c8324f114f29473dbbfcef22c",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.gke_restrict_pod_traffic": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gke.network_policy"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_network_policy_installed",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 516,
+      "source_query_sha256": "f0b497953361690bff8d86971c7903fdfa2501eee3dbf997d9c314f237e2ab3b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.kubernetes_cluster_database_encryption_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gke.secrets_encryption"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_database_encryption_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 630,
+      "source_query_sha256": "9cd26688d3760c76b69bdf3383572b5da749d37136f0ab4ac959120eae9146fd",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.kubernetes_cluster_intra_node_visibility_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_intra_node_visibility_enabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_intra_node_visibility_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 903,
+      "source_query_sha256": "a8c960839cf0c21dcac0c855f2eaef6c1d3afb74b69ee881d02cdf67b3e0deb2",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.kubernetes_cluster_shielded_instance_integrity_monitoring_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_shielded_instance_integrity_monitoring_enabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_shielded_instance_integrity_monitoring_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 668,
+      "source_query_sha256": "7c5522dd0a7275957b048505b7698925cb0c04542b4dc4c60ceb4d8a3158cd4a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.kubernetes_cluster_shielded_node_secure_boot_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kubernetes_cluster_shielded_node_secure_boot_enabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"
+    ],
+    "review_notes": {
+      "predicate": "kubernetes_cluster_shielded_node_secure_boot_enabled",
+      "source_path": "policy_bundle/kubernetes.pp",
+      "source_line": 922,
+      "source_query_sha256": "b21117ca9af3949be07e23e5c496407d117ba2799b43d1934a8137d3f9904a48",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kubernetes_cluster"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_mysql_binary_log_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_mysql_binary_log_enabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_binary_log_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1165,
+      "source_query_sha256": "9690dc818e566c4fec32e6049bbbe923d5d6d6dfc8b66d06b8d0ab6854b461dc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_mysql_local_infile_database_flag_off": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_local_infile"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_local_infile_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 464,
+      "source_query_sha256": "3efe4dbdbe2d4619b492c3a6e30256409ae27a52e391bd5dc697312ed5954761",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_mysql_skip_show_database_flag_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_skip_show_database"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_mysql_skip_show_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 489,
+      "source_query_sha256": "612ab18a25d0578803f992981993110a027d4077141c97cb8c52fb49bcd820c0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_pgaudit"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 533,
+      "source_query_sha256": "1f2003f5db6719b62f20ab4a3ef85fa98a53e896988545d13ce48d12898cf14b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_checkpoints_database_flag_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_checkpoints_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_checkpoints_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 558,
+      "source_query_sha256": "a3b3588cab02491ec825e25a86f8845efdde8aca3e6001ea3fe20975a6853eb7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_connections_database_flag_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_connections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_connections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 583,
+      "source_query_sha256": "15fd73678d25d7ebc5b692c2fbcb8296c3ea88bc62853007a1f5c3db5c641641",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_disconnections_database_flag_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_disconnections"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_disconnections_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 608,
+      "source_query_sha256": "c0c0964eabb9536ffde2affc54bb9db37cb5eb6324556644e559c22d6fae9668",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_duration_database_flag_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_duration_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_duration_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 633,
+      "source_query_sha256": "a74137b7f9954479a5d90c804fdd06283424a6380cc2f61408cdebe1c4a7eec1",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 658,
+      "source_query_sha256": "9514667b19653c2af4edf6fa33134deccebf887d295ea78002cac186db43c07a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_executor_stats_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_executor_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_executor_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 681,
+      "source_query_sha256": "02c29ecd61700385c600ac9bb0e9a020f2951453c803b52e40e32c54dcee8182",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_hostname_database_flag_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_hostname_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_hostname_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 706,
+      "source_query_sha256": "afd77c3053ec351dc220a9d50327db61b14977106a0be0d947767fd02b9849ad",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_lock_waits_database_flag_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_lock_waits_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_lock_waits_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 731,
+      "source_query_sha256": "9ac82d1536b9cb880e9483b7096a70c0469b3c51281e8ca12dc59851b4cdb2b9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_duration_statement_database_flag_disabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 756,
+      "source_query_sha256": "516e9338409a56e0d25d06d8b6ea0452821f969790724e451459926764b74952",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_min_error_statement_database_flag_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_error_statement_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 781,
+      "source_query_sha256": "2a6294f0f645042ebf0cc2b4a3bea9e7df78f00741221da809fa9d0e0a5ba71b",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_min_messages_database_flag_error": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_min_messages_database_flag_error"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_min_messages_database_flag_error",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 804,
+      "source_query_sha256": "7ad1f3d88a5e4c58bc1b334e2de387e80e582a47ffe4a27de416c069bfb68c07",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_parser_stats_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_parser_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_parser_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 828,
+      "source_query_sha256": "f76f98307d9e9411f31896fc6711400b1f4a239eefec6514c8338aafbf0e7f57",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_planner_stats_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_planner_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_planner_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 853,
+      "source_query_sha256": "919e23470d8ccd45d30f4db2bafdb2bce83af70f8cd05d8eafab296404611709",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_statement_database_flag_ddl": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_statement"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_statement_database_flag_ddl",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 878,
+      "source_query_sha256": "37d2ca9d7f39dd846203d5a3493854a18a7e66d4eab0734af73977df3e9d5aae",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_statement_stats_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_statement_stats_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_statement_stats_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 903,
+      "source_query_sha256": "e6b15b6a4962bf6ad68e033a11ac5fd112f7fe70975afd72778df2b90603e6cc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_postgresql_log_temp_files_database_flag_0": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_postgresql_log_temp_files_database_flag_0"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_postgresql_log_temp_files_database_flag_0",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 928,
+      "source_query_sha256": "74bfa4f3df0ba7ddbd0518937d72401268ead6c05d717b19d413da988d0abaf3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_sql_3625_trace_database_flag_off": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "The source requires trace flag3625off, which reverses its security effect: Microsoft documents that enabling3625 limits error-message detail for non-sysadmin users, and Cloud SQL supports the flag. Reject the anti-hardening condition while preserving source/framework lineage and the corrected3625on configuration check.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://learn.microsoft.com/en-us/sql/t-sql/database-console-commands/dbcc-traceon-trace-flags-transact-sql"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_3625_trace_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 953,
+      "source_query_sha256": "faf074c035ad64078e210dc8775e50d7cf155f6e916c5c62500c455b6c44fe56",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ]
+  },
+  "gcp-compliance.control.sql_instance_sql_3625_trace_database_flag_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_3625_trace_database_flag_on",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 978,
+      "source_query_sha256": "0cf0def53e65d9751674699de515a9a2ebd03254e24ff945df87418b66acf599",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_sql_contained_database_authentication_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_contained_database_authentication_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1000,
+      "source_query_sha256": "332b22828226b023310ac5c9b9bc088747e9d05afad02f926544bc93ee73e6bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_sql_cross_db_ownership_chaining_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_cross_db_ownership_chaining_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1025,
+      "source_query_sha256": "8a59ce461dd3f2cc953e6c9a2fb67e74c4d8037b5896e4a057b1a81a40520cb9",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_sql_external_scripts_enabled_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_external_scripts_enabled_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1050,
+      "source_query_sha256": "d144863dea5f1cba08ba27231a05f676e7c2a1bef458bd739423b7e26d27c810",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_sql_remote_access_database_flag_off": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_remote_access_database_flag_off"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_remote_access_database_flag_off",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1075,
+      "source_query_sha256": "4169f9560ab43c245b2caf1cedddc3d13301a7ad186c8012cffc2ec3cb576f17",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_sql_user_connections_database_flag_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_connections_database_flag_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_connections_database_flag_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1100,
+      "source_query_sha256": "8e0edec94625ff71dccf99aa71083b9272f13a42a89bd0fcc2007c8574384e59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  },
+  "gcp-compliance.control.sql_instance_sql_user_options_database_flag_not_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_user_options_database_flag_not_configured"
+    ],
+    "reason": "Reviewed exact service entity, provider/plugin field correspondence, explicit boolean/enum or database-engine flag predicate, and node-pool applicability. Native fields retain provider names; missing/unreadable configuration remains UNKNOWN and actual values drive modeled pass/fail outcomes.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_sql_user_options_database_flag_not_configured",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 1123,
+      "source_query_sha256": "301624bce0a66130012e7127246281c92aa5af0f22e8588e43675f0b2f7f8eea",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_sql_database_instance"
+      ],
+      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+    }
+  }
+}

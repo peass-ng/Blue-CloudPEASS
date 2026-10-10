@@ -231,7 +231,7 @@ def test_worker_end_to_end_offline_report_and_downloads(client, settings, caplog
     assert "secret-value-123456" not in markdown.text + caplog.text
     assert client.get(f"/api/scans/{job['id']}/graphs/network").json().keys() >= {"nodes", "edges"}
     assert isinstance(client.get(f"/api/scans/{job['id']}/findings").json()["items"], list)
-    assert client.get(f"/api/scans/{job['id']}/findings?search=nonexistent-random-value").json() == {"items": []}
+    assert client.get(f"/api/scans/{job['id']}/findings?search=nonexistent-random-value").json()["items"] == []
     assert SQLiteStore(settings.state_dir).job("alice", job["id"])["status"] == "completed"
 
 
@@ -249,3 +249,23 @@ def test_worker_failed_input_keeps_secrets_out_of_errors(client, settings, caplo
     value = client.get(f"/api/scans/{job['id']}")
     assert value.json()["status"] == "failed"
     assert "secret-value-123456" not in value.text + caplog.text
+
+
+def test_reachability_uses_owned_scoped_facts_and_rejects_invalid_ports(client, settings):
+    from peaso.snapshot import seal
+    imported = snapshot()
+    imported["metadata"]["original_snapshot_id"] = "sha256:untrusted-ancestor"
+    connector = add_connector(client, options={"snapshot": seal(imported)})
+    job = client.post("/api/scans", json={"connector_id": connector["id"]}).json()
+    assert Worker("collector", settings).run_once()
+    assert Worker("analyzer", settings).run_once()
+    query = {"source_resource_id": "missing-source", "destination_resource_id": "missing-destination", "protocol": "tcp", "destination_port": 443}
+    response = client.post(f"/api/scans/{job['id']}/reachability", json=query)
+    assert response.status_code == 200 and response.json()["decision"] == "unknown"
+    assert response.json()["modeled_configuration"] is True
+    report = client.get(f"/api/scans/{job['id']}/report").json()
+    assert response.json()["snapshot_id"] == report["snapshot_id"]
+    for port in (0, 65536, True):
+        assert client.post(f"/api/scans/{job['id']}/reachability", json={**query, "destination_port": port}).status_code == 422
+    client.headers["Authorization"] = "Bearer bob"
+    assert client.post(f"/api/scans/{job['id']}/reachability", json=query).status_code == 404

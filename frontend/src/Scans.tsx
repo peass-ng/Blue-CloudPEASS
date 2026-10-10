@@ -11,7 +11,7 @@ import {
   Plus,
 } from "lucide-react";
 import { categories } from "./types";
-import type { Connector, Scan, Schedule } from "./types";
+import type { Catalog, Connector, Scan, Schedule } from "./types";
 import { downloadReport, items, json, request, useApi } from "./api";
 import { Badge, date, Evidence, Inspector, Panel, State } from "./ui";
 export const terminalStatuses = [
@@ -311,6 +311,7 @@ function LaunchForm({
   onClose: () => void;
   schedule?: Schedule | null;
 }) {
+  const catalog=useApi<Catalog>("/catalog",demo);
   const client = useQueryClient();
   const [connector, setConnector] = useState(
     schedule?.connector_id || connectors[0]?.id || "",
@@ -377,6 +378,7 @@ function LaunchForm({
         <label>
           Connector
           <select
+            aria-label="Connector"
             value={connector}
             onChange={(e) => setConnector(e.target.value)}
             required
@@ -427,6 +429,8 @@ function LaunchForm({
             placeholder="For example: HackTricks Cloud Best Practices"
           />
         </label>
+        <label>Exact framework / checklist version<select aria-label="Exact framework checklist" value="" onChange={e=>{if(e.target.value)setFrameworks(Array.from(new Set([...frameworks.split(',').map(s=>s.trim()).filter(Boolean),e.target.value])).join(', '));}}><option value="">Choose a reviewed checklist version</option>{(catalog.data?.framework_versions||[]).filter(row=>row.provider===connectors.find(c=>c.id===connector)?.provider||row.provider==='all').map((row,i)=><option key={String(row.id||i)} value={String(row.id)}>{String(row.name||row.id)} · {String(row.status||'unknown')} · {String(row.supported_native_checks??0)} native / {String(row.source_checks??'unknown')} source checks</option>)}</select></label>
+        <p className="muted small">Family names and exact checklist IDs are distinct selections. Pending checklist coverage is unknown and does not create passing checks.</p>
         {isSchedule && (
           <label>
             Interval in hours

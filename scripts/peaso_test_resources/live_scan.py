@@ -25,6 +25,9 @@ def main():
     parser.add_argument("--max-resources", type=int, default=1500)
     parser.add_argument("--raw-all", action="store_true", help="Exercise every collector type directly, independent of category dependency planning")
     args = parser.parse_args()
+    source = Path(__file__).resolve().parents[2]
+    if (source / "peaso" / "privesc").exists() or "_run_privesc" in (source / "peaso" / "engine.py").read_text():
+        raise RuntimeError("Live QA requires the defensive-only exported build")
     connectors = {
         "aws": {"provider": "aws", "auth": {"method": "profile", "profile": "naxusai-admin"}, "scopes": ["947247140022"],
                 "options": {"regions": ["us-east-1"], "max_calls": 500, "max_pages": 3, "max_resources": 1500}},

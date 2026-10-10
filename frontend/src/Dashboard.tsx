@@ -7,6 +7,8 @@ import {
   ArrowRight,
   CircleDot,
 } from "lucide-react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { request } from "./api";
 import type { Connector, Report, Scan } from "./types";
 import { Badge, date, Evidence, Panel, ProviderIcon, State } from "./ui";
 export function Dashboard({
@@ -16,11 +18,15 @@ export function Dashboard({
   loading,
   error,
   onNavigate,
+  scanId,
+  demo,
   onRetry,
 }: {
   connectors: Connector[];
   scans: Scan[];
   report?: Report;
+  scanId: string;
+  demo: boolean;
   loading: boolean;
   error: unknown;
   onNavigate: (page: string) => void;
@@ -34,10 +40,35 @@ export function Dashboard({
     ["critical", "high"].includes(f.severity),
   );
   const services = Array.from(new Set(findings.map((f) => f.service)));
-  const pass = findings.filter((f) =>
-    ["pass", "passed"].includes(f.status.toLowerCase()),
-  ).length;
-  const total = findings.length;
+  const statusCounts = report?.stats?.by_status as
+    | Record<string, number>
+    | undefined;
+  const severityCounts = report?.stats?.by_severity as
+    | Record<string, number>
+    | undefined;
+  const pass = statusCounts
+    ? Object.entries(statusCounts)
+        .filter(([key]) => ["pass", "passed"].includes(key.toLowerCase()))
+        .reduce((sum, [, n]) => sum + n, 0)
+    : findings.filter((f) =>
+        ["pass", "passed"].includes(f.status.toLowerCase()),
+      ).length;
+  const reviewCount = statusCounts
+    ? Object.entries(statusCounts)
+        .filter(([key]) =>
+          ["fail", "failed", "review", "open", "manual"].includes(
+            key.toLowerCase(),
+          ),
+        )
+        .reduce((sum, [, n]) => sum + n, 0)
+    : failures.length;
+  const criticalCount = severityCounts
+    ? (severityCounts.critical || 0) + (severityCounts.high || 0)
+    : critical.length;
+  const assetCount = Number(
+    report?.stats?.resource_count ?? report?.resources?.length ?? 0,
+  );
+  const total = Number(report?.stats?.finding_count ?? findings.length);
   const passPercent = total ? Math.round((pass / total) * 100) : null;
   return (
     <>
@@ -136,7 +167,7 @@ export function Dashboard({
               },
               {
                 label: "Observed assets",
-                value: report ? (report.resources?.length ?? 0) : "—",
+                value: report ? assetCount : "—",
                 icon: Radar,
                 detail: report
                   ? "In selected snapshot"
@@ -145,10 +176,10 @@ export function Dashboard({
               },
               {
                 label: "Findings to review",
-                value: report ? failures.length : "—",
+                value: report ? reviewCount : "—",
                 icon: ShieldCheck,
                 detail: report
-                  ? `${critical.length} critical or high severity`
+                  ? `${criticalCount} critical or high severity`
                   : "No assessment evidence",
                 color: "amber",
               },
@@ -208,12 +239,12 @@ export function Dashboard({
                   </p>
                   <p>
                     <span className="legend-dot amber-bg" />
-                    Review required<span>{report ? failures.length : "—"}</span>
+                    Review required<span>{report ? reviewCount : "—"}</span>
                   </p>
                   <p>
                     <span className="legend-dot slate-bg" />
                     Other / unknown
-                    <span>{report ? total - pass - failures.length : "—"}</span>
+                    <span>{report ? total - pass - reviewCount : "—"}</span>
                   </p>
                 </div>
               </div>
@@ -305,12 +336,12 @@ export function Dashboard({
               title="Collection coverage"
               kicker={
                 report
-                  ? `${services.length} SERVICES WITH FINDINGS`
+                  ? "COLLECTOR STATUS & LIMITATIONS"
                   : "VISIBILITY & LIMITATIONS"
               }
             >
               {report ? (
-                <Coverage data={report.coverage} />
+                <CoverageView scanId={scanId} demo={demo} />
               ) : (
                 <div className="compact-empty">
                   <Radar />
@@ -342,9 +373,9 @@ export function Coverage({ data }: { data: unknown }) {
           <div className="coverage-row" key={i}>
             <strong>
               {String(
-                row.service ||
+                row.check_id ||
                   row.type ||
-                  row.check_id ||
+                  row.service ||
                   row.scope ||
                   `Collection ${i + 1}`,
               )}
@@ -358,4 +389,61 @@ export function Coverage({ data }: { data: unknown }) {
       </div>
     );
   return <Evidence data={data} />;
+}
+
+export function CoverageView({
+  scanId,
+  demo,
+}: {
+  scanId: string;
+  demo: boolean;
+}) {
+  type CoveragePage = {
+    items: unknown[];
+    total?: number;
+    next_offset?: number | null;
+  };
+  const query = useInfiniteQuery({
+    queryKey: [demo ? "demo" : "live", "coverage", scanId],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      request<CoveragePage>(
+        `/scans/${encodeURIComponent(scanId)}/coverage?limit=200&offset=${pageParam}`,
+        {},
+        demo,
+      ),
+    getNextPageParam: (page) => page.next_offset ?? undefined,
+    enabled: !!scanId,
+    retry: 1,
+  });
+  const rows = query.data?.pages.flatMap((p) => p.items) || [];
+  const total = query.data?.pages[0]?.total ?? rows.length;
+  return (
+    <State
+      loading={query.isPending}
+      error={query.error && !query.data ? query.error : undefined}
+      onRetry={() => void query.refetch()}
+    >
+      <Coverage data={rows} />
+      {total > rows.length && (
+        <div className="pagination-footer">
+          <span>
+            {rows.length} of {total} coverage records loaded
+          </span>
+          <button
+            className="button"
+            disabled={query.isFetchingNextPage}
+            onClick={() => void query.fetchNextPage()}
+          >
+            {query.isFetchingNextPage ? "Loading…" : "Load more coverage"}
+          </button>
+        </div>
+      )}
+      {query.error && query.data && (
+        <p role="alert" className="form-error">
+          More coverage could not be loaded. Retry before drawing a conclusion.
+        </p>
+      )}
+    </State>
+  );
 }

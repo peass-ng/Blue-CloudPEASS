@@ -81,7 +81,6 @@ def run_hardening(args, adapter, target):
             connector["auth"] = {"aws_access_key_id": frozen.access_key, "aws_secret_access_key": frozen.secret_key}
             if frozen.token:
                 connector["auth"]["aws_session_token"] = frozen.token
-            connector["options"]["regions"] = [adapter.session.region_name or "us-east-1"]
         elif provider == "gcp":
             token = adapter.token_supplier() if adapter.token_supplier else adapter.token
             connector["scopes"] = [adapter.project]

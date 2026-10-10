@@ -1,0 +1,411 @@
+{
+  "aws-compliance.control.cis_v150_2_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L221",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.cis_v200_2_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L206",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.cis_v300_2_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L206",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.cis_v400_2_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L190",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.cis_v500_2_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L190",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.cis_v600_3_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L190",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.docdb_cluster_backup_retention_period_7_days": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.docdb.seven_day_backups"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/docdb.pp#L15",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "e01d498ab7b66cfe8bb64813e4dd4b5eacdddf7db42edb97fa29e9808639404d",
+      "query_id": "docdb_cluster_backup_retention_period_7_days"
+    }
+  },
+  "aws-compliance.control.docdb_cluster_deletion_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.docdb.deletion_protection"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/docdb.pp#L42",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "9137e5d7b6d207ee8c21bae56dcfabb27bfe4f80ea9104ec157d1662596e2c4a",
+      "query_id": "docdb_cluster_deletion_protection_enabled"
+    }
+  },
+  "aws-compliance.control.docdb_cluster_encryption_at_rest_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.docdb.storage_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/docdb.pp#L7",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4f92e0469cd0e9b775eee04ae5af41d2c1a52c8e571a1b979d930d2b946dde4f",
+      "query_id": "docdb_cluster_encryption_at_rest_enabled"
+    }
+  },
+  "aws-compliance.control.efs_file_system_encrypt_data_at_rest": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/efs.pp#L7",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.efs_file_system_encrypted_with_cmk": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.customer_managed_key"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/efs.pp#L83",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7c7653ff66f4ce004d2b6b96683617042cf66e77d5b606f4a3178b75ae3ba9d3",
+      "query_id": "efs_file_system_encrypted_with_cmk"
+    }
+  },
+  "aws-compliance.control.foundational_security_docdb_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.docdb.storage_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/docdb.pp#L24",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4f92e0469cd0e9b775eee04ae5af41d2c1a52c8e571a1b979d930d2b946dde4f",
+      "query_id": "docdb_cluster_encryption_at_rest_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_docdb_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.docdb.seven_day_backups"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/docdb.pp#L37",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "e01d498ab7b66cfe8bb64813e4dd4b5eacdddf7db42edb97fa29e9808639404d",
+      "query_id": "docdb_cluster_backup_retention_period_7_days"
+    }
+  },
+  "aws-compliance.control.foundational_security_docdb_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.docdb.deletion_protection"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/docdb.pp#L76",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "9137e5d7b6d207ee8c21bae56dcfabb27bfe4f80ea9104ec157d1662596e2c4a",
+      "query_id": "docdb_cluster_deletion_protection_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_efs_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.at_rest_encryption"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/efs.pp#L25",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c674f171782f34d62da93f44c49d616335a930198e0a59c1e5c2cc2b430c7e22",
+      "query_id": "efs_file_system_encrypt_data_at_rest"
+    }
+  },
+  "aws-compliance.control.foundational_security_efs_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.efs.customer_managed_key"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/efs.pp#L103",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7c7653ff66f4ce004d2b6b96683617042cf66e77d5b606f4a3178b75ae3ba9d3",
+      "query_id": "efs_file_system_encrypted_with_cmk"
+    }
+  },
+  "aws-compliance.control.foundational_security_mq_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.mq.automatic_minor_upgrade"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/mq.pp#L33",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "18403dab70ef2971563aa4ad41c13fa25a2bb0f3efbeb7f7bb7edbc2a46966bb",
+      "query_id": "mq_broker_auto_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_23": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.nondefault_port_policy",
+      "aws.b.rds_cluster.nondefault_port_policy"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L342",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "76a6f6cc9bd6c6d53422249256596ff6a4a5eed6c128f25285ecd169bf7798c1",
+      "query_id": "rds_db_instance_and_cluster_no_default_port"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_34": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.aurora.mysql_audit_export"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L394",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "dd01970ce99e3c290c0c3fefae5e2c467699de51cd382b5ba1228317ac29cbe5",
+      "query_id": "rds_db_cluster_aurora_mysql_publish_audit_log_to_cloudwatch"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_47": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.aurora.postgres_copy_snapshot_tags"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L524",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "8504fa15d042a31cebf985285b30894e9d0c80bb0b95044d0dee8d78e6cb4a5d",
+      "query_id": "rds_db_cluster_aurora_postgres_copy_tags_to_snapshot_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_48": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.aurora.mysql_copy_snapshot_tags"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L537",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4a767581f3df7f8dfa64afc50b14a38399ddffc92db17271d43615071f8700be",
+      "query_id": "rds_db_cluster_aurora_mysql_copy_tags_to_snapshot_enabled"
+    }
+  },
+  "aws-compliance.control.mq_broker_auto_minor_version_upgrade_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.mq.automatic_minor_upgrade"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/mq.pp#L23",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "18403dab70ef2971563aa4ad41c13fa25a2bb0f3efbeb7f7bb7edbc2a46966bb",
+      "query_id": "mq_broker_auto_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_aurora_mysql_copy_tags_to_snapshot_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.aurora.mysql_copy_snapshot_tags"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L642",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4a767581f3df7f8dfa64afc50b14a38399ddffc92db17271d43615071f8700be",
+      "query_id": "rds_db_cluster_aurora_mysql_copy_tags_to_snapshot_enabled"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_aurora_postgres_copy_tags_to_snapshot_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.aurora.postgres_copy_snapshot_tags"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L658",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "8504fa15d042a31cebf985285b30894e9d0c80bb0b95044d0dee8d78e6cb4a5d",
+      "query_id": "rds_db_cluster_aurora_postgres_copy_tags_to_snapshot_enabled"
+    }
+  },
+  "aws-compliance.control.rds_db_instance_and_cluster_no_default_port": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.nondefault_port_policy",
+      "aws.b.rds_cluster.nondefault_port_policy"
+    ],
+    "reason": "Exact parameter-free pinned predicate and applicability reviewed; native metadata preserves engine branches, threshold and relation union. KMS joins require complete same-scope metadata and unique ARN resolution; source default-port policy is explicitly an obscurity policy, not effective isolation. Missing/denied/malformed facts stay UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L75",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "76a6f6cc9bd6c6d53422249256596ff6a4a5eed6c128f25285ecd169bf7798c1",
+      "query_id": "rds_db_instance_and_cluster_no_default_port"
+    }
+  }
+}

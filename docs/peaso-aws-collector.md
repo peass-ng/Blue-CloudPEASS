@@ -63,6 +63,10 @@ accepts `default`, `auto`, `sdk`, `profile`, `sso`, `access_keys`, `web_identity
 their corresponding configuration. Explicit metadata/web-identity methods select
 only that SDK provider and fail if it cannot produce credentials. SSO login/token
 refresh configuration remains the responsibility of the selected SDK profile.
+`task_role` accepts temporary credentials from the runtime environment (including
+Lambda), container, instance or web-identity role provider; it requires a session
+token and rejects shared/profile credentials, avoiding profile fallback when the
+selected scanner runtime role is unavailable.
 
 `auth.role_chain` accepts up to ten role ARN strings or objects with `role_arn`,
 `external_id`, and `role_session_name`. `auth.role_arn` appends a final role.
@@ -203,7 +207,7 @@ and [GetCredentialReport](https://docs.aws.amazon.com/boto3/latest/reference/ser
 ## Verification and exact live evidence
 
 Unit verification: `.venv/bin/python -m pytest -q tests/test_peaso_collectors_aws.py`.
-The suite currently has 43 passing tests and uses validating botocore Stubber
+The suite currently has 47 passing tests and uses validating botocore Stubber
 responses and checks pagination,
 single-flight cache behavior, throttling/retry exhaustion, denial, malformed/native
 responses, timeout, call/resource caps, native ID preservation, account scope,
@@ -232,3 +236,55 @@ not establish live coverage for the other services, regions, organization roles,
 SSO/web identity/metadata providers, throttling or denial paths. Those paths have
 stubbed evidence or documented limitations. No credential values or resource
 contents were persisted, and no cloud resources were created or modified.
+
+## Reviewed native AWS check extension
+
+`peaso/checks/aws_extended.py` adds **36 pure native checks** with no additional
+cloud calls. `peaso/rulepacks/reviewed_aws.json` records **35 exact reviewed source
+associations** and one pending broader source. Sources are pinned to Prowler
+`61d2cc55c4539a6b48a3cf9f3729d8f2af300882` and AWS compliance queries
+`803dda1f7555ed5cea959aef30cfa0719b030d8c`; the shard preserves each evaluator
+digest, rationale and official API references. The catalog lead merges all
+declared root framework/control/version mappings from those exact sources;
+these mappings are reference coverage, not compliance certification.
+The completed merge conserves **1,027 pinned framework/control/version records**
+for the 35 supported associations, verified against the registry mappings.
+
+| Native check group | Reviewed behavior |
+| --- | --- |
+| IAM password policy, 7 checks | Require uppercase/lowercase/numbers/symbols; minimum length at least 14; reuse prevention exactly 24; password age 1–90 days |
+| RDS, 9 checks | Automatic minor upgrades, VPC declaration, enhanced-monitoring ARN, CloudWatch log export existence; instance tag-copy excludes Aurora engines; cluster IAM authentication, Multi-AZ, tag-copy; instance snapshot encryption |
+| Lambda, 3 checks | VPC declaration, dead-letter target, existing URL AWS_IAM authentication; absent URL is not applicable |
+| CloudTrail/SNS/SQS, 3 checks | Declared CloudTrail/SNS KMS configuration; SQS KMS or SQS-managed encryption, preserving both source alternatives |
+| ELBv2, 5 checks | Deletion protection, access logging, application-only invalid-header dropping, application-only desync mitigation, at least two distinct availability zones |
+| ECR, 1 check | Lifecycle policy presence; explicit policy-not-found fails and unavailable detail is unknown |
+| KMS, 1 check | Customer-managed keys are not PendingDeletion; pinned source default excludes disabled/unused keys |
+| AWS Config, 1 check | Recording recorders use their account/partition's AWSServiceRoleForConfig; non-recording recorders are not applicable |
+| EKS, 1 check | Version 1.28+ service encryption defaults, otherwise explicit secret-encryption resources; retains the reviewed query's full version logic |
+| GuardDuty, 5 checks | Existing detector EKS audit logs, Lambda network logs, RDS login events, S3 data events and runtime-monitoring feature status; complete empty feature list fails while missing/denied lists are unknown |
+
+ELB desync mitigation preserves `defensive`/`strictest` **or** invalid-header
+dropping, rather than incorrectly failing the source's allowed alternative. EKS
+default encryption is based on the collected version, not the wall clock. Missing
+or malformed fields and denied detail envelopes remain `UNKNOWN`; an available
+parent resource never overrides denied child evidence. Configuration declarations
+do not establish network isolation, invocability or effective authorization.
+
+The native `aws.rds.snapshot_encryption` check covers instance snapshots only.
+Its related source `aws-compliance.control.rds_db_snapshot_encrypted_at_rest`
+remains **pending** with `native_checks:[]` because the source combines instance
+and cluster snapshots in a UNION. Cluster snapshots are not currently collected,
+so the shard does not claim complete source support or inherit that source's
+framework mappings. Per-instance RDS Multi-AZ/IAM checks with cluster joins and
+CloudTrail's last-24-hour CloudWatch delivery predicate are also not substituted
+with narrower field checks.
+
+Verification:
+`.venv/bin/python -m pytest -q tests/test_peaso_checks_aws_extended.py tests/test_peaso_collectors_aws.py tests/test_peaso_checks.py tests/test_peaso_checks_batch.py`
+passed **1,418 tests**, including 124 extension tests and 47 collector tests.
+Every extended
+check has passing, failing, missing, malformed and denied fixtures, with
+applicability, nested-denial, threshold, compound-alternative and input-immutability
+cases. Reviewed IDs/revisions are checked against the pinned manifest. No upstream
+runtime code was executed and no extra live API requests were needed for these
+checks.

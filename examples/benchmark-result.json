@@ -8,8 +8,8 @@
   "categories": [
     "hardening"
   ],
-  "seconds": 2.155007,
-  "resources_per_second": 13921,
+  "seconds": 1.013751,
+  "resources_per_second": 29593,
   "findings": 30000,
   "cloud_calls": 0,
   "limitations": "One applicable native predicate and scope; this does not measure live collection, all rules, graphs, or report rendering."

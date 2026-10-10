@@ -8,7 +8,7 @@
   title: Test an arbitrary state with a passed role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-stepfunctions-privesc/README.md#statesteststate--iampassrole
   source_revision: a53b46392c
-  summary: The source can obtain the privileges of any passable role trusting states.amazonaws.com, exercised through AWS SDK service integrations.
+  summary: The source can obtain the privileges of any passable role trusting states.amazonaws.com, exercised through SDK service integrations.
   requires:
     all_of:
       - action: iam:PassRole
@@ -32,7 +32,7 @@
   mitigation: Restrict iam:PassRole on Step Functions roles with iam:PassedToService=states.amazonaws.com, and restrict states:TestState to developers on non-production roles.
   references:
     - https://docs.aws.amazon.com/step-functions/latest/dg/test-state-isolation.html
-  notes: AWS docs confirm TestState assumes the provided role and that iam:PassRole is required when a role is supplied (not needed when fully mocked, in which case no role privileges are used).
+  notes: The Step Functions developer guide confirms TestState assumes the provided role and that iam:PassRole is required when a role is supplied (not needed when fully mocked, in which case no role privileges are used).
 
 - id: aws-stepfunctions-createstatemachine-passrole-start
   provider: aws

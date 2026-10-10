@@ -40,8 +40,8 @@ def _write(value, destination, format):
 
 
 def _selectors(parser):
-    parser.add_argument("--categories", nargs="+", help="hardening exposure least_privilege iam_graph network")
-    parser.add_argument("--checks", nargs="+", help="native check IDs")
+    parser.add_argument("--categories", nargs="+", help="hardening exposure least_privilege iam_graph network privesc")
+    parser.add_argument("--checks", nargs="+", help="native check IDs, 'privesc', or privesc technique IDs")
     parser.add_argument("--frameworks", nargs="+", help="hacktricks nist_800_53, or full framework names")
 
 
@@ -60,7 +60,7 @@ def build_parser():
         command.add_argument("--name", default="cli")
         command.add_argument("--scopes", nargs="+", help="account/project/subscription or cluster namespace selection")
         command.add_argument("--auth-file", help="private JSON/YAML provider auth object; SDK default credentials when omitted")
-        command.add_argument("--options-file", help="JSON/YAML bounded collection options")
+        command.add_argument("--options-file", help="JSON/YAML collection settings and optional explicit limits")
         command.add_argument("--profile", help="AWS profile")
         command.add_argument("--context", help="Kubernetes kubeconfig context")
         command.add_argument("--demo", action="store_true", help="deterministic offline sample, no cloud calls")

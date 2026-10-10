@@ -53,7 +53,7 @@ def test_missing_malformed_facts_are_unknown(provider, check, kind):
 
 
 def test_partial_keeps_facts_and_explicit_inventory_unknown():
-    snapshot = make_snapshot("aws", ["scope"], [{"type": "instance", "scope": "scope", "status": "partial", "items": [{"InstanceId": "i", "MetadataOptions": {"HttpTokens": "required"}}], "error": {"code": "page_limit"}}])
+    snapshot = make_snapshot("aws", ["scope"], [{"type": "instance", "scope": "scope", "status": "partial", "items": [{"InstanceId": "i", "MetadataOptions": {"HttpTokens": "required", "HttpEndpoint": "enabled"}}], "error": {"code": "page_limit"}}])
     report = evaluate_snapshot(snapshot, categories=["hardening"], checks=["aws.ec2.imdsv2"])
     assert {f["status"] for f in report["findings"]} == {"PASS", "UNKNOWN"}
     assert not report["stats"]["coverage_complete"]
@@ -200,3 +200,40 @@ def test_native_same_name_cannot_alias_across_provider_scopes(provider, kind, it
     inventory = resources(snapshot)
     assert len({r["id"] for r in inventory}) == 2
     assert len({r["native_id"] for r in inventory}) == 1
+
+
+def test_offline_permission_classifier_never_downloads_missing_or_corrupt_rules(monkeypatch, tmp_path):
+    from scripts import cloud_permission_risks as classifier
+    monkeypatch.setattr(classifier, "_download_risk_rules", lambda provider: pytest.fail("offline classifier downloaded rules"))
+    path = tmp_path / "aws.yaml"
+    monkeypatch.setattr(classifier, "_bundled_rules_path", lambda provider: path)
+    with pytest.raises(OSError):
+        classifier.classify_permission("aws", "iam:PutRolePolicy", offline=True)
+    for invalid in ("{}", "not: [valid", "version: 1\nprovider: gcp\n"):
+        path.write_text(invalid)
+        with pytest.raises(ValueError):
+            classifier.classify_permission("aws", "iam:PutRolePolicy", offline=True)
+
+
+def test_offline_permission_classifier_uses_the_same_audited_classification():
+    from scripts.cloud_permission_risks import classify_permission
+    for provider, permission in [("aws", "iam:PutRolePolicy"), ("gcp", "iam.serviceAccountKeys.create"), ("azure", "Microsoft.Authorization/roleAssignments/write")]:
+        assert classify_permission(provider, permission, offline=True) == classify_permission(provider, permission) == "critical"
+
+
+def test_exact_framework_version_filters_registered_checks_and_exposes_pending():
+    catalog = get_catalog()
+    implemented = next(row for row in catalog["framework_versions"] if row["provider"] == "aws" and row["native_check_ids"])
+    report = evaluate_snapshot(demo_snapshot("aws"), frameworks=[implemented["id"]])
+    assert report["findings"]
+    assert {f["check_id"] for f in report["findings"]}.issubset(set(implemented["native_check_ids"]))
+    assert report["framework_versions"][0]["id"] == implemented["id"]
+    assert any(c["level"] == "framework" for c in report["coverage"])
+    pending = next(row for row in catalog["framework_versions"] if row["provider"] == "aws" and not row["native_check_ids"])
+    report = evaluate_snapshot(demo_snapshot("aws"), frameworks=[pending["id"]])
+    assert report["findings"] == []
+    assert not report["stats"]["coverage_complete"]
+    assert any(c["level"] == "framework" and c["status"] == "unknown" for c in report["coverage"])
+    foreign = next(row for row in catalog["framework_versions"] if row["provider"] == "gcp")
+    with pytest.raises(ValueError, match="framework"):
+        evaluate_snapshot(demo_snapshot("aws"), frameworks=[foreign["id"]])

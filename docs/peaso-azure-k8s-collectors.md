@@ -81,6 +81,9 @@ verified detail.
 | Storage | `storage_account`, `storage_service`; account TLS/public access/network restrictions/encryption and blob/file/queue/table service settings |
 | SQL | `sql_server`, `sql_database`, `sql_firewall_rule`, `sql_audit`, `sql_security` |
 | AKS | `aks_cluster`; ARM cluster configuration, identity, network and access settings |
+| Compute disks | `disk`; encryption and upload/export network/authentication metadata; no SAS or disk contents |
+| App Service | `app_service`, `app_service_config`; safe site/configuration fields only, excluding app settings and publishing credentials |
+| Defender | `security_pricing`; pricing plan configuration and declared tier, without asset/sensor coverage claims |
 | Vault | `vault`, `secret_metadata`; ARM secret-list metadata only |
 | Diagnostics | `diagnostic_setting` per discovered parent, `activity_log`; requested management event window and native event IDs |
 | Entra directory | `directory_user`, `directory_group`, `directory_service_principal`, `directory_application`, `directory_role_assignment`, `directory_role_definition`, `directory_audit`, `directory_membership` |
@@ -92,7 +95,7 @@ not compute effective access. Management group/root reads can independently be
 denied. Directory collections use selected fields for users, groups, applications
 and service principals, and direct group-member links; inaccessible Graph reads
 produce explicit `metadata.directory_coverage` and collection failures.
-Root role-assignment enumeration uses the required `atScope()` filter; it never
+Root role/deny-assignment enumeration uses the required `atScope()` filter; it never
 elevates access or changes role assignments.
 
 `metadata.activity_window` contains the requested start/end and explicitly marks
@@ -100,7 +103,10 @@ overall completeness false: retention, directory access and data-plane history
 are not all verified. Successful management-event pagination establishes only
 completion of that API request. Missing activity never proves unused permission.
 Secret values, access keys, connection strings, VM passwords/custom data and
-protected settings are omitted. No listKeys, credential export, secret-value GET,
+protected settings are omitted. App Service configuration retains an allowlist of
+safe settings; application settings, machine keys and credential material are
+excluded. `sql_tde` reads user database encryption metadata and skips master.
+No listKeys, credential export, secret-value GET,
 cluster credential generation, or mutating ARM operation is called. Resource
 Graph POST is a read-only query.
 
@@ -115,6 +121,9 @@ metadata; selected subscription scans fetch details within their selected scope.
 `scopes` are namespace names or `*`; cluster-scoped inventory is read once under
 the first selected scope. Namespaced endpoints are constructed separately for each
 namespace. A returned object from another namespace is malformed evidence.
+When explicit namespaces are selected, the namespace objects themselves are read
+by name and emitted in the corresponding selected scopes; `*` uses the paginated
+namespace list. This lets quota and policy checks match the correct namespace.
 Namespaces are administrative containers, never IP subnets.
 
 | Authentication | Fields in `auth` |
@@ -123,7 +132,7 @@ Namespaces are administrative containers, never IP subnets.
 | In cluster | `method: in_cluster` or `in_cluster: true`; service account token and CA via official loader |
 | Direct bearer | `server`, `token` or `token_file`, optional `ca_cert` |
 | Client TLS | `server`, `client_cert`, `client_key`, optional `ca_cert` |
-| Inline kubeconfig | `kubeconfig_data` mapping or YAML string, optional `context`; token or inline certificate material |
+| Inline kubeconfig | `method: inline` or `kubeconfig`, `kubeconfig_data` mapping or YAML string, optional `context`; token or inline certificate material |
 | Inline TLS | `server`, `ca_cert_data`, `client_cert_data`, `client_key_data`; PEM strings or base64 data, with bearer token as needed |
 
 Direct servers require HTTPS and verified TLS. Certificate/key pairs must be
@@ -143,6 +152,7 @@ identity annotations. Encrypted credentials never enter these IDs or snapshots.
 | RBAC | `role`, `clusterrole`, `rolebinding`, `clusterrolebinding`, `serviceaccount` |
 | Workloads | `pod`, `deployment`, `daemonset`, `statefulset`, `replicaset`, `job`, `cronjob` |
 | Cluster scope | `namespace`, `node` |
+| Namespace limits | `resourcequota`, `limitrange`; native specs in each selected namespace |
 | Network declarations | `service`, `endpointslice`, `ingress`, `networkpolicy` |
 | Admission | `admission_configuration`; validating/mutating webhook metadata |
 | Observed addresses | `network_interface`; derived node/pod status addresses with provenance and `authoritative_interface_inventory: false` |
@@ -203,3 +213,43 @@ API behavior references: [Azure Resource Graph REST queries](https://learn.micro
 [Azure Identity credentials](https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/identity/azure-identity),
 [Kubernetes list pagination](https://kubernetes.io/docs/reference/using-api/api-concepts/),
 [NetworkPolicy API](https://kubernetes.io/docs/reference/kubernetes-api/networking/network-policy-v1/).
+
+## Azure check extension
+
+`peaso/checks/azure_extended.py` adds 32 pure checks over storage lifecycle,
+infrastructure encryption, VM SSH/Trusted Launch/managed disks/host encryption,
+disk export controls, network declarations, AKS upgrade/Defender configuration,
+SQL audit retention/alert exclusions/TDE, App Service TLS/FTP/CORS/client
+certificates/logging/debugging, vault metadata and Defender plan tiers.
+Missing, denied and malformed facts are UNKNOWN. Explicit disabled/unsafe settings
+can fail even when unrelated fields were not collected. Non-applicable Linux,
+blob-service and system-database scopes are handled explicitly. SQL retention zero
+means unlimited; optional client certificates do not pass a required-certificate
+baseline. Configuration evidence does not establish runtime enforcement, sensor
+coverage, reachability, rotation history or effective access.
+
+`reviewed_azure.json` records 41 pinned upstream references: 27 ported and 14
+pending related predicates. Pending cases include VM scale-set unions, guest
+configuration/runtime SSH, NIC-to-VM joins, endpoint-specific eligibility and
+diagnostic log routing. Those differences do not claim upstream equivalence.
+The native registry owner merges the shard and derives framework controls/versions
+from the pinned source manifest; references are not certification claims.
+`tests/test_peaso_checks_azure_extended.py` verifies every new check's pass/fail,
+missing/malformed/denied behavior, input purity, collection status propagation and
+applicability/enum/retention boundaries.
+
+The cloud-fixture worker's fresh Azure CLI regression after ARM reconciliation
+found the exact newly created resource group, NSG and VNet, retained an offline
+snapshot and rendered Markdown, then verified removal of all its fixtures.
+Its sanitized frozen summary recorded 9,146 resources and 8,027 findings; these
+counts reflect that bounded run, not complete tenant coverage. A subsequent
+minimal root deny-assignment read with `atScope()` succeeded and returned no
+assignments, correcting the unfiltered endpoint's HTTP 400.
+
+Final integration verification on 2026-10-10: the focused collector/check/legacy
+suite passed 310 tests, and `.venv/bin/python -m pytest -q` passed 2,385 tests
+with one skipped in 22.83 seconds. The registry includes all 32 extension checks;
+27 upstream references are merged as supported and non-equivalent references
+remain explicitly pending. Hosted workers set the server-owned `hosted` flag
+before invoking collectors, and fake DNS-change tests verify that a private
+second resolution is rejected before an API connection is constructed.

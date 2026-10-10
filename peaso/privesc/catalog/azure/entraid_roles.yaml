@@ -325,13 +325,15 @@
 - id: azure-entraid-reset-password-partner-tier1
   provider: azure
   service: entraid
-  title: Partner Tier1 Support resets passwords of non-admins
+  title: Non-admin-only password reset roles (Partner Tier1 Support, Security Operator, SOC Identity Responder)
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryuserspasswordupdate
   source_revision: a53b46392c
-  summary: A Partner Tier1 Support holder can obtain the privileges of users with no directory role.
+  summary: A holder of Partner Tier1 Support, Security Operator or Entra SOC Identity Responder can obtain the privileges of users with no directory role.
   requires:
-    all_of:
-      - entra_role: Partner Tier1 Support
+    any_of:
+      - - entra_role: Partner Tier1 Support
+      - - entra_role: Security Operator
+      - - entra_role: Entra SOC Identity Responder
   target:
     kind: azure_user
     selector:
@@ -347,10 +349,10 @@
     - role_assignable_group_member_or_owner
   confidence: derived
   severity: high
-  mitigation: Remove Partner Tier1/Tier2 Support assignments (deprecated roles).
+  mitigation: Remove Partner Tier1/Tier2 Support assignments (deprecated roles), keep Security Operator / SOC Identity Responder PIM-eligible, and protect sensitive non-admin users with restricted management AUs.
   references:
     - https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/privileged-roles-permissions#who-can-reset-passwords
-  notes: Microsoft documents this role as deprecated; it should not be assigned.
+  notes: Partner Tier1 Support is deprecated. Security Operator and Entra SOC Identity Responder hold microsoft.directory/users/password/update and Microsoft states they are limited to non-administrative accounts (privileged-roles-permissions, checked 2026-10).
 
 - id: azure-entraid-graph-userauthenticationmethod-tap
   provider: azure
@@ -394,8 +396,15 @@
   requires:
     any_of:
       - - entra_permission: microsoft.directory/domains/federation/update
+      - - entra_permission: microsoft.directory/domains/federationConfiguration/create
+      - - entra_permission: microsoft.directory/domains/allProperties/allTasks
       - - entra_role: Global Administrator
       - - entra_role: Hybrid Identity Administrator
+      - - entra_role: External Identity Provider Administrator
+      - - entra_role: Security Administrator
+      - - entra_role: Domain Name Administrator
+      - - graph_app_permission: Domain-InternalFederation.ReadWrite.All
+      - - graph_app_permission: Domain.ReadWrite.All
   target:
     kind: azure_user
     selector:
@@ -415,4 +424,4 @@
   references:
     - https://learn.microsoft.com/en-us/graph/api/resources/internaldomainfederation?view=graph-rest-1.0
     - https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference
-  notes: HackTricks frames this as persistence with GA, but any holder of the federation permission gains users of the federated domain, so it is a privilege-escalation edge. Cloud-only users on the initial onmicrosoft.com domain cannot be federated. Which built-in roles carry domains/federation/update should be resolved by the evaluator from role definitions; the listed roles are the commonly documented ones.
+  notes: HackTricks frames this as persistence with GA, but any holder of the federation permission gains users of the federated domain, so it is a privilege-escalation edge. Cloud-only users on the initial onmicrosoft.com domain cannot be federated. Per Microsoft's built-in role definitions (checked 2026-10) domains/federation/update and federationConfiguration/create are held by Hybrid Identity, External Identity Provider and Security Administrator, and Domain Name Administrator / Global Administrator hold domains/allProperties/allTasks; Create internalDomainFederation lists Domain-InternalFederation.ReadWrite.All (least) or Domain.ReadWrite.All as application permissions.

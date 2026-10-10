@@ -253,8 +253,9 @@
   conditions:
     - id: service_principal_conditional_access
       description: Conditional Access for workload identities can block sign-in of the target service principal.
-  blockers:
-    - sp_lock_configuration_credentials
+    - id: sp_lock_configuration_credentials
+      description: The app instance property lock only blocks service-principal-object credentials; this permission can still add credentials to the tenant's application object or lift the lock, so it does not remove the edge.
+  blockers: []
   confidence: derived
   severity: critical
   mitigation: Replace Application.ReadWrite.All with Application.ReadWrite.OwnedBy or no write permission, and treat apps holding it as Tier 0.
@@ -299,8 +300,9 @@
   source_revision: a53b46392c
   summary: A principal holding AgentIdentityBlueprint.AddRemoveCreds.All can obtain the privileges of any agent identity blueprint principal and of its child agent identities.
   requires:
-    all_of:
-      - graph_app_permission: AgentIdentityBlueprint.AddRemoveCreds.All
+    any_of:
+      - - graph_app_permission: AgentIdentityBlueprint.AddRemoveCreds.All
+      - - entra_permission: microsoft.directory/agentIdentityBlueprints/credentials/update
   target:
     kind: azure_service_principal
     selector:
@@ -317,7 +319,7 @@
   references:
     - https://learn.microsoft.com/en-us/entra/agent-id/agent-blueprint
     - https://learn.microsoft.com/en-us/entra/agent-id/autonomous-agent-authentication-authorization-flow
-  notes: Blueprint owners/administrators who can manage the blueprint application are covered by the generic application credential/owner entries; the extra child-agent reach applies to them as well. Entra Agent ID is a newer (preview-era) feature; validate behaviour per tenant.
+  notes: The directory permission agentIdentityBlueprints/credentials/update is held by Agent ID Administrator, AI Administrator and Global Administrator (built-in role definitions, checked 2026-10). Blueprint owners who can manage the blueprint application are covered by the generic application owner entries; the extra child-agent reach applies to them as well. Entra Agent ID is a newer (preview-era) feature; validate behaviour per tenant.
 
 - id: azure-entraid-graph-delegatedpermissiongrant-allprincipals
   provider: azure
@@ -340,7 +342,7 @@
       description: A target user must still authenticate to the attacker-controlled client; the token is bounded by the delegated scopes and the user's own permissions (and Conditional Access).
   blockers: []
   confidence: conditional
-  severity: high
+  severity: medium
   mitigation: Restrict DelegatedPermissionGrant.ReadWrite.All to Tier-0 apps and alert on AllPrincipals oauth2PermissionGrant creation.
   references:
     - https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-post?view=graph-rest-1.0

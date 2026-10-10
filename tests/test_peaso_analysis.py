@@ -244,6 +244,7 @@ def test_projected_network_preserves_three_vpc_roots_and_containment():
     roots = [n for n in graph["nodes"] if n["type"] == "vpc"]
     assert len(roots) == 3
     assert len({n["id"] for n in roots}) == 3
+    assert {n["label"] for n in roots} == {"vpc-0", "vpc-1", "vpc-2"}
     root_ids = {n["id"] for n in roots}
     descendants = [n for n in graph["nodes"] if n["type"] == "subnet"]
     assert len(descendants) == 3

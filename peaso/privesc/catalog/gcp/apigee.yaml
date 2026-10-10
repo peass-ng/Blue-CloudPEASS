@@ -1,0 +1,41 @@
+# GCP Apigee privilege escalation techniques (GCP identity only; API traffic/credential tampering is excluded).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-apigee-privesc.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+
+- id: gcp-apigee-proxy-deploy-with-sa-actas
+  provider: gcp
+  service: apigee
+  title: Deploy a proxy revision bound to a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-apigee-privesc.md#apigeeproxiescreateupdate--apigeeproxyrevisionsdeploy--deploy-a-proxy-revision-that-strips-auth-or-exfiltrates-traffic
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
+  requires:
+    all_of:
+      - action: apigee.proxyrevisions.deploy
+        resource: "*"
+      - action: iam.serviceAccounts.actAs
+        resource: "{target.email}"
+    any_of:
+      - - action: apigee.proxies.create
+          resource: "*"
+      - - action: apigee.proxies.update
+          resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts bindable to Apigee proxy deployments in {project}"
+  conditions:
+    - id: apigee_org
+      description: The project must host an Apigee organization with an environment the proxy can be deployed to.
+    - id: proxy_token_use
+      description: The bound SA is used by proxy policies that authenticate to Google APIs; the source reaches it through requests to its own proxy.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: critical
+  mitigation: Grant actAs only on dedicated Apigee proxy SAs and restrict apigee.proxyrevisions.deploy.
+  notes: Deploying without a service account needs no actAs and yields no GCP identity (traffic tamper only, excluded).

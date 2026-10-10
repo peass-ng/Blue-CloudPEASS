@@ -27,6 +27,7 @@ import {
   Focus,
 } from "lucide-react";
 import { useApi } from "./api";
+import { ConnectionAssessment } from "./ConnectionAssessment";
 import type { Graph, GraphEdge, GraphNode } from "./types";
 import { Evidence, Inspector, Panel, ProviderIcon, State } from "./ui";
 import { projectView, structuralIndex } from "./graphProjection";
@@ -102,8 +103,14 @@ export function GraphView({
   kind: "iam" | "network";
   demo: boolean;
 }) {
+  const [connection, setConnection] = useState<{
+    source?: string;
+    destination?: string;
+  }>();
+  const [sourceSelection, setSourceSelection] = useState("");
+  const [completeEvidence, setCompleteEvidence] = useState(false);
   const query = useApi<Graph>(
-    `/scans/${encodeURIComponent(scanId)}/graphs/${kind}`,
+    `/scans/${encodeURIComponent(scanId)}/graphs/${kind}${completeEvidence ? "" : "?max_nodes=500"}`,
     demo,
     !!scanId,
   );
@@ -133,6 +140,7 @@ export function GraphView({
     };
   }, []);
   useEffect(() => {
+    setCompleteEvidence(false);
     setScope("");
     setService("");
     setNetwork("");
@@ -287,6 +295,18 @@ export function GraphView({
       fitted.current = true;
     }
   }, [nodes, layingOut]);
+  function endpointResource(
+    node: ProjectedNode | GraphEdge,
+  ): string | undefined {
+    if ("source" in node) return undefined;
+    if (typeof node.resource_id === "string" && !node.aggregate)
+      return node.resource_id;
+    if (typeof node.group_key === "string") {
+      const root = graph.nodes.find((n) => n.id === node.group_key);
+      if (typeof root?.resource_id === "string") return root.resource_id;
+    }
+    return undefined;
+  }
   function reset() {
     fitted.current = false;
     setLevel("scope");
@@ -357,10 +377,22 @@ export function GraphView({
             resource_refs and edge_refs are retained in inspectors; supplied
             evidence may be sampled. {projection?.expansion}
           </p>
+          <button className="button" onClick={() => setCompleteEvidence(true)}>
+            Load complete graph evidence
+          </button>
         </div>
       )}
       <Panel className="graph-panel">
         <div className="graph-toolbar">
+          {kind === "network" && (
+            <button
+              className="button"
+              disabled={demo || !scanId}
+              onClick={() => setConnection({ source: sourceSelection })}
+            >
+              Assess configuration path
+            </button>
+          )}
           <div className="search-field">
             <Search size={17} />
             <input
@@ -589,6 +621,15 @@ export function GraphView({
           </State>
         )}
       </Panel>
+      {connection && (
+        <ConnectionAssessment
+          scanId={scanId}
+          nodes={graph.nodes}
+          source={connection.source}
+          destination={connection.destination}
+          onClose={() => setConnection(undefined)}
+        />
+      )}
       {inspect && (
         <Inspector
           title={
@@ -617,7 +658,51 @@ export function GraphView({
               Explore group
             </button>
           )}
-          <Evidence data={inspect} />
+          {!!inspect.aggregate && collapsed && (
+            <button
+              className="button"
+              onClick={() => {
+                setCompleteEvidence(true);
+                setInspect(undefined);
+              }}
+            >
+              Load underlying graph evidence
+            </button>
+          )}
+          {kind === "network" &&
+            !("source" in inspect) &&
+            endpointResource(inspect) && (
+              <div className="button-row">
+                <button
+                  className="button"
+                  disabled={demo}
+                  onClick={() => {
+                    const source = endpointResource(inspect);
+                    setSourceSelection(source || "");
+                    setInspect(undefined);
+                    setConnection({ source });
+                  }}
+                >
+                  Assess from this resource
+                </button>
+                {sourceSelection && (
+                  <button
+                    className="button"
+                    disabled={demo}
+                    onClick={() => {
+                      setConnection({
+                        source: sourceSelection,
+                        destination: endpointResource(inspect),
+                      });
+                      setInspect(undefined);
+                    }}
+                  >
+                    Assess to this resource
+                  </button>
+                )}
+              </div>
+            )}
+          <Evidence data={inspectionSummary(inspect)} />
           {"underlying_edges" in inspect &&
             Array.isArray(inspect.underlying_edges) && (
               <>
@@ -666,4 +751,28 @@ export function GraphView({
       )}
     </>
   );
+}
+
+function inspectionSummary(value: ProjectedNode | GraphEdge) {
+  const { internal_edges, underlying_edges, ...metadata } = value;
+  const relationSummary = (edges: unknown) =>
+    Array.isArray(edges)
+      ? edges.map((e) => ({
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          type: e.type,
+          count: e.underlying_count || 1,
+          evidence_available: true,
+        }))
+      : undefined;
+  return {
+    ...metadata,
+    ...(internal_edges
+      ? { internal_relationships: relationSummary(internal_edges) }
+      : {}),
+    ...(underlying_edges
+      ? { underlying_relationships: relationSummary(underlying_edges) }
+      : {}),
+  };
 }

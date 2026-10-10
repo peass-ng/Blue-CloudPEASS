@@ -115,7 +115,7 @@ test("map grouping, routed edges, table search and relationship inspector", asyn
   await page.getByRole("button", { name: /Web workload/ }).click();
   await expect(page.getByRole("dialog")).toContainText("n3");
   await page.getByRole("button", { name: "Close inspector" }).click();
-  await nav(page, "Privilege Escalation Map");
+  await nav(page, "IAM Risk Map");
   await expect(page.getByText(/effective access/).first()).toBeVisible();
   await page.getByRole("button", { name: "Show assets", exact: true }).click();
   await expect(page.locator(".react-flow__node")).toHaveCount(3);
@@ -267,12 +267,12 @@ test("large map bounded and complete table searchable", async ({ page }) => {
   await page.route("**/api/scans", (route) =>
     route.fulfill({ json: { items: [scan] } }),
   );
-  await page.route("**/api/scans/large/report", (route) =>
+  await page.route("**/api/scans/large/summary", (route) =>
     route.fulfill({
       json: { resources: [], findings: [], coverage: [], graphs: {} },
     }),
   );
-  await page.route("**/api/scans/large/graphs/network", (route) =>
+  await page.route("**/api/scans/large/graphs/network*", (route) =>
     route.fulfill({
       json: {
         nodes: Array.from({ length: 250 }, (_, i) => ({
@@ -367,10 +367,10 @@ test("collapsed relationships retain every supplied evidence record", async ({
       },
     }),
   );
-  await page.route("**/api/scans/lossless/report", (r) =>
+  await page.route("**/api/scans/lossless/summary", (r) =>
     r.fulfill({ json: { resources: [], findings: [], coverage: [] } }),
   );
-  await page.route("**/api/scans/lossless/graphs/network", (r) =>
+  await page.route("**/api/scans/lossless/graphs/network*", (r) =>
     r.fulfill({
       json: {
         nodes: [
@@ -422,8 +422,12 @@ test("collapsed relationships retain every supplied evidence record", async ({
     page.getByText("2 internal relationships retained", { exact: false }),
   ).toBeVisible();
   await page.locator(".react-flow__node").first().click();
+  await expect(page.getByRole("dialog")).toContainText("e1");
+  await expect(page.getByRole("dialog")).toContainText("e2");
+  await page.getByRole("dialog").locator(".relationship-row").first().click();
   await expect(page.getByRole("dialog")).toContainText("first");
-  await expect(page.getByRole("dialog")).toContainText("second");
+  await page.getByRole("button", { name: "Close inspector" }).click();
+  await page.locator(".react-flow__node").first().click();
   await page.getByRole("button", { name: "Explore group" }).click();
   await expect(page.locator(".react-flow__node").first()).toContainText(
     "VPC native",
@@ -437,4 +441,405 @@ test("collapsed relationships retain every supplied evidence record", async ({
     path: "evidence/network-hierarchy.png",
     fullPage: true,
   });
+});
+test("pagination filters complete dataset and loads evidence lazily", async ({
+  page,
+}) => {
+  await emptyApi(page);
+  const finding = (id: string) => ({
+    id,
+    category: "hardening",
+    check_id: "native.check",
+    title: id,
+    provider: "azure",
+    service: "storage",
+    resource_id: "asset",
+    scope: "subscription",
+    severity: "high",
+    status: "FAIL",
+    frameworks: ["HackTricks Cloud Best Practices"],
+    detail_available: true,
+  });
+  await page.route("**/api/scans", (r) =>
+    r.fulfill({
+      json: {
+        items: [
+          {
+            id: "paged",
+            status: "completed",
+            categories: ["hardening"],
+            created_at: "2026-01-01",
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/scans/paged/summary", (r) =>
+    r.fulfill({ json: { resources: [], findings: [], coverage: [] } }),
+  );
+  await page.route("**/api/scans/paged/findings?*", (r) => {
+    const params = new URL(r.request().url()).searchParams;
+    const offset = Number(params.get("offset"));
+    const searched = params.get("search");
+    return r.fulfill({
+      json: {
+        items: searched
+          ? [finding("Beyond first page")]
+          : Array.from({ length: 200 }, (_, i) =>
+              finding(`Finding ${offset + i}`),
+            ),
+        total: searched ? 1 : 1201,
+        offset,
+        next_offset: searched
+          ? null
+          : offset + 200 < 1201
+            ? offset + 200
+            : null,
+        facets: {
+          services: ["storage"],
+          statuses: ["FAIL"],
+          frameworks: ["HackTricks Cloud Best Practices"],
+        },
+      },
+    });
+  });
+  let detailRequests = 0;
+  await page.route("**/api/scans/paged/findings/*", (r) => {
+    detailRequests++;
+    return r.fulfill({
+      json: {
+        ...finding("Beyond first page"),
+        evidence: { source: "Complete lazy evidence" },
+      },
+    });
+  });
+  await page.goto("/#Hardening%20Findings");
+  await expect(
+    page.getByText("200 loaded of 1201 matching findings", { exact: false }),
+  ).toBeVisible();
+  expect(detailRequests).toBe(0);
+  await page.getByRole("button", { name: "Load more findings" }).click();
+  await expect(
+    page.getByText("400 loaded of 1201 matching findings", { exact: false }),
+  ).toBeVisible();
+  await page.getByLabel("Search findings").fill("Beyond first page");
+  await expect(
+    page.getByRole("button", { name: "Beyond first page native.check" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Beyond first page native.check" })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Complete lazy evidence",
+  );
+  expect(detailRequests).toBe(1);
+});
+test("signed artifact requests omit API bearer token and cookies", async ({
+  page,
+}) => {
+  await emptyApi(page);
+  await page.addInitScript(() =>
+    sessionStorage.setItem(
+      "peaso.api-token",
+      "synthetic-token-for-artifact-test",
+    ),
+  );
+  await page.route("**/api/scans", (r) =>
+    r.fulfill({
+      json: {
+        items: [
+          {
+            id: "signed",
+            status: "completed",
+            categories: ["network"],
+            created_at: "2026-01-01",
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/scans/signed/summary", (r) =>
+    r.fulfill({ json: { resources: [], findings: [], coverage: [] } }),
+  );
+  await page.route("**/api/scans/signed/graphs/network*", (r) =>
+    r.fulfill({
+      json: {
+        download_url:
+          "https://artifact.validation.test/private?signature=synthetic",
+        expires_in: 300,
+        format: "json",
+      },
+    }),
+  );
+  let headers: Record<string, string> = {};
+  await page.route("https://artifact.validation.test/**", async (r) => {
+    headers = await r.request().allHeaders();
+    await r.fulfill({
+      headers: { "Access-Control-Allow-Origin": "*" },
+      json: {
+        nodes: [
+          {
+            id: "one",
+            label: "Signed artifact node",
+            scope: "safe",
+            provider: "azure",
+          },
+        ],
+        edges: [],
+      },
+    });
+  });
+  await page.goto("/#Network%20Map");
+  await page.getByRole("button", { name: "Show assets" }).click();
+  await expect(
+    page.getByText("Signed artifact node", { exact: true }),
+  ).toBeVisible();
+  expect(headers.authorization).toBeUndefined();
+  expect(headers.cookie).toBeUndefined();
+  expect(headers.referer).toBeUndefined();
+  expect(
+    await page.evaluate(() =>
+      JSON.stringify({ ...localStorage, ...sessionStorage }),
+    ),
+  ).not.toContain("signature=synthetic");
+});
+test("selected configuration query is explicit and unknown remains visible", async ({
+  page,
+}) => {
+  await emptyApi(page);
+  await page.route("**/api/scans", (r) =>
+    r.fulfill({
+      json: {
+        items: [
+          {
+            id: "flow",
+            status: "completed",
+            categories: ["network"],
+            created_at: "2026-01-01",
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/scans/flow/summary", (r) =>
+    r.fulfill({
+      json: { stats: { resource_count: 2, finding_count: 0 }, coverage: [] },
+    }),
+  );
+  await page.route("**/api/scans/flow/graphs/network*", (r) =>
+    r.fulfill({
+      json: {
+        nodes: [
+          {
+            id: "node-source",
+            resource_id: "global-source",
+            label: "Source workload",
+            type: "instance",
+            scope: "account",
+            provider: "aws",
+          },
+          {
+            id: "node-target",
+            resource_id: "global-target",
+            label: "Target workload",
+            type: "instance",
+            scope: "account",
+            provider: "aws",
+          },
+        ],
+        edges: [],
+      },
+    }),
+  );
+  let calls = 0;
+  let body: Record<string, unknown> = {};
+  await page.route("**/api/scans/flow/reachability", (r) => {
+    calls++;
+    body = r.request().postDataJSON();
+    return r.fulfill({
+      json: {
+        decision: "unknown",
+        snapshot_id: "owned-snapshot",
+        application_listening: "unknown",
+        routes: [],
+        policy_decisions: [],
+        translations: [],
+        unresolved_dependencies: [
+          {
+            code: "source_port_required",
+            message: "Source port required for stateless return evaluation",
+          },
+        ],
+        evidence_refs: [],
+        modeled_configuration: true,
+        new_flow_only: true,
+      },
+    });
+  });
+  await page.goto("/#Network%20Map");
+  await page
+    .getByRole("button", { name: "Assess configuration path", exact: true })
+    .click();
+  expect(calls).toBe(0);
+  await page.getByLabel("Source resource ID").fill("global-source");
+  await page.getByLabel("Destination resource ID").fill("global-target");
+  await page
+    .getByRole("button", { name: "Assess configuration", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("source_port_required");
+  expect(body.source_resource_id).toBe("global-source");
+  expect(body.destination_resource_id).toBe("global-target");
+  expect(body.source_port).toBeUndefined();
+  expect(body.protocol).toBe("tcp");
+  expect(calls).toBe(1);
+  await page.screenshot({
+    path: "evidence/configuration-path-dialog.png",
+    fullPage: true,
+  });
+});
+test("clearing API authentication removes cached private connector data", async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    sessionStorage.setItem(
+      "peaso.api-token",
+      "synthetic-private-session-token",
+    ),
+  );
+  await emptyApi(page);
+  await page.route("**/api/connectors", (r) =>
+    r.request().headers().authorization
+      ? r.fulfill({
+          json: {
+            items: [
+              {
+                id: "private",
+                name: "Private environment from previous session",
+                provider: "aws",
+                scopes: [],
+              },
+            ],
+          },
+        })
+      : r.fulfill({
+          status: 401,
+          json: { detail: "Bearer authentication required" },
+        }),
+  );
+  await page.goto("/#Connectors");
+  await expect(
+    page.getByRole("heading", {
+      name: "Private environment from previous session",
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Clear token", exact: true }).click();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Connectors", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Data could not be loaded" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Private environment from previous session",
+    }),
+  ).toHaveCount(0);
+});
+test("human asset labels preserve routing IDs and exact checklist filtering", async ({
+  page,
+}) => {
+  await emptyApi(page);
+  await page.route("**/api/scans", (r) =>
+    r.fulfill({
+      json: {
+        items: [
+          {
+            id: "labels",
+            status: "completed",
+            categories: ["hardening"],
+            created_at: "2026-01-01",
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/scans/labels/summary", (r) =>
+    r.fulfill({
+      json: { provider: "aws", stats: { resource_count: 1, finding_count: 1 } },
+    }),
+  );
+  await page.route("**/api/catalog", (r) =>
+    r.fulfill({
+      json: {
+        checks: [],
+        framework_versions: [
+          {
+            id: "cis_aws_1.5",
+            provider: "aws",
+            name: "CIS AWS Foundations v1.5",
+            status: "partial",
+            supported_native_checks: 1,
+            pending_source_checks: 12,
+            native_check_ids: ["native.check"],
+          },
+        ],
+      },
+    }),
+  );
+  const finding = {
+    id: "finding-route",
+    category: "hardening",
+    check_id: "native.check",
+    title: "Review production asset",
+    provider: "aws",
+    service: "ec2",
+    resource_id: "sha256:global-route-id",
+    resource_name: "Production <web>",
+    native_resource_id: "i-native",
+    scope: "owned-account",
+    severity: "high",
+    status: "FAIL",
+    frameworks: ["CIS"],
+  };
+  let selected = "";
+  await page.route("**/api/scans/labels/findings?*", (r) => {
+    selected = new URL(r.request().url()).searchParams.get("framework") || "";
+    return r.fulfill({
+      json: {
+        items: [finding],
+        total: 1,
+        next_offset: null,
+        facets: { frameworks: ["CIS"], services: ["ec2"], statuses: ["FAIL"] },
+      },
+    });
+  });
+  await page.route("**/api/scans/labels/findings/finding-route", (r) =>
+    r.fulfill({
+      json: {
+        ...finding,
+        evidence: { source: "Captured configuration" },
+        remediation: "Owner review",
+      },
+    }),
+  );
+  await page.goto("/#Hardening%20Findings");
+  await expect(page.locator(".asset-cell")).toContainText("Production <web>");
+  await page
+    .getByLabel("Exact finding checklist version")
+    .selectOption("cis_aws_1.5");
+  await expect.poll(() => selected).toBe("cis_aws_1.5");
+  await expect(page.getByText(/12 pending source checks/)).toBeVisible();
+  await page
+    .getByRole("button", { name: "Review production asset native.check" })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("i-native");
+  await expect(page.getByRole("dialog")).toContainText(
+    "sha256:global-route-id",
+  );
+  expect(await page.locator(".asset-cell img").count()).toBe(0);
 });

@@ -1,0 +1,67 @@
+# GCP Cloud Storage privilege escalation techniques.
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-storage-privesc.md (rev a53b46392c).
+# Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
+# Service-specific bucket write techniques (Composer, Cloud Functions, App Engine, Dataflow) live in those service files.
+
+- id: gcp-storage-hmackeys-create
+  provider: gcp
+  service: storage
+  title: Create an HMAC key for an in-project service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#storagehmackeyscreate
+  source_revision: a53b46392c
+  summary: The source can obtain the Cloud Storage privileges of every service account in each project where it holds storage.hmacKeys.create.
+  requires:
+    all_of:
+      - action: storage.hmacKeys.create
+        resource: "*"
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: "Service accounts of {project} usable through Storage HMAC keys"
+  conditions:
+    - id: storage_only
+      description: An HMAC key authenticates only to the Cloud Storage XML (S3-interoperable) API, so only the SA's Cloud Storage permissions are obtained, not its other IAM permissions.
+    - id: hmac_constraint
+      description: Org policy storage.restrictAuthTypes can reject HMAC-signed requests.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+    - {id: org_policy_constraint, constraint: storage.restrictAuthTypes}
+  confidence: conditional
+  severity: high
+  mitigation: Restrict storage.hmacKeys.create (roles/storage.hmacKeyAdmin, roles/storage.admin at project level) and enforce storage.restrictAuthTypes.
+  references:
+    - https://cloud.google.com/storage/docs/authentication/hmackeys
+  notes: No actAs or SA-level permission is needed; any in-project SA email is accepted (HackTricks). The edge over-approximates when the engine treats the target node as full SA privileges; the storage-only limit must be applied by the consumer (e.g. reaching Composer/Functions buckets of that SA).
+
+- id: gcp-storage-buckets-setiampolicy-composer
+  provider: gcp
+  service: storage
+  title: Self-grant write on a Composer environment bucket through the bucket IAM policy
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-storage-privesc.md#storagebucketssetiampolicy
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of the service account of every Composer environment whose bucket IAM policy it controls.
+  requires:
+    all_of:
+      - action: storage.buckets.setIamPolicy
+        resource: "{target.host_resource.content_storage}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: composer_environment
+    scope: any
+    aggregate_as: "SAs of Composer environments whose bucket IAM the source controls"
+  conditions:
+    - id: followup_write
+      description: The self-granted object write then drops a DAG that runs as the environment SA (see gcp-composer-bucket-write).
+    - id: allowed_member_domains
+      description: iam.allowedPolicyMemberDomains can reject bindings for external principals.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: derived
+  severity: critical
+  mitigation: Restrict storage.buckets.setIamPolicy (roles/storage.admin) on Composer and other code-bearing buckets.
+  notes: The same self-grant also enables the (race-conditional) function source and App Engine staging bucket techniques; the engine should treat bucket setIamPolicy as implying object write for every bucket-write entry.

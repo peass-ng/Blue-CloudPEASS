@@ -157,6 +157,7 @@ def test_reviewed_shard_ids_exist_at_exact_pinned_source_and_all_native_ids_have
         assert source_id in rows
         assert rows[source_id]["provider"] == "aws"
         assert rows[source_id]["revision"] == review["reviewed_source"]["revision"]
+        assert rows[source_id]["upstream_evaluator"]["sha256"] == review["reviewed_source"]["evaluator_sha256"]
         assert review["reason"]
         assert review["official_docs"]
         if review["disposition"] in {"ported", "merged"}:
@@ -167,3 +168,30 @@ def test_reviewed_shard_ids_exist_at_exact_pinned_source_and_all_native_ids_have
         else:
             assert review["native_checks"] == []
     assert len(supported_native) >= 30
+
+
+@pytest.mark.parametrize("cid", [cid for cid in REGISTRY if cid.startswith("aws.guardduty.")])
+def test_guardduty_features_empty_missing_denied_malformed_and_duplicate(cid):
+    feature = CASES[cid]["pass"]["Configuration"]["Features"][0]["Name"]
+    assert evaluate(cid, {"Configuration": {"Features": []}}) == "FAIL"
+    assert evaluate(cid, {"Configuration": {}}) == "UNKNOWN"
+    assert evaluate(cid, {"Configuration": {"Features": [{"Name": feature, "Status": "unknown"}]}}) == "UNKNOWN"
+    assert evaluate(cid, {"Configuration": {"Features": [{"Name": feature, "Status": "ENABLED"}, {"Name": feature, "Status": "DISABLED"}]}}) == "UNKNOWN"
+    assert evaluate(cid, {"Configuration": {"collection_status": "denied", "Features": [{"Name": feature, "Status": "ENABLED"}]}}) == "UNKNOWN"
+
+
+def test_merged_reviewed_framework_controls_and_versions_are_conserved():
+    root = Path(__file__).resolve().parents[1]
+    reviews = json.loads((root / "peaso/rulepacks/reviewed_aws.json").read_text())
+    manifest = json.loads((root / "peaso/rulepacks/upstream_manifest.json").read_text())
+    rows = {r["check_id"]: r for r in manifest["checks"]}
+    for source_id, review in reviews.items():
+        if review["disposition"] != "ported":
+            continue
+        source = rows[source_id]
+        assert source["disposition"] in {"ported", "merged"}, source_id
+        assert set(review["native_checks"]) <= set(source["native_checks"])
+        for native in review["native_checks"]:
+            mapping = REGISTRY[native].mapping
+            for tag in source["frameworks"]:
+                assert any(tag in framework.get("controls", []) for framework in mapping.values()), (source_id, native, tag)

@@ -77,6 +77,17 @@ def evaluate_many(check_ids, items, backend="python"):
     return output
 
 
+def summarize_many(check_ids, items):
+    """Set-based status counts without materializing one Python finding per row."""
+    import duckdb
+    if any(cid not in FIELD_SPECS for cid in check_ids):
+        raise ValueError("batch backend supports registered strict scalar checks only")
+    payloads = json.dumps(items, separators=(",", ":"), allow_nan=False)
+    with duckdb.connect(":memory:") as connection:
+        connection.execute("CREATE TEMP TABLE facts AS SELECT key::BIGINT AS row_id, value AS payload FROM json_each(?::JSON)", [payloads])
+        return {cid: dict(connection.execute("SELECT status,count(*) FROM (" + scalar_sql(cid) + ") GROUP BY status").fetchall()) for cid in check_ids}
+
+
 def benchmark(count=100000):
     """Fixed 100k-record fixture; timings include Python JSON conversion/DB loading."""
     from collections import Counter
@@ -90,6 +101,12 @@ def benchmark(count=100000):
         counts[backend] = dict(Counter(statuses[backend]))
     if statuses["python"] != statuses["duckdb"]:
         raise AssertionError("batch backend parity failed")
+    start = perf_counter()
+    summary = summarize_many(["aws.ebs.encryption"], items)["aws.ebs.encryption"]
+    timings["duckdb_summary"] = perf_counter() - start
+    if summary != counts["python"]:
+        raise AssertionError("set-based summary parity failed")
+    counts["duckdb_summary"] = summary
     return {"fixture_version": "1.0.0", "resources": count, "check": "aws.ebs.encryption", "timings_seconds": timings,
         "status_counts": counts, "parity": True, "cloud_calls": 0,
         "limitations": "Single-run local synthetic timing including setup; not a guarantee of backend speedup or provider collection throughput."}

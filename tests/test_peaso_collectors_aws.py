@@ -439,3 +439,18 @@ def test_policy_json_preserves_literal_percent_encoded_conditions():
     from urllib.parse import quote
     assert aws._policy(quote(json.dumps(document))) == document
     assert aws._policy("malformed")["collection_status"] == "malformed"
+
+
+@pytest.mark.parametrize("provider,token,expected", [("env", "lambda-session-token", "env"), ("container-role", "ecs-session-token", "container-role"), ("shared-credentials-file", "profile-token", "platform_role_credentials_unavailable"), ("env", None, "platform_role_session_token_required")])
+def test_platform_task_role_supports_lambda_and_ecs_and_excludes_profile_fallback(monkeypatch, provider, token, expected):
+    credentials = SimpleNamespace(method=provider, get_frozen_credentials=lambda: SimpleNamespace(access_key="platform-key", secret_key="platform-secret", token=token))
+    selected = SimpleNamespace(get_credentials=lambda: credentials)
+    pinned = SimpleNamespace()
+    monkeypatch.setattr(boto3, "Session", lambda **kwargs: pinned if kwargs.get("aws_access_key_id") else selected)
+    if expected.startswith("platform_"):
+        with pytest.raises(aws.ReadFailure, match=expected):
+            aws._session({"method": "task_role"}, REGION)
+    else:
+        session, method = aws._session({"method": "task_role"}, REGION)
+        assert session is pinned
+        assert method == expected

@@ -5,6 +5,7 @@ from .common import FRAMEWORKS, RANK, analysis_context, finding, node, source, w
 from .iam import IAM_TYPES, build_iam, review_findings
 from .network import NETWORK_TYPES, build_network, exposure_findings
 from .projection import filter_graph, project_graph
+from .reachability import REACHABILITY_TYPES, evaluate_reachability, network_snapshot
 
 REQUIRED_TYPES = {
     "aws": {"least_privilege": ["iam_user", "iam_group", "iam_role", "iam_policy"],
@@ -22,6 +23,17 @@ REQUIRED_TYPES = {
 }
 for _requirements in REQUIRED_TYPES.values():
     _requirements["iam_graph"] = list(_requirements["least_privilege"])
+for _provider, _types in REACHABILITY_TYPES.items():
+    REQUIRED_TYPES[_provider]["network"] = sorted(set(REQUIRED_TYPES[_provider]["network"]) | _types)
+# Inventories read by the catalog-driven privilege-escalation evaluator (peaso.privesc).
+REQUIRED_TYPES["aws"]["privesc"] = ["iam_user", "iam_group", "iam_role", "iam_policy", "scp_policy", "lambda_function", "instance",
+                                    "glue_job", "redshift_cluster"]
+REQUIRED_TYPES["gcp"]["privesc"] = ["organization", "folder", "project", "iam_policy", "iam_role", "service_account", "iam_deny_policy", "instance"]
+REQUIRED_TYPES["azure"]["privesc"] = ["tenant", "management_group", "subscription", "resource_group", "role_assignment", "role_definition", "deny_assignment",
+                                      "directory_user", "directory_group", "directory_service_principal", "directory_application", "directory_membership",
+                                      "directory_role_assignment", "directory_role_definition", "resource_graph",
+                                      "vm", "app_service", "aks_cluster", "storage_account", "vault", "sql_server"]
+REQUIRED_TYPES["k8s"]["privesc"] = ["role", "clusterrole", "rolebinding", "clusterrolebinding", "serviceaccount", "namespace", "pod", "node"]
 
 ANALYSIS_CHECKS = [
     {"id": "analysis.grant_review", "category": "least_privilege", "title": "Review high-impact or broad declared grants", "severity": "high"},
@@ -105,4 +117,4 @@ def analyze(snapshot, categories=None):
             "resources": inventory}
 
 
-__all__ = ["analyze", "analyze_findings", "analysis_context", "build_graphs", "filter_graph", "project_graph", "ANALYSIS_CHECKS", "REQUIRED_TYPES"]
+__all__ = ["analyze", "analyze_findings", "analysis_context", "build_graphs", "filter_graph", "project_graph", "ANALYSIS_CHECKS", "REQUIRED_TYPES", "evaluate_reachability", "network_snapshot", "REACHABILITY_TYPES"]

@@ -154,18 +154,20 @@
     selector:
       trust_allows_service: ec2.amazonaws.com
       has_instance_profile: true
+      resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting ec2.amazonaws.com with an instance profile in {account}"
   conditions:
-    - id: runinstances_dependency
-      description: Unverified whether ec2:RunInstances is also evaluated for the Spot launch; if it is, this collapses into aws-ec2-passrole-runinstances.
+    - id: passrole_condition_key
+      description: iam:PassedToService conditions may restrict which roles can be passed.
   blockers:
     - scp_or_boundary_deny
-  confidence: conditional
+  confidence: derived
   severity: critical
-  mitigation: Restrict iam:PassRole on EC2 roles and ec2:RequestSpotInstances.
-  references: []
-  notes: Official-doc verification of the RunInstances dependency could not be completed during authoring.
+  mitigation: Restrict iam:PassRole on EC2 roles with iam:PassedToService, and restrict ec2:RequestSpotInstances.
+  references:
+    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonec2.html
+  notes: The Service Authorization Reference lists only ec2:CreateTags and iam:PassRole as dependent actions of ec2:RequestSpotInstances; ec2:RunInstances is not evaluated for the Spot request, so this edge is distinct from aws-ec2-passrole-runinstances.
 
 - id: aws-ec2-modifyinstanceattribute-userdata
   provider: aws

@@ -21,6 +21,8 @@ def main():
     # Freeze one build so concurrent owner edits cannot mix evaluator versions
     # between the fresh CLI scan and its offline reevaluation.
     source = Path(__file__).resolve().parents[2]
+    if (source / "peaso" / "privesc").exists() or "_run_privesc" in (source / "peaso" / "engine.py").read_text():
+        raise RuntimeError("Live QA requires the defensive-only exported build")
     build = root / "runtime-build"
     packages = tuple(package for package in ("peaso", "bluepeass", "scripts", "risk_rules") if (source / package).is_dir())
     def code_digest(base):

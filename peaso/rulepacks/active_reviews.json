@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Only lead-accepted complete review shards enter the master; in-progress files remain excluded without false support.",
+  "shards": [
+    "reviewed.json",
+    "reviewed_aws.json",
+    "reviewed_gcp.json",
+    "reviewed_azure.json",
+    "reviewed_k8s.json",
+    "reviewed_aws_a_account.json",
+    "reviewed_k8s_ports_workloads.json",
+    "reviewed_gcp_ports_manual.json",
+    "reviewed_azure_ports_manual.json",
+    "reviewed_azure_ports_services.json",
+    "reviewed_aws_a_iam.json",
+    "reviewed_aws_b_core.json",
+    "reviewed_k8s_ports_components.json",
+    "reviewed_aws_a_manual.json",
+    "reviewed_gcp_ports_services.json",
+    "reviewed_aws_b_regional_cloudfront.json",
+    "reviewed_aws_a_regional.json",
+    "reviewed_azure_ports_defender.json",
+    "reviewed_k8s_ports_cluster.json"
+  ]
+}

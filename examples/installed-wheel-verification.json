@@ -1,6 +1,7 @@
 {
   "installed_outside_checkout": true,
   "network_calls": 0,
+  "provider_sdk_imports": 0,
   "bundled_providers": [
     "aws",
     "gcp",
@@ -15,15 +16,15 @@
   "offline_reports": {
     "aws": {
       "resources": 10,
-      "findings": 41
+      "findings": 77
     },
     "gcp": {
       "resources": 5,
-      "findings": 29
+      "findings": 62
     },
     "azure": {
       "resources": 5,
-      "findings": 28
+      "findings": 60
     },
     "k8s": {
       "resources": 7,

@@ -1,5 +1,6 @@
 """Run against an isolated wheel installation, outside the checkout, with no network."""
 import json
+import builtins
 import os
 from pathlib import Path
 import socket
@@ -16,6 +17,16 @@ def forbidden(*args, **kwargs):
 
 socket.socket.connect = forbidden
 socket.create_connection = forbidden
+_import = builtins.__import__
+
+
+def offline_import(name, *args, **kwargs):
+    if name.split(".")[0] in {"boto3", "botocore", "google", "azure", "kubernetes", "requests"}:
+        raise AssertionError("offline evaluator imported provider transport: " + name)
+    return _import(name, *args, **kwargs)
+
+
+builtins.__import__ = offline_import
 import peaso
 from peaso.demo import demo_snapshot
 from peaso.engine import evaluate_snapshot
@@ -35,5 +46,5 @@ for provider in ("aws", "gcp", "azure", "k8s"):
     report = evaluate_snapshot(demo_snapshot(provider))
     assert report["findings"]
     reports[provider] = {"resources": report["stats"]["resource_count"], "findings": report["stats"]["finding_count"]}
-print(json.dumps({"installed_outside_checkout": True, "network_calls": 0,
+print(json.dumps({"installed_outside_checkout": True, "network_calls": 0, "provider_sdk_imports": 0,
     "bundled_providers": ["aws", "gcp", "azure", "k8s"], "representative_classification": classifications, "offline_reports": reports}, indent=2))
