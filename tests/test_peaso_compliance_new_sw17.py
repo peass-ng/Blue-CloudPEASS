@@ -262,8 +262,12 @@ def case(suffix):
         normalized_fact(index, 'vm_antimalware_policy', agent='MicrosoftDefender', effectivePolicyComplete=True,
             agentPresent=True, serviceOperational=True, automaticSignatureUpdatesEnabled=True)
     elif suffix == 'system_updates_installed':
-        machine['properties']['instanceView'] = {'patchStatus': {'availablePatchSummary': {
-            'status': 'Succeeded', 'lastModifiedTime': NOW, 'criticalAndSecurityPatchCount': 0}}}
+        machine['properties']['instanceView'] = {'patchStatus': {
+            'availablePatchSummary': {'status': 'Succeeded', 'lastModifiedTime': NOW,
+                                      'criticalAndSecurityPatchCount': 0},
+            'lastPatchInstallationSummary': {'status': 'Succeeded',
+                                             'installationActivityId': 'operation-1',
+                                             'lastModifiedTime': '2026-10-12T09:00:00Z'}}}
         index['context']['metadata']['compliance_policy']['checks'][sw.PREFIX + suffix]['requirePciCompliance'] = False
     return machine, index
 
@@ -616,7 +620,7 @@ def test_updates_pci_post_installation_and_freshness():
     pol['requirePciCompliance'] = True
     assert run(suffix, machine, index)[0] == 'UNKNOWN'
     evidence = normalized_fact(index, 'vm_patch_installation_compliance', operationId='operation-1',
-        installedAt=NOW, status='COMPLIANT')
+        installedAt='2026-10-12T09:30:00Z', status='COMPLIANT')
     assert run(suffix, machine, index)[0] == 'PASS'
     evidence['status'] = 'NON_COMPLIANT'
     assert run(suffix, machine, index)[0] == 'FAIL'

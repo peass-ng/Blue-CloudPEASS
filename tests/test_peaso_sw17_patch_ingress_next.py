@@ -28,7 +28,7 @@ def test_foreign_capture_pci_compliance_cannot_certify_vm():
         metadata[field] = "current-capture"
         machine.setdefault("_provenance", {})[field] = "current-capture"
     record = normalized_fact(index, "vm_patch_installation_compliance",
-                             operationId="operation-1", installedAt=NOW,
+                             operationId="operation-1", installedAt="2026-10-12T09:30:00Z",
                              status="COMPLIANT")
     record["_provenance"].update(credential_context_id="current-capture",
                                   customer_context_id="current-capture")
@@ -44,7 +44,7 @@ def test_foreign_capture_pci_compliance_cannot_certify_vm():
 def test_pci_compliance_record_is_exact_vm_bound():
     machine, index = pci_case()
     record = normalized_fact(index, "vm_patch_installation_compliance",
-                             operationId="operation-1", installedAt=NOW,
+                             operationId="operation-1", installedAt="2026-10-12T09:30:00Z",
                              status="COMPLIANT")
     assert run(SUFFIX, machine, index)[0] == "PASS"
     record["vm_id"] = VM + "-other"

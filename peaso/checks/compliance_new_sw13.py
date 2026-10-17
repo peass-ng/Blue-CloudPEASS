@@ -544,18 +544,42 @@ def ca_match(rule, principal, context, locations):
     if state == 'enabledForReportingButNotEnforced':
         raise Unavailable('report-only Conditional Access policy')
     c = get(rule, 'conditions', dict)
+    def documented_empty(value, field):
+        marker = value.get('_coverage', {}).get(field)
+        return (isinstance(marker, dict) and marker.get('status') == 'empty'
+                and marker.get('reason') == 'documented_optional_api_omission')
+    def validate_selectors(value):
+        # Coverage-only restrictions are not an absence claim. Only an explicit
+        # documented empty omission can supply an empty optional selector.
+        for field in set(value) | set(value.get('_coverage', {})):
+            if not isinstance(field, str):
+                raise Unavailable('malformed Conditional Access selector field')
+            if field.startswith('_'):
+                continue
+            if field in value:
+                keyed(value, field)
+            elif not documented_empty(value, field):
+                raise Unavailable('Conditional Access selector coverage unresolved')
+    def selected(value, field, expected, empty):
+        if field not in value and documented_empty(value, field):
+            return empty
+        return get(value, field, expected)
+    validate_selectors(c)
     supported = {'users', 'applications', 'clientAppTypes', 'locations', 'platforms', 'devices',
                  'signInRiskLevels', 'userRiskLevels', 'authenticationFlows'}
     if any(k not in supported and not k.startswith('_') and v not in (None, [], {}) for k, v in c.items()):
         raise Unavailable('unmodeled Conditional Access condition')
     users = get(c, 'users', dict)
+    validate_selectors(users)
+    def selector(field):
+        return strings(selected(users, field, list, []))
     uid = get(principal, 'userId', str)
     groups = set(strings(get(principal, 'groupIds', list)))
     roles = set(strings(get(principal, 'roleTemplateIds', list)))
     include, exclude = False, False
     for field, identity in (('Users', {uid}), ('Groups', groups), ('Roles', roles)):
-        inc = strings(get(users, 'include' + field, list))
-        exc = strings(get(users, 'exclude' + field, list))
+        inc = selector('include' + field)
+        exc = selector('exclude' + field)
         if field == 'Users' and any(v in ('GuestsOrExternalUsers',) for v in inc + exc):
             raise Unavailable('guest condition unresolved')
         include |= 'All' in inc or bool(set(inc) & identity)
@@ -564,17 +588,18 @@ def ca_match(rule, principal, context, locations):
         raise Unavailable('unmodeled user condition')
     checks = [include and not exclude]
     apps = get(c, 'applications', dict)
+    validate_selectors(apps)
     if any(k not in {'includeApplications', 'excludeApplications'} and v not in (None, [], {}) and not k.startswith('_') for k, v in apps.items()):
         raise Unavailable('unmodeled application condition')
     inc = strings(get(apps, 'includeApplications', list))
-    exc = strings(get(apps, 'excludeApplications', list))
+    exc = strings(selected(apps, 'excludeApplications', list, []))
     if any(v in {'Office365', 'MicrosoftAdminPortals'} for v in inc + exc):
         raise Unavailable('unexpanded application bundle')
     app = context['application']['value']
     checks.append(('All' in inc or app in inc) and not ('All' in exc or app in exc))
     clients = strings(get(c, 'clientAppTypes', list), nonempty=True)
     checks.append('all' in clients or context['clientAppType']['value'] in clients)
-    loc = get(c, 'locations')
+    loc = selected(c, 'locations', None, None)
     if loc is not None:
         if not isinstance(loc, dict):
             raise Unavailable('malformed location condition')
@@ -596,18 +621,18 @@ def ca_match(rule, principal, context, locations):
                     hits.append(country in countries or (country == 'unknown' and get(named, 'includeUnknownCountriesAndRegions', bool)))
             return any(hits)
         checks.append(location_match(strings(get(loc, 'includeLocations', list))) and not location_match(strings(get(loc, 'excludeLocations', list))))
-    platform = get(c, 'platforms')
+    platform = selected(c, 'platforms', None, None)
     if platform is not None:
         inc = strings(get(platform, 'includePlatforms', list))
         exc = strings(get(platform, 'excludePlatforms', list))
         value = context['platform']['value']
         checks.append(('all' in inc or value in inc) and not ('all' in exc or value in exc))
-    if get(c, 'devices') is not None:
+    if selected(c, 'devices', None, None) is not None:
         raise Unavailable('device filters unsupported; needs a resolved partition evaluator')
     for field, axis in (('signInRiskLevels', 'signInRisk'), ('userRiskLevels', 'userRisk')):
-        risks = strings(get(c, field, list))
+        risks = strings(selected(c, field, list, []))
         checks.append(not risks or context[axis]['value'] in risks)
-    flows = get(c, 'authenticationFlows')
+    flows = selected(c, 'authenticationFlows', None, None)
     if flows is not None:
         flow = get(flows, 'transferMethods', str)
         if flow not in ('deviceCodeFlow', 'authenticationTransfer'):

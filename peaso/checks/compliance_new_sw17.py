@@ -12,7 +12,7 @@ import itertools
 import re
 
 from . import CHECKS, register, result, unknown
-from .facts import Unavailable, complete_items, get, guard, list_of_objects, memoized
+from .facts import Unavailable, complete_items, get, guard, list_of_objects, memoized, optional
 
 from .compliance_new_sw17_specs import SPECS, PROPOSED_SPEC_SHA256
 from peaso.collectors.azure_wave_compute_native import evaluate_vm_patch_installation
@@ -862,7 +862,7 @@ def _updates(check_id, item, index):
         # Opaque scan-local IDs bind current evidence; they are not guest state
         # or PCI applicability. Legacy captures without IDs retain old semantics.
         metadata = get(index, 'context.metadata', dict)
-        proof = row.get('_provenance', {})
+        proof = optional(row, '_provenance', {}, dict)
         if not isinstance(proof, dict):
             raise Unavailable('update source provenance malformed')
         for field in ('credential_context_id', 'customer_context_id'):
@@ -886,20 +886,36 @@ def _updates(check_id, item, index):
     if count > 0:
         return result(True, critical_and_security_patch_count=count)
     pci = get(policy, 'requirePciCompliance', bool)
+    require_installation = optional(policy, 'requireActualInstallation', False, bool)
+    if type(require_installation) is not bool:
+        raise Unavailable('actual installation policy malformed')
+    pci_details = {}
     if pci:
         record = _fact(index, 'vm_patch_installation_compliance', vm_id, policy)
         same_update_capture(record)
-        if not get(record, 'operationId', str):
+        operation_id = get(record, 'operationId', str)
+        if not operation_id:
             raise Unavailable('patch installation operation identity absent')
-        _fresh(get(record, 'installedAt', str), index, policy)
+        installed_at = get(record, 'installedAt', str)
+        _fresh(installed_at, index, policy)
+        patch = (get(item, 'instanceView.patchStatus', dict) if 'instanceView' in item
+                 else get(item, 'properties.instanceView.patchStatus', dict))
+        installation = get(patch, 'lastPatchInstallationSummary', dict)
+        if get(installation, 'status', str) != 'Succeeded':
+            return unknown('latest native patch installation did not succeed')
+        latest_operation = get(installation, 'installationActivityId', str)
+        if not latest_operation or operation_id != latest_operation:
+            return unknown('PCI compliance record does not match latest native patch installation')
+        started_at = get(installation, 'lastModifiedTime', str)
+        _fresh(started_at, index, policy)
+        if not _time(started_at) <= _time(installed_at) < _time(get(summary, 'lastModifiedTime', str)):
+            return unknown('post-installation PCI assessment chronology unproven')
         status = get(record, 'status', str)
         if status not in ('COMPLIANT', 'NON_COMPLIANT'):
             return unknown('post-installation PCI compliance not measured')
-        return result(status == 'NON_COMPLIANT', critical_and_security_patch_count=count,
-                      post_installation_status=status, operation_id=record['operationId'])
-    require_installation = policy.get('requireActualInstallation', False)
-    if type(require_installation) is not bool:
-        raise Unavailable('actual installation policy malformed')
+        pci_details = {'post_installation_status': status, 'operation_id': operation_id}
+        if status == 'NON_COMPLIANT':
+            return result(True, critical_and_security_patch_count=count, **pci_details)
     if require_installation:
         try:
             installation_result = _fact(index, 'vm_patch_installation_result', vm_id, policy)
@@ -915,9 +931,10 @@ def _updates(check_id, item, index):
         if verdict['state'] == 'FAIL':
             return result(True, reason=verdict['reason'], **verdict['proof'])
         return result(False, critical_and_security_patch_count=count,
-                      require_pci_compliance=False,
+                      require_pci_compliance=pci, **pci_details,
                       native_installation=verdict['proof'])
-    return result(False, critical_and_security_patch_count=count, require_pci_compliance=False)
+    return result(False, critical_and_security_patch_count=count,
+                  require_pci_compliance=pci, **pci_details)
 
 
 def _nullable(properties, key):

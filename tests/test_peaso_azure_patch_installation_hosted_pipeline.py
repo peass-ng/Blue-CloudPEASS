@@ -124,7 +124,7 @@ def test_normal_hosted_native_compute_pipeline(monkeypatch, mode, expected):
     assert len(findings) == 1 and findings[0]['status'] == expected, findings
     arg = [(url, body) for url, body in api.calls
            if body is not None and 'patchinstallationresources' in body['query']]
-    assert bool(arg) == (mode not in ('unapproved', 'pci'))
+    assert bool(arg) == (mode != 'unapproved')
     assert sum('/instanceView?' in url for url, body in api.calls) == 1
     assert api.closed
     if mode == 'complete':

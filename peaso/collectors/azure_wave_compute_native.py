@@ -1,8 +1,8 @@
-"""Pure evaluation of Azure Compute VM patch instance-view metadata.
+"""Read-only Update Manager result collection and VM patch evaluation.
 
-This module performs no cloud calls and does not turn a successful operation
-into a provider-issued compliance status.  The caller must supply the full VM
-GET representation with instanceView expanded.
+Collection performs bounded, approved Resource Graph reads. Evaluation does
+not make API calls or turn operation success into a compliance status. The
+caller supplies the full VM GET representation with instanceView expanded.
 """
 from __future__ import annotations
 
@@ -63,7 +63,7 @@ def _approved(options, scope):
         policy = _selected(checks, CHECK_ID) if isinstance(checks, dict) else None
         return (isinstance(policy, dict)
                 and _selected(policy, "requireActualInstallation") is True
-                and _selected(policy, "requirePciCompliance") is False)
+                and type(_selected(policy, "requirePciCompliance")) is bool)
     except ValueError:
         return False
 
@@ -137,7 +137,7 @@ def _project_result(raw, selected, scope):
 
 
 def collect(reader, request, scopes, wanted, options):
-    """Collect exact latest-operation ARG summaries for approved non-PCI VMs.
+    """Collect exact latest-operation ARG summaries for VMs with approved actual-installation requirements.
 
     ``reader.pages`` enforces the shared call, page, time and item budgets.
     No result is created from an operator declaration or Compute start time.
