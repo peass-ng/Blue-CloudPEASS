@@ -596,6 +596,15 @@ class Requests:
                 has_more = any(tokens) and (not more or jmespath.search(more, response))
                 if remaining is not None and (len(batch) > remaining or (len(items) == self.max_items and has_more)):
                     raise ReadFailure("not_collected", "resource_limit")
+                if (service, operation) == ("ec2", "search_transit_gateway_routes"):
+                    # Older SDK models have no paginator; newer ones expose
+                    # NextToken. In either case an explicit truncation marker
+                    # cannot establish completeness without a usable next page.
+                    additional = response.get("AdditionalRoutesAvailable")
+                    if additional is not None and type(additional) is not bool:
+                        raise ReadFailure("malformed", "malformed_route_search_completion")
+                    if additional is True and not has_more:
+                        raise ReadFailure("not_collected", "missing_pagination_token")
                 if not has_more:
                     return ReadResult(items, "collected" if items else "empty")
                 token_key = json.dumps(tokens)

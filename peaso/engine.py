@@ -454,7 +454,7 @@ def _safe_collection_error_code(collection):
     """Known machine error identifiers remain evidence; arbitrary text is omitted."""
     error = collection.get("error", {})
     code = error.get("code") if isinstance(error, dict) else None
-    known = {"demo_permission_denied", "AccessDenied", "AccessDeniedException", "Forbidden", "Unauthorized",
+    known = {"demo_permission_denied", "AccessDenied", "AccessDeniedException", "UnauthorizedOperation", "Forbidden", "Unauthorized",
              "PermissionDenied", "permission_denied", "PERMISSION_DENIED", "401", "403", "read_timeout",
              "resource_limit", "page_limit", "scope_limit", "collection_cancelled", "malformed_response",
              "not_requested", "unsupported_inventory", "api_unavailable", "SERVICE_DISABLED", "NOT_FOUND"}

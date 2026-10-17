@@ -688,6 +688,10 @@ def configured_password_policy(item, index):
     return result(bool(failed), failed_thresholds=failed, configured_policy=values)
 
 
+# IAM password policy is one account-global decision across selected Regions.
+configured_password_policy.evaluation_scope = "aws_account"
+
+
 @register("aws_shield_automatic_application_layer_response", "aws", "hardening", "shield_protection",
           SPECS["aws_shield_automatic_application_layer_response"]["title"], "medium", "SC-5",
           "Enable Shield automatic application-layer response for applicable protections.",

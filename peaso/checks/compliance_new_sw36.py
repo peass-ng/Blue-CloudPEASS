@@ -229,6 +229,10 @@ def _exact_field(pattern, field, value):
     return value in entries
 
 
+_ENABLED_RULE_STATES = frozenset(("ENABLED", "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"))
+_VALID_RULE_STATES = _ENABLED_RULE_STATES | {"DISABLED"}
+
+
 def _rule_rows(index):
     rows = _rows(index, 'eventbridge_rule')
     names = set()
@@ -236,7 +240,7 @@ def _rule_rows(index):
         name = get(row, 'Name', str)
         bus = get(row, 'EventBusName', str)
         state = get(row, 'State', str)
-        if not name or not bus or (bus, name) in names or state not in ('ENABLED', 'DISABLED'):
+        if not name or not bus or (bus, name) in names or state not in _VALID_RULE_STATES:
             raise Unavailable('malformed EventBridge rule inventory')
         names.add((bus, name))
         _event_pattern(row)
@@ -572,7 +576,7 @@ def _guardduty_high(pattern):
 @_register('aws_guardduty_high_finding_alert', 'eventbridge_rule', 'GuardDuty HIGH findings trigger alert', 'medium', 'hardening', 'Create an enabled EventBridge rule for GuardDuty finding severity >= 7 and attach the approved notification target.', ['eventbridge_rule'], target='scope')
 def guardduty_high_finding_alert(item, index):
     rows = _event_scope(item, index)
-    matched = [row for row in rows if row['State'] == 'ENABLED' and _guardduty_high(_event_pattern(row))]
+    matched = [row for row in rows if row['State'] in _ENABLED_RULE_STATES and _guardduty_high(_event_pattern(row))]
     good = [row['Name'] for row in matched if _targets(row)]
     return result(not good, matching_rule_names=sorted(good), semantics='Configured EventBridge notification target only; delivery unverified')
 
@@ -583,7 +587,7 @@ def guardduty_siem_forwarding(item, index):
     approved = _arn_set(index, 'approved_siem_forwarder_arns')
     good = []
     for row in rows:
-        if row['State'] != 'ENABLED':
+        if row['State'] not in _ENABLED_RULE_STATES:
             continue
         pattern = _event_pattern(row)
         if _event_match(pattern, 'aws.guardduty', 'GuardDuty Finding'):
@@ -610,7 +614,7 @@ def incident_automated_containment(item, index):
         if not source or not detail_type or not _ARN.fullmatch(arn) or (source, detail_type) in seen:
             raise Unavailable('malformed approved incident class')
         seen.add((source, detail_type))
-        if not any(row['State'] == 'ENABLED' and _matches(row, source, detail_type) and arn in _targets(row) for row in rows):
+        if not any(row['State'] in _ENABLED_RULE_STATES and _matches(row, source, detail_type) and arn in _targets(row) for row in rows):
             uncovered.append({'source': source, 'detail_type': detail_type})
     return result(bool(uncovered), uncovered_event_classes=uncovered, semantics='Configured automation target only; executions and containment effectiveness unverified')
 
@@ -621,12 +625,12 @@ def inspector_findings_metric_export(item, index):
     approved = _text(index, 'approved_metric_pipeline_arn')
     if not _ARN.fullmatch(approved):
         raise Unavailable('malformed approved metric pipeline ARN')
-    good = [row['Name'] for row in rows if row['State'] == 'ENABLED' and _event_match(_event_pattern(row), 'aws.inspector2', 'Inspector2 Finding', detail_path=('resources', 'type'), detail_value='AWS_EC2_INSTANCE') and approved in _targets(row)]
+    good = [row['Name'] for row in rows if row['State'] in _ENABLED_RULE_STATES and _event_match(_event_pattern(row), 'aws.inspector2', 'Inspector2 Finding', detail_path=('resources', 'type'), detail_value='AWS_EC2_INSTANCE') and approved in _targets(row)]
     return result(not good, matching_rule_names=sorted(good), semantics='Configured EventBridge target only; metric arrival unverified')
 
 
 @_register('aws_securityhub_critical_findings_alert', 'eventbridge_rule', 'Security Hub CRITICAL finding alert', 'medium', 'hardening', 'Create an enabled EventBridge rule matching Security Hub imported CRITICAL findings and attach an SNS or incident target.', ['eventbridge_rule'], target='scope')
 def securityhub_critical_findings_alert(item, index):
     rows = _event_scope(item, index)
-    good = [row['Name'] for row in rows if row['State'] == 'ENABLED' and _event_match(_event_pattern(row), 'aws.securityhub', 'Security Hub Findings - Imported', detail_path=('findings', 'Severity', 'Label'), detail_value='CRITICAL') and _targets(row)]
+    good = [row['Name'] for row in rows if row['State'] in _ENABLED_RULE_STATES and _event_match(_event_pattern(row), 'aws.securityhub', 'Security Hub Findings - Imported', detail_path=('findings', 'Severity', 'Label'), detail_value='CRITICAL') and _targets(row)]
     return result(not good, matching_rule_names=sorted(good), semantics='Configured notification target only; delivery unverified')

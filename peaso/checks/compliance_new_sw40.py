@@ -7,6 +7,7 @@ cannot be resolved from the collected declarations alone.
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import datetime
 import json
 import re
 from urllib.parse import unquote
@@ -229,8 +230,102 @@ def _policy_scoped_action(item, index):
     return result(bool(hits), statement_indexes=hits, policy_arn=arn)
 
 
+def _native_policy_attachment(item, index, arn):
+    """Join a complete authorization-detail projection without inventing activity."""
+    _, account = _context(index)
+    policy_provenance = item.get("_provenance")
+    if (not isinstance(policy_provenance, dict) or
+            policy_provenance.get("operation") != "iam:GetAccountAuthorizationDetails" or
+            policy_provenance.get("native_response_complete") is not True):
+        raise Unavailable("native IAM policy attachment provenance unavailable")
+    expected_count = item.get("AttachmentCount")
+    if type(expected_count) is not int or expected_count < 0:
+        raise Unavailable("native policy attachment count unavailable")
+    partition = _ARN.fullmatch(arn).group(1)
+    attached, principals = [], {}
+    for kind, suffix in (("iam_user", "user"), ("iam_group", "group"), ("iam_role", "role")):
+        seen = set()
+        principals[kind] = {}
+        for row in _rows(index, kind, global_kind=True):
+            principal_arn = get(row, "Arn", str)
+            if not re.fullmatch(r"arn:" + re.escape(partition) + r":iam::" + account +
+                    r":" + suffix + r"/.+", principal_arn) or principal_arn in seen:
+                raise Unavailable("foreign or duplicate IAM attachment principal")
+            seen.add(principal_arn)
+            provenance = row.get("_provenance")
+            if (not isinstance(provenance, dict) or
+                    provenance.get("operation") != "iam:GetAccountAuthorizationDetails" or
+                    provenance.get("native_response_complete") is not True):
+                raise Unavailable("native IAM principal attachment provenance unavailable")
+            policies = get(row, "AttachedManagedPolicies", list)
+            policy_arns = []
+            for policy in policies:
+                candidate = policy.get("PolicyArn") if isinstance(policy, dict) else None
+                match = _ARN.fullmatch(candidate) if isinstance(candidate, str) else None
+                if match is None or match.group(1) != partition or match.group(2) not in {account, "aws"}:
+                    raise Unavailable("foreign or malformed attached policy ARN")
+                policy_arns.append(candidate)
+            if len(policy_arns) != len(set(policy_arns)):
+                raise Unavailable("duplicate managed-policy attachment")
+            principals[kind][principal_arn] = row
+            if arn in policy_arns:
+                attached.append((kind, principal_arn))
+    if len(attached) != expected_count:
+        raise Unavailable("native policy attachment count mismatch")
+    if not attached:
+        return result(True, policy_arn=arn, attachment_count=0)
+
+    def observed_timestamp(value):
+        if not isinstance(value, str):
+            return None
+        try:
+            observed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return observed if observed.tzinfo is not None and observed.utcoffset() is not None else None
+
+    captured_at = observed_timestamp(get(index, "context", dict).get("created_at"))
+
+    def coherent_activity(row, value):
+        observed = observed_timestamp(value)
+        if observed is None or captured_at is None or observed > captured_at:
+            return False
+        if "CreateDate" in row:
+            created = observed_timestamp(row["CreateDate"])
+            if created is None or observed < created:
+                return False
+        return True
+
+    def activity_source(kind, row):
+        # RoleLastUsed is present in the native RoleDetail model. Its date is
+        # positive usage evidence; a missing date does not prove inactivity.
+        if kind == "iam_role":
+            last = row.get("RoleLastUsed")
+            if isinstance(last, dict) and coherent_activity(row, last.get("LastUsedDate")):
+                return "iam:GetAccountAuthorizationDetails.RoleLastUsed"
+        state = row.get("ServicesLastAccessedStatus")
+        services = row.get("ServicesLastAccessed")
+        if (isinstance(state, dict) and state.get("collection_status") == "collected" and
+                state.get("operation") == "iam:GetServiceLastAccessedDetails" and
+                state.get("granularity") == "SERVICE_LEVEL" and isinstance(services, list) and
+                any(isinstance(service, dict) and coherent_activity(row, service.get("LastAuthenticated"))
+                    for service in services)):
+            return "iam:GetServiceLastAccessedDetails"
+        return None
+
+    for kind, principal_arn in attached:
+        if kind in {"iam_user", "iam_role"}:
+            source = activity_source(kind, principals[kind][principal_arn])
+            if source:
+                return result(False, active_attachment=principal_arn, activity_source=source)
+    # Group membership and a role trust declaration are not observations of use.
+    raise Unavailable("native IAM attachment activity unavailable")
+
+
 def _policy_attachment(item, index):
     arn, _ = _one_policy(item, index)
+    if not any(field in item for field in ("AttachedUsers", "AttachedGroups", "AttachedRoles")):
+        return _native_policy_attachment(item, index, arn)
     users = get(item, "AttachedUsers", list)
     groups = get(item, "AttachedGroups", list)
     roles = get(item, "AttachedRoles", list)

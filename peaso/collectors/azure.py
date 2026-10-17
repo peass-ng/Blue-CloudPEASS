@@ -35,6 +35,7 @@ from . import azure_incident_inventory_native
 from . import azure_security_correlation_native
 from . import azure_storage_blob_keys_native
 from . import azure_audit_storage_native
+from . import azure_entra_user_native
 from . import azure_wave_compute_native
 from . import azure_wave_change_native
 from . import azure_wave_network_controls
@@ -460,7 +461,7 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
     "managed_instance_database", "managed_instance_tde", "sql_database_inventory", "sql_tde_inventory",
     "guest_configuration_report", "azure_sw18_evidence", "mysql_postgresql_sql_server", *azure_conditional_access_native.NATIVE_TYPES,
     "devops_project", *azure_devops_pipeline_native.NATIVE_TYPES, *azure_access_reviews_native.NATIVE_TYPES, *azure_arm_metadata_native.NATIVE_TYPES, *azure_monitor_inventory_native.NATIVE_TYPES, *azure_aks_workloads_native.NATIVE_TYPES, "azure_detection_telemetry", "entra_diagnostic_setting", *azure_storage_backup_native.NATIVE_TYPES,
-    *azure_defender_network_native.NATIVE_TYPES, *azure_adaptive_network_native.NATIVE_TYPES, "directory_user_group_membership", "sql_managed_instance_administrator", "intune_diagnostic_setting",
+    *azure_defender_network_native.NATIVE_TYPES, *azure_adaptive_network_native.NATIVE_TYPES, *azure_entra_user_native.NATIVE_TYPES, "directory_user_group_membership", "sql_managed_instance_administrator", "intune_diagnostic_setting",
     "storage_local_user", "sql_backup_short_term_policy", "eventgrid_subscription",
     *azure_vault_key_versions_native.NATIVE_TYPES, *azure_iot_policy_native.NATIVE_TYPES, *azure_function_limits_native.NATIVE_TYPES, *azure_functions_runtime_native.NATIVE_TYPES, *azure_secret_versions_native.NATIVE_TYPES, *azure_storage_recovery_metadata_native.NATIVE_TYPES, "sentinel_workspace", *azure_incident_inventory_native.NATIVE_TYPES, *azure_security_correlation_native.NATIVE_TYPES, *azure_apim_diagnostic_evidence_native.NATIVE_TYPES, *azure_storage_blob_keys_native.NATIVE_TYPES, *azure_audit_storage_native.NATIVE_TYPES, "assessment_metadata",
     *azure_public_edge_native.NATIVE_TYPES, *azure_storage_lifecycle_native.NATIVE_TYPES, *azure_key_rotation_evidence_native.NATIVE_TYPES, "frontdoor_and_cdn_endpoint", "afd_profile", "afd_domain", "afd_route", "afd_security_policy",
@@ -1097,6 +1098,7 @@ def _selected(options, requirements):
     selected.update(azure_certificate_issuance_native.required_types(selected))
     selected.update(azure_nsg_ingress_native.required_types(selected))
     selected.update(azure_aks_workloads_native.required_types(selected))
+    selected.update(azure_entra_user_native.required_types(selected))
     selected.update(azure_public_edge_native.required_types(selected))
     selected.update(azure_storage_recovery_metadata_native.required_types(selected))
     selected.update(azure_storage_lifecycle_native.required_types(selected))
@@ -2352,6 +2354,10 @@ def collect(connector, requirements=None, *, transport=None):
             if collection["service"] == "Microsoft.Graph":
                 for item in collection["items"]:
                     item.setdefault("_provenance", {}).update(tenant_id=authenticated_tenant, tenant_verified=bool(getattr(transport, "verified_tenant", None)))
+    if "entra_user" in wanted:
+        reader.collections.extend(azure_entra_user_native.project(
+            reader.collections, scopes, tenant_id=authenticated_tenant,
+            verified_tenant=getattr(transport, "verified_tenant", None)))
     # Scan-local opaque binding is generated here, never accepted from portable
     # connector input, and is unique across credentials/captures/customers.
     for collection in reader.collections:

@@ -640,7 +640,15 @@ class ArtifactSourceInventoryBounds(unittest.TestCase):
     def successor_files(self):
         approved = {self.CONFIG: guard.APPROVED_RUNTIME_ADDITIONS[self.CONFIG], **self.SUCCESSOR_ADDITIONS}
         self.assertEqual(guard.APPROVED_SUCCESSOR_RUNTIME_ADDITIONS, approved)
-        files = {name: (ROOT / name).read_bytes() for name in approved}
+        # The reviewed successor additions belong to Source414e, not the current checkout.
+        archive_path = ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip"
+        self.assertEqual(guard.sha(archive_path.read_bytes()),
+                         "38ff0eb56f80b7e7be3b1c51b940605c614ec1377b2ce6969797e795da78ad06")
+        release = read_historical_release(archive_path)
+        self.assertEqual(release["source_version"], "414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d")
+        self.assertEqual({name: release["files"][name] for name in approved}, approved)
+        with zipfile.ZipFile(archive_path) as archive:
+            files = {name: archive.read(name) for name in approved}
         self.assertEqual({name: guard.sha(body) for name, body in files.items()}, approved)
         return files
 
