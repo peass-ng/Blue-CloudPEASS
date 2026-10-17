@@ -168,8 +168,8 @@ test("anonymous visitors start in fixture demo with prominent account actions", 
     : route.fulfill({ status: 401, json: { detail: "Bearer authentication required" } }));
   await page.goto("/");
   await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
-  await expect(page.getByRole("link", { name: "Log in", exact: true })).toHaveAttribute("href", "https://tools.hacktricks.wiki/login.html");
-  await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveAttribute("href", "https://tools.hacktricks.wiki/register.html");
+  await expect(page.getByRole("link", { name: "Log in", exact: true })).toHaveAttribute("href", `https://tools.hacktricks.wiki/login.html?next=${encodeURIComponent(page.url())}`);
+  await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveAttribute("href", `https://tools.hacktricks.wiki/register.html?next=${encodeURIComponent(page.url())}`);
   await expect(page.getByRole("status").filter({ hasText: "Fixture demo" })).toBeVisible();
   await page.getByLabel("Fixture demo", { exact: true }).uncheck();
   await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();

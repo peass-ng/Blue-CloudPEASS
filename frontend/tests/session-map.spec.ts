@@ -47,7 +47,7 @@ test("without a valid bearer or session, the map offers authentication settings"
   });
   await page.goto("/#Privilege%20Escalation%20Map");
   await expect(page.getByRole("heading", { name: "Authentication is required to view this map" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sign in at Tools" })).toHaveAttribute("href", "https://tools.hacktricks.wiki/login.html");
+  await expect(page.getByRole("link", { name: "Sign in at Tools" })).toHaveAttribute("href", `https://tools.hacktricks.wiki/login.html?next=${encodeURIComponent(page.url())}`);
   await page.getByRole("button", { name: "Open authentication settings" }).click();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 });
@@ -61,7 +61,7 @@ test("a rejected scan list offers authentication instead of a generic data error
   });
   await page.goto("/#Privilege%20Escalation%20Map");
   await expect(page.getByRole("heading", { name: "Authentication is required to view this map" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sign in at Tools" })).toHaveAttribute("href", "https://tools.hacktricks.wiki/login.html");
+  await expect(page.getByRole("link", { name: "Sign in at Tools" })).toHaveAttribute("href", `https://tools.hacktricks.wiki/login.html?next=${encodeURIComponent(page.url())}`);
   await expect(page.getByRole("heading", { name: "Data could not be loaded" })).toHaveCount(0);
   await page.getByRole("button", { name: "Open authentication settings" }).click();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();

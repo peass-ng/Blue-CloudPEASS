@@ -6,6 +6,7 @@ import type { Me } from "./types";
 import { Badge, Inspector, Panel, State } from "./ui";
 import { ApiKeys } from "./ApiKeys";
 import { Workspaces } from "./Workspaces";
+import { authLink } from "./authLinks";
 
 const quotaValue = (value: unknown) => typeof value === "number" ? value : undefined;
 
@@ -51,8 +52,8 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
           <div className="account-details">
             <p>Sign in to view your account and assessment quota.</p>
             <div className="button-row">
-              <a className="button primary" href="https://tools.hacktricks.wiki/login.html">Sign in <ExternalLink size={13} /></a>
-              <a className="button" href="https://tools.hacktricks.wiki/register.html">Create account <ExternalLink size={13} /></a>
+              <a className="button primary" href={authLink("login")}>Sign in <ExternalLink size={13} /></a>
+              <a className="button" href={authLink("register")}>Create account <ExternalLink size={13} /></a>
             </div>
             <a className="text-button small" href="https://tools.hacktricks.wiki/forgot-password.html">Forgot password</a>
             {localMode && <button className="button" onClick={() => setTokenDialog(true)}>Use local API token</button>}

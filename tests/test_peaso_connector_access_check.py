@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from peaso.auth import Identity
 from peaso.server import create_app
 from peaso.server.access_check import check_access
+from peaso.server.access_check import _aws
 from peaso.server.config import Settings
 
 
@@ -28,6 +29,53 @@ def test_temporary_credentials_need_one_hour(monkeypatch):
     later = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
     assert check_access("aws", auth, [], {}, settings, credential_expires_at=later)["status"] == "pass"
     assert len(calls) == 1
+
+
+def test_hosted_single_role_access_check_uses_customer_broker(monkeypatch):
+    import boto3
+    from peaso.server.validation import COLLECTOR_ROLE_ARN
+
+    target = "arn:aws:iam::123456789012:role/Audit"
+    calls = []
+
+    class Session:
+        def __init__(self, phase):
+            self.phase = phase
+
+        def client(self, service, **kwargs):
+            if self.phase == "source" and service != "sts":
+                raise AssertionError("source identity reached a cloud resource")
+            return Client(self.phase)
+
+    class Client:
+        def __init__(self, phase):
+            self.phase = phase
+
+        def assume_role(self, **kwargs):
+            calls.append((self.phase, kwargs["RoleArn"], kwargs.get("ExternalId")))
+            if self.phase == "source":
+                assert kwargs["RoleArn"] == COLLECTOR_ROLE_ARN
+                return {"Credentials": {"AccessKeyId": "broker", "SecretAccessKey": "secret", "SessionToken": "token"}}
+            assert self.phase == "broker" and kwargs["RoleArn"] == target
+            if not kwargs.get("ExternalId"):
+                raise PermissionError("External ID required")
+            return {"Credentials": {"AccessKeyId": "customer", "SecretAccessKey": "secret", "SessionToken": "token"}}
+
+        def get_caller_identity(self):
+            assert self.phase == "customer"
+            return {"Account": "123456789012", "Arn": target}
+
+        def __getattr__(self, name):
+            return lambda **kwargs: {}
+
+    monkeypatch.setattr("peaso.collectors.aws._session", lambda auth, region: (Session("source"), region))
+    monkeypatch.setattr(boto3, "Session", lambda **kwargs: Session(kwargs["aws_access_key_id"]))
+    issues, principals = [], []
+    _aws({"method": "assume_role", "external_id": "peaso-review", "role_arn": target}, [], {}, issues, principals)
+    assert calls == [("source", COLLECTOR_ROLE_ARN, None), ("broker", target, None),
+                     ("broker", target, "peaso-review")]
+    assert principals == [{"scope": target, "principal": target}]
+    assert not any(issue["severity"] == "critical" for issue in issues)
 
 
 def test_hosted_preparation_is_tenant_bound_and_survives_app_recreation(tmp_path, monkeypatch):

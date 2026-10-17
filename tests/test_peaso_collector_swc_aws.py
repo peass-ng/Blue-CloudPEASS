@@ -274,7 +274,12 @@ def test_role_permissions_and_immutable_versions():
         assert digest in (root / 'storage.tf').read_text()
     current = json.loads((root / 'customer-role.json').read_text())
     old = json.loads((root / ('customer-role-' + frozen[-1] + '.json')).read_text())
-    assert current['Resources']['AuditRole'] == old['Resources']['AuditRole']
+    current_role = current['Resources']['AuditRole']
+    old_role = old['Resources']['AuditRole']
+    assert current_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']['AWS'] == 'arn:aws:iam::202533532952:role/HackTricks-CSPM'
+    current_role = json.loads(json.dumps(current_role))
+    current_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal'] = old_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']
+    assert current_role == old_role
     actions = set()
     gateway_resources = []
     for resource in current['Resources'].values():

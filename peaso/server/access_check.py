@@ -82,7 +82,10 @@ def _aws(auth, scopes, options, issues, principals):
     from peaso.collectors.aws import _session
     from botocore.config import Config
     region = (options.get("regions") or ["us-east-1"])[0]
-    hosted = auth.get("method") == "assume_role" and str(auth.get("external_id", "")).startswith("peaso-") and not auth.get("aws_access_key_id") and bool(auth.get("assume_roles"))
+    hosted = (auth.get("method") in {"assume_role", "task_role"}
+              and str(auth.get("external_id", "")).startswith("peaso-")
+              and not auth.get("aws_access_key_id")
+              and bool(auth.get("assume_roles") or auth.get("role_arn")))
     config = Config(connect_timeout=5, read_timeout=10, retries={"max_attempts": 1})
     if hosted:
         import boto3
@@ -115,7 +118,9 @@ def _aws(auth, scopes, options, issues, principals):
             except Exception:
                 _issue(issues, "critical", entry.get("role_arn", "role chain"), "Could not assume the configured source role chain.")
                 return
-    targets = auth.get("assume_roles") or []
+    targets = list(auth.get("assume_roles") or [])
+    if hosted and auth.get("role_arn"):
+        targets.append({"role_arn": auth["role_arn"]})
     if not hosted and options.get("include_source_account", True):
         targets = [{"source": True}] + targets
     if not targets:

@@ -26,7 +26,7 @@ test("a private 401 offers hosted sign-in and a separate local token dialog", as
       : route.fulfill({ json: path.endsWith("/health") ? { status: "ok", auth_mode: "local" } : { items: [] } });
   });
   await page.goto("/#Settings");
-  await expect(page.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "https://tools.hacktricks.wiki/login.html");
+  await expect(page.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", `https://tools.hacktricks.wiki/login.html?next=${encodeURIComponent(page.url())}`);
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByLabel("API bearer token")).toBeVisible();
   await page.getByRole("button", { name: "Close inspector" }).click();

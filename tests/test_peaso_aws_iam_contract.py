@@ -311,6 +311,7 @@ class Statement:
     actions: tuple[str, ...]
     resources: tuple[str, ...]
     conditional: bool = False
+    not_actions: bool = False
 
 
 def policies(text):
@@ -335,7 +336,13 @@ def policies(text):
             except AssertionError:
                 conditional = False
             if effect in {"Allow", "Deny"}:
-                statements.append(Statement(effect, values(obj, "Action"), values(obj, "Resource"), conditional))
+                try:
+                    actions = values(obj, "Action")
+                    not_actions = False
+                except AssertionError:
+                    actions = values(obj, "NotAction")
+                    not_actions = True
+                statements.append(Statement(effect, actions, values(obj, "Resource"), conditional, not_actions))
         assert statements, f"No IAM statements parsed for {name}"
         result.setdefault(role, []).extend(statements)
     return result
@@ -345,7 +352,8 @@ def grants(statements, action, resource):
     def matches(statement):
         # Exact symbolic resource on allow; broad/inexact grants cannot satisfy the contract.
         resources = any(fnmatchcase(resource, value) for value in statement.resources) if statement.effect == "Deny" else resource in statement.resources
-        return resources and any(fnmatchcase(action.lower(), value.lower()) for value in statement.actions)
+        action_matches = any(fnmatchcase(action.lower(), value.lower()) for value in statement.actions)
+        return resources and (not action_matches if statement.not_actions else action_matches)
     # This contract has no condition context; any matching deny fails closed.
     return any(s.effect == "Allow" and not s.conditional and matches(s) for s in statements) and not any(s.effect == "Deny" and matches(s) for s in statements)
 

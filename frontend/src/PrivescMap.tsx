@@ -53,6 +53,7 @@ import type {
 } from "./types";
 import { Badge, EvidenceFields, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
 import { Remediation } from "./Remediation";
+import { authLink } from "./authLinks";
 import { explainPrivescCondition } from "./privescCondition";
 import "@xyflow/react/dist/style.css";
 
@@ -881,7 +882,7 @@ export function PrivescMap({
           <h3>Authentication is required to view this map</h3>
           <p>Sign in to your workspace or add a valid API token in Settings, then retry.</p>
           <div className="button-row">
-            <a className="button primary" href="https://tools.hacktricks.wiki/login.html">Sign in at Tools</a>
+            <a className="button primary" href={authLink("login")}>Sign in at Tools</a>
             <button className="button" onClick={() => onNavigate?.("Settings")}>
               Open authentication settings
             </button>

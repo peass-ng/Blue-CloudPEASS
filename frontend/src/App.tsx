@@ -20,6 +20,7 @@ import { Connectors } from "./Connectors";
 import { Dashboard } from "./Dashboard";
 import { Findings } from "./Findings";
 import { Help } from "./Help";
+import { authLink } from "./authLinks";
 const NetworkMap = lazy(() =>
   import("./NetworkMap").then((m) => ({ default: m.NetworkMap })),
 );
@@ -252,8 +253,8 @@ export function App() {
               Fixture demo
             </label>
             {!identity.isPending && !signedIn && <div className="topbar-auth-actions">
-              <a className="button" href="https://tools.hacktricks.wiki/login.html">Log in</a>
-              <a className="button primary" href="https://tools.hacktricks.wiki/register.html">Register</a>
+              <a className="button" href={authLink("login")}>Log in</a>
+              <a className="button primary" href={authLink("register")}>Register</a>
             </div>}
             {signedIn && <button
               className="account-button"
@@ -395,7 +396,7 @@ export function App() {
                     <h3>Authentication is required to view this map</h3>
                     <p>Sign in to your workspace or add a valid API token in Settings, then retry.</p>
                     <div className="button-row">
-                      <a className="button primary" href="https://tools.hacktricks.wiki/login.html">Sign in at Tools</a>
+                      <a className="button primary" href={authLink("login")}>Sign in at Tools</a>
                       <button className="button" onClick={() => navigate("Settings")}>Open authentication settings</button>
                     </div>
                   </div>
