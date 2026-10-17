@@ -91,11 +91,17 @@ def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     assert (root / "scripts/peaso_deploy.py").read_text().count(f'"infra/aws/customer-role-{template_sha256}.json"') == 2
 
 
-def test_collector_policy_has_unconditional_owned_account_role_deny():
+def test_customer_trust_role_cannot_read_platform_or_assume_platform_roles():
     iam = (Path(__file__).parents[1] / "infra/aws/iam.tf").read_text()
-    collector = iam.split('resource "aws_iam_role_policy" "collector"', 1)[1].split('resource "aws_iam_role" "analyzer"', 1)[0]
-    assert '{ Effect = "Deny", Action = ["sts:AssumeRole"], Resource = ["arn:aws:iam::202533532952:role/*", "arn:aws:iam::418720621023:role/*"] }' in collector
-    assert 'Condition = { StringEquals = { "aws:ResourceAccount" = ["202533532952", "418720621023"] } }' in collector
+    collector = iam.split('resource "aws_iam_role_policy" "collector"', 1)[1].split('resource "aws_iam_role" "customer_trust"', 1)[0]
+    broker = iam.split('resource "aws_iam_role_policy" "customer_trust"', 1)[1].split('resource "aws_iam_role" "analyzer"', 1)[0]
+    assert 'Resource = local.customer_trust_arn' in collector
+    assert 'Resource = "arn:aws:iam::*:role/*"' not in collector
+    assert 'name        = "HackTricks-CSPM"' in iam
+    assert 'Sid = "AssumeCustomerRoles", Effect = "Allow", Action = "sts:AssumeRole", Resource = "*"' in broker
+    assert '"arn:aws:iam::202533532952:role/*", "arn:aws:iam::418720621023:role/*"' in broker
+    assert 'Sid = "BlockLocalAndOtherActions", Effect = "Deny", NotAction = "sts:AssumeRole", Resource = "*"' in broker
+    assert 'secretsmanager:' not in broker and 'dynamodb:' not in broker and 's3:' not in broker
     assert '{ Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn }' in collector
     assert '{ Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn] }' in collector
     assert '{ Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.gcp_platform_sa_secret_arn }' in collector

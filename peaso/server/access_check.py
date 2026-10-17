@@ -86,7 +86,7 @@ def _aws(auth, scopes, options, issues, principals):
     config = Config(connect_timeout=5, read_timeout=10, retries={"max_attempts": 1})
     if hosted:
         import boto3
-        from .validation import COLLECTOR_ROLE_ARN
+        from .validation import COLLECTOR_ROLE_ARN, PLATFORM_ACCOUNT_IDS
         source_session, _ = _session({"method": "default"}, region)
         collector = source_session.client("sts", config=config).assume_role(
             RoleArn=COLLECTOR_ROLE_ARN, RoleSessionName="peaso-access-check", DurationSeconds=3600)["Credentials"]
@@ -125,6 +125,9 @@ def _aws(auth, scopes, options, issues, principals):
     verified_accounts = set()
     for target in targets:
         role_arn = target.get("role_arn") if isinstance(target, dict) else target
+        if hosted and role_arn and role_arn.split(":")[4] in PLATFORM_ACCOUNT_IDS:
+            _issue(issues, "critical", role_arn, "Platform-owned AWS accounts cannot be role targets.")
+            continue
         if role_arn and selected_accounts and role_arn.split(":")[4] not in selected_accounts:
             continue
         scope = role_arn or "source account"
@@ -141,6 +144,9 @@ def _aws(auth, scopes, options, issues, principals):
                         _issue(issues, "critical", scope, "Target role can be assumed without this connector's External ID; require sts:ExternalId in the trust policy.")
                 active = assume(session, role_arn, external)
             identity = active.client("sts", config=config).get_caller_identity()
+            if hosted and identity["Account"] in PLATFORM_ACCOUNT_IDS:
+                _issue(issues, "critical", scope, "Platform-owned AWS accounts cannot be scanned.")
+                continue
             if not role_arn and selected_accounts and identity["Account"] not in selected_accounts:
                 continue
             verified_accounts.add(identity["Account"])

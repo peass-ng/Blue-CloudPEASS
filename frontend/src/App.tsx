@@ -1,7 +1,6 @@
 import { Component, lazy, Suspense, useEffect, useState } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import {
-  ArrowUpRight,
   ChevronDown,
   Cloud,
   Gauge,
@@ -20,6 +19,7 @@ import { ApiError, authSessionChangedEvent, items, useApi, workspaceKey } from "
 import { Connectors } from "./Connectors";
 import { Dashboard } from "./Dashboard";
 import { Findings } from "./Findings";
+import { Help } from "./Help";
 const NetworkMap = lazy(() =>
   import("./NetworkMap").then((m) => ({ default: m.NetworkMap })),
 );
@@ -79,6 +79,11 @@ const pages = [
     icon: SettingsIcon,
     group: "ADMINISTRATION",
     description: "Account, quota, supported scope and help.",
+  },
+  {
+    label: "Help",
+    icon: HelpCircle,
+    description: "Set up access, run an assessment and interpret its evidence.",
   },
 ];
 export function App() {
@@ -198,7 +203,7 @@ export function App() {
         </div>}
         </div>
         <nav aria-label="Primary navigation">
-          {pages.map((p) => (
+          {pages.filter((p) => p.label !== "Help").map((p) => (
             <div key={p.label}>
               {p.group && <div className="nav-group">{p.group}</div>}
               <button
@@ -229,14 +234,10 @@ export function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <button className="nav-item" onClick={() => navigate("Settings")}>
+          <button className="nav-item" onClick={() => navigate("Help")}>
             <HelpCircle size={18} />
             Help & documentation
-            <ArrowUpRight size={14} />
           </button>
-          <div className="version-line">
-            PEASO v1.0<span>Built by HackTricks</span>
-          </div>
         </div>
       </aside>
       <div className="workspace-main">
@@ -254,22 +255,12 @@ export function App() {
               <a className="button" href="https://tools.hacktricks.wiki/login.html">Log in</a>
               <a className="button primary" href="https://tools.hacktricks.wiki/register.html">Register</a>
             </div>}
-            <span className={`api-status ${health.error ? "offline" : ""}`}>
-              <span className="status-dot" />
-              {demo
-                ? "Demo data"
-                : health.isPending
-                  ? "Connecting"
-                  : health.error
-                    ? "API unavailable"
-                    : "Live API"}
-            </span>
             {signedIn && <button
               className="account-button"
-              aria-label="Account settings"
+              aria-label={`Account settings${identity.data?.email ? ` for ${identity.data.email}` : ""}`}
               onClick={() => navigate("Settings")}
             >
-              HT
+              {String(identity.data?.email || identity.data?.name || identity.data?.tenant_id || "A").trim().charAt(0).toUpperCase()}
             </button>}
           </div>
         </header>
@@ -313,7 +304,7 @@ export function App() {
                 Changes are disabled.
               </span>
               <button className="text-button" onClick={switchDemo}>
-                Return to live API
+                Exit demo
               </button>
             </div>
           )}
@@ -436,6 +427,7 @@ export function App() {
             </State>
           )}
           {page === "Settings" && <Settings demo={false} workspaceId={workspaceId} onWorkspaceCreated={selectWorkspace} />}
+          {page === "Help" && <Help onNavigate={navigate} />}
           <footer className="footer">
             <span>
               <ShieldCheck size={13} />

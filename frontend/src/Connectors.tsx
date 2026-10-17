@@ -7,7 +7,7 @@ import { authGuides, gcpRoles } from "./authGuides";
 import { providers } from "./types";
 import type { Connector, Me, Provider } from "./types";
 import { Badge, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
-const COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/hacktricks-cspm-collector";
+const COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/HackTricks-CSPM";
 const ROLE_ARN = /^arn:aws:iam::[0-9]{12}:role\/[A-Za-z0-9+=,.@_/-]{1,512}$/;
 const TEMPLATE_URL = "https://cspm.hacktricks.wiki/aws/customer-role.json";
 const BACKUP_POLICY_SCOPE = /^[0-9]{12}\/[a-z]{2}(?:-[a-z]+)+-[0-9]$/;

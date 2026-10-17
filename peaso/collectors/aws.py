@@ -1792,6 +1792,12 @@ def collect(connector, requirements=None):
             raise ValueError("role_chain must contain at most 10 role targets")
         hosted = bool(options.get("hosted"))
         hosted_platform = bool(hosted and auth.get("external_id") and not auth.get("aws_access_key_id"))
+        if hosted_platform:
+            from peaso.server.validation import COLLECTOR_ROLE_ARN, PLATFORM_ACCOUNT_IDS
+            # The ECS task identity retains only platform storage access. Customer
+            # STS calls must originate from the separate, locally blind broker.
+            session = _assume(requests, session, regions[0],
+                {"role_arn": COLLECTOR_ROLE_ARN, "role_session_name": "peaso-customer-broker"}, {})
         if auth.get("role_arn") and not hosted_platform:
             chain = chain + [{"role_arn": auth["role_arn"]}]
         for target in chain:
@@ -1858,11 +1864,13 @@ def collect(connector, requirements=None):
                 continue
             try:
                 if hosted_platform:
-                    if expected in {"202533532952", "418720621023"}:
+                    if expected in PLATFORM_ACCOUNT_IDS:
                         raise ReadFailure("denied", "platform_owned_account")
                     _reject_unprotected_hosted_role(requests, session, regions[0], target_info, auth)
                 role_session = _assume(requests, session, regions[0], target_info, auth)
                 role_identity = _identity(requests, role_session, regions[0], expected)
+                if hosted_platform and role_identity["Account"] in PLATFORM_ACCOUNT_IDS:
+                    raise ReadFailure("denied", "platform_owned_account")
                 contexts.append((role_session, role_identity))
                 identities.append(role_identity)
                 selected_context_accounts.add(role_identity["Account"])

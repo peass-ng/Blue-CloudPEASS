@@ -9,7 +9,8 @@ locals {
       ArnLike      = { "aws:SourceArn" = "arn:aws:ecs:${var.region}:${local.account_id}:*" }
     }
   }] })
-  workflow_arn = "arn:aws:states:${var.region}:${local.account_id}:stateMachine:${local.name}"
+  workflow_arn       = "arn:aws:states:${var.region}:${local.account_id}:stateMachine:${local.name}"
+  customer_trust_arn = "arn:aws:iam::${local.account_id}:role/HackTricks-CSPM"
 }
 resource "aws_iam_role" "api" {
   name               = "${local.name}-api"
@@ -23,13 +24,14 @@ resource "aws_iam_role_policy" "api" {
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
     { Effect = "Allow", Action = ["cognito-idp:AdminGetUser", "cognito-idp:ListUsers", "cognito-idp:ListUserPoolClients", "cognito-idp:DescribeUserPoolClient"], Resource = local.pool_arn },
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn, local.stripe_arn] },
-    { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = aws_iam_role.collector.arn },
+    { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = local.customer_trust_arn },
     { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn },
     { Effect = "Allow", Action = ["states:StartExecution"], Resource = local.workflow_arn },
     { Effect = "Allow", Action = ["states:DescribeExecution"], Resource = "arn:aws:states:${var.region}:${local.account_id}:execution:${local.name}:*" }
     ], var.gcp_platform_sa_secret_arn == "" ? [] : [
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.gcp_platform_sa_secret_arn }
   ]) })
+  depends_on = [aws_iam_role.customer_trust]
 }
 resource "aws_iam_role" "execution" {
   name               = "${local.name}-task-execution"
@@ -47,8 +49,7 @@ resource "aws_iam_role" "collector" {
   name = "${local.name}-collector"
   assume_role_policy = jsonencode({ Version = "2012-10-17", Statement = [
     { Effect = "Allow", Principal = { Service = "ecs-tasks.amazonaws.com" }, Action = "sts:AssumeRole",
-    Condition = { StringEquals = { "aws:SourceAccount" = local.account_id }, ArnLike = { "aws:SourceArn" = "arn:aws:ecs:${var.region}:${local.account_id}:*" } } },
-    { Effect = "Allow", Principal = { AWS = aws_iam_role.api.arn }, Action = "sts:AssumeRole" }
+    Condition = { StringEquals = { "aws:SourceAccount" = local.account_id }, ArnLike = { "aws:SourceArn" = "arn:aws:ecs:${var.region}:${local.account_id}:*" } } }
   ] })
 }
 resource "aws_iam_role_policy" "collector" {
@@ -58,13 +59,29 @@ resource "aws_iam_role_policy" "collector" {
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn] },
     { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn },
-    { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = "arn:aws:iam::*:role/*" },
-    { Effect = "Deny", Action = ["sts:AssumeRole"], Resource = ["arn:aws:iam::202533532952:role/*", "arn:aws:iam::418720621023:role/*"] },
-    { Effect = "Deny", Action = ["sts:AssumeRole"], Resource = "*",
-    Condition = { StringEquals = { "aws:ResourceAccount" = ["202533532952", "418720621023"] } } }
+    { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = local.customer_trust_arn }
     ], var.gcp_platform_sa_secret_arn == "" ? [] : [
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.gcp_platform_sa_secret_arn }
   ]) })
+  depends_on = [aws_iam_role.customer_trust]
+}
+resource "aws_iam_role" "customer_trust" {
+  name        = "HackTricks-CSPM"
+  description = "Customer-trusted CSPM broker; can only assume explicitly trusted external roles"
+  assume_role_policy = jsonencode({ Version = "2012-10-17", Statement = [{
+    Effect = "Allow", Principal = { AWS = [aws_iam_role.api.arn, aws_iam_role.collector.arn] },
+    Action = "sts:AssumeRole"
+  }] })
+}
+resource "aws_iam_role_policy" "customer_trust" {
+  role = aws_iam_role.customer_trust.id
+  policy = jsonencode({ Version = "2012-10-17", Statement = [
+    { Sid = "AssumeCustomerRoles", Effect = "Allow", Action = "sts:AssumeRole", Resource = "*" },
+    { Sid = "BlockPlatformAccounts", Effect = "Deny", Action = "sts:AssumeRole", Resource = [
+      "arn:aws:iam::202533532952:role/*", "arn:aws:iam::418720621023:role/*"
+    ] },
+    { Sid = "BlockLocalAndOtherActions", Effect = "Deny", NotAction = "sts:AssumeRole", Resource = "*" }
+  ] })
 }
 resource "aws_iam_role" "analyzer" {
   name               = "${local.name}-analyzer"

@@ -150,7 +150,7 @@ class Session:
                 raise OperationError("Role name now exists; refusing reuse")
             name = reuse_name
         external_id = "peaso-" + uuid.uuid4().hex
-        collector = "arn:aws:iam::202533532952:role/hacktricks-cspm-collector"
+        collector = "arn:aws:iam::202533532952:role/HackTricks-CSPM"
         trust = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "sts:AssumeRole",
             "Principal": {"AWS": "arn:aws:iam::202533532952:root"},
             "Condition": {"ArnEquals": {"aws:PrincipalArn": collector}, "StringEquals": {"sts:ExternalId": external_id}}}]}

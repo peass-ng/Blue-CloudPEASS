@@ -25,7 +25,7 @@ test("Compose live AWS report populates every UI section", async ({ page }) => {
   expect(authDialogWasOpen).toBe(false);
   await expect(authDraft).toHaveCount(0);
   await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();
-  await expect(page.getByText("Live API", { exact: true })).toBeVisible();
+  await expect(page.getByText("Live API", { exact: true })).toHaveCount(0);
   const headers = { Authorization: `Bearer ${process.env.PEASO_COMPOSE_TOKEN}` };
   const connectors = await page.request.get("/api/connectors", { headers });
   expect(connectors.status()).toBe(200);

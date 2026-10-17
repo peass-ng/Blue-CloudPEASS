@@ -22,7 +22,7 @@ AUTH = {
 }
 AWS_ROLE_ARN = re.compile(r"arn:aws:iam::([0-9]{12}):role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
 PLATFORM_ACCOUNT_IDS = frozenset({"202533532952", "418720621023"})
-COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/hacktricks-cspm-collector"
+COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/HackTricks-CSPM"
 CUSTOMER_ROLE_TEMPLATE_URL = "https://cspm.hacktricks.wiki/aws/customer-role.json"
 
 

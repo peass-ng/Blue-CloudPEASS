@@ -42,7 +42,7 @@ def test_hosted_preparation_is_tenant_bound_and_survives_app_recreation(tmp_path
         prepared = client.post("/api/connectors/prepare", json={"provider": "aws", "method": "assume_role"})
         assert prepared.status_code == 200
         setup = prepared.json()
-        assert setup["collector_role_arn"] == "arn:aws:iam::202533532952:role/hacktricks-cspm-collector"
+        assert setup["collector_role_arn"] == "arn:aws:iam::202533532952:role/HackTricks-CSPM"
     with TestClient(create_app(settings, authenticator=IdentityStub())) as client:
         client.headers["Authorization"] = "Bearer owner"
         body["prepared_id"] = setup["prepared_id"]

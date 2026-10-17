@@ -45,7 +45,7 @@ resource "aws_lambda_function" "api" {
   timeout                        = 28
   reserved_concurrent_executions = 10
   environment { variables = local.runtime_env }
-  depends_on = [aws_iam_role_policy.api, aws_cloudwatch_log_group.api, aws_secretsmanager_secret_version.credentials]
+  depends_on = [aws_iam_role_policy.api, aws_iam_role_policy.customer_trust, aws_cloudwatch_log_group.api, aws_secretsmanager_secret_version.credentials]
 }
 resource "aws_lambda_function" "scheduler" {
   function_name                  = "${local.name}-scheduler"

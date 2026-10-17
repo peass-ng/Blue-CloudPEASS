@@ -628,6 +628,10 @@ def refresh(root: Path):
     resources = template["Resources"]
     previous_resources = json.loads(json.dumps(resources))
     role = resources["AuditRole"]["Properties"]
+    # New customer templates must trust the dedicated broker, never the ECS
+    # task role that also holds platform storage permissions.
+    role["AssumeRolePolicyDocument"]["Statement"][0]["Principal"]["AWS"] = (
+        "arn:aws:iam::202533532952:role/HackTricks-CSPM")
     # Pre-existing customer inline policies are preserved and still bounded by the inline aggregate limit.
     inline = [item for item in role.get("Policies", []) if item.get("PolicyName") != MANAGED_POLICY_PREFIX]
     aggregate = sum(policy_size(item["PolicyDocument"]) for item in inline)

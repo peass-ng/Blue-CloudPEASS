@@ -229,7 +229,7 @@ def test_hosted_external_id_is_server_generated_and_unique(cognito_settings, mon
         second = client.post("/api/connectors", json=body)
         assert first.status_code == second.status_code == 201
         assert first.json()["onboarding"]["external_id"].startswith("peaso-")
-        assert first.json()["onboarding"]["collector_role_arn"] == "arn:aws:iam::202533532952:role/hacktricks-cspm-collector"
+        assert first.json()["onboarding"]["collector_role_arn"] == "arn:aws:iam::202533532952:role/HackTricks-CSPM"
         assert first.json()["onboarding"]["target_role_arns"] == [role]
         assert first.json()["onboarding"]["template_url"] == "https://cspm.hacktricks.wiki/aws/customer-role.json"
         assert first.json()["onboarding"]["quick_create_template_url"] is None

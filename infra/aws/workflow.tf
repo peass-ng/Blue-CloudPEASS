@@ -62,6 +62,7 @@ resource "aws_ecs_task_definition" "tasks" {
     }
   }])
   volume { name = "scratch" }
+  depends_on = [aws_iam_role_policy.collector, aws_iam_role_policy.customer_trust]
 }
 locals {
   run_tasks = { for stage in ["collector", "analyzer"] : stage => {

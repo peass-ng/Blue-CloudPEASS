@@ -9,6 +9,6 @@ output "api_id" { value = aws_apigatewayv2_api.cspm.id }
 output "api_function" { value = aws_lambda_function.api.function_name }
 output "workflow_arn" { value = aws_sfn_state_machine.scan.arn }
 output "worker_repository" { value = aws_ecr_repository.worker.repository_url }
-output "collector_role_arn" { value = aws_iam_role.collector.arn }
+output "collector_role_arn" { value = aws_iam_role.customer_trust.arn }
 output "analyzer_role_arn" { value = aws_iam_role.analyzer.arn }
 output "credential_secret_arn" { value = aws_secretsmanager_secret.credentials.arn }

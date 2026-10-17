@@ -36,6 +36,13 @@ def sdk(monkeypatch):
 
     monkeypatch.setattr(aws.Requests, "client", lambda self, _session, service, region: clients[(service, region)])
     monkeypatch.setattr(aws, "_session", lambda auth, region: (session, "test-pinned"))
+    original_assume = aws._assume
+    def assume_with_fixture_broker(requests, source, region, target, defaults):
+        from peaso.server.validation import COLLECTOR_ROLE_ARN
+        if isinstance(target, dict) and target.get("role_arn") == COLLECTOR_ROLE_ARN:
+            return session
+        return original_assume(requests, source, region, target, defaults)
+    monkeypatch.setattr(aws, "_assume", assume_with_fixture_broker)
     yield session, add, clients
     for stub in stubs.values():
         stub.assert_no_pending_responses()
@@ -566,7 +573,14 @@ def test_uncached_trust_probe_obeys_budget_and_read_guard(sdk):
         requests.call(session, "sts", REGION, "get_caller_identity", _uncached_credential_exchange=True)
 
 
-def test_hosted_owned_target_never_reaches_sts_assume_role(sdk):
+def test_hosted_owned_target_never_reaches_sts_assume_role(sdk, monkeypatch):
+    from peaso.server.validation import COLLECTOR_ROLE_ARN
+    assumed = []
+    original_assume = aws._assume
+    def record_assume(requests, source, region, target, defaults):
+        assumed.append(target["role_arn"])
+        return original_assume(requests, source, region, target, defaults)
+    monkeypatch.setattr(aws, "_assume", record_assume)
     _, add, _ = sdk
     add("sts").add_response("get_caller_identity", IDENTITY, {})
     snapshot = aws.collect({"provider": "aws", "scopes": ["202533532952"],
@@ -574,6 +588,7 @@ def test_hosted_owned_target_never_reaches_sts_assume_role(sdk):
                  "assume_roles": ["arn:aws:iam::202533532952:role/Internal"]},
         "options": {"hosted": True, "regions": [REGION]}}, ["vpc"])
     assert snapshot["metadata"]["calls"] == 1
+    assert assumed == [COLLECTOR_ROLE_ARN]
     assert snapshot["metadata"]["authentication_errors"][0]["error"]["code"] == "platform_owned_account"
 
 

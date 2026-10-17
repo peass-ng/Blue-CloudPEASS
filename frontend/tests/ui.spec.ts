@@ -8,7 +8,7 @@ async function emptyApi(page: Page) {
       json: path.endsWith("/connectors/check-access")
         ? { status: "pass", issues: [], principals: [{ scope: "fixture", principal: "fixture identity" }] }
         : path.endsWith("/connectors/prepare")
-          ? { prepared_id: "fixture-prepared", external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/hacktricks-cspm-collector", template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json" }
+          ? { prepared_id: "fixture-prepared", external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/HackTricks-CSPM", template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json" }
         : path.endsWith("/health")
         ? { status: "ok" }
         : path.endsWith("/me")
@@ -178,6 +178,21 @@ test("anonymous visitors start in fixture demo with prominent account actions", 
   await expect(page.getByLabel("Fixture demo", { exact: true })).toBeDisabled();
   await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();
   await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveCount(0);
+});
+test("account initial and Help route show actionable documentation", async ({ page }) => {
+  await emptyApi(page);
+  await page.route("**/api/me", (route) => route.fulfill({ json: {
+    tenant_id: "signed-in", email: "maria@example.test", plan: "free",
+  } }));
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Account settings for maria@example.test" })).toHaveText("M");
+  await expect(page.getByText("Live API", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("PEASO v1.0")).toHaveCount(0);
+  await page.getByRole("button", { name: "Help & documentation" }).click();
+  await expect(page).toHaveURL(/#Help$/);
+  await expect(page.getByRole("heading", { name: "Get started" })).toBeVisible();
+  await expect(page.getByText("arn:aws:iam::202533532952:role/HackTricks-CSPM")).toBeVisible();
+  await expect(page.getByRole("link", { name: /AWS cross-account roles/ })).toHaveAttribute("href", /docs\.aws\.amazon\.com/);
 });
 test("failed scan shows its curated role refusal in history and details", async ({ page }) => {
   await emptyApi(page);
@@ -521,7 +536,7 @@ test("hosted role form and onboarding show trust, copy, and CloudFormation", asy
       payload = route.request().postDataJSON();
       created = true;
       await route.fulfill({ status: 201, json: { id: "c1" } });
-    } else await route.fulfill({ json: { items: created ? [{ id: "c1", name: "Hosted role", provider: "aws", scopes: [], auth_mode: "assume_role", onboarding: { external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/hacktricks-cspm-collector", target_role_arns: [role], template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json", quick_create_template_url: publicReady ? "https://hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com/customer-role.json" : null } }] : [] } });
+    } else await route.fulfill({ json: { items: created ? [{ id: "c1", name: "Hosted role", provider: "aws", scopes: [], auth_mode: "assume_role", onboarding: { external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/HackTricks-CSPM", target_role_arns: [role], template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json", quick_create_template_url: publicReady ? "https://hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com/customer-role.json" : null } }] : [] } });
   });
   await page.goto("/#Connectors");
   await page.getByRole("button", { name: "Add connector", exact: true }).click();
@@ -548,7 +563,7 @@ test("hosted role form and onboarding show trust, copy, and CloudFormation", asy
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('"sts:ExternalId"');
   const trust = JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
   expect(trust.Statement).toEqual([{
-    Effect: "Allow", Principal: { AWS: "arn:aws:iam::202533532952:role/hacktricks-cspm-collector" },
+    Effect: "Allow", Principal: { AWS: "arn:aws:iam::202533532952:role/HackTricks-CSPM" },
     Action: "sts:AssumeRole",
     Condition: { StringEquals: { "sts:ExternalId": "peaso-fixture-external-id" } },
   }]);
