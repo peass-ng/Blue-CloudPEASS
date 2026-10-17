@@ -22,7 +22,11 @@ def plan():
         },
         "resource_changes": [
             {"mode": "managed", "address": address, "change": {"actions": ["update"]}}
-            for address in sorted(release.REQUIRED_RUNTIME)
+            for address in sorted(release.REQUIRED_RUNTIME - {'aws_ecs_task_definition.tasks'})
+        ] + [
+            {"mode": "managed", "address": f'aws_ecs_task_definition.tasks["{stage}"]',
+             "change": {"actions": ["delete", "create"]}}
+            for stage in ('collector', 'analyzer')
         ],
         "resource_drift": [],
     }
@@ -31,7 +35,7 @@ def plan():
 def test_review_accepts_only_dedicated_runtime_updates():
     summary = release.review_plan(plan(), {"source_version": VERSION})
     assert summary["source_version"] == VERSION
-    assert len(summary["changes"]) == 3
+    assert len(summary["changes"]) == 4
 
 
 @pytest.mark.parametrize("address,actions", [
@@ -51,6 +55,10 @@ def test_review_rejects_unowned_or_destructive_change(address, actions):
 def test_review_requires_complete_runtime_and_frozen_image():
     candidate = plan()
     candidate["resource_changes"].pop()
+    with pytest.raises(ValueError, match="both collector and analyzer"):
+        release.review_plan(candidate, {"source_version": VERSION})
+    candidate = plan()
+    candidate["resource_changes"].pop(0)
     with pytest.raises(ValueError, match="all CSPM API and worker runtimes"):
         release.review_plan(candidate, {"source_version": VERSION})
     candidate = plan()

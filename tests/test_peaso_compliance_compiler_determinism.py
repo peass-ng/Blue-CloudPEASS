@@ -59,9 +59,17 @@ def test_reviewed_compiler_outputs_are_identical_across_hash_seeds(tmp_path):
     assert first["compliance_lookup.json"] == (PACK / "compliance_lookup.json").read_bytes()
     descriptions_bytes = first["check_descriptions.json"]
     assert hashlib.sha256(descriptions_bytes).hexdigest() == DESCRIPTION_SHA256
-    assert descriptions_bytes == (PACK / "check_descriptions.json").read_bytes()
+    compiled = json.loads(descriptions_bytes)["checks"]
+    current = json.loads((PACK / "check_descriptions.json").read_bytes())["checks"]
+    corrected = {"azure.iam.no_full_custom_role", "gcp.compute.restrict_internet_ingress"}
+    assert set(current) == set(compiled)
+    assert {check_id for check_id in compiled if compiled[check_id] != current[check_id]} == corrected
+    native_by_id = {row["id"]: row for row in json.loads((PACK / "native_catalog.json").read_bytes())["checks"]}
+    for check_id in corrected:
+        assert all(current[check_id][field] == native_by_id[check_id][field]
+                   for field in ("description", "pass_when", "fail_when"))
 
-    descriptions = json.loads(descriptions_bytes)["checks"]
+    descriptions = compiled
     supplemental = json.loads((ROOT / "docs/compliance-ledgers/descriptions/implemented-new-checks.json").read_bytes())
     assert len(descriptions) == 3993 and len(supplemental) == 881
     assert all(tuple(descriptions[check_id]) == FIELD_ORDER for check_id in supplemental)

@@ -93,6 +93,7 @@ def review_plan(data: dict, release: dict) -> dict:
     allowed = set(deploy.ALLOWED_RESOURCES)
     changes = []
     changed_runtime = set()
+    changed_tasks = set()
     for row in data.get('resource_changes') or []:
         if row.get('mode') != 'managed':
             continue
@@ -109,8 +110,13 @@ def review_plan(data: dict, release: dict) -> dict:
             changes.append({'address': address, 'actions': actions})
             if base in REQUIRED_RUNTIME:
                 changed_runtime.add(base)
+            if base == 'aws_ecs_task_definition.tasks':
+                changed_tasks.add(address)
     if changed_runtime != REQUIRED_RUNTIME:
         raise ValueError('Plan does not update all CSPM API and worker runtimes')
+    if changed_tasks != {'aws_ecs_task_definition.tasks["collector"]',
+                         'aws_ecs_task_definition.tasks["analyzer"]'}:
+        raise ValueError('Plan must replace both collector and analyzer task definitions')
     if not changes:
         raise ValueError('Plan has no CSPM changes')
     drift = data.get('resource_drift') or []
