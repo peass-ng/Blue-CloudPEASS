@@ -108,6 +108,14 @@ def main():
     private(root / "collector-source-manifest.json", manifest)
     environment = {**os.environ, "PYTHONPATH": str(build)}
     result = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--directory", str(root), "--child"], cwd=build, env=environment)
+    after = [{"path": row["path"], "sha256": hashlib.sha256((source / row["path"]).read_bytes()).hexdigest()} for row in manifest]
+    changed = [row["path"] for row, final in zip(manifest, after) if row["sha256"] != final["sha256"]]
+    private(root / "source-after-read.json", {"files": after, "primary_files_changed_during_measurement": changed})
+    if (root / "summary.json").exists():
+        summary = json.loads((root / "summary.json").read_text())
+        summary.update(primary_files_changed_during_measurement=changed, measurement_source_hashes_immutable=True,
+                       qa_identity_verification_calls=1 + summary["metadata_generation_calls"])
+        private(root / "summary.json", summary)
     raise SystemExit(result.returncode)
 
 

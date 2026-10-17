@@ -1,13 +1,21 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Azure Databricks techniques (declarative only).
-# Source: hacktricks-cloud az-databricks-privesc.md (rev a53b46392c; working-tree copy read).
+# Source: hacktricks-cloud az-databricks-privesc.md (rev 171e422).
 
 - id: azure-databricks-assign-workspace-admin
   provider: azure
   service: databricks
   title: Self-assign Databricks workspace admin through Azure RBAC
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-databricks-privesc.md#become-a-workspace-admin-through-azure-rbac
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain Databricks workspace administrator privileges.
+  source_kind: azure_user
+  source_selector:
+    azure_member_user: true
   requires:
     all_of:
       - action: Microsoft.Databricks/workspaces/assignWorkspaceAdmin/action

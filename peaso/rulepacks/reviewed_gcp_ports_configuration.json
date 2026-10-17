@@ -1,0 +1,478 @@
+{
+  "gcp-compliance.control.alloydb_cluster_encrypted_with_cmk": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.alloydb_cluster_encrypted_with_cmk"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "alloydb_cluster_encrypted_with_cmk",
+      "source_path": [
+        "policy_bundle/alloydb.pp"
+      ],
+      "source_query_sha256": "0b4470f3ba9f511e92719aabf64a9ca10c70f2de9bcc6a0936f903f350afc35c",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.alloydb_cluster_encrypted_with_cmk",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/alloydb.pp#L43"
+    }
+  },
+  "gcp-compliance.control.alloydb_instance_log_error_verbosity_database_flag_default_or_stricter": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.alloydb_instance_log_error_verbosity_database_flag_default_or_stricter"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "alloydb_instance_log_error_verbosity_database_flag_default_or_stricter",
+      "source_path": [
+        "policy_bundle/alloydb.pp"
+      ],
+      "source_query_sha256": "2c16810a9efced90ad1dc81cbe728a24be35b67b4eeb287bb15ccf81bb08dcb5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.alloydb_instance_log_error_verbosity_database_flag_default_or_stricter",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/alloydb.pp#L7"
+    }
+  },
+  "gcp-compliance.control.alloydb_instance_log_min_error_statement_database_flag_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.alloydb_instance_log_min_error_statement_database_flag_configured"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "alloydb_instance_log_min_error_statement_database_flag_configured",
+      "source_path": [
+        "policy_bundle/alloydb.pp"
+      ],
+      "source_query_sha256": "abf21de0d521516e5413b6beb375eaabafb3179e877bfdca988a5233e4fccdc0",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.alloydb_instance_log_min_error_statement_database_flag_configured",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/alloydb.pp#L19"
+    }
+  },
+  "gcp-compliance.control.alloydb_instance_log_min_messages_database_flag_error": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.alloydb_instance_log_min_messages_database_flag_error"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "alloydb_instance_log_min_messages_database_flag_error",
+      "source_path": [
+        "policy_bundle/alloydb.pp"
+      ],
+      "source_query_sha256": "36427675c6c6f25b266a1740ea497df8bb443391c16c4906aa3fff73d7cbde7e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.alloydb_instance_log_min_messages_database_flag_error",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/alloydb.pp#L31"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.project_service_cloudasset_api_enabled"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "project_service_cloudasset_api_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "8438d06707ffb96a119c82c5dc44e419029cef4dcee8d6ceed7957f3fdc2650e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L201"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.project_service_cloudasset_api_enabled"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "project_service_cloudasset_api_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "8438d06707ffb96a119c82c5dc44e419029cef4dcee8d6ceed7957f3fdc2650e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L202"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.project_service_cloudasset_api_enabled"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "project_service_cloudasset_api_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "8438d06707ffb96a119c82c5dc44e419029cef4dcee8d6ceed7957f3fdc2650e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L202"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.project_service_cloudasset_api_enabled"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "project_service_cloudasset_api_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "8438d06707ffb96a119c82c5dc44e419029cef4dcee8d6ceed7957f3fdc2650e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L202"
+    }
+  },
+  "prowler.gcp.apikeys_api_restricted_with_gemini_api": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.apikeys_api_restricted_with_gemini_api"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "apikeys_api_restricted_with_gemini_api",
+      "source_path": "prowler/providers/gcp/services/apikeys/apikeys_api_restricted_with_gemini_api/apikeys_api_restricted_with_gemini_api.py",
+      "source_query_sha256": "43dd5f51b3af476de7fe0c3c8d294a2e165e549c05a5174a643ae7ef0d6815db",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.apikeys_api_restricted_with_gemini_api",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/apikeys/apikeys_api_restricted_with_gemini_api/apikeys_api_restricted_with_gemini_api.metadata.json"
+    }
+  },
+  "prowler.gcp.artifacts_container_analysis_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.artifacts_container_analysis_enabled"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "artifacts_container_analysis_enabled",
+      "source_path": "prowler/providers/gcp/services/artifacts/artifacts_container_analysis_enabled/artifacts_container_analysis_enabled.py",
+      "source_query_sha256": "5aa71e4c0f71c48814dfde05434a10ee089c61990c9a0b00930dc1b3a8fc45a0",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.artifacts_container_analysis_enabled",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/artifacts/artifacts_container_analysis_enabled/artifacts_container_analysis_enabled.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_postgres_log_min_duration_statement_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sql_pg_min_duration"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_postgres_log_min_duration_statement_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_postgres_log_min_duration_statement_flag/cloudsql_instance_postgres_log_min_duration_statement_flag.py",
+      "source_query_sha256": "ae155399a2b5b5498a5f67107bb2cdcf1daf8ac7ba54d83239670ea4b7dfde3a",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_postgres_log_min_duration_statement_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_postgres_log_min_duration_statement_flag/cloudsql_instance_postgres_log_min_duration_statement_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_postgres_log_min_error_statement_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sql_pg_min_error"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_postgres_log_min_error_statement_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_postgres_log_min_error_statement_flag/cloudsql_instance_postgres_log_min_error_statement_flag.py",
+      "source_query_sha256": "6c6d63e24787f4ab53b0ad9d80f6383d8e47ef9ce26bea52afb05917702d92a2",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_postgres_log_min_error_statement_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_postgres_log_min_error_statement_flag/cloudsql_instance_postgres_log_min_error_statement_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_postgres_log_min_messages_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sql_pg_min_messages"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_postgres_log_min_messages_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_postgres_log_min_messages_flag/cloudsql_instance_postgres_log_min_messages_flag.py",
+      "source_query_sha256": "0b29087dce3a76396be049c35569f568fa972da0eb0e0a18edd8a055b8715fd6",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_postgres_log_min_messages_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_postgres_log_min_messages_flag/cloudsql_instance_postgres_log_min_messages_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_sqlserver_contained_database_authentication_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sqlserver_contained_database_authentication"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_sqlserver_contained_database_authentication_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_contained_database_authentication_flag/cloudsql_instance_sqlserver_contained_database_authentication_flag.py",
+      "source_query_sha256": "0e8ac67f0bb5513e725172c1cd30314d0cabde78c45bbdc657acff547e239a75",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_sqlserver_contained_database_authentication_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_contained_database_authentication_flag/cloudsql_instance_sqlserver_contained_database_authentication_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sqlserver_cross_db_ownership_chaining"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag/cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag.py",
+      "source_query_sha256": "7458fdfada859696243eae0fa6dd2b4c4f82dd40ec6df9b848b0d54ab5820293",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag/cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_sqlserver_external_scripts_enabled_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sqlserver_external_scripts_enabled"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_sqlserver_external_scripts_enabled_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_external_scripts_enabled_flag/cloudsql_instance_sqlserver_external_scripts_enabled_flag.py",
+      "source_query_sha256": "4ed784ae0bd184a2c5b9fbaac90195095f6de4ff51b1ca9a4936f9a04a1d5712",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_sqlserver_external_scripts_enabled_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_external_scripts_enabled_flag/cloudsql_instance_sqlserver_external_scripts_enabled_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_sqlserver_remote_access_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sqlserver_remote_access"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_sqlserver_remote_access_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_remote_access_flag/cloudsql_instance_sqlserver_remote_access_flag.py",
+      "source_query_sha256": "5269b0ae4912996644e9617372c08c74684f2860d5b37a8144b7e94fdaa79740",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_sqlserver_remote_access_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_remote_access_flag/cloudsql_instance_sqlserver_remote_access_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_sqlserver_trace_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sqlserver_trace3625"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_sqlserver_trace_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_trace_flag/cloudsql_instance_sqlserver_trace_flag.py",
+      "source_query_sha256": "e206bb6fab95c2c172f3812d25d18ae9706e8c1c9d520db6b5b9cfb1230a33da",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_sqlserver_trace_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_trace_flag/cloudsql_instance_sqlserver_trace_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_sqlserver_user_connections_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sqlserver_user_connections"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_sqlserver_user_connections_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_user_connections_flag/cloudsql_instance_sqlserver_user_connections_flag.py",
+      "source_query_sha256": "f7993325502d1ab6ab03d6787a28a5d0e382fa64069a74d7d0e12b22517c41c4",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_sqlserver_user_connections_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_user_connections_flag/cloudsql_instance_sqlserver_user_connections_flag.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_sqlserver_user_options_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sqlserver_user_options"
+    ],
+    "reason": "Reviewed source-specific declared flag/default/engine and service-state criterion. Prowler absence fallbacks are separate from explicit declaration controls; SQL Server trace3625 ON differs from rejected OFF reference. AlloyDB explicit databaseFlags remain distinct from Cloud SQL flag arrays. Gemini API target policy requires the exact key project enabled-service metadata, never credential fallback or API enablement.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "https://docs.cloud.google.com/alloydb/docs/reference/database-flags",
+      "https://docs.cloud.google.com/service-usage/docs/reference/rest/v1/services",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_sqlserver_user_options_flag",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_user_options_flag/cloudsql_instance_sqlserver_user_options_flag.py",
+      "source_query_sha256": "4ff6453c805cbfeb59218bad1b5b929193aea76924cceffc6ff02674950076a6",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "default_semantics": "Pinned documented source defaults only; malformed, duplicate, denied or unrecognized engine evidence remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_sqlserver_user_options_flag",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_user_options_flag/cloudsql_instance_sqlserver_user_options_flag.metadata.json"
+    }
+  }
+}

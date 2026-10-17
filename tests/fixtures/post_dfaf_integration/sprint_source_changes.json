@@ -1,0 +1,1638 @@
+{
+  "baseline_source_version": "de3138dfbed47ea8a123109911776e394e289fc19e94786207373b08a0a0dc2f",
+  "baseline_compliance_manifest_sha256": "db02091367b0067b5c4db3439d9fa13805877bb933e7e2dfab37113c1ffcaac8",
+  "reason": "Additive signed bulk evaluators and native scope-bound projections, scoped credential models, metadata-only telemetry, explicit native evidence gaps, and tested performance corrections. Historical authored requirement rationales and exact ancestor artifacts are preserved.",
+  "captured_at": "2026-10-16T01:46:25.378371+00:00",
+  "phase": "native_v31_combined_readonly_public_edge_and_native_NSG_directed_validation",
+  "changes": {
+    "docs/compliance-ledgers/descriptions/implemented-new-checks.json": {
+      "baseline_sha256": "58df9eff53d9ae4a3f6e52ed4acfb94e02625495cfcbab2116653005361cc8fa",
+      "sha256": "c59811a355a58e6106875ab6987be8c4ba5bbcefa1b0c67eec3b8e3ee0a94b65"
+    },
+    "docs/compliance-ledgers/manifest.json": {
+      "baseline_sha256": "db02091367b0067b5c4db3439d9fa13805877bb933e7e2dfab37113c1ffcaac8",
+      "sha256": "ffb564cedbf575c3d1f94a158c4565f198c14919f93236207e02177855de5879"
+    },
+    "docs/handoff/compliance-runtime-coverage.json": {
+      "baseline_sha256": "8023bb0d42e6a85e0af3f2ee9249e6446bd1f4365f74ad23c2510703dbf38403",
+      "sha256": "5a87a034eb438cb6f631ba1527432fa7695984671ca28b42f53e4fd09dbf6565"
+    },
+    "docs/peaso-aws-b-coverage.md": {
+      "baseline_sha256": "695a005440e22e174a6f5a9b1a0f435a8dc26015f1555bb7e9670f5b55c40d88",
+      "sha256": "501c2e95c71abdd7a3c55d0eb47bcb36df5c8cad706ce39febf15766b38da44d"
+    },
+    "docs/peaso-aws-collector.md": {
+      "baseline_sha256": "1fc7c3e01b6743544b4b8510e75b3e080ab42203c3db128c0d70a1143327a69f",
+      "sha256": "255345f883f11bc0cbf53994fd3df8840004b46b51c229abdb2188765e02b928"
+    },
+    "docs/peaso-aws-priority-tags-native.md": {
+      "baseline_sha256": null,
+      "sha256": "55c125e338d0171c255337c87792d7f770ce51e837830828efada2d6181ab557"
+    },
+    "docs/peaso-azure-collector.md": {
+      "baseline_sha256": null,
+      "sha256": "7c0746b2a6008637e75640e738e47ed61315b644802c809d2057d42f3a460099"
+    },
+    "docs/peaso-azure-coverage.md": {
+      "baseline_sha256": "0e745aae73f835a76419a2e456e8f9b96ac829a9552dc1e2b5b7c16ef72f7739",
+      "sha256": "fec1369529db7922cda890602d2c22ae6b747ca316c31d9bc7531121073c3c96"
+    },
+    "docs/peaso-azure-function-rate-limits.md": {
+      "baseline_sha256": null,
+      "sha256": "6b3b6b026ae3866d82a5dbf54df980d2f7c1569bb9c24edb0d07c94bc647d848"
+    },
+    "docs/peaso-azure-k8s-collectors.md": {
+      "baseline_sha256": "6e486289e1640ae6d88a59221e61f244307f5130be135f63f705edde316577ea",
+      "sha256": "d5d9c044db5db361cb07be0b3153d786c041b466b676a86720462299a962eaee"
+    },
+    "docs/peaso-azure-secret-current-metadata.md": {
+      "baseline_sha256": null,
+      "sha256": "ed417ee2746eb9e56763b4a19a06abb9cbd80952a7df0852b5b9206b1e99fef3"
+    },
+    "docs/peaso-engine.md": {
+      "baseline_sha256": "93cf8b57860d571885b99922795dc6fab1451f023989dd4653f1ef4f1f5d4276",
+      "sha256": "169fd78bc0e5f95352082c237b7c39d12e775df8240db38a481001a3afdbbaf8"
+    },
+    "docs/peaso-gcp-collector.md": {
+      "baseline_sha256": "59c00ec665185794cf5dc4d7151c1ebea79d548d787852ba73c52a3176783d69",
+      "sha256": "129c1f549b478b5ab2c6f7fb23ab9da25b7fcd1b280ae5ab08402cec3721e023"
+    },
+    "docs/peaso-privesc-testing.md": {
+      "baseline_sha256": null,
+      "sha256": "040818a5e0737de99971e0b12ec7b0c867d22672889136e2ef576872ed0d3e54"
+    },
+    "docs/peaso-privesc.md": {
+      "baseline_sha256": "f6323042e691ef514fa043f4c8b8fcb98cb9060e705202542bc89de483cc90b7",
+      "sha256": "ec765b7dc5d6c0a535f976b7bfb18b544aafe467720032fae7682371a8f268ac"
+    },
+    "docs/peaso-validation.md": {
+      "baseline_sha256": "8ff9908ee14bacd0bf1b29ef3b4aa5951c54e93cfbeec8beede9b780dada3121",
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "a6be5292aad7ddb61f8385a29b2759025eb4caffb19fbb5b9918759baceed345"
+    },
+    "docs/privesc-ledgers/privesc-aws.md": {
+      "baseline_sha256": "94d4e7d7272027385703e6916466e23612aa6806b5410f260b17e1fd8643ad4a",
+      "sha256": "1f294ec724ba21a679fdde0617b5b4d20cf600d4f6fc7470a288fa981706ca1d"
+    },
+    "docs/privesc-ledgers/privesc-azure.md": {
+      "baseline_sha256": "a647e5b5de273e09be1fb287beedf81a929e15190a6da72884124f356038285b",
+      "sha256": "4bb3db029afab86551990ed3ca56015760e11093b9216aeba49df1c300735ee3"
+    },
+    "docs/privesc-ledgers/privesc-gcp.md": {
+      "baseline_sha256": "d84c86c511475604f7a8b7e39abf764542d05d0bffd8b6c63cbfc79027cfead0",
+      "sha256": "30746b06e27c144037fafdd61dd030a26914663dbdfa28660ce2451a5515b00e"
+    },
+    "docs/privesc-ledgers/privesc-k8s.md": {
+      "baseline_sha256": "eb9be11b917866976d1573ee565d6f2f2d4870df5df067a8b9c20570969c3f42",
+      "sha256": "2327f0bef45e4ae163b4c55172da838995c56ddf8b0dc18d96c5067d06fe202d"
+    },
+    "docs/privesc-ledgers/scoped-live-validation-20261014.json": {
+      "baseline_sha256": null,
+      "sha256": "bd0ff658bc147b6b3346d6fdbabd248993cdfa28d7a5c540c3434aa28cc8064a"
+    },
+    "docs/privesc-ledgers/source-validation-20261014.json.gz": {
+      "baseline_sha256": null,
+      "sha256": "4eeb8802c7d14ec642fea95982c863b23408c2ec4f0177ab868ac0cc47817b42"
+    },
+    "docs/privesc-ledgers/source-validation-disclosure-v7.json.gz": {
+      "baseline_sha256": null,
+      "sha256": "4746d5d84f4971fe1438dee4c7ccb47a16d9d86fd626835c2559f41d960b326c"
+    },
+    "frontend/src/frameworkCatalog.json": {
+      "baseline_sha256": "84217160d64732f3c2f91b8d4cc4f4ebcaac1a1a4065b53abaf7cd3ebd760269",
+      "sha256": "ed95edb988c65a5c74827f5c8997e853db2cc5f19b4ef7b2214779edbb82a296"
+    },
+    "frontend/src/types.ts": {
+      "baseline_sha256": "f3b9e365f47ea234dbccee3b00da1f7ee61ebd2b46fcead6b33abbbd5ba8fa4b",
+      "sha256": "e975f9fac4ce5b5771296260da611a4590f6bbf352ee75661d1228dadac7aabe"
+    },
+    "infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json": {
+      "baseline_sha256": null,
+      "sha256": "0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2"
+    },
+    "infra/aws/customer-role-0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d.json": {
+      "baseline_sha256": null,
+      "sha256": "0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d"
+    },
+    "infra/aws/customer-role-2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf.json": {
+      "baseline_sha256": null,
+      "sha256": "2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf"
+    },
+    "infra/aws/customer-role-2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f.json": {
+      "baseline_sha256": null,
+      "sha256": "2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f"
+    },
+    "infra/aws/customer-role-7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6.json": {
+      "baseline_sha256": null,
+      "sha256": "7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6"
+    },
+    "infra/aws/customer-role-95e70cc9e033643bb3d7e0a400246f7ee392c5d3301319027482bc4350c09a25.json": {
+      "baseline_sha256": null,
+      "sha256": "95e70cc9e033643bb3d7e0a400246f7ee392c5d3301319027482bc4350c09a25"
+    },
+    "infra/aws/customer-role-a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873.json": {
+      "baseline_sha256": null,
+      "sha256": "a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873"
+    },
+    "infra/aws/customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json": {
+      "baseline_sha256": null,
+      "sha256": "a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980"
+    },
+    "infra/aws/customer-role-e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d.json": {
+      "baseline_sha256": null,
+      "sha256": "e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d"
+    },
+    "infra/aws/customer-role-f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c.json": {
+      "baseline_sha256": null,
+      "sha256": "f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c"
+    },
+    "infra/aws/customer-role.json": {
+      "baseline_sha256": "6d31b087d5542e740af07fa1e05ede2c7faca0b712ffdb8dba43c19d2cb2ce21",
+      "sha256": "fef2efcc028af51f48a4fa6d883b4ce959dba3691b0b9de3872971a9aac94c82"
+    },
+    "infra/aws/storage.tf": {
+      "baseline_sha256": "0708329d81a681c345e8cb417c2e699c8b4603aed8ae28f921664013592b7b44",
+      "sha256": "1de050d48dfdd6819309969bb9ac43bb544ca34f6d6233034a1f1c426e2bfebd"
+    },
+    "peaso/analysis/__init__.py": {
+      "baseline_sha256": "29a11a810301fd86684db41c1cc8b234562bce35fa265d9c6bdb6e31c1e5ee65",
+      "sha256": "c3278b0cee91040273561f69ea3de8c45df83447a98da8b8320edf5578c27999"
+    },
+    "peaso/analysis/aws_public_ingress.py": {
+      "baseline_sha256": null,
+      "sha256": "f58f4f100215dd35da15ec177fbfa1b90145a6bf02fbd80afd759374544f06f0"
+    },
+    "peaso/auth/secrets.py": {
+      "baseline_sha256": "6dee3edf4d39e30e9c9cf9c52c2ecbb79e3164192a2818669f0760b8230be3d0",
+      "sha256": "2cdcf05081781c8df608fe921941c2b475af9b6aac442f71e2a087563c9bb620"
+    },
+    "peaso/aws_budget_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "940a71e4627173e814381a148744a3840c81f60957f5bd2a6032fa4086ba4b69"
+    },
+    "peaso/aws_waf_logging.py": {
+      "baseline_sha256": null,
+      "sha256": "f97074cf8e7ecfb00ac1bac45947bdcd628affe294a0465283b1a5a35eb7c8b9"
+    },
+    "peaso/azure_sw32_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "9d9a545dbc9240e29a3389445dcb9f032fd2350db059e38d49a95f0d90d9e3b0"
+    },
+    "peaso/checks/__init__.py": {
+      "baseline_sha256": "d5fd63069d4bc6d6d3ecfe339e91139ad4b435f0de44684f65b9473f33a9340b",
+      "sha256": "de8e7183f01967c53dcc866303924f88164f496c993a8f736b12968404615450"
+    },
+    "peaso/checks/azure_apim_diagnostics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "4221d0aa3092bff0bb5eeb11fdf3ecc58687f0899a52523fbfeed412bb4af55b"
+    },
+    "peaso/checks/bulk_pending.json": {
+      "baseline_sha256": null,
+      "sha256": "85fbd32ae05004c43b554fc2b909c1127e76baa152bb675959b05d0890da9931"
+    },
+    "peaso/checks/bulk_pending.py": {
+      "baseline_sha256": null,
+      "sha256": "41cd15965640293562f1808fd7cc31b85769a3e3a44aa3c5537d119dabd50a11"
+    },
+    "peaso/checks/catalog.py": {
+      "baseline_sha256": "6f8ab1e699cc93e7aa9d4451288ea05cd50486b3bcb6ae4cf82a5f7fbfd69e7b",
+      "sha256": "5ca7d0d4e93c45fce29ff88799bd6b91c6b7695e662a7f1ba1af17501095ab99"
+    },
+    "peaso/checks/compliance_new_sw07.py": {
+      "baseline_sha256": "6858c0bb33ca188313103d098953a1b601563d76fa7a41a3a27ac6f5c0fabdcb",
+      "sha256": "37d3e987fb3afeca513b10c19a9ea62d702340c57ad4203a9963a7f246b4884d"
+    },
+    "peaso/checks/compliance_new_sw11.py": {
+      "baseline_sha256": "05222da1fd6ab8cc481a032f0be29912f0914de2d72a46afd7f21f273732fced",
+      "sha256": "dc807a53d9e9f9eb21ccf1243cf39426d8eaa5d94541c8879a66c248ac4b65e7"
+    },
+    "peaso/checks/compliance_new_sw12.py": {
+      "baseline_sha256": "5f81d2949ff60214738f0c7fe621d3ef07bfe4444cfceed6ae10a6f858a15dd7",
+      "sha256": "8fc2ba768a07b253ec85e12351d51ec74c1f30934920318380b5371d6fd33c6f"
+    },
+    "peaso/checks/compliance_new_sw13.py": {
+      "baseline_sha256": "026c9a68c9e77eb045d11b4c78bb0d8cf106dd7f18abf4fdeff769963d1a0914",
+      "sha256": "6ba1dbd3683d1571c8491f3c536f23d56590a72a8f0af4c11bb5b323d0a01155"
+    },
+    "peaso/checks/compliance_new_sw15.py": {
+      "baseline_sha256": "9d29b8f2e90bdd3554c097bba60e48e75ae30a5a552026e7934c6798b4b8d637",
+      "sha256": "ed7ee48993ba8908d5f3a1bdda5c47511b3a058de548bd081ebd587e2126e95b"
+    },
+    "peaso/checks/compliance_new_sw16.py": {
+      "baseline_sha256": "132da35ea8241d69c3c5f4992f4c08cc09ad576cc3727b5aa9ee428f4ee20b10",
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "82e7b4f9a968e16c6422071fc99c9b2a52bd1bfb02df29f7b552bc307a761c5b"
+    },
+    "peaso/checks/compliance_new_sw17.py": {
+      "baseline_sha256": "6fabb5c18fa52706153fdffa29373d5b2049b50c3a37c6c08a14b43e8f865feb",
+      "sha256": "e47a0809302888ca8f97f6c33de74188309f49f48d2f395d29ec2601d592887a"
+    },
+    "peaso/checks/compliance_new_sw18.py": {
+      "baseline_sha256": "d980edb99822159f5ee118348e94d04631300854daa8475ab6832ce7d81d6ba1",
+      "sha256": "4d3d9f1d7936a7490721a44f58c77c41ed40b52387b34ddbe6ecbea2c3b72e1a"
+    },
+    "peaso/checks/compliance_new_sw19.py": {
+      "baseline_sha256": "899a8928601c803343b9b45c674cefce508e6026aeddff41188f13e5e12d55f3",
+      "sha256": "37c69212b7038789d72426d732035ef8a0bae4748ea49dc947c78ec00ae9f42f"
+    },
+    "peaso/checks/compliance_new_sw21.py": {
+      "baseline_sha256": "7b79b943136b2fb1d4f5e19e94972adfff64171596c8421ebf65f89d3802ec0b",
+      "sha256": "7255fbe9888a676d1ea93f71b235b283d4915e2d79a0d656e634f470b85267d5"
+    },
+    "peaso/checks/compliance_new_sw24.py": {
+      "baseline_sha256": "5929c32054c4951165601492745759ffb75a8229aefa953bf97b5c3248f370bf",
+      "sha256": "26e43cf3ed4d0919df1ea74abfa0c2b755e3202a684624cba93832337f2c822f"
+    },
+    "peaso/checks/compliance_new_sw25.py": {
+      "baseline_sha256": "c4ef7f54cb524709c438fa653f5311c6955c4e5a8c24b8e4da9751ea1b969e80",
+      "sha256": "b65dcf614235b875ebca3323f2f8dc8be458a4b75959648e48024237c42f8cfc"
+    },
+    "peaso/checks/compliance_new_sw25_native_identity.py": {
+      "baseline_sha256": null,
+      "sha256": "c347440d7e378900762fc5cf6253203c61325008f6320008919d68cb5c37c53e"
+    },
+    "peaso/checks/compliance_new_sw26.py": {
+      "baseline_sha256": "74bf0a5fb9fe0582b30c6df912239444820cd815222b88604b66a0f7c4d8b264",
+      "sha256": "8e60a898dac17f50d5c3f3551bc9242a96d4ea8127f60ea28cc880dff4cfa90e"
+    },
+    "peaso/checks/compliance_new_sw27.py": {
+      "baseline_sha256": "5c4524d65d9331562de0cd05cd83b7169e1118555ba68648edfd3aefbcecb7b6",
+      "sha256": "3fad2a662c60649936744efb88bd76c10b200ddce6ea41fde3e546d8865b5924"
+    },
+    "peaso/checks/compliance_new_sw32.py": {
+      "baseline_sha256": "7346bf9b6af9e24960d23323fcef7b2edacb1bb63ee81df4e4e46a70639a74a1",
+      "sha256": "d44760650996262baba32e6cec536742a5bb355d050c6b5904aa37ee0ca7878c"
+    },
+    "peaso/checks/compliance_new_sw33.py": {
+      "baseline_sha256": "41c02c762675033ce4d4d48665b1b1ef9ad33a6bc6e20fa722c8d47c109be75b",
+      "sha256": "c7603e2e439d2272320cc3991b02aca1156d2f96688deae5e831958750a9f4e2"
+    },
+    "peaso/checks/compliance_new_sw37.py": {
+      "baseline_sha256": "5028a04e2b766884167f747a6fdd410ff9e0552c476377ffdffff45c377ff4aa",
+      "sha256": "63e73e26ef553d9646272ceb6bcf2d9cf46fd673b4ccc4c1e7dfdd55efe530d7"
+    },
+    "peaso/checks/compliance_new_sw38.py": {
+      "baseline_sha256": "81a852129617fa5fea44a6681d4fcee0b06c8207c1b4f00fd1f5700be8e6ffa0",
+      "sha256": "8349853eb7eca42fb60ca5a61c46a5b2eb40db5456eac982189864b06811392c"
+    },
+    "peaso/checks/compliance_new_sw39.py": {
+      "baseline_sha256": "48d481ee4a0c26f147ef394bb1ababc1d46eb1e79e33cee5e930f56291a22eb8",
+      "sha256": "e6aace895230544c7f388e147f3bb7da3930820626143e8d36b4823dcaf79c18"
+    },
+    "peaso/checks/compliance_new_sw42.py": {
+      "baseline_sha256": "c8a69faefaadd3341c3c16afd6c1bbeb01d9a5737bc9b358dd273499465fe03e",
+      "sha256": "264cd2f96c7683079f2d9a7b2cf9bb51394e6df849625638222cf6254e41eef3"
+    },
+    "peaso/checks/compliance_new_sw43.py": {
+      "baseline_sha256": "cb9d3335a18b06dc60d572ba0dda97f09410890c575217036926ff7686874169",
+      "sha256": "ff5de6855d362b7bc0c62d2decb4ed894e0195ca50a7fc846076e9d3786d9295"
+    },
+    "peaso/checks/compliance_new_sw44.py": {
+      "baseline_sha256": "0b4cfbd61ca32541dc310eb7315f29a8995513c88d6727ed544f105250f12568",
+      "sha256": "8be0ec6214a352d92a301449369bf6a0a7b3fb72f3e4e964da10c96f24b47364"
+    },
+    "peaso/checks/compliance_new_sw45.py": {
+      "baseline_sha256": "9bbfb6a5d352265e989cb37a478fb6c8e6bf7b9b8f4ce1591ef203152a63cad9",
+      "sha256": "2a7349a3691cebacf6b7a665bdf06fb89723c818fca5a3b44be93a2324b36719"
+    },
+    "peaso/checks/compliance_new_sw46.py": {
+      "baseline_sha256": "439c01d75983befe583c4dfbeee72f2dfd1fe19cd4620b426daf8ee17ccb0568",
+      "sha256": "553fc35045130d729c20e1cec09fd1a6d897d9ae65c69257202b26cbf8b575be"
+    },
+    "peaso/checks/compliance_new_sw47.py": {
+      "baseline_sha256": "0bc14278348667c3d592501492d4536e0a1892a3044678e2903a07d2cba81694",
+      "sha256": "5c57aa4be9b3178be05fbc0ca19c60606cf12b130af48291cda6e15ac6736d78"
+    },
+    "peaso/checks/compliance_new_sw48.py": {
+      "baseline_sha256": "3655a3f721e1d772e64ceec3991daff67c5b4f442107528e2652c2dd593fb45a",
+      "sha256": "d406db795ca67f5d9cbd9a027c15fb519bf1ad9032e48da4a57be2c287d4e93c"
+    },
+    "peaso/checks/compliance_new_sw49.py": {
+      "baseline_sha256": "a1363e4d20345d841fb763ba03d01bce837df504143171633543501194b1ec10",
+      "sha256": "374e1c8f3a6b37200b0abb6f38c232b1d7caeb669a592ed6d86557e24494fe01"
+    },
+    "peaso/checks/compliance_new_sw51.py": {
+      "baseline_sha256": "4ed4ed85eff584e5c738f0c6d20d973ef680f20e9b47759082b47d72c39ef05f",
+      "sha256": "5a1df90fbbafa43399dced00d3c515ddee2111d7f3ef8a7500b6a5a00cc247b1"
+    },
+    "peaso/checks/compliance_new_sw53.py": {
+      "baseline_sha256": "b378a13a67cc57287f4f578ff61928fee1a5e418182e19069bde8ddebd13de70",
+      "sha256": "91ea4d397c7ab2917d15e8fbb0fffb5e45d62a96eab6b8feb1936a549ca79edf"
+    },
+    "peaso/checks/compliance_new_sw55.py": {
+      "baseline_sha256": "e52b7ebd3fdc5b04d43aae7d18780576c4c2e674a4c9983e2700405c45771b26",
+      "sha256": "59b7b73fcb19d1f7ef9390d3bd8c8079d5d2e7870b201c10a0816578196d684e"
+    },
+    "peaso/cli.py": {
+      "baseline_sha256": "aee1f97cd667028b5248ffd734653a29a061cf14ed69db0bcc3d66cb3d4caf80",
+      "sha256": "16e59ad6b416197aa07ed0ca5903dedab11e80ce06a829cdac13c36ac2c7f9e8"
+    },
+    "peaso/collectors/__init__.py": {
+      "baseline_sha256": "4bac6af4b283112a1ac6823d78ccc830cba51398c309ed3433860dbb796e813f",
+      "sha256": "b6fa220ba87da8002dbe37578970a94ab40649a81c7384d89936f9050213a443"
+    },
+    "peaso/collectors/aws.py": {
+      "baseline_sha256": "bdae3a0eb065dc9b4745db86b6747120bf79047c4c5fd4990e3cbc5f7cc6f7ad",
+      "sha256": "67b28442397cab0312af5e44b4554deca287eae456ba6e7cf217389b4bf5682d"
+    },
+    "peaso/collectors/aws_apigateway_native.py": {
+      "baseline_sha256": null,
+      "sha256": "bf5c20ba91a679dcd303579b89ef6f9fd3b96e4664254716b5c98e4367e854a5"
+    },
+    "peaso/collectors/aws_b_services.py": {
+      "baseline_sha256": "185a718bba5bb1f5be0fd34e0e6ac12ebe7110c09661b4097c4b946d0165af5e",
+      "sha256": "7c3c2e15d1650b2191444f2d16206833414ef980835b55dac0ac9b4c7f29a3e4"
+    },
+    "peaso/collectors/aws_budget_stop_native.py": {
+      "baseline_sha256": null,
+      "sha256": "8001bc5895828ec8fc38baeda5a9e5f863866a3d32889e7b1804a06338dbba44"
+    },
+    "peaso/collectors/aws_bulk_inventory.py": {
+      "baseline_sha256": null,
+      "sha256": "45aa2a3bce8581cf8bf1046e882eb701a03b61367378fdcee70d3b5ef415230d"
+    },
+    "peaso/collectors/aws_cloudtrail_delivery_native.py": {
+      "baseline_sha256": null,
+      "sha256": "bf7348354a77a39d2271f1b022d1620b0e7f7d3b68dc021cf06f86aceb369393"
+    },
+    "peaso/collectors/aws_codecommit_review_native.py": {
+      "baseline_sha256": null,
+      "sha256": "8700c0be3a48fe2d6a72ed29390d5938ce2b901ecfccfb829a94cc9618249e93"
+    },
+    "peaso/collectors/aws_controltower_native.py": {
+      "baseline_sha256": null,
+      "sha256": "4cc022c9698532209a75fe280851e291964efb9244ff70ef607bdda685753999"
+    },
+    "peaso/collectors/aws_cost_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "1e53fa329bbaeba16b0548bbd6b912ebbadd4a22c1e1732c24665d68b36fc42d"
+    },
+    "peaso/collectors/aws_ecr_artifacts_native.py": {
+      "baseline_sha256": null,
+      "sha256": "3beaa9b23013e715902d29d76064c0bcf205c569b02b38f74d2c7ba0cd66e99c"
+    },
+    "peaso/collectors/aws_facts_v4_holds.py": {
+      "baseline_sha256": "f1c230a3dce2c1178781997876edd76b7a17055c05ad624168cb01eabf591a01",
+      "sha256": "1e2cec696c00e1b002111fa1c4e3d17f41585c115db0808e11162705e1cd9356"
+    },
+    "peaso/collectors/aws_identity_center_native.py": {
+      "baseline_sha256": null,
+      "sha256": "60592e3ff76ae393ed43d89f1554fb2da1f0daaf836b5e640c8760e8b0a66d3e"
+    },
+    "peaso/collectors/aws_identity_metrics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "f96984d474dcb07f03ddc4a998d5c0ae32563677f0eaa2a02384bc79dafadfc0"
+    },
+    "peaso/collectors/aws_kms_enclave_native.py": {
+      "baseline_sha256": null,
+      "sha256": "589935d3ebd9bd13c1d58adf304daf78359374c8e78f88549f2db83c3f32d069"
+    },
+    "peaso/collectors/aws_launch_configuration_redaction.py": {
+      "baseline_sha256": null,
+      "sha256": "09f0a76060934ef47924c1cf747079ca0dba6a82e5803686155067516eb951b5"
+    },
+    "peaso/collectors/aws_macie_coverage_native.py": {
+      "baseline_sha256": null,
+      "sha256": "5650b5a3e15a654cda7d2e5dcd2974124c6a0a711e1798202bf11e4ca5e65a7b"
+    },
+    "peaso/collectors/aws_operational_groups_native.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "06108480e7c2f75ca30343ea5ca4fe3dc0a3fa92d8dee9cf2ccf8f47150f2456"
+    },
+    "peaso/collectors/aws_organizations_native.py": {
+      "baseline_sha256": null,
+      "sha256": "f331e1cd6fa1a496bcfffb0a3eeb93d72004028dec1bc72d63db731dd1feae5a"
+    },
+    "peaso/collectors/aws_priority_tags_native.py": {
+      "baseline_sha256": null,
+      "sha256": "c1f67bb05912bb0e60303989dc722093d379e93d56796c48ca81dc40ddb353f1"
+    },
+    "peaso/collectors/aws_public_ingress_native.py": {
+      "baseline_sha256": null,
+      "sha256": "3dda8ed8ffdb9e3b650ffe50bc6da24d52f57e53c908357ef9bc4a2094309b7e"
+    },
+    "peaso/collectors/aws_region_shield_native.py": {
+      "baseline_sha256": null,
+      "sha256": "08f2a665106e9e66b799fa75946739b57c01076fed23b882f3f63651b652d471"
+    },
+    "peaso/collectors/aws_resolver_firewall_native.py": {
+      "baseline_sha256": null,
+      "sha256": "ca0970fa271384e2167db3cb2ed855cceda0dd834348671654597ec3d8b19a52"
+    },
+    "peaso/collectors/aws_resource_policy_native.py": {
+      "baseline_sha256": null,
+      "sha256": "b0c7b4081f965bab4ece4de503fac0de65038c6c98df010f877f745ce940998e"
+    },
+    "peaso/collectors/aws_s3_backup_native.py": {
+      "baseline_sha256": null,
+      "sha256": "48654c9bb7c4fcbb5ee52c8035cb0fd29d0d8a716b358e9d8399a4595aad3ffd"
+    },
+    "peaso/collectors/aws_sagemaker_clarify_native.py": {
+      "baseline_sha256": null,
+      "sha256": "f6695218f1c6f5dd060b7871b516d975fb54e1560aba5a413698b589aaa113af"
+    },
+    "peaso/collectors/aws_ssm_inventory_events_native.py": {
+      "baseline_sha256": null,
+      "sha256": "c495038efa6858ee77d75a1090fe357998076455da3c1c4bebc105fd9e00370a"
+    },
+    "peaso/collectors/aws_transport_native.py": {
+      "baseline_sha256": null,
+      "sha256": "ab038928f14c3136df4c9425856e57b2b199afa24085d739b4f8526a225e53e6"
+    },
+    "peaso/collectors/aws_waf_inventory_native.py": {
+      "baseline_sha256": null,
+      "sha256": "10bcdf16a32dc1edd69ef751dd2a1427dbeb5a1c10cf91fd605b97c6dd2ada20"
+    },
+    "peaso/collectors/azure.py": {
+      "baseline_sha256": "cb95f3578f40b9d3a45868f4b301588356a8efe700c6a8c65a25b82b2d958199",
+      "sha256": "e3e20faf471f4091dcfb481193143a0fede5488dd412a17d35a89563fa335286"
+    },
+    "peaso/collectors/azure_access_reviews_native.py": {
+      "baseline_sha256": null,
+      "sha256": "11647049e6d04b1e9985ec51f9e890c02b0e8da66f67391979628a60e772bd6f"
+    },
+    "peaso/collectors/azure_aks_workloads_native.py": {
+      "baseline_sha256": null,
+      "sha256": "46ff291ae4b4ad820b6aa4a2205929a6ac2f42fccc2eafad70b8f875a2252e11"
+    },
+    "peaso/collectors/azure_apim_diagnostics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "d5fe9f4b821fa80c1bed677df063971d6ac61278d315b93eb24b4a7957f9bc2e"
+    },
+    "peaso/collectors/azure_arm_metadata_native.py": {
+      "baseline_sha256": null,
+      "sha256": "f244de81694d42e796544d520ab3d631faa58e115f9622ad61d039fe12c4fa50"
+    },
+    "peaso/collectors/azure_assessment_criteria_native.py": {
+      "baseline_sha256": null,
+      "sha256": "42ceb16728f8bde78874d38037c835085c1dba1770c3dab84c6b2a03cc268d1a"
+    },
+    "peaso/collectors/azure_conditional_access_native.py": {
+      "baseline_sha256": null,
+      "sha256": "9b69def3b75a31ab41eaeac2757b85fe9d3d4f505f948043cd8491cd0ebabe8a"
+    },
+    "peaso/collectors/azure_database_native.py": {
+      "baseline_sha256": null,
+      "sha256": "2b5c6850d33f9a74fc6bf46f92bab1330f1d4ae21e92a6461357cde837c3f683"
+    },
+    "peaso/collectors/azure_databricks_native.py": {
+      "baseline_sha256": null,
+      "sha256": "3c6c56e700376316c7f711f7dc4981b4f02ec145bacf6553d9163326f7e64359"
+    },
+    "peaso/collectors/azure_defender_network_native.py": {
+      "baseline_sha256": null,
+      "sha256": "9b026e54b06abec9b29019b3fbfa29e7175c3a927cdecb795de4153d9d6098e3"
+    },
+    "peaso/collectors/azure_detection_telemetry.py": {
+      "baseline_sha256": null,
+      "sha256": "d0c1e354f8c5fbfd8504667dd0268f3e685444e6aa1a5507abb336d16817758d"
+    },
+    "peaso/collectors/azure_disclosure_native.py": {
+      "baseline_sha256": null,
+      "sha256": "1038ca6d576f89c6d9bced0182239b140f4dbe51e7aafb60a1b569634f15426d"
+    },
+    "peaso/collectors/azure_entra_diagnostics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "3ba791cd52c3e5b2fb78bcb12fced683402d552f8a8ff3bd13fec65fc941636f"
+    },
+    "peaso/collectors/azure_frontdoor_native.py": {
+      "baseline_sha256": null,
+      "sha256": "f020ec13c4a8ddd12c8e276f24538cb7c698f707b1f4eaebb52ce14e3305f675"
+    },
+    "peaso/collectors/azure_function_limits_native.py": {
+      "baseline_sha256": null,
+      "sha256": "cd1b13b2fd9d7983e1846fe651507a26422f4ab9cf7dd9866cdf9c50f28fc7e9"
+    },
+    "peaso/collectors/azure_guest_configuration_native.py": {
+      "baseline_sha256": null,
+      "sha256": "d534f80d292e158eba0caad3629b1d0fe54987c2cdbaf7e33a56a672f6159a54"
+    },
+    "peaso/collectors/azure_guest_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "55f32bdb4d9e25f6603321fcb8a0877e07bce003ea7f2b02ea080401c2905c4d"
+    },
+    "peaso/collectors/azure_guest_reports.py": {
+      "baseline_sha256": null,
+      "sha256": "3b0b5a169a73bd97975b8968fed0b2e13b935ac8bc5f297ed791a128f8e74e4b"
+    },
+    "peaso/collectors/azure_identity_intune_native.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "02b0b6d133a2f0d30cb2e30a99d6d3d4feef78231eb61e680acd02987f0896fc"
+    },
+    "peaso/collectors/azure_iot_policy_native.py": {
+      "baseline_sha256": null,
+      "sha256": "5daa1c505286ba57c4f1ec016f54f5713b138d3b45cfd1c5fb542ee3ad893468"
+    },
+    "peaso/collectors/azure_monitor_inventory_native.py": {
+      "baseline_sha256": null,
+      "sha256": "81bd15cf090e296be7a299da4b7b9e42657c987bbed6afdeb82a0453a90e6127"
+    },
+    "peaso/collectors/azure_resource_diagnostics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "36f73fc3665680b2489ab99c24dfee59b5f2afb236323952e7131dea481df0ed"
+    },
+    "peaso/collectors/azure_resource_logging_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "2d7174efd2706acf66466e3216d95ec1b81d2af1cf5b1b54a8144246ca25d0ba"
+    },
+    "peaso/collectors/azure_secret_versions_native.py": {
+      "baseline_sha256": null,
+      "sha256": "53d8ad1f7599697fab83af4139644c93223f9cdbfc5355e587749e545149120c"
+    },
+    "peaso/collectors/azure_sentinel_metadata_native.py": {
+      "baseline_sha256": null,
+      "sha256": "3cc20e96f438c017261006a2e9d04f16cfc2d01224515a9477f73a7872e9896b"
+    },
+    "peaso/collectors/azure_sql_inventory.py": {
+      "baseline_sha256": "2bffcc5421ab573eb535cd3f36186e98db87defea014f7c7f7df5c55b586d65d",
+      "sha256": "43a1549a843593c8e33812f5dfa9091a0e7ab534d895ea3e03e718cf08ec82ae"
+    },
+    "peaso/collectors/azure_storage_backup_native.py": {
+      "baseline_sha256": null,
+      "sha256": "249e5916a527ecd0d80378c1a4e769fc3511152f0887a85186bc1285aa473405"
+    },
+    "peaso/collectors/azure_storage_recovery_metadata_native.py": {
+      "baseline_sha256": null,
+      "sha256": "658807c10ba59c65ecc7a86bd0cae1d3079d785612b69b829908cc135cb81ca0"
+    },
+    "peaso/collectors/azure_sw15_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "66a6ff162aa2727a33c3079cfd2709cbea883ce5bcc2f16407ef111743a5b82d"
+    },
+    "peaso/collectors/azure_swc.py": {
+      "baseline_sha256": "318bb3c3e8d4e985491850103c861caefe085b7eb29241c403d6b6b4d7725d4d",
+      "sha256": "58216c78feea454bc1011e2b8a2c3f28ed6e41bb7d8cbbc5e003aa2f9da595ff"
+    },
+    "peaso/collectors/bulk_evidence.json": {
+      "baseline_sha256": null,
+      "sha256": "c1d173bead561f5777df8e703dd8a0939692202b8f2fe7427e8e6d72457a5744"
+    },
+    "peaso/collectors/bulk_evidence.py": {
+      "baseline_sha256": null,
+      "sha256": "fb51c829ddc9ca2c83e7cb54de8e1ebc91c0530a8d7eb47d6083e5ff170e6e09"
+    },
+    "peaso/collectors/gcp.py": {
+      "baseline_sha256": "1f05830be1cd255bb7581e2a48ce935227ba18df84a6f4bf6d60a910fab8691b",
+      "sha256": "59f1ca8996810d663eaf7225a2f9121f84c8e9be65e26fd9525db70be5591a1c"
+    },
+    "peaso/collectors/gcp_compliance_wave.py": {
+      "baseline_sha256": "49250bb20e6b692b7d43ba1bb69d979acd827f6df58789d729175d107fe9fe47",
+      "sha256": "d8dfe9d8a15e071beceeb53e34f420b77e8337ef2e2ae4fcc40c8950168f8780"
+    },
+    "peaso/collectors/gcp_kms_effective_native.py": {
+      "baseline_sha256": null,
+      "sha256": "7d2c1e81afebac5e99d47951c85c24aeb91e1795d3fe233c396d9bac6a30ae01"
+    },
+    "peaso/collectors/gcp_native_evidence.py": {
+      "baseline_sha256": null,
+      "sha256": "fdced136c30eca42529c967ba2a59f84068008ee98345a1a7abc2c974ca060e1"
+    },
+    "peaso/collectors/gcp_os_patch_native.py": {
+      "baseline_sha256": null,
+      "sha256": "e8d86dbc207104d2dbc59d2c0dd0a558f7d00e7edde5960d2750fa7803a85f58"
+    },
+    "peaso/collectors/gcp_sbom_native.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "e4fc4bc0c455146ed580d7ef3406424c8ddca2588ccf5cb7c723b922931902f8"
+    },
+    "peaso/collectors/gcp_storage_acl_native.py": {
+      "baseline_sha256": null,
+      "sha256": "9ef114ced31862ed48cc3defc7710623e130fcd6431051174fc44b6d19fa2033"
+    },
+    "peaso/collectors/k8s.py": {
+      "baseline_sha256": "11957bb9aba40637408cc02345c9723cd9bc33231d980e8850e5d0fc41192ff6",
+      "sha256": "a1c71b6d51b1eced3ea9363e0eab5c80f6aab9321cb10d76ad71f624f8fdda9b"
+    },
+    "peaso/collectors/k8s_admission_file.py": {
+      "baseline_sha256": null,
+      "sha256": "fc23c5692f1bc295394cf770312a58a8bb64dc532d2c2d9ad33cfeb8a440795f"
+    },
+    "peaso/engine.py": {
+      "baseline_sha256": "ce3d8e1566a1c48f275b1135cb5d02101bcfb60f9df8f52a58a7b523a339936b",
+      "sha256": "21b1ec861f179c85447d058af96421314d204b996cfb2b355fecb76b32d4f79b"
+    },
+    "peaso/gcp_sbom_policy.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "ef717b7f45ddb6d7abca981b6a871f60d9dde0f1eee442c64ddb342ca60be788"
+    },
+    "peaso/privesc/README.md": {
+      "baseline_sha256": "6df6a5c1db01ea749dfc8b86a1fddd4f33675999cb2dacd131cafffca0248fd7",
+      "sha256": "9f3ebc77ca15e7af249936a014329820251258441ed6d9c855d27d22afc0d2d4"
+    },
+    "peaso/privesc/azure_disclosure_effects.json": {
+      "baseline_sha256": null,
+      "sha256": "6caf92a0ffdc59cffecb0c9d047d31bc7c49fe02dd0f19b11f3ec743a670f93e"
+    },
+    "peaso/privesc/bulk_principal_tranche.json": {
+      "baseline_sha256": null,
+      "sha256": "6cb1c21ba90b1ae08d0e5671efa373c8711d42cdb97d3f9055f84d3a239428a8"
+    },
+    "peaso/privesc/catalog/aws/bulk-principal-v6.yaml": {
+      "baseline_sha256": null,
+      "sha256": "e4e907a900127eec6feaa5bb9527ddb130d52c4895b94fd65acb6e8b0a29c779"
+    },
+    "peaso/privesc/catalog/azure/disclosure-effects-v7.yaml": {
+      "baseline_sha256": null,
+      "sha256": "00175d020192d57529b305d80b2027dcea8df7b58aac26e0c60fd03196b79d3a"
+    },
+    "peaso/privesc/catalog/azure/storage-local-v7.yaml": {
+      "baseline_sha256": null,
+      "sha256": "39fc0f2734331d8d08d356614775095d8b7be97bf343aa240e110c12d2988f9f"
+    },
+    "peaso/privesc/catalog/gcp/bulk-principal-v6.yaml": {
+      "baseline_sha256": null,
+      "sha256": "1998a8787332908d955ab6e8769f315dac4afe80fb2e66b57dc34ad7a916cf25"
+    },
+    "peaso/privesc/catalog/k8s/scoped-credential-v7.yaml": {
+      "baseline_sha256": null,
+      "sha256": "7c4940f42a1754cd843688fcd903a522cd99ea98491c20a1ef5ed77dd75008a5"
+    },
+    "peaso/privesc/catalog_versions/bounded-v5-manifest.json": {
+      "baseline_sha256": null,
+      "sha256": "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429"
+    },
+    "peaso/privesc/catalog_versions/bulk-principal-v6-manifest.json": {
+      "baseline_sha256": null,
+      "sha256": "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
+    },
+    "peaso/privesc/catalog_versions/disclosure-v7-manifest.json": {
+      "baseline_sha256": null,
+      "sha256": "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
+    },
+    "peaso/privesc/effective_permissions/aws.py": {
+      "baseline_sha256": "13f1caea607bf1801ae060434aa6977a370e08940096df5708864a87f1018357",
+      "sha256": "a1944fd8196c5524bf009d803bf8a10855ba29714d7029902cd71ff5c7a32848"
+    },
+    "peaso/privesc/effective_permissions/azure.py": {
+      "baseline_sha256": "d4569c9d6527b71c115a83827544ffc46ecf80a5e0a18ad3feadfbd98d8b49f2",
+      "sha256": "7dbd7dda117a4e0c87205513fcda8b7820794522c11a9a25c9cfa5ad43e80663"
+    },
+    "peaso/privesc/effective_permissions/azure_disclosure_effects.py": {
+      "baseline_sha256": null,
+      "sha256": "554dba11bab6ad0145960f8b594ae58ab165e00c0fbe3fb91c3a4bcfa6ef197f"
+    },
+    "peaso/privesc/effective_permissions/credential_evidence.py": {
+      "baseline_sha256": null,
+      "sha256": "a95078884cd2e1c91e3e729921254844237eaa0444b89bf0cd6afd88d9fcaef3"
+    },
+    "peaso/privesc/effective_permissions/ec2_profile_association.py": {
+      "baseline_sha256": null,
+      "sha256": "22f0c201cc7d2b37f26c26e307dca33ce55e5716c5f6bea64affc78aff78e039"
+    },
+    "peaso/privesc/effective_permissions/exact_evidence.py": {
+      "baseline_sha256": "966d87018abc0269ecb9d94cd7d7cd1c51798816440e5b8aeefd11f3a36a4f4a",
+      "sha256": "55298bbc1fae2f40299f28c5acdd57fea04715a5fd06c7bdc9210c3b62f183d0"
+    },
+    "peaso/privesc/effective_permissions/k8s.py": {
+      "baseline_sha256": "720daadb08364952883471c6573d994970d9010d5dca047e60d316313a45da1b",
+      "sha256": "af918fb5ffd631cad94aa68043280300d43cf8acfbbc9ba757bd35b40b5b0364"
+    },
+    "peaso/privesc/effective_permissions/principal_evidence.py": {
+      "baseline_sha256": "32839d9a782ab7d0a3ff09e31b99f49484024c7953930cb0187e576fd9c2e4e7",
+      "sha256": "2c4bd5e2e2fa33db271b963387787003a42e1c741dad27b22e7b37f23fc2f7e3"
+    },
+    "peaso/privesc/effective_permissions/storage_local_identity.py": {
+      "baseline_sha256": null,
+      "sha256": "7671720b0780e47c583e0877888235406c220e64b937d361edb555f3300df7d0"
+    },
+    "peaso/privesc/evaluator.py": {
+      "baseline_sha256": "27deef9f45f1eec5a454987c63c7603e4e3e45c7d493537a32362a0251b44103",
+      "sha256": "b3ee77c1cbd6ce1df63570046ccd80f55c466210d2d89ed579e3531b6a154de7"
+    },
+    "peaso/privesc/graph.py": {
+      "baseline_sha256": "5095477e925a9f30f10511b05a9406b35d4091c6ed9d6461f51df9323d2a91a7",
+      "sha256": "636ba48fa9bbeb73ae22d973ebf0f93da460c7af694449b26d1471a895bbf084"
+    },
+    "peaso/privesc/privesc-technique.schema.json": {
+      "baseline_sha256": "66870af6a15c42b9161e9c9f015afc3085baaf52e1c54eeb3a9a1289d4fb7934",
+      "sha256": "95807932ba7cf53c2b5f0a1fd730696a0e14c21c6f67cd719b0b0b315b3e0380"
+    },
+    "peaso/privesc/schema.py": {
+      "baseline_sha256": "ff810d99bd41f28140e8ecfc8703ac9e9775c12ea6deae86c7ffdbb44e123420",
+      "sha256": "3f7fff4a23bb7ca74c0583a2d7d71e16c47ff8c3e7e35d0ac73f4111af2d6ffe"
+    },
+    "peaso/privesc/versioned_catalog.py": {
+      "baseline_sha256": "c596a12076c502ac1027fdfe2b41b9ce2b6464077ae54feb63a9d6f7ea58a916",
+      "sha256": "fd6831825507de22b7155909b3bdc1f1e391244b85a180b7764e22f7974f6666"
+    },
+    "peaso/remediation.py": {
+      "baseline_sha256": "2881027fd3d35e1afb8180a4bc230356bc15b54126aae9ad8a8b9ecd8bf8be03",
+      "sha256": "fc898e52a4d9e02a768e7dd95dff4f8a808ad81b81cb1c40e165f4bb3df43f38"
+    },
+    "peaso/rulepacks/catalog_summary.json": {
+      "baseline_sha256": "1677e0d7e9d98794741b244ef0880880444409e0a50e0d0798a6065e3e7c175b",
+      "sha256": "1aa172a4768a99266b806344d38fda2d1b497e0173563388ffac1eca8c5520d5"
+    },
+    "peaso/rulepacks/check_descriptions.json": {
+      "baseline_sha256": "35c0b0acc983a55a90b9fa28fdb871f19240fed9660808357e12df00791a1900",
+      "sha256": "88def81cfac127eefbc9859eb677b3e2d3e1f592b5196edf0d698c32ab0bb989"
+    },
+    "peaso/rulepacks/compliance_lookup.json": {
+      "baseline_sha256": "41dc9ce71e2cb64e3fad28c80d495b53c85af03d7c94c0d2f9ffa95a70eb0694",
+      "sha256": "80dc69c177e9b425c7bab9b90954cb347d1377adf918d12acfe79657edf1a0bf"
+    },
+    "peaso/rulepacks/compliance_requirements.json": {
+      "baseline_sha256": "9488ad1b038ddb32ddf0f8a8671c88c7242ae8623473cc0a9390f49f43664673",
+      "sha256": "48c017ef2c3f89509e5bf4d59488e86de9fca2d93b872e300d4c565d8b44bba4"
+    },
+    "peaso/rulepacks/framework_catalog.json": {
+      "baseline_sha256": "43962407bc8e143cf636317ee4c7323e36d6b6ce1657498287fad6c558d1fe11",
+      "sha256": "8f77f224e6631e88dd25b911cfdb8a44399c5ccfd5f914694d5db3e693c51a85"
+    },
+    "peaso/rulepacks/native_catalog.json": {
+      "baseline_sha256": "cd072d7a7979bebfa74ffb33e2e1422b94766dada038af56f0ea55b3169c7f54",
+      "sha256": "9007b31199e3cbe2f9866057d6ac46c04c62e7c83a3ee78c61a70ffb30c1fbba"
+    },
+    "peaso/rulepacks/runtime_metadata.json": {
+      "baseline_sha256": "1078d8fec808295b8af910288d5c55dee0aeab91fa7010fedec1d2f332625662",
+      "sha256": "58e2f9405cd183b119601f9d9fd476cf66668c289a8189643c5f6cc3fa7a4615"
+    },
+    "peaso/server/native_policy_validation.py": {
+      "baseline_sha256": null,
+      "sha256": "a6f62b76f0b68820faa59b29277164b45f4ec04a43ff93c43873273613d7298e"
+    },
+    "peaso/server/validation.py": {
+      "baseline_sha256": "6a89cf4e98a8a70b0fd3b7dbea1ca6065278dee59a3ae636daf499d8b327decb",
+      "sha256": "b410ece201c5f11fb5d9fb69b492c4174133a98e83c3d794c2c981db6bf5b43c"
+    },
+    "pyproject.toml": {
+      "baseline_sha256": "a4bd1771fa45121c97195b0a1833ad357c8f020004378cca3388fafa550831b4",
+      "sha256": "bc58081e18b7fa909589ce22343243981092bac44155f4e7fc8a39bb76b003f5"
+    },
+    "risk_rules/hacktricks-privesc-source.json": {
+      "baseline_sha256": "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429",
+      "sha256": "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0cd2281835bf"
+    },
+    "scripts/check_cloudpeass_risk_parity.py": {
+      "baseline_sha256": null,
+      "sha256": "38027f14bfa8a3b67f3f4eb765543d27d4f74eff336555be477f369174a40a87"
+    },
+    "scripts/classify_permissions.py": {
+      "baseline_sha256": null,
+      "sha256": "59a9e69372a7f299e3b9fd91782906996bb9adbf6994bf29f57bb8dbb7d5903b"
+    },
+    "scripts/hardening_catalog_context.py": {
+      "baseline_sha256": null,
+      "sha256": "a91c628fb607be938745312f187692b09d997c2c56f198c072564c6245679b00"
+    },
+    "scripts/peaso_bulk_validation.py": {
+      "baseline_sha256": null,
+      "sha256": "68600c9e327e2515def01da53cfea66afbbd00dbb672303bc9c7a94c794d0cf6"
+    },
+    "scripts/peaso_compliance_materialize.py": {
+      "baseline_sha256": "0ccec5c366958b7a0f77dcfbd4f6462bc07deae34b5f966404fd15beba942fc2",
+      "sha256": "7dfe52db3350c6652acf120e776745f89ac4c28fcc0c2b580b0f009015dcb193"
+    },
+    "scripts/peaso_deploy.py": {
+      "baseline_sha256": "2532e5d28021919111a8a607e053fbd335de421d8baf14687559580cc7c1d465",
+      "sha256": "0f50d543989afd143acd101d8d4424d8721bb508796177d62de87f97f4599eeb"
+    },
+    "scripts/peaso_deploy_artifact_update.py": {
+      "baseline_sha256": "5d07cd6ff01ca80dcba342fe99671835a702775bae9a4ddc1c70c43ab9fd457a",
+      "sha256": "3bde23e9d88426a050a9b8b2a8905b36d05e684fb4d258fc1c5a21fdb5c11bc1"
+    },
+    "scripts/peaso_deploy_customer_policy.py": {
+      "baseline_sha256": "a11d37bac8ae97c9ddec34081c3322bf74c0d2759677ca4c25bf43cfb5d5c1a0",
+      "sha256": "ae3a10971bfda9355e41108fcb2de26cd6460a9efa1197ac652f60cf20770ed8"
+    },
+    "scripts/peaso_source_archive.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "f737994692b32a50e6e4f3949c763c0d6924ac751364ea9784104fa75bb54c2f"
+    },
+    "scripts/peaso_test_resources/azure_sftp_live_acceptance.py": {
+      "baseline_sha256": null,
+      "sha256": "b58308c8f37f4ff36bc96c561c52c89d38ecf72b1d1c785cc5c0e9960dafcbbc"
+    },
+    "scripts/peaso_test_resources/k8s_argocd_live_acceptance.py": {
+      "baseline_sha256": null,
+      "sha256": "dd82c3379b509f91905a6a84b365081cb4c71e00d5afc32df29d61a89fdb081f"
+    },
+    "scripts/permission_risk_classifier.py": {
+      "baseline_sha256": null,
+      "sha256": "793f622a4854b3ab3856b09a7e0665dbc04004c62b44166442be49dd642134af"
+    },
+    "scripts/refresh_risk_catalogs.py": {
+      "baseline_sha256": null,
+      "sha256": "48885ac953830ddcc56ad47af1c95dd7aa43863ecc04bba2920a27c13a7d3fb9"
+    },
+    "scripts/review_hardening_catalog.py": {
+      "baseline_sha256": null,
+      "sha256": "53863bcd2294b15eefc8a955414dee2e49c7527101872c81439f02382fb3799c"
+    },
+    "scripts/sync_cloudpeass_risks.py": {
+      "baseline_sha256": null,
+      "sha256": "ea8ebb0ac5cd62ed40d8cab5d32d941024022833f1daf1a05ca5202af1a917a4"
+    },
+    "scripts/update_permission_categories.py": {
+      "baseline_sha256": null,
+      "sha256": "dadab303cb5f43ffe1cf396cefb3849308d928c8871e5759df0eb03e478a855a"
+    },
+    "tests/compliance_draft_isolation.py": {
+      "baseline_sha256": "1014a0fa3fb1f2afd1d4ecb84f8a642d4ee31d218b114b40ea4c31dcdd517827",
+      "sha256": "dd549c669105367737964fd2759fa13b756c7fe04c8905a1bccf0f5aa8f6bd1b"
+    },
+    "tests/conftest.py": {
+      "baseline_sha256": "42169b52d7118e2b3a41834d2585ac998966f98a40014c8a4188c8f7df3bf7e5",
+      "sha256": "3e70693aeddbdb6735387f0db7cfdcaa1cf8122068b800380e8347cb56f2419c"
+    },
+    "tests/fixtures/post_dfaf_integration/pre_bulk_views.json.gz": {
+      "baseline_sha256": null,
+      "sha256": "149b54a78e6811c1ec4d639e5912d5c7f4fe6a7aba16a2e6e2ee3550d995d41e"
+    },
+    "tests/fixtures/privesc_scoped/azure.yaml": {
+      "baseline_sha256": null,
+      "sha256": "39fc0f2734331d8d08d356614775095d8b7be97bf343aa240e110c12d2988f9f"
+    },
+    "tests/fixtures/privesc_scoped/k8s.yaml": {
+      "baseline_sha256": null,
+      "sha256": "7c4940f42a1754cd843688fcd903a522cd99ea98491c20a1ef5ed77dd75008a5"
+    },
+    "tests/fixtures/release-test-inputs.json.gz": {
+      "baseline_sha256": null,
+      "sha256": "02a6d094504c4a3d50cb21d921519f64eba40f0b83c19cf1026518596988a8ab"
+    },
+    "tests/fixtures/release-test-inputs.json.xz": {
+      "baseline_sha256": null,
+      "sha256": "22a461142de5b0d876f0a8e4e036aea3e9b46d5318f7a49958c1e58f7fd1cd28"
+    },
+    "tests/release_successor_history.py": {
+      "baseline_sha256": null,
+      "sha256": "3cd54d80d9348ed4c04d3a9772fdb7f32621e11ecb180e720ac16beb6e5782fd"
+    },
+    "tests/release_test_inputs.py": {
+      "baseline_sha256": null,
+      "sha256": "a3bb7a9f47a8f81d0361dc30ec9704ae1fb9dae965a042fa0057285ee061b378"
+    },
+    "tests/test_combined_release_gate.py": {
+      "baseline_sha256": "45e4a6eab0a0647686a03211da29925af35fed675fdee32a32551c81537049d7",
+      "sha256": "147025fa17d292cd5c9b7256a3b2412555cc1b84236df230a322e396ed7b5103"
+    },
+    "tests/test_next20_aws.py": {
+      "baseline_sha256": "d640c93b6c3aaff58424a3a1359eac8e7c6830cef3d75d805acf93a6a10bf339",
+      "sha256": "d11abfd4295a5b2592b4f04440a90ec9dcdd4a48b9d0140678db7d389935a48c"
+    },
+    "tests/test_peaso_account_vpc_inventory.py": {
+      "baseline_sha256": "290fa4581d230042f047974f46b1ff7b294cf575af90b720eb9eae1558d353ed",
+      "sha256": "94de03b69f90d9ef958f530ca60364d801218a6b0647f436c68fca03dd64478c"
+    },
+    "tests/test_peaso_apim_review_hosted.py": {
+      "baseline_sha256": null,
+      "sha256": "a02e8e90bfeafb2c0eccf12e8cb9ce392949d4eac674e8494c7e947b996908be"
+    },
+    "tests/test_peaso_aws_apigateway_native.py": {
+      "baseline_sha256": null,
+      "sha256": "54818824f2e384f1311d40579e9b9b38bb0f49290ac2af713d9961e6119ad4a0"
+    },
+    "tests/test_peaso_aws_budget_stop_native.py": {
+      "baseline_sha256": null,
+      "sha256": "8eaf0a6c2537d658d246cb49fd39de677b1482368c742c48c6ccb7f1d2280bb0"
+    },
+    "tests/test_peaso_aws_bulk_inventory.py": {
+      "baseline_sha256": null,
+      "sha256": "d366e9ff4be58d1a41d905304f8e2f17a2b847f10d112bd8d123b8819e98aa4a"
+    },
+    "tests/test_peaso_aws_bulk_network_native.py": {
+      "baseline_sha256": null,
+      "sha256": "ed9244baf6a83743bc66e4e9f76856e3cd6fa2badde0fd6fb36fc7322e49e5ae"
+    },
+    "tests/test_peaso_aws_cloudtrail_delivery_native.py": {
+      "baseline_sha256": null,
+      "sha256": "57753dbffb38a4c53b7d78d948f110143dc068c6684ab65c97f4766526ac0ef3"
+    },
+    "tests/test_peaso_aws_codecommit_review_native.py": {
+      "baseline_sha256": null,
+      "sha256": "58868968f687e2f10bdeb2a4b4beb5a949a72a82d3ce8aef8adbb22bfbe0bbbf"
+    },
+    "tests/test_peaso_aws_controltower_native.py": {
+      "baseline_sha256": null,
+      "sha256": "db0b1c13dc8780130fcd00eff2b1d8d2cd3d3c8d4e5fdefe895bab83cb53ce7e"
+    },
+    "tests/test_peaso_aws_cost_owner_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "9d57b46823f771056aa4338c04d36e6815a9e9c1fa5e9465351eeeed6b5feaea"
+    },
+    "tests/test_peaso_aws_ecr_artifacts_native.py": {
+      "baseline_sha256": null,
+      "sha256": "cae1ad0c7114a54b07ba1dc4cfa5c7e9ab0ba44b35da865a7673b0974ada9c0c"
+    },
+    "tests/test_peaso_aws_identity_center_native.py": {
+      "baseline_sha256": null,
+      "sha256": "824256da30314bfae567f6211714a18335b31af736b17792186ab9a3be87b38b"
+    },
+    "tests/test_peaso_aws_identity_metrics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "4e6dcdf85f39fee6572277af101c68b832db4ce81806f7d354d647f8665a866a"
+    },
+    "tests/test_peaso_aws_independent_settings_status.py": {
+      "baseline_sha256": null,
+      "sha256": "c94e1c6fae59c4cc8516a9eff3bec6e7fd646f9d40e09fc00feb23b78b66d2ea"
+    },
+    "tests/test_peaso_aws_kms_enclave_native.py": {
+      "baseline_sha256": null,
+      "sha256": "13796923e786c8e6b249e0c3f86cf77563a1c60ce63bcce389b35f1c0a07e935"
+    },
+    "tests/test_peaso_aws_launch_configuration_redaction.py": {
+      "baseline_sha256": null,
+      "sha256": "ad2b7cdbd3ad110afd00478a0e2d4980bcf9d985e52748fc2aea58baf66872b7"
+    },
+    "tests/test_peaso_aws_macie_coverage_native.py": {
+      "baseline_sha256": null,
+      "sha256": "741d95aa4fac3a49ad22e95f22d5ee552c3c2d796e060a61c70838c5a1f4fc1a"
+    },
+    "tests/test_peaso_aws_native_waf_inventory.py": {
+      "baseline_sha256": null,
+      "sha256": "c4654a1c1aae9a81794c994312271578cf7f059f813b29c93afb88bfa1296110"
+    },
+    "tests/test_peaso_aws_operational_groups_native.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "034cd7afbdc63644def8c4ec906a87f4a491c0422e38647a633a37b46bf40669"
+    },
+    "tests/test_peaso_aws_organizations_native.py": {
+      "baseline_sha256": null,
+      "sha256": "8b03ccd3bf2948f06a43782bc2a0b4fb35f0d75cb499b883d7086bb1d3911180"
+    },
+    "tests/test_peaso_aws_priority_tags_native.py": {
+      "baseline_sha256": null,
+      "sha256": "46584a655576f302e61f580378bbd1ca12992e07870639535edaf3917f265092"
+    },
+    "tests/test_peaso_aws_public_ingress_native.py": {
+      "baseline_sha256": null,
+      "sha256": "e968546ef26a940da56a1c231aeaec8fc82d92af677ed497fa7202df690f10c1"
+    },
+    "tests/test_peaso_aws_region_shield_native.py": {
+      "baseline_sha256": null,
+      "sha256": "1cc5cbcee0ceb47fff66ae35223c319b92c50265a573cc1d1e9c99217c0469c2"
+    },
+    "tests/test_peaso_aws_resolver_firewall_native.py": {
+      "baseline_sha256": null,
+      "sha256": "eaf11ce08821ec38c2b2f9a3a0059466a1cd1b5acb23ad16686af60285399f4c"
+    },
+    "tests/test_peaso_aws_resource_policy_native.py": {
+      "baseline_sha256": null,
+      "sha256": "74bfe590bf3dbe1a02d35a71247e27f3a8c87007aac8cf3dbbad1c9baf4bc874"
+    },
+    "tests/test_peaso_aws_s3_backup_native.py": {
+      "baseline_sha256": null,
+      "sha256": "35e15ef13fbcd90dd8a7bea268a3c5e11d5752a68a4be8f9c0858bae417acaae"
+    },
+    "tests/test_peaso_aws_sagemaker_clarify_native.py": {
+      "baseline_sha256": null,
+      "sha256": "8442c84ba323b43945df0be53f254c546befe1eb42f9f934ba422a90d1731bf0"
+    },
+    "tests/test_peaso_aws_ssm_inventory_events_native.py": {
+      "baseline_sha256": null,
+      "sha256": "b7b9d24978849f16689421d6650fcad3b2586e23c4060940bb2477b3909b9f36"
+    },
+    "tests/test_peaso_aws_transport_native.py": {
+      "baseline_sha256": null,
+      "sha256": "5684b6ef71297768930229452a563c48a24c25c58f172dfbe4967ca8a97808ee"
+    },
+    "tests/test_peaso_aws_waf_inventory_native.py": {
+      "baseline_sha256": null,
+      "sha256": "74d55b11c5df4ed0cb8dca2526dd87e5777c742ae02c4589764d712a09678f48"
+    },
+    "tests/test_peaso_azure_access_reviews_native.py": {
+      "baseline_sha256": null,
+      "sha256": "8193e0e117c95528bdd5a42a9bb4fcb2a948d0a0297f4abfcecac3369740c697"
+    },
+    "tests/test_peaso_azure_aks_workloads_native.py": {
+      "baseline_sha256": null,
+      "sha256": "aab75eb01e5303b0739a56e594026e9a27108d8df341389f3ed9b0a71b189de7"
+    },
+    "tests/test_peaso_azure_apim_diagnostics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "cd47a1e43bfa7eac743dd74d8fa5cd6479458d3fb57b14b8e1954c5118c72995"
+    },
+    "tests/test_peaso_azure_arm_metadata_native.py": {
+      "baseline_sha256": null,
+      "sha256": "a8abb25ddf59d9eaf08a585a03d9b02800cf8c5315a842111b833cb0036408a1"
+    },
+    "tests/test_peaso_azure_assessment_criteria_native.py": {
+      "baseline_sha256": null,
+      "sha256": "412b254ef7d385b4ad6ce3811ae84af59e3c90cf1014a5963d9e977ac3b00afa"
+    },
+    "tests/test_peaso_azure_bulk_native.py": {
+      "baseline_sha256": null,
+      "sha256": "56fea90441bb454ff814aad4d3cbb978a259a4d7faafe9953f602b7667758027"
+    },
+    "tests/test_peaso_azure_conditional_access_native.py": {
+      "baseline_sha256": null,
+      "sha256": "a13005ef7f23dd1e144d9a9faad198a6367048ee7f5afff00125cb62574df755"
+    },
+    "tests/test_peaso_azure_conditional_access_native_unit.py": {
+      "baseline_sha256": null,
+      "sha256": "4079dc6dc82b0152fb9c1a6a296d8cb755f307b02238d8d19a2cd791c81f4449"
+    },
+    "tests/test_peaso_azure_current_certificate_policy_native.py": {
+      "baseline_sha256": null,
+      "sha256": "266cf30a707180f3e50c8e67d6cae1e22e2ef6afa3feade27f188d2afd30e0ca"
+    },
+    "tests/test_peaso_azure_database_native.py": {
+      "baseline_sha256": null,
+      "sha256": "269ad537d1ff2c882132f469585721c419fcd5805fd5f9656efe3623b811921e"
+    },
+    "tests/test_peaso_azure_databricks_native.py": {
+      "baseline_sha256": null,
+      "sha256": "b95e7528fdf1feae859add5eade8c52b04e5d379b1c404f2fe25f23f027f6cf3"
+    },
+    "tests/test_peaso_azure_defender_network_native.py": {
+      "baseline_sha256": null,
+      "sha256": "540282d6c1c448883fdef0f136617ab5dc2596f07887eeea8b0ade835228aaba"
+    },
+    "tests/test_peaso_azure_detection_telemetry.py": {
+      "baseline_sha256": null,
+      "sha256": "4f51e3543927e9876f51162443149277ad7cbc7a561591550b08d670b0566f1d"
+    },
+    "tests/test_peaso_azure_diagnostics_storage_retention.py": {
+      "baseline_sha256": null,
+      "sha256": "81891be51a901e78ba10b4b58248522ab556706a2c5ff21aa7ad34e6ddc2af11"
+    },
+    "tests/test_peaso_azure_directory_engine_join.py": {
+      "baseline_sha256": null,
+      "sha256": "6196e0a7f5915faf53f9d11675f3bee8b3afeb816e2a8bc2acc4bc2776508b68"
+    },
+    "tests/test_peaso_azure_entra_diagnostics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "7ad2e691e066992ba77e82d5078268a6f5d927d41bff2b406f6457aff0556973"
+    },
+    "tests/test_peaso_azure_frontdoor_native.py": {
+      "baseline_sha256": null,
+      "sha256": "82e8b6f380e4da27e4bef00050e578c2cb879e4c4373474036b1db747bd46cab"
+    },
+    "tests/test_peaso_azure_function_limits_native.py": {
+      "baseline_sha256": null,
+      "sha256": "e824555e4c076bafa6fe84c6b4fd7b3b998968cb5d7ddbf65702c6b1fc18ecfc"
+    },
+    "tests/test_peaso_azure_guest_configuration_native.py": {
+      "baseline_sha256": null,
+      "sha256": "00e93f81eb1f4e8e90367b8263e85b8e79996d8125bd9f666d2d712d600366fa"
+    },
+    "tests/test_peaso_azure_guest_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "c0f6d49ea29c6343faa561b3a8e26bd4dbdcf01ed1f657ea5006af1d2b5e4e47"
+    },
+    "tests/test_peaso_azure_guest_reports.py": {
+      "baseline_sha256": null,
+      "sha256": "0640fc52ab67cb45bceac3958270f58dfe05b9185968ab62a3abe3de0da618cb"
+    },
+    "tests/test_peaso_azure_identity_intune_native.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "b7eb17280fb180994eeb7d496409c4309e52fa4bd3d9273f44a35e8ccdfc6476"
+    },
+    "tests/test_peaso_azure_iot_policy_native.py": {
+      "baseline_sha256": null,
+      "sha256": "9b988e9d513119df0341cc4e3b8f73e226d7cf321c4253f020d650a9cfbd131d"
+    },
+    "tests/test_peaso_azure_monitor_inventory_native.py": {
+      "baseline_sha256": null,
+      "sha256": "72c25c27f14b07e998946fcc169ab6fdeaee921d606c0e92b9482bd6c8b23d44"
+    },
+    "tests/test_peaso_azure_native_disclosures.py": {
+      "baseline_sha256": null,
+      "sha256": "f4f54229b5afb0c4d46a56a2c4cbb672eb4420dbd286345098b0ec4865414193"
+    },
+    "tests/test_peaso_azure_native_policy_intake_batch.py": {
+      "baseline_sha256": null,
+      "sha256": "ebc13618b5495b5db1ef88cb23820e64de060f3944f50f68bbbbd93bdabdf1b7"
+    },
+    "tests/test_peaso_azure_resource_diagnostics_native.py": {
+      "baseline_sha256": null,
+      "sha256": "c074ca649cda2c4bfd6cda6d465cb94df568e6a574a70fb6b1e942142f325bd0"
+    },
+    "tests/test_peaso_azure_secret_versions_native.py": {
+      "baseline_sha256": null,
+      "sha256": "eedd9e3c04bc134ee58cf114cf711df7bf4676bbe9f3d3d5e3fa90ce5b3379a6"
+    },
+    "tests/test_peaso_azure_sentinel_metadata_native.py": {
+      "baseline_sha256": null,
+      "sha256": "f5c042b2ab4f4bb3d4fc83659ef593afe51777920bce8f92fe20df987d282e47"
+    },
+    "tests/test_peaso_azure_storage_backup_native.py": {
+      "baseline_sha256": null,
+      "sha256": "96a615f12e40c4f3edf27287e75a220b9fa5ab824cb3231fa7b0c546423a521b"
+    },
+    "tests/test_peaso_azure_storage_recovery_metadata_native.py": {
+      "baseline_sha256": null,
+      "sha256": "362fb997cb36001ad0c1c4f38d041c15cdbd822b60cb70adb970b12df62ca44b"
+    },
+    "tests/test_peaso_backup_admission.py": {
+      "baseline_sha256": "be09296fcffcdbe26462816c150d778cff9d3f1c9d035eab59f8e25285ccda22",
+      "sha256": "397c3c9813f43ad34fcf96a18223803de5f032ef2d716c55f913c2534b288544"
+    },
+    "tests/test_peaso_batch_remaining_admission.py": {
+      "baseline_sha256": "bafd9a7eb31061937d9c03f4de4a9ef916632a8716574f2c03975bf19f055865",
+      "sha256": "7968a4fa92585beb60f94f404ac0157a49a0087b7fb0c3a799a2ee4843f51821"
+    },
+    "tests/test_peaso_budget_tags_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "62833e1917d4c561624dd0f455a278aa18629a825d8b960dc125d919e7c5caab"
+    },
+    "tests/test_peaso_bulk_integration.py": {
+      "baseline_sha256": null,
+      "sha256": "32544e58c65c06979878720f694176f322935302706138355c53e86c8f644ea8"
+    },
+    "tests/test_peaso_bulk_inventory_contract.py": {
+      "baseline_sha256": null,
+      "sha256": "ef65c626a230193d3738f45d0a59f42136161bcf2958060d109c72ab56fef822"
+    },
+    "tests/test_peaso_checks.py": {
+      "baseline_sha256": "b5907b782df18a94a6da6ad682e88092f51dcbf6dfbdc92318757cb2cb1300af",
+      "sha256": "e13cc9578aa94c4c566e08814292f2712a143b5a89d4ddd357be00441a43a292"
+    },
+    "tests/test_peaso_checks_aws_b_customer_policy.py": {
+      "baseline_sha256": "1591db56779f73a700c111c3f6b34fb907f32b97a7e78104f3c9d28aa7eabfa1",
+      "sha256": "419d3f18db5314b3a7ff0f34be512d1bddfd5c78c21dc678c2fe02c7a5784922"
+    },
+    "tests/test_peaso_checks_azure_ports_paas.py": {
+      "baseline_sha256": "9732686133708f4d6946ba5ac8d79403efa5152962787822064a22209b57f6ef",
+      "sha256": "38b7d55e854ae553f0336931923a9d2220240bfb7fe66e48b5b82186b1d395c7"
+    },
+    "tests/test_peaso_checks_batch_remaining_k8s.py": {
+      "baseline_sha256": "6fabc2a870d2bc6584de699743628db458e9c54546a3462063a04d13345058a6",
+      "sha256": "3e1cbc923af91db08e54bd0164c6730ec8b6623b38e779e5e173a96ab27484a0"
+    },
+    "tests/test_peaso_checks_compliance_next_k8s.py": {
+      "baseline_sha256": "52dc6064bced1d58e4148cff16e86fc7112c15b6be9a6400d640c9e4cf85d5f0",
+      "sha256": "7b9132d46a2fa7a88f50af4b57624fac27ae6239d62c98f2739938388ce5736d"
+    },
+    "tests/test_peaso_checks_lead_source_audit.py": {
+      "baseline_sha256": "9e1dcd4d1b371a195dff895dbe3891128417db373c3c34747a47f56697404137",
+      "sha256": "795f2cde2f06a05e95c226dc673cd5456ccad7a697c2418fde9cb0627bf77a83"
+    },
+    "tests/test_peaso_collector_swc2_azure_native.py": {
+      "baseline_sha256": "8c156c01d4ea902ffd609bc98750458b3d97f8187255a39e9edb86cc0a39f7aa",
+      "sha256": "97c9ad1e43c01575c62ed9f6e4c606e6b78d401c0d751d303139329a26240b6f"
+    },
+    "tests/test_peaso_collector_swc_aws.py": {
+      "baseline_sha256": "87d255315b72a5babcae8d19d7daff72e52a3711698924753dea8fcfa83aabd9",
+      "sha256": "3a423dc37881071faa00de64dbd06f9b805d2d06ea893715b265bbbd54754cc3"
+    },
+    "tests/test_peaso_collectors_aws_apigateway_stage_ids.py": {
+      "baseline_sha256": "d06aeb002e1bd92cee5470663c50b06fc9adeace755299285bb5fe1347048eed",
+      "sha256": "0302ac8521c4dd25e9d78ad3abeda8dddbfa51e40d1cf9f84f653ae7866fc09a"
+    },
+    "tests/test_peaso_collectors_aws_ext.py": {
+      "baseline_sha256": "fc35669d8073f34fec22d868e306f29da7045aeaa7e31f7b3d92a80846b25552",
+      "sha256": "dbb18101083f79aa3a8279b6388cb1b5ba2c57826a28eb093051560c5fe9e6ca"
+    },
+    "tests/test_peaso_collectors_gcp.py": {
+      "baseline_sha256": "367721447c68f07ca7f511c5f6825f991865c55363c1a6679c33a5ac9790d045",
+      "sha256": "e1a08da75802db8adde82303313836b28e8cf14fa299ffe36f944ff79d450e88"
+    },
+    "tests/test_peaso_compliance_compiler_determinism.py": {
+      "baseline_sha256": "909006940d66662febb02b460e9090c4f6fefb887855fc8ef1cd3e5fe0348ae4",
+      "sha256": "477368686ba3fbc272eb9943a88787740aa1b30fc69fa8fe647f7d9ac0423569"
+    },
+    "tests/test_peaso_compliance_draft_isolation.py": {
+      "baseline_sha256": "434d2af89000bfbc2a9712574593e6f40d75fc0d9045eff3c70d6b50860839f3",
+      "sha256": "47ba4c3762acaf16cc4adddc4426bcf56f6c7d32fe33077f4b13f1ef6e59879a"
+    },
+    "tests/test_peaso_compliance_new_k8s_component_coverage.py": {
+      "baseline_sha256": "0b50ed73caca66cb694abbb73df44d1f03f96e6298df5a412153e1335f19df03",
+      "sha256": "4bc31d366a896ca1a36368949b1d6245e55c93fdc1cea56eff9a2bd70349aa00"
+    },
+    "tests/test_peaso_compliance_new_k8s_file_metadata.py": {
+      "baseline_sha256": "c06eab1f4ba2c864da5ef80b742493e9b36ba6818f9fb6c96e822e687d15c2ab",
+      "sha256": "464abffd8ee21c381d113f99320042e6ce492bc2ecd750cf98363a8c4fcd8a6b"
+    },
+    "tests/test_peaso_compliance_new_sw07.py": {
+      "baseline_sha256": "07b7052d45ff576640d7c9755af6b4baf7dcae45d1e56fed92c9bcb79b96c28d",
+      "sha256": "09ed0733a7f4d6b806ea51b998a3113710ab44ef9524ac6d7eb1700e8443619d"
+    },
+    "tests/test_peaso_compliance_new_sw23.py": {
+      "baseline_sha256": "db79ee8df90458627a2d6a2def43c0780f256baee45f67d907dc213af1debaf7",
+      "sha256": "66af964d2e777b4f30a4151a4badc92fd5ca54fbf1a736aef1a212eeccec7bc9"
+    },
+    "tests/test_peaso_compliance_new_sw26.py": {
+      "baseline_sha256": "dcbda90f4d7438cc7494e1fb2034660c4846b9b61c1116505ca8d883490499f3",
+      "sha256": "a01ea8fa273c7eade98aacaf320b7db5c7c035e86ddcd17647e4768ac4e62438"
+    },
+    "tests/test_peaso_compliance_new_sw43.py": {
+      "baseline_sha256": "2dd01a6969d9e3f47852878ede885f296369bd977ec8ddd559f3a1d35c95e9a7",
+      "sha256": "8655208a380dcd907c4f702a90de6e7d8ef404e2f3aa3a9504ff7447a6a5278f"
+    },
+    "tests/test_peaso_compliance_new_sw44.py": {
+      "baseline_sha256": "04f2e12380e548d0c51eba9deea9a8de3482ffb754657a343ddd0db876dd2b83",
+      "sha256": "b42b093df227d060710dcdda4885604c8cafdc511c9f552502d1da543e1bb5e5"
+    },
+    "tests/test_peaso_compliance_new_sw45.py": {
+      "baseline_sha256": "1ac6686a6c24d548b9bc110bfa64bf18a8063045e2597086bc89bc7f05ff6e73",
+      "sha256": "73caa94350c662850aceb6b8f8754fad2278e1807c6a2578df9738e44194d5c3"
+    },
+    "tests/test_peaso_compliance_new_sw48.py": {
+      "baseline_sha256": "f55a4b560c0177ca9aabe563533b4e5fdb6803b3450d1d09a35aa241dfa68f4c",
+      "sha256": "6cded59ba0f7fa69832e674c181ecd3ea0b6fba5d04a405ee767a5e1ca89debf"
+    },
+    "tests/test_peaso_compliance_requirements.py": {
+      "baseline_sha256": "bc376c00777a983c4ce8a5907dde9d1f76d04b0bb6af8aa8769fee1ff3a8d61e",
+      "sha256": "64544c4a704c1aeb7b1bd9b1d5176f71614ea7e1cf02990baa76edf1488eef0d"
+    },
+    "tests/test_peaso_deploy_artifact_update.py": {
+      "baseline_sha256": "62fa982bd55f4c2f76ae23870009992c772a042b6deddf9f11fa50319a7cbc81",
+      "sha256": "dedca244c225860283eafd0c375d98f2de43e47ebd77a09d761730580165c2e6"
+    },
+    "tests/test_peaso_ecr_cosign_payload_contract.py": {
+      "baseline_sha256": null,
+      "sha256": "49e7e64a917298ac8878d3e89eba70060e27af936a227065d2dbbce5fc32c945"
+    },
+    "tests/test_peaso_engine_inventory_order.py": {
+      "baseline_sha256": null,
+      "sha256": "280f86758179f28d0dc454b51429be5be58c09fa5c553c6b77f638e1acae7767"
+    },
+    "tests/test_peaso_gcp_kms_effective_native.py": {
+      "baseline_sha256": null,
+      "sha256": "2a04440064a454b0d03942389acd41d33c1787cee148346106447af2cf4d92c0"
+    },
+    "tests/test_peaso_gcp_log_metadata_native.py": {
+      "baseline_sha256": null,
+      "sha256": "91630870a1d8dcefdd4d2a465e258b6f7682788abe6c0e3f72412d315f3528df"
+    },
+    "tests/test_peaso_gcp_native_evidence.py": {
+      "baseline_sha256": null,
+      "sha256": "f630661f262688743e81a087552903d368ebdb756d66f3e447611d0f8da3a484"
+    },
+    "tests/test_peaso_gcp_os_patch_native.py": {
+      "baseline_sha256": null,
+      "sha256": "e1de0a2ff4b3a5961504e1afe99dc3b75731e8afb182dc50494da36aaba06c9e"
+    },
+    "tests/test_peaso_gcp_psc_dns.py": {
+      "baseline_sha256": "10e92ca46d2dcadd62971d6efbd465940f1d2d8cbfec4de7bbb4690dfe67a655",
+      "sha256": "dabe155819b55f89bea776b80dc6dd30a65068b4d96b3f96a62befec46798642"
+    },
+    "tests/test_peaso_gcp_sbom_hosted.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "a2382624713e352ec9de9e59bac8989911ab4203f5ed73a4a27479ff93864dfc"
+    },
+    "tests/test_peaso_gcp_sbom_native.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "2673fdfd4211fbedf3a75592f04ff6f211abd6556477fc2493b1f23cecee1ef0"
+    },
+    "tests/test_peaso_gcp_storage_acl_native.py": {
+      "baseline_sha256": null,
+      "sha256": "0d6deb130ca3c53b343ddba2a677b0b76564849cf4c085e69ae78d4144788f8d"
+    },
+    "tests/test_peaso_installed_wheel.py": {
+      "baseline_sha256": null,
+      "sha256": "b9e0a1149f7c3bd1659b17b1eef6f3dec624d534bed089725fc97e3f3e445aab"
+    },
+    "tests/test_peaso_k8s_admission_file.py": {
+      "baseline_sha256": null,
+      "sha256": "97d0ad9452f3a1bf4e36b6c3e7e9e8e2a74718524a76525fc60b27d295259cae"
+    },
+    "tests/test_peaso_k8s_component_memoization.py": {
+      "baseline_sha256": "822967933bb469c3ed49f22c41d2ae16e87e9eb56464c949d63b6a339106d558",
+      "sha256": "0ac78676403b732b21c596b9f92e31f920661cfb9db99f1e720425bca6e0aed8"
+    },
+    "tests/test_peaso_mfa_guest_review_hosted.py": {
+      "baseline_sha256": null,
+      "sha256": "0d26ae6bca721f21ac1cfc5cec91d6126db20aec1f3e88bb9dd64015bd3ee77f"
+    },
+    "tests/test_peaso_native_review_hosted.py": {
+      "baseline_sha256": null,
+      "sha256": "96c36cc0b24b8a32c65ac050db5fe56c9bf727e76c9caeb50a3d846e360388b4"
+    },
+    "tests/test_peaso_native_v20_union.py": {
+      "baseline_sha256": null,
+      "sha256": "44d4f30a538e4910f536fe3782b2d13bb2e044e35de619cc38568838525d079c"
+    },
+    "tests/test_peaso_network_inventory_coverage.py": {
+      "baseline_sha256": "059a1cf9e136646390a4b0fb780844b8c4ed2f0a75b97c83512eb8ece177c08d",
+      "sha256": "70d7d1c256d85f6ed4ea647d898c00ce2abc764affceb5106ae1e42fa043f09e"
+    },
+    "tests/test_peaso_operational_groups_hosted_intake.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "f42deeb3659ae632052039abd2f1a8ee7413f9dcea019439b7007654576b2b86"
+    },
+    "tests/test_peaso_perf_benchmark.py": {
+      "baseline_sha256": "7b179cabb00c9fb4c5ac9314aa51dee2d72b6a8b8b46c5e3a2fd94d1bd344c33",
+      "sha256": "942f42cba0a9a572721e94363ff2cb364942a001164353222cb5f363de2feb83"
+    },
+    "tests/test_peaso_permission_catalog_coverage.py": {
+      "baseline_sha256": "db6e7301b13d1c3e35b4d504cbd7b42cfa9630ec73f024946356bd3eebcf22ec",
+      "sha256": "7717d0790a14dd582a8df692b544bc2e21efaf2f1b0142386c2fc1938cbf4960"
+    },
+    "tests/test_peaso_post_dfaf_admission.py": {
+      "baseline_sha256": "78fda8849aa776d0cefa165d0b4a479677d299074ef5c2a35b615976ce1bc30d",
+      "sha256": "f5645a5f4dede85a9ced093ceb677630e9bdc3393e2ff5a8fb41b1e57a109898"
+    },
+    "tests/test_peaso_privesc_azure_disclosures_v7.py": {
+      "baseline_sha256": null,
+      "sha256": "1f6d2e4c10617f84d3abe64e0499c544d04b4506498b91c3587f4ae57f0df672"
+    },
+    "tests/test_peaso_privesc_bulk_principals.py": {
+      "baseline_sha256": null,
+      "sha256": "7010c88e97db250b9e73e9d9e6c6c0c963852130513e668ee4cb0debc5fba35f"
+    },
+    "tests/test_peaso_privesc_catalog_sources.py": {
+      "baseline_sha256": "e8da81fc3d89cb2ecac2eb900069d95fd7e8d7dbbc64fac5ee49c7a6c7ddcfac",
+      "sha256": "ec3d1b599fe741a8d48b78ced63011f16ae8e2d2ad52182b42491b3a4856cf24"
+    },
+    "tests/test_peaso_privesc_coverage_gcp.py": {
+      "baseline_sha256": "c2b01bbbade6f7f688d0e747e100d7a200edfd03b11e9d59b15cc4b109381ea6",
+      "sha256": "8660dff011944d37d349c35bda12e94f31faa0ec493d6ae4c7c6483febb756ff"
+    },
+    "tests/test_peaso_privesc_ec2_profile_branches.py": {
+      "baseline_sha256": null,
+      "sha256": "5fc792b11dca4d56e4bb11b0877ad24cac0e0158eddffe52ccf3f35d8d36c124"
+    },
+    "tests/test_peaso_privesc_exact_principal_tranche.py": {
+      "baseline_sha256": "0512e19b899e8b98749fa395560a79c2bbe11fa0c2673bdb95cd3b4dfed59c9f",
+      "sha256": "2399ed48744695aaee4cf7c227c34731f4122d3964d4a30a4e090c94000935df"
+    },
+    "tests/test_peaso_privesc_live_runners.py": {
+      "baseline_sha256": null,
+      "sha256": "993683ff5a6c88ce5b04ea07ec78c8ace373ff6b5361bb63377b31d48f662a42"
+    },
+    "tests/test_peaso_privesc_scoped_credentials.py": {
+      "baseline_sha256": null,
+      "sha256": "ccfce46dfadb9965f0709b0f0a2be2a2cb71a33beb35460b0137910f1a9c9c1b"
+    },
+    "tests/test_peaso_privesc_v4_all_id_proofs.py": {
+      "baseline_sha256": "df4b0d22a72b1cd668f38af3eeef4fcbb0b74f893a90d421b482b08a71d2fc18",
+      "sha256": "3cab27f7306e40be21b87ad5aa5b6b398616b9543a2b0e62929c87a6b15db87d"
+    },
+    "tests/test_peaso_privesc_v4_batch.py": {
+      "baseline_sha256": "f906d590784117d3049eb4a42195e3ba8b8c364750ac2ceb3f5a827c8c65f934",
+      "sha256": "1eebccdd11ef3afa133f0837e674c1737edf9cd7b98ccf6f7ec7bdf0eecf66f8"
+    },
+    "tests/test_peaso_release_test_inputs.py": {
+      "baseline_sha256": null,
+      "sha256": "27e13a0c9b93ba86e4627619261531191743d7066e5cfa9ca022d0dba4131bae"
+    },
+    "tests/test_peaso_remediation_aws_reviewed.py": {
+      "baseline_sha256": "2ed9645a56411e157818669911cd00daac918fab2c84d7cd86be52872caf7e95",
+      "sha256": "fa01444634fdde6590720629365b916a11c7a7239c7de29b239a5b773da3260d"
+    },
+    "tests/test_peaso_report_dedupe_frameworks.py": {
+      "baseline_sha256": "ec0b0119cc52b4326b7045ed57807adc271cf5639e282b46480a1629d4da1c87",
+      "sha256": "843f4f7b89bcc9a7a65c4ec448de647b13b312db5b44b0cf04fd4431ca95ec39"
+    },
+    "tests/test_peaso_report_reproducibility.py": {
+      "baseline_sha256": "c51df4095f2469517b6dac132b9887b10ff53634999fc0b60393eeed6e7cd5c3",
+      "sha256": "2175454b229554abaa1ffbfd0813d850cb5d22162f9e59b31f0777ed58ac2bc2"
+    },
+    "tests/test_peaso_source_archive.py": {
+      "baseline_sha256": null,
+      "reason": "Reviewed V6 native scope-bound evidence, repository joins and portable lossless source packaging; historical source and semantics retained.",
+      "sha256": "6c5fdd33dac4de40cf3650e6bc60130700e6d98eff2764f8e48d286f9431e534"
+    },
+    "tests/test_peaso_source_duplicate_manifest.py": {
+      "baseline_sha256": null,
+      "sha256": "52e40bdd5ed192ab893604819baf19c7c9df5eef4e1b5424206bbcb09fa3c433"
+    },
+    "tests/test_peaso_specific_collection_planning.py": {
+      "baseline_sha256": null,
+      "sha256": "f3e27b0b8b00c245dc13911a99a395ddbf0f087c89f16b4b8228477234b7bc95"
+    },
+    "tests/test_peaso_static_metadata_storage.py": {
+      "baseline_sha256": null,
+      "sha256": "af867baf84eb02247c9577b2c827574df69fbe417fbb2f7442a41720705bb9cc"
+    },
+    "tests/test_peaso_waf_companion_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "8362ba017a487f5d6ce74b9ae1d6b6275ff84d1a6fb0a81608c7810bf515139d"
+    },
+    "tests/test_peaso_wafv2_basic.py": {
+      "baseline_sha256": "dcb964526c4931dfe7c2c7851cda65a9e7a7718a35b8424a971d5d0ab38167de",
+      "sha256": "146bf01b00669be5cfca5b6472f1dffe0cf7bde9bcb507674d33c2557ad8a8d8"
+    },
+    "peaso/azure_devops_git_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "4c195e73eebf742314c3eeafe0d1f95356d58e71e6c2339d8b1b8b8d418e28ed"
+    },
+    "peaso/collectors/azure_devops_git_native.py": {
+      "baseline_sha256": null,
+      "sha256": "7b01f9f26acae14414d33b42095caad14adaf4644b3706fde2120e170b4c2c63"
+    },
+    "tests/test_peaso_azure_devops_git_native.py": {
+      "baseline_sha256": null,
+      "sha256": "d8a324537780604b4fa0c6e6aee18d3fc7c4364337a9973140fb310269b33bbf"
+    },
+    "tests/test_peaso_azure_sw32_normative_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "d04b512850df1526ce23f5ede39f74c92b85e8bec9818dfde1b36b3c2d6b936a"
+    },
+    "tests/test_peaso_azure_aks_readonly_root_native.py": {
+      "baseline_sha256": null,
+      "sha256": "e9c7a00c68b76f2f2434b66b0a9b14d0926ccb52794f03c36352a6a408232685"
+    },
+    "tests/test_peaso_azure_aks_list_typemeta.py": {
+      "baseline_sha256": null,
+      "sha256": "3eff2988f239720c39fe736276d5448f5390dcfbe68e271c43059d39daa918c5"
+    },
+    "tests/test_peaso_vault_algorithm_exact_types.py": {
+      "baseline_sha256": null,
+      "sha256": "8331a9cbc9be956883dc62700458795aca5f2807dfcb34e8572d917ab648bee4"
+    },
+    "peaso/collectors/azure_apim_native.py": {
+      "baseline_sha256": "f43150e470199e27637de0760fd288aed07362f69378290567a78e42d9eb7975",
+      "sha256": "02b20bffce3dc8efa0c74e027533ee438fb6261fcc0a2d0fdd56648b436c3d1d"
+    },
+    "peaso/collectors/azure_apim_protocol_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "49c7572d6f0cad40853dc7be7f2867bd465fc2a656f4145680fb36f22cad011f"
+    },
+    "tests/test_peaso_apim_protocol_native_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "560bf766951e40f23a415970df68aa10ec48afc9b8014b8dfd3a885ff2cbba93"
+    },
+    "docs/peaso-aws-data-regions.md": {
+      "baseline_sha256": null,
+      "sha256": "aa3b86695cfa0a51d73a6435ff7e36d10eab9fa4f0c5b9c4bb48fed9f502447b"
+    },
+    "docs/peaso-azure-vault-key-versions.md": {
+      "baseline_sha256": null,
+      "sha256": "ca5753cb7ea25b760e71a257e1d82b634f5f5519698675bb02509af67a0eaab1"
+    },
+    "infra/aws/customer-role-fef2efcc028af51f48a4fa6d883b4ce959dba3691b0b9de3872971a9aac94c82.json": {
+      "baseline_sha256": null,
+      "sha256": "fef2efcc028af51f48a4fa6d883b4ce959dba3691b0b9de3872971a9aac94c82"
+    },
+    "peaso/checks/compliance_new_sw14.py": {
+      "baseline_sha256": "4d0ebceaa9daeb53cfdb28769ef08f988401ea6e881897c0cada7620b0a9bfc4",
+      "sha256": "2ff8256b7d52d5356e201f386ac8615b035fa6338d58cb7968c5612ad4eebd7f"
+    },
+    "peaso/collectors/aws_region_data_native.py": {
+      "baseline_sha256": null,
+      "sha256": "e2440353ea5b31d50ce281e049dd4586e05710763c0b0b7ee8c737b79ae9f9e1"
+    },
+    "peaso/collectors/azure_devops_pipeline_native.py": {
+      "baseline_sha256": null,
+      "sha256": "e1935267538ee628145317772fd10ed4fa120819a88ebc70f0bf3e22adad54f2"
+    },
+    "peaso/collectors/azure_vault_key_versions_native.py": {
+      "baseline_sha256": null,
+      "sha256": "9f99c8f3327161412f6442c8531a566944a8fd2a4b32919da6cddf5bfdc0b932"
+    },
+    "tests/fixtures/native-kind-network-v27.json": {
+      "baseline_sha256": null,
+      "sha256": "a20e2df217a530e6828eb7af3ac80b1b482daae56f6b7881a0b928984ed3fd03"
+    },
+    "tests/test_peaso_aws_region_customer_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "229bd56eacc1f13cebca8b8809b35d8282d736609178a2966b7ecd36b12873ad"
+    },
+    "tests/test_peaso_aws_region_data_native.py": {
+      "baseline_sha256": null,
+      "sha256": "1b49e694fc7984fda98bbc2e88fed29ac3821957f8b9f4f8e8252d47f8b62c09"
+    },
+    "tests/test_peaso_azure_vault_key_versions_native.py": {
+      "baseline_sha256": null,
+      "sha256": "583e677f285c03624775bdd4be656857449922c324458ecb5be4efa74190b20a"
+    },
+    "tests/test_peaso_current_native_k8s_network_capture.py": {
+      "baseline_sha256": null,
+      "sha256": "4b68e84845f587f248263b91359228e89d2e17ede077960b879fcb95aa9fb83d"
+    },
+    "tests/test_peaso_devops_pipeline_hosted_intake.py": {
+      "baseline_sha256": null,
+      "sha256": "dc6406de3d7a5e3e3aeace31ea7a306f9502c1ce85d194a663af25898a2fa6fa"
+    },
+    "tests/test_peaso_devops_pipeline_native.py": {
+      "baseline_sha256": null,
+      "sha256": "ad5e0c3ecd78cf680a0d952972c99d0abed58bd595c99c31bdbb3db510be5bd2"
+    },
+    "docs/collectors/azure-certificate-issuance-native.md": {
+      "baseline_sha256": null,
+      "sha256": "ff4c15463f6559cae1fbb3bf9b5681d1f837e524c1cedf74a881ea60cdc3da87"
+    },
+    "docs/peaso-azure-tls-certificate-policy.md": {
+      "baseline_sha256": null,
+      "sha256": "2313f3fd7d6cc682e557a6fc545b890dcfa41ed4cfb27e85432451b800683181"
+    },
+    "peaso/azure_tls_owner_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "7d114ef4f04aafbe1af4e260aab1392712a15de9aca0609b6fc7653a739d0789"
+    },
+    "peaso/collectors/azure_certificate_issuance_native.py": {
+      "baseline_sha256": null,
+      "sha256": "659b457f03bb4bf1d2a307a3aeaba6de3da2911e0796a4b3e7a1e8223a79e1f4"
+    },
+    "tests/test_peaso_azure_certificate_issuance_dispatch.py": {
+      "baseline_sha256": null,
+      "sha256": "71502e2aeefad560357ef76a24f3bf0a8ec2e24916c5ad745286ce9339922ea2"
+    },
+    "tests/test_peaso_azure_certificate_issuance_native.py": {
+      "baseline_sha256": null,
+      "sha256": "9e3e2ca51c95e1ae6ee0a2ae6065ddbe8d53fcedcfa27e69ffcddf9d644c4caa"
+    },
+    "tests/test_peaso_azure_tls_owner_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "ae204b6ceaa8119bf5b60d64ac37961c8bb3db4697a25459fafbe713582efee9"
+    },
+    "docs/peaso-aws-lightsail-iam-native.md": {
+      "baseline_sha256": null,
+      "sha256": "6d7002f99103428c97bb68ffcc8306752c443ad432ce522a6a3ca8bd3d1cae01"
+    },
+    "docs/peaso-aws-lightsail-owner-policy.md": {
+      "baseline_sha256": null,
+      "sha256": "8a80d6909a8d04e5e509efd293c520f041f2d761f4c2e84c6b33eaa87d4b45ce"
+    },
+    "docs/peaso-aws-strict-readonly-reports.md": {
+      "baseline_sha256": null,
+      "sha256": "c327d95032b461f552894883eb6052d6a2ddd52748ebb2cbfc5ec13ca56dda22"
+    },
+    "docs/peaso-azure-aks-admitted-limits-native.md": {
+      "baseline_sha256": null,
+      "sha256": "1aee2efc5ceeb27f6777af3aced25362472f0d9da56b9e42c4309a4d07a1436e"
+    },
+    "peaso/aws_lightsail_owner_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "643e73ec15ea77fcd99d27d7098540cac8a1b854393574ee379d7737af9b8996"
+    },
+    "peaso/collectors/aws_lightsail_iam_native.py": {
+      "baseline_sha256": null,
+      "sha256": "6d7c9f00c7a9da7e4c3f8da9e19de2c2d168664b32fa09c9753f3df2fb3d5047"
+    },
+    "peaso/collectors/azure_aks_admitted_limits_native.py": {
+      "baseline_sha256": null,
+      "sha256": "11975f3845f600c6179ccc4305b03fb67a465d8f385d20b7ee3ef20a29aa20c2"
+    },
+    "tests/test_peaso_aws_lightsail_dispatch.py": {
+      "baseline_sha256": null,
+      "sha256": "91c3dc6bc16225e91edb362955ba5338f3bcd3820594c9d36861c20eb7911474"
+    },
+    "tests/test_peaso_aws_lightsail_iam_native.py": {
+      "baseline_sha256": null,
+      "sha256": "ddbd57d9a58a1dee32ffe416ad32e3ec156bd96d20066bf5886cbb8df3b6ce62"
+    },
+    "tests/test_peaso_aws_lightsail_owner_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "3b016f38572b7282cbc254b829088a63d08fabd6b58e117891fa3cade3a21c42"
+    },
+    "tests/test_peaso_aws_strict_readonly_reports.py": {
+      "baseline_sha256": null,
+      "sha256": "7b06791da2b6a6f5abb8f2fa6633f682b3c12410701fa6216b6cc922e31a47cb"
+    },
+    "tests/test_peaso_azure_aks_admitted_limits_native.py": {
+      "baseline_sha256": null,
+      "sha256": "9b15eae41899ffe92c52e0cd8432aaaf881c8086fc9ef6de67ec47a0a1f13c14"
+    },
+    "tests/test_peaso_azure_readonly_transport.py": {
+      "baseline_sha256": null,
+      "sha256": "947dd5de781e765a784f5994500c9a5d02703a738fd0724cb3c8d8f6175184ec"
+    },
+    "tests/test_peaso_checks_aws_a_full_collection.py": {
+      "baseline_sha256": "5dd8fcc8019a1a50f40a2cdde38da57ac93cac3638266956f83369c90891c35b",
+      "sha256": "539859ff48601a1c8fc9f79b0176471c62dd7194e81e27a11e00866634403adc"
+    },
+    "tests/test_peaso_collectors_aws.py": {
+      "baseline_sha256": "6dcbdd071dba5654ee5a391b3a2d779bf058feeccf993af5ebf35af05627e583",
+      "sha256": "a467f632e6cc8d0136958be12e3f48e789071171741fca9c31de263b5f50c437"
+    },
+    "docs/peaso-azure-nsg-ingress-native.md": {
+      "baseline_sha256": null,
+      "sha256": "5b3ab134eea8b026ee7511e4a81cd86b83773aa65192370ddf6a2048c3207b35"
+    },
+    "docs/peaso-azure-public-edge-native.md": {
+      "baseline_sha256": null,
+      "sha256": "cd728bc6d85ccdaf09fd21b95c787f92946569d7aa953635a9f965e2cc20654a"
+    },
+    "peaso/checks/compliance_new_sw31.py": {
+      "baseline_sha256": "b9edf74be33734db0e60221ddad62efa156b9a644b46b2620322671d924035c3",
+      "sha256": "3141de16861481eefc2c7095bfbbf9fe5b31a8de23d35b8803422b0d123b2913"
+    },
+    "peaso/collectors/azure_nsg_ingress_native.py": {
+      "baseline_sha256": null,
+      "sha256": "a4428aae689a70c27fb7e461655956f732cda1f9c848a4e4778f2a8d215bfe90"
+    },
+    "peaso/collectors/azure_public_edge_native.py": {
+      "baseline_sha256": null,
+      "sha256": "a03b38c782d3ddda800d891babf114036b65faf5f0e29c38ef2410d392547dda"
+    },
+    "tests/test_peaso_api_packaging_install_markers.py": {
+      "baseline_sha256": null,
+      "sha256": "e80cc57bd3b36546e54a3bbcda747fd2afac03ec99a5e2f71632269c7e45572a"
+    },
+    "tests/test_peaso_azure_nsg_direction_priority.py": {
+      "baseline_sha256": null,
+      "sha256": "bc509c354eae91fc0ae0849562947be19c52d4960e7a9f340bb8fb01fe8f121b"
+    },
+    "tests/test_peaso_azure_nsg_ingress_composition.py": {
+      "baseline_sha256": null,
+      "sha256": "e16ced92e79c38bcd7718092842f50c49cc874a77fb25c5a7d991b62cc65b009"
+    },
+    "tests/test_peaso_azure_nsg_ingress_native.py": {
+      "baseline_sha256": null,
+      "sha256": "71f2a50e9251b6b64eec0e036a34c7c5d5ed7ca43286e46d3c84fd52793c77af"
+    },
+    "tests/test_peaso_azure_public_edge_composition.py": {
+      "baseline_sha256": null,
+      "sha256": "454da5e2b592dc7a3d69c7f6d23d701655a557132323fd10d88fd379dab0dad5"
+    },
+    "tests/test_peaso_azure_public_edge_native.py": {
+      "baseline_sha256": null,
+      "sha256": "a72fa4323e65ad0f3b78c27adddae51d21648e646e2f33c9e247fe631ea7420f"
+    }
+  }
+}

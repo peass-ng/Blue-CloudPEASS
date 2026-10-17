@@ -1,40 +1,405 @@
 """Hosted connectors cannot select service filesystem, helper commands or task identity."""
+from datetime import datetime, timezone
 import json
-import os
+from functools import lru_cache
 import secrets
 import re
 from fastapi import HTTPException
 
 OPTIONS = {
-    "inventories", "max_pages", "max_resources", "max_calls", "regions", "organization_role_name",
+    "node_clock_evidence",
+    "native_disclosure_metadata", "inventories", "audit_window", "audit_detection_policy", "max_pages", "max_resources", "max_calls", "regions", "organization_role_name",
     "all_projects", "discover_projects", "project_restrictions", "allowed_projects", "quota_project",
-    "resource_iam", "include_inherited", "asset_types", "recommender_locations", "kms_locations",
-    "trusted_scope_ids", "trusted_domains", "concurrency", "retries", "page_size", "activity_days", "scope_concurrency", "region_concurrency", "service_concurrency", "collect_all",
+    "sw51_policy", "sw55_policy", "sw52",
+    "resource_iam", "include_inherited", "asset_types", "recommender_locations", "kms_locations", "cloudbuild_locations", "include_source_account",
+    "trusted_scope_ids", "trusted_domains", "gcp_data_access_required_principals", "gcp_psc_dns_policy", "concurrency", "retries", "page_size", "activity_days", "log_entry_minutes", "scope_concurrency", "region_concurrency", "service_concurrency", "collect_all", "compliance_policy", "compliance_parameters",
 }
 AUTH = {
     "aws": {"method", "aws_access_key_id", "aws_secret_access_key", "aws_session_token", "role_arn", "external_id", "role_chain", "assume_roles", "region_name", "role_session_name"},
-    "gcp": {"method", "token", "sa_json", "quota_project", "external_account_json", "subject_token"},
-    "azure": {"method", "token", "arm_token", "graph_token", "tenant_id", "client_id", "client_secret", "certificate_data", "client_certificate", "certificate_password", "federated_token"},
+    "gcp": {"method", "token", "sa_json", "quota_project", "external_account_json", "subject_token", "project_proof_label"},
+    "azure": {"devops_credentials", "aks_workloads", "method", "token", "arm_token", "graph_token", "vault_token", "storage_token", "logs_token", "databricks_account_token", "tenant_id", "client_id", "client_secret", "certificate_data", "client_certificate", "certificate_password", "federated_token"},
     "k8s": {"method", "server", "token", "kubeconfig_data", "context", "cluster_id", "ca_cert_data", "client_cert_data", "client_key_data"},
 }
+AWS_ROLE_ARN = re.compile(r"arn:aws:iam::([0-9]{12}):role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
+PLATFORM_ACCOUNT_IDS = frozenset({"202533532952", "418720621023"})
+COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/hacktricks-cspm-collector"
+CUSTOMER_ROLE_TEMPLATE_URL = "https://cspm.hacktricks.wiki/aws/customer-role.json"
 
 
-def validate_connector(provider, auth, options, settings, *, server_external_id=False):
+def validate_connector(provider, auth, options, settings, *, server_external_id=False, scopes=None):
+    if 'node_clock_evidence' in options:
+        try:
+            if provider != 'k8s':raise ValueError('Node clock observations are Kubernetes-only')
+            from peaso.collectors.k8s_node_clock_evidence import normalize
+            normalize(options)
+        except (ValueError, TypeError):
+            raise HTTPException(422, 'Invalid Kubernetes node clock observations') from None
+    if isinstance(options.get('compliance_policy'), dict) and 'eks_image_integrity' in options['compliance_policy']:
+        try:
+            if provider != 'aws':raise ValueError('EKS image integrity criteria are AWS-only')
+            from peaso.collectors.aws_eks_admission_native import normalize
+            normalize(options)
+        except (ValueError, TypeError):
+            raise HTTPException(422, 'Invalid AWS EKS image integrity criteria') from None
+    if 'devops_credentials' in auth or isinstance(options.get('compliance_parameters'),dict) and 'azure_devops_git' in options['compliance_parameters']:
+        try:
+            if provider != 'azure':raise ValueError('DevOps Git bridge is Azure-only')
+            from peaso.azure_devops_git_policy import normalize as normalize_devops_git
+            normalize_devops_git(options, auth)
+        except (ValueError, TypeError):
+            raise HTTPException(422, 'Invalid Azure DevOps explicit credentials or owner applicability') from None
+    if isinstance(options.get('compliance_parameters'), dict) and 'azure_devops_pipelines' in options['compliance_parameters']:
+        try:
+            if provider != 'azure':raise ValueError('DevOps pipeline metadata is Azure-only')
+            from peaso.collectors.azure_devops_pipeline_native import normalize as normalize_devops_pipelines
+            normalize_devops_pipelines(options, auth)
+        except (ValueError, TypeError, OverflowError, RecursionError):
+            raise HTTPException(422, 'Invalid Azure DevOps pipeline applicability or normative variable policy') from None
+    if 'aks_workloads' in auth or isinstance(options.get('compliance_parameters'),dict) and 'azure_aks_workloads' in options['compliance_parameters']:
+        try:
+            if provider != 'azure':raise ValueError('AKS bridge is Azure-only')
+            from peaso.collectors.azure_aks_workloads_native import normalize
+            normalize(options, auth)
+        except (ValueError, TypeError):
+            raise HTTPException(422, 'Invalid Azure AKS explicit workload context or owner policy') from None
+    if "databricks_account_token" in auth:
+        try:
+            if provider != "azure":
+                raise ValueError("Databricks account credentials are Azure-only")
+            from peaso.collectors.azure_databricks_native import validate_auth
+            validate_auth(auth)
+        except ValueError:
+            raise HTTPException(422, "Invalid Databricks account credential") from None
+    if "native_disclosure_metadata" in options:
+        if provider != "azure" or type(options["native_disclosure_metadata"]) is not bool:
+            raise HTTPException(422, "Invalid Azure native disclosure metadata selection")
+    if 'log_entry_minutes' in options:
+        minutes = options['log_entry_minutes']
+        if provider != 'gcp' or type(minutes) is not int or not 1 <= minutes <= 1440:
+            raise HTTPException(422, 'Invalid GCP log metadata window')
+    from peaso.gcp_psc_policy import OPTION as PSC_OPTION, normalize as normalize_psc_policy
+    if PSC_OPTION in options:
+        try:
+            if provider != "gcp":
+                raise ValueError("PSC policy is GCP-only")
+            normalize_psc_policy(options[PSC_OPTION])
+        except ValueError:
+            raise HTTPException(422, "Invalid GCP PSC owner scope") from None
+    if "cloudbuild_locations" in options:
+        locations = options["cloudbuild_locations"]
+        if (provider != "gcp" or not isinstance(locations, list) or len(locations) > 100 or
+                any(not isinstance(x, str) or not re.fullmatch(r"[a-z0-9-]+", x) for x in locations) or
+                len(locations) != len(set(locations))):
+            raise HTTPException(422, "Invalid Cloud Build location selection")
+    from peaso.gcp_data_access_policy import OPTION, normalize_owner_policy
+    if OPTION in options:
+        if provider != "gcp":
+            raise HTTPException(422, "GCP Data Access owner policy is GCP-only")
+        try:
+            normalize_owner_policy(options[OPTION])
+        except ValueError:
+            raise HTTPException(422, "Invalid GCP Data Access owner policy") from None
+    # Audit declarations are validated before the local-auth return as owner policies are.
+    from peaso.collectors.gcp_audit_native import validate_audit_options
+    try:
+        validate_audit_options(provider, options)
+    except ValueError:
+        raise HTTPException(422, "Invalid GCP audit selection or policy") from None
+    if 'compliance_parameters' in options:
+        value = options['compliance_parameters']
+        try:
+            valid = isinstance(value, dict) and len(json.dumps(value, allow_nan=False)) <= 50000
+        except (TypeError, ValueError):
+            valid = False
+        if not valid:
+            raise HTTPException(422, 'Invalid compliance parameters')
+        if 'aws_environment_separation' in value:
+            from peaso.collectors.aws_environment_boundaries_native import normalize
+            try:
+                if provider != 'aws':raise ValueError('Environment separation criteria are AWS-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid AWS environment separation criteria') from None
+        if 'azure_subnet_firewall' in value:
+            try:
+                if provider != 'azure': raise ValueError('Subnet applicability is Azure-only')
+                from peaso.collectors.azure_subnet_firewall_policy import normalize
+                normalize(options)
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, 'Invalid Azure subnet firewall applicability') from None
+        if 'azure_audit_storage' in value:
+            try:
+                if provider != 'azure': raise ValueError('Audit account classification is Azure-only')
+                from peaso.collectors.azure_audit_storage_native import normalize
+                normalize(options)
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, 'Invalid Azure audit account classification') from None
+        if 'azure_nsg_ingress' in value:
+            try:
+                if provider != 'azure':
+                    raise ValueError('NSG criteria are Azure-only')
+                from peaso.collectors.azure_nsg_ingress_native import normalize
+                normalize(options)
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, 'Invalid Azure NSG owner criteria') from None
+        if 'aws_lightsail_bucket_iam' in value:
+            try:
+                if provider != 'aws':
+                    raise ValueError('Lightsail criteria are AWS-only')
+                from peaso.aws_lightsail_owner_policy import normalize
+                normalize(options)
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, 'Invalid Lightsail IAM owner criteria') from None
+        if 'azure_tls_certificates' in value:
+            try:
+                if provider != 'azure':
+                    raise ValueError('TLS certificate criteria are Azure-only')
+                from peaso.azure_tls_owner_policy import normalize
+                normalize(options)
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, 'Invalid Azure TLS certificate owner criteria') from None
+        if 'aws_controltower' in value:
+            from peaso.collectors.aws_controltower_native import normalize
+            try:
+                if provider != 'aws':raise ValueError('Control Tower policy is AWS-only')
+                normalize(options)
+            except (ValueError, TypeError):
+                raise HTTPException(422, 'Invalid Control Tower owner AI scope') from None
+        if 'approved_inventory_reader_arns' in value:
+            from peaso.collectors.aws_ssm_inventory_events_native import approved_readers
+            try:
+                if provider != 'aws':raise ValueError('Inventory readers are AWS-only')
+                approved_readers(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid AWS inventory reader owner policy') from None
+        if 'aws_resolver_firewall' in value:
+            from peaso.collectors.aws_resolver_firewall_native import normalize
+            try:
+                if provider != 'aws':raise ValueError('Resolver policy is AWS-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid AWS Resolver owner policy') from None
+        if 'aws_ecr_artifacts' in value:
+            from peaso.collectors.aws_ecr_artifacts_native import normalize
+            try:
+                if provider != 'aws':raise ValueError('ECR policy is AWS-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid AWS ECR content-reading policy') from None
+        if 'aws_budget_stop' in value:
+            from peaso.aws_budget_policy import normalize
+            try:
+                if provider != 'aws':raise ValueError('Budget stop policy is AWS-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid AWS budget stop owner policy') from None
+        if 'cost_anomaly_alerts' in value:
+            from peaso.collectors.aws_cost_policy import normalize
+            try:
+                if provider != 'aws':raise ValueError('cost alert policy is AWS-only')
+                normalize(options)
+            except ValueError:
+                raise HTTPException(422, 'Invalid cost anomaly owner policy') from None
+        if 'operational_groups' in value:
+            from peaso.collectors.aws_operational_groups_native import normalize
+            try:
+                if provider != 'aws':raise ValueError('operational grouping is AWS-only')
+                normalize(options)
+            except (ValueError, TypeError):
+                raise HTTPException(422, 'Invalid AWS operational group owner policy') from None
+        if 'azure_resource_logging' in value:
+            from peaso.collectors.azure_resource_logging_policy import normalize
+            try:
+                if provider != 'azure':raise ValueError('Resource logging requirements are Azure-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid Azure resource logging owner requirements') from None
+        if 'azure_iot_policy' in value:
+            from peaso.collectors.azure_iot_policy_native import normalize
+            try:
+                if provider != 'azure':raise ValueError('DPS policy is Azure-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid Azure DPS owner policy') from None
+        if 'azure_storage_recovery' in value:
+            from peaso.collectors.azure_storage_recovery_metadata_native import normalize
+            try:
+                if provider != 'azure':raise ValueError('Storage retention review is Azure-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid Azure storage/recovery owner policy') from None
+        if 'azure_storage_lifecycle' in value:
+            from peaso.collectors.azure_storage_lifecycle_native import normalize
+            try:
+                if provider != 'azure':raise ValueError('Storage lifecycle review is Azure-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid Azure storage lifecycle owner policy') from None
+        if 'azure_guest_configuration' in value:
+            from peaso.collectors.azure_guest_policy import normalize
+            try:
+                if provider != 'azure':raise ValueError('guest baseline policy is Azure-only')
+                normalize(options)
+            except (ValueError,TypeError):
+                raise HTTPException(422, 'Invalid Azure guest baseline owner policy') from None
+    if "sw52" in options:
+        try:
+            from peaso.gcp_sbom_policy import normalize
+            if provider != "gcp":
+                raise ValueError("SBOM workload scope is GCP-only")
+            # Actual selected scopes are unavailable here; collection binds them.
+            normalize(options["sw52"])
+        except (ValueError, TypeError, OverflowError, RecursionError):
+            raise HTTPException(422, "Invalid GCP SBOM workload scope") from None
+    if isinstance(options.get("compliance_policy"), dict) and "security_reviewer_arns" in options["compliance_policy"]:
+        try:
+            from peaso.collectors.aws_codecommit_review_native import review_policy
+            if provider != "aws":
+                raise ValueError("CodeCommit reviewers are AWS-only")
+            review_policy(options)
+        except (ValueError, TypeError):
+            raise HTTPException(422, "Invalid CodeCommit reviewer policy") from None
+    # These namespaces select normative rules, never captured observations.
+    # Validate them in local mode too, before accepting provider-specific input.
+    parent_policy = options.get("compliance_policy")
+    sw13 = parent_policy.get('sw13') if isinstance(parent_policy, dict) else None
+    consideration_keys = {'azure|cis|exclusionary_device_code_flow_policy_considered',
+                          'azure|cis|exclusionary_geographic_access_policy_considered'}
+    selected_considerations = ({cid: config for cid, config in sw13['checks'].items()
+        if cid in consideration_keys and isinstance(config, dict) and 'consideration' in config}
+        if isinstance(sw13, dict) and isinstance(sw13.get('checks'), dict) else {})
+    if selected_considerations:
+        try:
+            if provider != 'azure': raise ValueError('Consideration requirements are Azure-only')
+            from .native_policy_validation import azure_mfa_review
+            # Preserve existing local legacy criteria in other checks. Only
+            # this explicit native consideration input adds new validation.
+            azure_mfa_review({**sw13, 'checks': selected_considerations})
+        except (ValueError, TypeError, OverflowError, RecursionError):
+            raise HTTPException(422, 'Invalid Azure Conditional Access consideration requirements') from None
+    correlation_key = 'azure|other|security_event_correlation'
+    if isinstance(sw13, dict) and isinstance(sw13.get('checks'), dict) and correlation_key in sw13['checks']:
+        try:
+            if provider != 'azure': raise ValueError('Correlation requirements are Azure-only')
+            from peaso.collectors.azure_security_correlation_native import normalize
+            normalize(sw13)
+        except (ValueError, TypeError, OverflowError, RecursionError):
+            raise HTTPException(422, 'Invalid Azure security correlation requirements') from None
+    sw27 = parent_policy.get('sw27') if isinstance(parent_policy, dict) else None
+    if isinstance(sw27, dict) and 'incidentTriage' in sw27:
+        try:
+            if provider != 'azure':
+                raise ValueError('Incident triage requirements are Azure-only')
+            from .native_policy_validation import azure_incident_triage_review
+            legacy_sw27_criteria = {'approvedRecipientIds', 'dscNodes', 'targetPrivateEndpointServiceType',
+                'approvedLogAnalyticsWorkspaceIds', 'minimumSnapshotSpanDays', 'expectedDiskVmIds',
+                'storageEventSubscriptions', 'vmBaselineAssessmentKeys', 'assessmentMaxAgeHours', 'siem'}
+            if set(sw27) - {'status', 'scope', 'incidentTriage'} - legacy_sw27_criteria:
+                raise ValueError('Incident triage policy cannot supply observations')
+            # Preserve unrelated legacy local SW27 baselines; validate this new
+            # procedure before accepting it in either authentication mode.
+            azure_incident_triage_review({key: sw27[key] for key in
+                ('status', 'scope', 'incidentTriage') if key in sw27})
+        except (ValueError, TypeError, OverflowError, RecursionError):
+            raise HTTPException(422, 'Invalid Azure incident triage requirements') from None
+    sw25 = parent_policy.get('sw25') if isinstance(parent_policy, dict) else None
+    sw25_checks = sw25.get('checks') if isinstance(sw25, dict) else None
+    native_alert_checks = {'azure.other.gateway_backend_health_alert', 'azure_pci_10_2_1_1_8',
+                           'azure_diagnostic_setting_11_5_2_3_7959930',
+                           'azure_storage_account_monitor_alert_create_update_sqlserver_fr_7a7ddfa'}
+    selected_alert_checks = {cid: value for cid, value in sw25_checks.items() if cid in native_alert_checks} if isinstance(sw25_checks, dict) else {}
+    if selected_alert_checks:
+        try:
+            if provider != 'azure':raise ValueError('Alert requirements are Azure-only')
+            from .native_policy_validation import azure_guest_review_policy
+            # Validate this new criterion in local mode too, preserving existing
+            # local policies for other SW25 controls.
+            azure_guest_review_policy({**{key: sw25[key] for key in ('status', 'scope') if key in sw25},
+                                       'checks': selected_alert_checks})
+        except (ValueError, TypeError, OverflowError, RecursionError):
+            raise HTTPException(422, 'Invalid Azure alert requirements') from None
+    if isinstance(parent_policy, dict):
+        for namespace in ("sw15", "sw31", "sw32"):
+            if namespace not in parent_policy:
+                continue
+            try:
+                if provider != "azure":
+                    raise ValueError("Azure owner policy is provider-specific")
+                from .native_policy_validation import azure_detection
+                azure_detection({namespace: parent_policy[namespace]})
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, "Invalid Azure native owner policy") from None
     if settings.auth_mode != "cognito":
         return
     if set(auth) - AUTH[provider] or set(options) - OPTIONS:
         raise HTTPException(422, "Unsupported hosted connector field or authentication method")
-    structured = {"sa_json", "external_account_json", "kubeconfig_data", "role_chain", "assume_roles"}
+    from . import native_policy_validation as native_review
+    for name in ("sw51_policy", "sw55_policy"):
+        if name in options:
+            try:
+                if provider != "gcp":
+                    raise ValueError("GCP review is provider-specific")
+                native_review.gcp_review(name, options[name])
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, "Invalid hosted GCP review policy") from None
+    if "compliance_policy" in options:
+        policy = options["compliance_policy"]
+        if provider == "aws":
+            if not isinstance(policy, dict) or not policy or set(policy) - {"aws_backup_plan", "aws_organizations", "sw38_policy", "status", "scope", "security_reviewer_arns", "eks_image_integrity"}:
+                raise HTTPException(422, "Unsupported hosted compliance policy")
+            from peaso.collectors.aws_policy import backup_plan_policy
+            try:
+                from peaso.collectors.aws_codecommit_review_native import review_policy
+                review_policy(options, strict=True)
+                backup_plan_policy(options)
+                if "aws_organizations" in policy:
+                    native_review.organizations(policy["aws_organizations"])
+                if "sw38_policy" in policy:
+                    native_review.aws_transport(policy["sw38_policy"])
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, "Invalid AWS backup plan policy") from None
+        elif provider in ("azure", "gcp"):
+            try:
+                (native_review.azure_detection if provider == "azure" else native_review.gcp_backup)(policy)
+            except (ValueError, TypeError, OverflowError, RecursionError):
+                raise HTTPException(422, "Invalid hosted native review policy") from None
+        elif provider == "k8s":
+            required = {"cluster_id", "max_policy_items", "system_namespaces"}
+            expiry = {"observed_at", "max_age_seconds"}
+            optional = {"approved_clock_skew"}
+            cluster = auth.get("cluster_id")
+            if (not isinstance(policy, dict) or set(policy) - optional not in (required, required | expiry) or
+                    not isinstance(cluster, str) or not 0 < len(cluster) <= 512 or
+                    cluster != cluster.strip() or any(ord(char) < 32 for char in cluster) or
+                    cluster != policy.get("cluster_id")):
+                raise HTTPException(422, "Unsupported hosted Kubernetes owner policy")
+            if expiry <= set(policy) and (not isinstance(policy["observed_at"], str) or
+                    type(policy["max_age_seconds"]) is not int or
+                    not 0 < policy["max_age_seconds"] <= 31536000):
+                raise HTTPException(422, "Invalid hosted Kubernetes owner policy expiry")
+            from peaso.collectors.k8s import _owner_policy_metadata
+            # Validate declaration shape and bounds at intake. Collection checks
+            # actual age, so an expired saved policy yields UNKNOWN rather than
+            # preventing the whole hosted scan from running.
+            captured_at = policy.get("observed_at") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            result = _owner_policy_metadata(options, cluster, captured_at)
+            if result.get("status") != "collected" or result.get("system_namespaces") != policy["system_namespaces"]:
+                raise HTTPException(422, "Invalid hosted Kubernetes owner policy")
+        else:
+            raise HTTPException(422, "Unsupported hosted compliance policy")
+    structured = {"devops_credentials", "aks_workloads", "sa_json", "external_account_json", "kubeconfig_data", "role_chain", "assume_roles"}
     if any(key not in structured and (not isinstance(value, str) or len(value) > 1_000_000) for key, value in auth.items()):
         raise HTTPException(422, "Hosted authentication fields must contain strings or supported inline configuration")
     for key in ("max_resources", "max_calls", "max_pages"):
         if key in options and (isinstance(options[key], bool) or not isinstance(options[key], int) or options[key] < 1):
             raise HTTPException(422, "Explicit inventory caps must be positive integers")
-    limits = {"concurrency": 4, "service_concurrency": 4, "scope_concurrency": 2, "region_concurrency": 2, "retries": 5, "page_size": 1000, "activity_days": 90}
+    limits = {"concurrency": 4, "service_concurrency": 16, "scope_concurrency": 2, "region_concurrency": 2, "retries": 5, "page_size": 1000, "activity_days": 90, "log_entry_minutes": 1440}
     for key, maximum in limits.items():
         if key in options and (isinstance(options[key], bool) or not isinstance(options[key], int) or not 0 < options[key] <= maximum):
             raise HTTPException(422, "Hosted collector limit exceeds the supported budget")
     if provider == "aws":
+        if "include_source_account" in options and not isinstance(options["include_source_account"], bool):
+            raise HTTPException(422, "include_source_account must be a boolean")
         has_keys = any(auth.get(key) for key in ("aws_access_key_id", "aws_secret_access_key", "aws_session_token"))
         if has_keys and (not auth.get("aws_access_key_id") or not auth.get("aws_secret_access_key") or auth.get("method", "access_keys") not in {"access_keys", "assume_role"}):
             raise HTTPException(422, "Explicit customer AWS authentication requires access key and secret key")
@@ -46,28 +411,65 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
             if not isinstance(entries, list) or any(not isinstance(entry, dict) or set(entry) - {"role_arn", "role_session_name", "external_id"} for entry in entries):
                 raise HTTPException(422, "Invalid role configuration")
             role_entries.extend(entries)
+        if len(role_entries) > 50 or len(auth.get("role_chain", [])) > 10:
+            raise HTTPException(422, "At most 50 distinct role targets and 10 chain roles are supported")
+        seen = set()
         for entry in role_entries:
-            if not isinstance(entry.get("role_arn"), str) or not re.fullmatch(r"arn:(aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}", entry["role_arn"]):
+            if not isinstance(entry.get("role_arn"), str) or not AWS_ROLE_ARN.fullmatch(entry["role_arn"]):
                 raise HTTPException(422, "Invalid role configuration")
+            if entry["role_arn"] in seen:
+                raise HTTPException(422, "Duplicate role target")
+            seen.add(entry["role_arn"])
             for field in ("external_id", "role_session_name"):
                 value = entry.get(field, auth.get(field))
                 if value is not None and (not isinstance(value, str) or not 2 <= len(value) <= (1224 if field == "external_id" else 64)):
                     raise HTTPException(422, "Invalid role configuration")
+        if any(AWS_ROLE_ARN.fullmatch(entry["role_arn"]).group(1) in PLATFORM_ACCOUNT_IDS for entry in role_entries):
+            raise HTTPException(422, "Platform-owned AWS accounts cannot be role targets")
         if has_keys:
             # Their source identity authorizes these targets; never substitute our role.
             return
-        if (auth.get("external_id") or any(entry.get("external_id") for entry in role_entries)) and not server_external_id:
+        if auth.get("method") not in {"assume_role", "task_role"} or not role_entries:
+            raise HTTPException(422, "Hosted AWS role access requires target roles")
+        if auth.get("role_chain") or options.get("organization_role_name"):
+            raise HTTPException(422, "Hosted platform role access requires explicit fanout targets")
+        if any(entry.get("external_id") for entry in role_entries if entry in auth.get("assume_roles", [])):
+            raise HTTPException(422, "Hosted platform role targets use the server-generated ExternalID")
+        if auth.get("external_id") and not server_external_id:
             raise HTTPException(422, "Hosted platform ExternalID is generated by the server")
-        allowed_roles = json.loads(os.getenv("PEASO_CUSTOMER_ROLE_ARNS", "[]"))
-        if any(entry.get("role_arn") not in allowed_roles for entry in role_entries):
-            raise HTTPException(422, "Role is unavailable until hosted onboarding is approved")
-        if auth.get("method") in {"assume_role", "task_role"} and auth.get("role_arn"):
-            if not server_external_id:
-                auth["external_id"] = "peaso-" + secrets.token_urlsafe(24)
-            return
-        raise HTTPException(422, "Hosted AWS requires explicit customer credentials or an approved platform role")
+        if not server_external_id:
+            auth["external_id"] = "peaso-" + secrets.token_urlsafe(24)
+        elif not isinstance(auth.get("external_id"), str) or not auth["external_id"].startswith("peaso-"):
+            raise HTTPException(422, "Missing server-generated ExternalID")
+        return
     elif provider == "gcp":
-        if auth.get("method") == "external-account":
+        if auth.get("method") == "platform-service-account":
+            from peaso.gcp_platform import PLATFORM_PROJECT, PROOF_LABEL, enabled, new_proof_label, project_id
+            if not enabled(settings) or set(auth) - {"method", "project_proof_label"}:
+                raise HTTPException(422, "Hosted GCP platform service account is unavailable")
+            if "project_proof_label" in auth and not server_external_id:
+                raise HTTPException(422, "GCP project proof label is generated by the server")
+            if server_external_id:
+                if not isinstance(auth.get("project_proof_label"), str) or not PROOF_LABEL.fullmatch(auth["project_proof_label"]):
+                    raise HTTPException(422, "Missing server-generated GCP project proof label")
+            else:
+                auth["project_proof_label"] = new_proof_label()
+            if scopes is not None:
+                try:
+                    selected = [project_id(scope) for scope in scopes if scope != "*"]
+                    if any(value == PLATFORM_PROJECT for value in selected):
+                        raise ValueError("platform project selected")
+                    if any(scope == "*" for scope in scopes) and not options.get("all_projects"):
+                        raise ValueError("wildcard requires discovery")
+                    if not selected and not options.get("all_projects"):
+                        raise ValueError("project selection required")
+                    if any(scope.startswith(("organizations/", "folders/")) for scope in scopes):
+                        raise ValueError("organization or folder scopes unsupported")
+                except (ValueError, TypeError):
+                    raise HTTPException(422, "Select customer project IDs; the platform project is excluded") from None
+            if options.get("discover_projects") or options.get("all_hierarchy"):
+                raise HTTPException(422, "Hosted GCP platform identity only scans verified projects")
+        elif auth.get("method") == "external-account":
             try:
                 from peaso.collectors.gcp import validate_external_config
                 info = auth.get("external_account_json")
@@ -87,6 +489,9 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
                     raise ValueError("Unsafe credential source")
             except Exception:
                 raise HTTPException(422, "Hosted GCP requires inline service-account JSON") from None
+            from peaso.gcp_platform import PLATFORM_EMAIL
+            if value.get("client_email") == PLATFORM_EMAIL:
+                raise HTTPException(422, "Use the hosted GCP platform service account connector")
             if auth.get("method", "service-account") not in {"service-account", "service_account"}:
                 raise HTTPException(422, "Unsupported hosted GCP authentication")
         else:
@@ -117,21 +522,38 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
 
 def auth_capabilities(settings):
     if settings.auth_mode == "cognito":
-        return {"aws": ["access_keys", "assume_role"], "gcp": ["token", "service-account", "external-account"], "azure": ["token", "client-secret", "client-cert", "workload-identity"], "k8s": ["inline", "token", "client-cert"]}
+        from peaso.gcp_platform import enabled
+        gcp = ["token", "service-account", "external-account"]
+        if enabled(settings):
+            gcp.append("platform-service-account")
+        return {"aws": ["access_keys", "assume_role"], "gcp": gcp, "azure": ["token", "client-secret", "client-cert", "workload-identity"], "k8s": ["inline", "token", "client-cert"]}
     return {"aws": ["default", "profile", "sso", "access_keys", "assume_role", "web_identity", "container", "instance"], "gcp": ["adc", "gcloud", "service-account", "external-account", "metadata", "impersonation", "token"], "azure": ["auto", "az-cli", "client-secret", "client-cert", "managed-identity", "workload-identity", "device-code", "token"], "k8s": ["kubeconfig", "context", "in-cluster", "token", "client-cert", "inline"]}
 
 
+@lru_cache(maxsize=8)
+def _selector_index(provider):
+    """Valid selector values per provider, without building the full public catalog."""
+    from peaso.analysis import ANALYSIS_CHECKS
+    from peaso.checks import CHECKS
+    from peaso.checks.catalog import _framework_rows, framework_selector_index, manual_requirement_ids
+    from peaso.engine import CATEGORIES, FRAMEWORK_ALIASES
+    checks = {c.id for c in CHECKS if c.provider in {provider, "all"}} | {c["id"] for c in ANALYSIS_CHECKS if c.get("provider") in {provider, "all"}}
+    checks |= manual_requirement_ids(provider)
+    from peaso.checks import CHECK_ALIASES
+    checks |= {retired for retired, survivor in CHECK_ALIASES.items() if survivor in checks}  # retired duplicate ids
+    provider_ids = frozenset(row["id"] for row in _framework_rows() if row["provider"] in {provider, "all"})
+    labels = {name for c in CHECKS for name in c.frameworks} | {name for c in ANALYSIS_CHECKS for name in c["frameworks"]}
+    frameworks = labels | provider_ids | set(FRAMEWORK_ALIASES) | {"nist", "hacktricks_cloud_best_practices"}
+    # Family labels ("CIS", "NIST 800-53", "AWS-Foundational-Security-Best-Practices") remain filter aliases.
+    frameworks |= {key for key, ids in framework_selector_index().items() if provider_ids.intersection(ids)}
+    return frozenset(CATEGORIES), frozenset(checks), frozenset(frameworks)
+
+
 def validate_selectors(request, provider):
-    from peaso.engine import get_catalog
-    catalog = get_catalog()
-    if any(value not in catalog["categories"] for value in request.get("categories", [])):
+    categories, checks, frameworks = _selector_index(provider)
+    if any(value not in categories for value in request.get("categories", [])):
         raise HTTPException(422, "Unsupported scan category")
-    checks = {value["id"] for value in catalog["checks"] if value["provider"] in {provider, "all"}}
-    checks.update(value["id"] for value in catalog.get("manual_requirements", []) if value["provider"] in {provider, "all"})
     if any(value not in checks for value in request.get("checks", [])):
         raise HTTPException(422, "Unknown check for selected provider")
-    frameworks = {value[key] for value in catalog["frameworks"] for key in ("id", "name")}
-    frameworks.update(value["id"] for value in catalog.get("framework_versions", []) if value["provider"] in {provider, "all"})
-    frameworks.update({"nist", "hacktricks_cloud_best_practices"})
-    if any(value not in frameworks for value in request.get("frameworks", [])):
+    if any(value not in frameworks and str(value).lower() not in frameworks for value in request.get("frameworks", [])):
         raise HTTPException(422, "Unsupported framework")

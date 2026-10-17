@@ -1,0 +1,80 @@
+{
+  "k8s_ingress_backend_https": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_workload_ingress",
+      "kind": "ingress",
+      "path": "metadata.annotations.nginx.ingress.kubernetes.io/backend-protocol",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "90e8bc7885cff15769d37f6703e5a95447b713a24c854789df98195a30a5d3b7",
+    "references": [
+      {
+        "title": "ingress-nginx backend protocol annotation",
+        "url": "https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/"
+      },
+      {
+        "title": "Kubernetes ingress-nginx retirement announcement",
+        "url": "https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the named IngressClass controller and the backend Service and Pod TLS capability with their owners; the observed annotation alone does not prove encrypted traffic.",
+      "Plan migration to a supported Ingress or Gateway controller, preserving tested HTTPS backend behavior. If an existing ingress-nginx deployment must remain temporarily, review the migration window and declare backend-protocol HTTPS or GRPCS only after the backend serves TLS.",
+      "Verify the replacement controller configuration and actual client-to-backend TLS behavior in a controlled environment; restore the previous owner-approved manifest if the migration disrupts traffic."
+    ],
+    "summary": "Review TLS to the backend Service and plan migration away from retired ingress-nginx."
+  },
+  "k8s_ingress_ingress_redirect_http_traffic_https_12967db1": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_workload_ingress",
+      "kind": "ingress",
+      "path": "metadata.annotations.nginx.ingress.kubernetes.io/force-ssl-redirect or ssl-redirect",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "cb99732b442accf327533d037418a7027617777f8909492de0608467c7d0f861",
+    "references": [
+      {
+        "title": "ingress-nginx SSL redirect annotations",
+        "url": "https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/"
+      },
+      {
+        "title": "Kubernetes ingress-nginx retirement announcement",
+        "url": "https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the named IngressClass and controller configuration with the owner; an absent annotation does not establish that HTTP remains enabled.",
+      "Plan migration to a supported controller and configure its approved HTTP-to-HTTPS redirect policy. During any temporary ingress-nginx operation, set force-ssl-redirect true in the owned Ingress only when compatible with its TLS route and deployment plan.",
+      "Verify observed redirect behavior and application compatibility after rollout; restore the previous owner-approved manifest if required."
+    ],
+    "summary": "Review explicit HTTP redirect intent and migrate the retired ingress-nginx controller."
+  },
+  "k8s_pod_effective_run_as_user_nonzero": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_workload_ingress",
+      "kind": "pod",
+      "path": "spec.securityContext.runAsUser and spec.containers/initContainers[].securityContext.runAsUser",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "3a8dbac3a69256d3da34217afd4787b95770d3953d8181e98cda7e75d7d7bfe8",
+    "references": [
+      {
+        "title": "Kubernetes: Configure a Security Context for a Pod or Container",
+        "url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/"
+      },
+      {
+        "title": "Kubernetes Pod Security Standards",
+        "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the Pod and owner workload manifest for Pod-level and container-level runAsUser and the image USER; identify containers with explicit UID zero or unresolved identity.",
+      "With the workload owner, choose a nonzero UID supported by the image and filesystem permissions; set securityContext.runAsUser in the owned manifest at Pod or container scope and stage the rollout.",
+      "Verify the resulting Pod declaration and runtime identity with the owner, and roll back the manifest revision if startup or volume access fails."
+    ],
+    "summary": "Declare a compatible nonzero Linux UID for each affected Pod container."
+  }
+}

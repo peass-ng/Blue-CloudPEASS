@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT))
 
 import yaml  # noqa: E402
 
-from peaso.privesc.schema import CATALOG_DIR, HACKTRICKS_CLOUD, load_catalog  # noqa: E402
+from peaso.privesc.schema import CATALOG_DIR, HACKTRICKS_CLOUD, flatten_requirements, load_catalog  # noqa: E402
 
 UNKNOWN_PATTERNS = {
     "selector_key": re.compile(r"unknown (?:source_)?selector key '([^']+)'"),
@@ -59,6 +59,12 @@ def normalize_permission(provider, value):
 # Known permissions missing from the generated *_permissions_cat.yaml (synced from hacktricks; do not edit it):
 # evaluator pseudo-permissions and real IAM permissions newer than the synced list.
 PSEUDO_PERMISSIONS = {
+    "aws": {
+        # Verified in the Service Authorization Reference (list_gameliftstreams / list_emr-serverless / list_kinesis).
+        "gameliftstreams:createstreamurl",
+        "emr-serverless:getsessionendpoint",
+        "kinesis:createchannel",
+    },
     "gcp": {
         # Cloud Identity group membership: derived from group OWNER/MANAGER roles or Workspace admin roles.
         "cloudidentity.groups.memberships.create",
@@ -88,8 +94,8 @@ def unknown_permissions(entries, perms):
         known = perms.get(provider)
         if not known:
             continue
-        requires = entry.get("requires") or {}
-        reqs = list(requires.get("all_of") or []) + [r for g in requires.get("any_of") or [] for r in g]
+        # Every leaf, including nested all_of / any_of groups (schema v1.1).
+        reqs = flatten_requirements(entry.get("requires") or {})
         for req in reqs:
             action = req.get("action") or req.get("permission") if isinstance(req, dict) else None
             if not isinstance(action, str) or "*" in action:

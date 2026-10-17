@@ -1,0 +1,1360 @@
+{
+  "azure-compliance.control.cis_v150_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_apps",
+      "azure.port.iam_user_not_allowed_to_register_application"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_apps, azure.port.iam_user_not_allowed_to_register_application implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_apps",
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateApps",
+      "pass_condition": "PASS iff allowedToCreateApps is false (source: ->> = 'false' ok)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance (UNKNOWN otherwise); non-boolean is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 707,
+      "query_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_1.pp",
+      "control_line": 381,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then a.display_name || ' does not allow user to register applications.'\n        else a.display_name || ' allows user to register applications.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f9eb6abe96a9503f4f8aaadabdbd987ebc013b5c86d37bdaaa5ae27f16651a8d",
+      "upstream_evaluator_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v200_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_apps",
+      "azure.port.iam_user_not_allowed_to_register_application"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_apps, azure.port.iam_user_not_allowed_to_register_application implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_apps",
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateApps",
+      "pass_condition": "PASS iff allowedToCreateApps is false (source: ->> = 'false' ok)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance (UNKNOWN otherwise); non-boolean is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 707,
+      "query_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_1.pp",
+      "control_line": 381,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then a.display_name || ' does not allow user to register applications.'\n        else a.display_name || ' allows user to register applications.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f9eb6abe96a9503f4f8aaadabdbd987ebc013b5c86d37bdaaa5ae27f16651a8d",
+      "upstream_evaluator_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v210_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_apps",
+      "azure.port.iam_user_not_allowed_to_register_application"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_apps, azure.port.iam_user_not_allowed_to_register_application implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_apps",
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateApps",
+      "pass_condition": "PASS iff allowedToCreateApps is false (source: ->> = 'false' ok)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance (UNKNOWN otherwise); non-boolean is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 707,
+      "query_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_1.pp",
+      "control_line": 382,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then a.display_name || ' does not allow user to register applications.'\n        else a.display_name || ' allows user to register applications.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f9eb6abe96a9503f4f8aaadabdbd987ebc013b5c86d37bdaaa5ae27f16651a8d",
+      "upstream_evaluator_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v300_2_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_apps",
+      "azure.port.iam_user_not_allowed_to_register_application"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_apps, azure.port.iam_user_not_allowed_to_register_application implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_apps",
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateApps",
+      "pass_condition": "PASS iff allowedToCreateApps is false (source: ->> = 'false' ok)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance (UNKNOWN otherwise); non-boolean is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 707,
+      "query_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_2.pp",
+      "control_line": 412,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then a.display_name || ' does not allow user to register applications.'\n        else a.display_name || ' allows user to register applications.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f9eb6abe96a9503f4f8aaadabdbd987ebc013b5c86d37bdaaa5ae27f16651a8d",
+      "upstream_evaluator_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v400_6_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_apps",
+      "azure.port.iam_user_not_allowed_to_register_application"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_apps, azure.port.iam_user_not_allowed_to_register_application implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_apps",
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateApps",
+      "pass_condition": "PASS iff allowedToCreateApps is false (source: ->> = 'false' ok)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance (UNKNOWN otherwise); non-boolean is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 707,
+      "query_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_6.pp",
+      "control_line": 443,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then a.display_name || ' does not allow user to register applications.'\n        else a.display_name || ' allows user to register applications.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f9eb6abe96a9503f4f8aaadabdbd987ebc013b5c86d37bdaaa5ae27f16651a8d",
+      "upstream_evaluator_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_apps",
+      "azure.port.iam_user_not_allowed_to_register_application"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_apps, azure.port.iam_user_not_allowed_to_register_application implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_apps",
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateApps",
+      "pass_condition": "PASS iff allowedToCreateApps is false (source: ->> = 'false' ok)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance (UNKNOWN otherwise); non-boolean is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_register_application",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 707,
+      "query_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 474,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateApps' = 'false' then a.display_name || ' does not allow user to register applications.'\n        else a.display_name || ' allows user to register applications.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_register_application"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f9eb6abe96a9503f4f8aaadabdbd987ebc013b5c86d37bdaaa5ae27f16651a8d",
+      "upstream_evaluator_sha256": "7439bd7cba6e9a5bffd7053087d61a76b04c775296e47d00c686fd4234998706",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v150_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_security_groups",
+      "azure.port.iam_user_not_allowed_to_create_security_group"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_security_groups, azure.port.iam_user_not_allowed_to_create_security_group implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_security_groups",
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateSecurityGroups",
+      "pass_condition": "PASS iff allowedToCreateSecurityGroups is false",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance; non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 651,
+      "query_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_1.pp",
+      "control_line": 451,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then a.display_name || ' does not allow user to create security groups.'\n        else a.display_name || ' allows user to create security groups.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "dfc2799b4f45805f60a1d98dd92bb5f9af33a158b608988f10d9a6ac727e323a",
+      "upstream_evaluator_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v200_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_security_groups",
+      "azure.port.iam_user_not_allowed_to_create_security_group"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_security_groups, azure.port.iam_user_not_allowed_to_create_security_group implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_security_groups",
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateSecurityGroups",
+      "pass_condition": "PASS iff allowedToCreateSecurityGroups is false",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance; non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 651,
+      "query_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_1.pp",
+      "control_line": 451,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then a.display_name || ' does not allow user to create security groups.'\n        else a.display_name || ' allows user to create security groups.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "dfc2799b4f45805f60a1d98dd92bb5f9af33a158b608988f10d9a6ac727e323a",
+      "upstream_evaluator_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v210_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_security_groups",
+      "azure.port.iam_user_not_allowed_to_create_security_group"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_security_groups, azure.port.iam_user_not_allowed_to_create_security_group implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_security_groups",
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateSecurityGroups",
+      "pass_condition": "PASS iff allowedToCreateSecurityGroups is false",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance; non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 651,
+      "query_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_1.pp",
+      "control_line": 452,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then a.display_name || ' does not allow user to create security groups.'\n        else a.display_name || ' allows user to create security groups.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "dfc2799b4f45805f60a1d98dd92bb5f9af33a158b608988f10d9a6ac727e323a",
+      "upstream_evaluator_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v300_2_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_security_groups",
+      "azure.port.iam_user_not_allowed_to_create_security_group"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_security_groups, azure.port.iam_user_not_allowed_to_create_security_group implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_security_groups",
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateSecurityGroups",
+      "pass_condition": "PASS iff allowedToCreateSecurityGroups is false",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance; non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 651,
+      "query_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_2.pp",
+      "control_line": 482,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then a.display_name || ' does not allow user to create security groups.'\n        else a.display_name || ' allows user to create security groups.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "dfc2799b4f45805f60a1d98dd92bb5f9af33a158b608988f10d9a6ac727e323a",
+      "upstream_evaluator_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v400_6_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_security_groups",
+      "azure.port.iam_user_not_allowed_to_create_security_group"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_security_groups, azure.port.iam_user_not_allowed_to_create_security_group implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_security_groups",
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateSecurityGroups",
+      "pass_condition": "PASS iff allowedToCreateSecurityGroups is false",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance; non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 651,
+      "query_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_6.pp",
+      "control_line": 513,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then a.display_name || ' does not allow user to create security groups.'\n        else a.display_name || ' allows user to create security groups.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "dfc2799b4f45805f60a1d98dd92bb5f9af33a158b608988f10d9a6ac727e323a",
+      "upstream_evaluator_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.entra_users_cannot_create_security_groups",
+      "azure.port.iam_user_not_allowed_to_create_security_group"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.entra_users_cannot_create_security_groups, azure.port.iam_user_not_allowed_to_create_security_group implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "target_native_checks": [
+        "azure.claude.entra_users_cannot_create_security_groups",
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.allowedToCreateSecurityGroups",
+      "pass_condition": "PASS iff allowedToCreateSecurityGroups is false",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "azure.port variant additionally requires tenant provenance; non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_create_security_group",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 651,
+      "query_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "status_case_sql": "case when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 539,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateSecurityGroups' = 'false' then a.display_name || ' does not allow user to create security groups.'\n        else a.display_name || ' allows user to create security groups.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_create_security_group"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "dfc2799b4f45805f60a1d98dd92bb5f9af33a158b608988f10d9a6ac727e323a",
+      "upstream_evaluator_sha256": "db6d181162dbb209cc0942a1288d483575276640124f11525797f35f9e5d6fe3",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_security_defaults_policy_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_security_defaults_policy_enabled"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_security_defaults_policy_enabled implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_security_defaults_policy_enabled",
+      "target_native_checks": [
+        "azure.port.ad_security_defaults_policy_enabled"
+      ],
+      "resource": "Microsoft Graph identitySecurityDefaultsEnforcementPolicy of the authenticated tenant (kind directory_security_defaults)",
+      "property": "isEnabled",
+      "pass_condition": "PASS iff isEnabled is true",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/identitysecuritydefaultsenforcementpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_security_defaults_policy_enabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 185,
+      "query_sha256": "4f9c68e319def099d463680ee729a3dfc920d077c930cd89e39251015ccf8451",
+      "status_case_sql": "case when (p.is_enabled)::bool then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 15,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      p.id as resource,\n      case\n        when (p.is_enabled)::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (p.is_enabled)::bool then p.tenant_id || ' security defaults enabled.'\n        else p.tenant_id || ' security defaults disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_security_defaults_policy as p;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_security_defaults_policy_enabled"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "9f55c32672d33c53b74960d343fb3a01f052e5f53807fdc3e506e9cd613c4843",
+      "upstream_evaluator_sha256": "4f9c68e319def099d463680ee729a3dfc920d077c930cd89e39251015ccf8451",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_security_defaults_policy_enabled"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_security_defaults_policy_enabled implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_security_defaults_policy_enabled",
+      "target_native_checks": [
+        "azure.port.ad_security_defaults_policy_enabled"
+      ],
+      "resource": "Microsoft Graph identitySecurityDefaultsEnforcementPolicy of the authenticated tenant (kind directory_security_defaults)",
+      "property": "isEnabled",
+      "pass_condition": "PASS iff isEnabled is true",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "non-boolean is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/identitysecuritydefaultsenforcementpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_security_defaults_policy_enabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 185,
+      "query_sha256": "4f9c68e319def099d463680ee729a3dfc920d077c930cd89e39251015ccf8451",
+      "status_case_sql": "case when (p.is_enabled)::bool then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 72,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      p.id as resource,\n      case\n        when (p.is_enabled)::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (p.is_enabled)::bool then p.tenant_id || ' security defaults enabled.'\n        else p.tenant_id || ' security defaults disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_security_defaults_policy as p;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_security_defaults_policy_enabled"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "9f55c32672d33c53b74960d343fb3a01f052e5f53807fdc3e506e9cd613c4843",
+      "upstream_evaluator_sha256": "4f9c68e319def099d463680ee729a3dfc920d077c930cd89e39251015ccf8451",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_authorization_policy_guest_invite_restricted": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_guest_invite_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_guest_invite_restricted implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_guest_invite_restricted",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_guest_invite_restricted"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "allowInvitesFrom",
+      "pass_condition": "PASS iff allowInvitesFrom in ('none','adminsAndGuestInviters')",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "unrecognized enum value is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_guest_invite_restricted",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 466,
+      "query_sha256": "d2cfe3981438465f56cb9ea145c2ed5c5f9521edc5238fb76a2184a0c7ee572d",
+      "status_case_sql": "case when allow_invites_from in ('adminsAndGuestInviters', 'none') then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 47,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when allow_invites_from in ('adminsAndGuestInviters', 'none') then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when allow_invites_from = 'none'\n          then t.display_name || ' guest invitations disabled (no one).'\n        when allow_invites_from = 'adminsAndGuestInviters'\n          then t.display_name || ' guest invitations restricted to specific admin roles.'\n        else\n          t.display_name || ' guest invitations are too permissive: allow_invites_from=' || coalesce(allow_invites_from, '<null>') || '.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_authorization_policy_guest_invite_restricted"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "0190f874057e66e4529727c86d77b94a0b9b70e63e6c8cd1013647c7ee15cd90",
+      "upstream_evaluator_sha256": "d2cfe3981438465f56cb9ea145c2ed5c5f9521edc5238fb76a2184a0c7ee572d",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_guest_invite_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_guest_invite_restricted implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_guest_invite_restricted",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_guest_invite_restricted"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "allowInvitesFrom",
+      "pass_condition": "PASS iff allowInvitesFrom in ('none','adminsAndGuestInviters')",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "unrecognized enum value is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_guest_invite_restricted",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 466,
+      "query_sha256": "d2cfe3981438465f56cb9ea145c2ed5c5f9521edc5238fb76a2184a0c7ee572d",
+      "status_case_sql": "case when allow_invites_from in ('adminsAndGuestInviters', 'none') then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 500,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when allow_invites_from in ('adminsAndGuestInviters', 'none') then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when allow_invites_from = 'none'\n          then t.display_name || ' guest invitations disabled (no one).'\n        when allow_invites_from = 'adminsAndGuestInviters'\n          then t.display_name || ' guest invitations restricted to specific admin roles.'\n        else\n          t.display_name || ' guest invitations are too permissive: allow_invites_from=' || coalesce(allow_invites_from, '<null>') || '.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_authorization_policy_guest_invite_restricted"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "0190f874057e66e4529727c86d77b94a0b9b70e63e6c8cd1013647c7ee15cd90",
+      "upstream_evaluator_sha256": "d2cfe3981438465f56cb9ea145c2ed5c5f9521edc5238fb76a2184a0c7ee572d",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_authorization_policy_guest_user_access_restricted": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_guest_user_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_guest_user_access_restricted implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_guest_user_access_restricted",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_guest_user_access_restricted"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "guestUserRoleId",
+      "pass_condition": "PASS iff guestUserRoleId = 2af84b1e-32c8-42b7-82bc-daa82404023b (Restricted Guest User)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "unrecognized role template is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_guest_user_access_restricted",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 437,
+      "query_sha256": "2ce6f67bd70d7aaaea8ae734baa7b970eb8874acd0cd5b66bc45253e95f9dc89",
+      "status_case_sql": "case when guest_user_role_id = '2af84b1e-32c8-42b7-82bc-daa82404023b' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 39,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when guest_user_role_id = '2af84b1e-32c8-42b7-82bc-daa82404023b' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when guest_user_role_id = '2af84b1e-32c8-42b7-82bc-daa82404023b' then  t.display_name || ' guest user access is restricted to properties and memberships of their own directory objects.'\n        else t.display_name || ' guest user access is not at most restrictive; guest_user_role_id=' || coalesce(guest_user_role_id, '<null>') || '.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_authorization_policy_guest_user_access_restricted"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f368021cd67c2e89718b84b2dea032c17b45a4aae09210863be8dae7304844f8",
+      "upstream_evaluator_sha256": "2ce6f67bd70d7aaaea8ae734baa7b970eb8874acd0cd5b66bc45253e95f9dc89",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_guest_user_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_guest_user_access_restricted implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_guest_user_access_restricted",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_guest_user_access_restricted"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "guestUserRoleId",
+      "pass_condition": "PASS iff guestUserRoleId = 2af84b1e-32c8-42b7-82bc-daa82404023b (Restricted Guest User)",
+      "upstream_defect_only": "Unjoined cross product of ARM azure_tenant rows with the authenticated-tenant Graph singleton reports tenant A policy for tenant B (scope defect only).",
+      "native_deviations": "unrecognized role template is UNKNOWN instead of alarm"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_guest_user_access_restricted",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 437,
+      "query_sha256": "2ce6f67bd70d7aaaea8ae734baa7b970eb8874acd0cd5b66bc45253e95f9dc89",
+      "status_case_sql": "case when guest_user_role_id = '2af84b1e-32c8-42b7-82bc-daa82404023b' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 487,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when guest_user_role_id = '2af84b1e-32c8-42b7-82bc-daa82404023b' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when guest_user_role_id = '2af84b1e-32c8-42b7-82bc-daa82404023b' then  t.display_name || ' guest user access is restricted to properties and memberships of their own directory objects.'\n        else t.display_name || ' guest user access is not at most restrictive; guest_user_role_id=' || coalesce(guest_user_role_id, '<null>') || '.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_authorization_policy_guest_user_access_restricted"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "f368021cd67c2e89718b84b2dea032c17b45a4aae09210863be8dae7304844f8",
+      "upstream_evaluator_sha256": "2ce6f67bd70d7aaaea8ae734baa7b970eb8874acd0cd5b66bc45253e95f9dc89",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_authorization_policy_user_consent_disallowed": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_user_consent_disallowed"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_user_consent_disallowed implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned query uses uppercase-M case-sensitive consent identifiers, while current official Graph schema/HTTP examples use lowercase-m managePermissionGrantsForSelf. Actual enabled self-consent falsely passes the disallowed predicate; configured low-risk consent falsely alarms the membership predicate. Rejecting the wrong measured condition, not missing implementation or metadata."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_user_consent_disallowed",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_user_consent_disallowed"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.permissionGrantPoliciesAssigned",
+      "pass_condition": "FAIL iff any assigned policy is ManagePermissionGrantsForSelf.* (self-consent class)",
+      "upstream_defect_only": "Case-sensitive uppercase-M ManagePermissionGrantsForSelf literal misses the documented lowercase-m Graph value (string-comparison defect only).",
+      "native_deviations": "prefix comparison is case-insensitive (fixes the source false pass)"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    ],
+    "review_notes": "Previously-ready review preserved source casing despite documentation inconsistency; primary schema plus current HTTP example establish concrete mismatch. Corrected independent native security baseline remains conservative, without associating these invalid source definitions or claiming source equivalence.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_user_consent_disallowed",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 398,
+      "query_sha256": "5cd9fad4f34b6eb0a54ba77bafed3e511b6fbc97ceb5ebbe7c4679222b8828b9",
+      "status_case_sql": "case when exists (\n          select 1\n          from jsonb_array_elements_text(\n                (default_user_role_permissions -> 'permissionGrantPoliciesAssigned')::jsonb\n              ) as pol(val)\n          where val like 'ManagePermissionGrantsForSelf.%'\n        ) then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 72,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "counterexample": {
+        "permissionGrantPoliciesAssigned": [
+          "managePermissionGrantsForSelf.microsoft-user-default-low"
+        ],
+        "source_status": "ok",
+        "requirement_truth": "user_consent_enabled_low_risk",
+        "fault": "Case-sensitive uppercase-M source comparison misses documented lowercase-m actual value."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_5_12": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_user_consent_disallowed"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_user_consent_disallowed implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned query uses uppercase-M case-sensitive consent identifiers, while current official Graph schema/HTTP examples use lowercase-m managePermissionGrantsForSelf. Actual enabled self-consent falsely passes the disallowed predicate; configured low-risk consent falsely alarms the membership predicate. Rejecting the wrong measured condition, not missing implementation or metadata."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_user_consent_disallowed",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_user_consent_disallowed"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.permissionGrantPoliciesAssigned",
+      "pass_condition": "FAIL iff any assigned policy is ManagePermissionGrantsForSelf.* (self-consent class)",
+      "upstream_defect_only": "Case-sensitive uppercase-M ManagePermissionGrantsForSelf literal misses the documented lowercase-m Graph value (string-comparison defect only).",
+      "native_deviations": "prefix comparison is case-insensitive (fixes the source false pass)"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    ],
+    "review_notes": "Previously-ready review preserved source casing despite documentation inconsistency; primary schema plus current HTTP example establish concrete mismatch. Corrected independent native security baseline remains conservative, without associating these invalid source definitions or claiming source equivalence.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_user_consent_disallowed",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 398,
+      "query_sha256": "5cd9fad4f34b6eb0a54ba77bafed3e511b6fbc97ceb5ebbe7c4679222b8828b9",
+      "status_case_sql": "case when exists (\n          select 1\n          from jsonb_array_elements_text(\n                (default_user_role_permissions -> 'permissionGrantPoliciesAssigned')::jsonb\n              ) as pol(val)\n          where val like 'ManagePermissionGrantsForSelf.%'\n        ) then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 448,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "counterexample": {
+        "permissionGrantPoliciesAssigned": [
+          "managePermissionGrantsForSelf.microsoft-user-default-low"
+        ],
+        "source_status": "ok",
+        "requirement_truth": "user_consent_enabled_low_risk",
+        "fault": "Case-sensitive uppercase-M source comparison misses documented lowercase-m actual value."
+      }
+    }
+  },
+  "azure-compliance.control.ad_authorization_policy_user_consent_verified_publishers_selected_permissions": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_user_consent_verified_publishers_selected_permissions"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_user_consent_verified_publishers_selected_permissions implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned query uses uppercase-M case-sensitive consent identifiers, while current official Graph schema/HTTP examples use lowercase-m managePermissionGrantsForSelf. Actual enabled self-consent falsely passes the disallowed predicate; configured low-risk consent falsely alarms the membership predicate. Rejecting the wrong measured condition, not missing implementation or metadata."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_user_consent_verified_publishers_selected_permissions",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_user_consent_verified_publishers_selected_permissions"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.permissionGrantPoliciesAssigned",
+      "pass_condition": "PASS iff the self-consent policy selected is microsoft-user-default-low (verified publishers / selected low-impact permissions)",
+      "upstream_defect_only": "Case-sensitive uppercase-M ManagePermissionGrantsForSelf literal misses the documented lowercase-m Graph value (string-comparison defect only).",
+      "native_deviations": "case-insensitive; additionally FAILs when another self-consent policy is assigned next to the low-risk one (source @> containment would pass a broader consent setting)"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    ],
+    "review_notes": "Previously-ready review preserved source casing despite documentation inconsistency; primary schema plus current HTTP example establish concrete mismatch. Corrected independent native security baseline remains conservative, without associating these invalid source definitions or claiming source equivalence.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_user_consent_verified_publishers_selected_permissions",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 372,
+      "query_sha256": "1eac3a5811261ba410c6656677b7a37a2dd3591a41bc0acb101a5d8f1b60aac0",
+      "status_case_sql": "case when (p.default_user_role_permissions -> 'permissionGrantPoliciesAssigned')::jsonb @> '[\"ManagePermissionGrantsForSelf.microsoft-user-default-low\"]'::jsonb then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 31,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "counterexample": {
+        "permissionGrantPoliciesAssigned": [
+          "managePermissionGrantsForSelf.microsoft-user-default-low"
+        ],
+        "source_status": "alarm",
+        "requirement_truth": "user_consent_enabled_low_risk",
+        "fault": "Case-sensitive uppercase-M source comparison misses documented lowercase-m actual value."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_5_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.ad_authorization_policy_user_consent_verified_publishers_selected_permissions"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.port.ad_authorization_policy_user_consent_verified_publishers_selected_permissions implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned query uses uppercase-M case-sensitive consent identifiers, while current official Graph schema/HTTP examples use lowercase-m managePermissionGrantsForSelf. Actual enabled self-consent falsely passes the disallowed predicate; configured low-risk consent falsely alarms the membership predicate. Rejecting the wrong measured condition, not missing implementation or metadata."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "ad_authorization_policy_user_consent_verified_publishers_selected_permissions",
+      "target_native_checks": [
+        "azure.port.ad_authorization_policy_user_consent_verified_publishers_selected_permissions"
+      ],
+      "resource": "Microsoft Graph authorizationPolicy of the authenticated tenant (collector kind directory_authorization_policy)",
+      "property": "defaultUserRolePermissions.permissionGrantPoliciesAssigned",
+      "pass_condition": "PASS iff the self-consent policy selected is microsoft-user-default-low (verified publishers / selected low-impact permissions)",
+      "upstream_defect_only": "Case-sensitive uppercase-M ManagePermissionGrantsForSelf literal misses the documented lowercase-m Graph value (string-comparison defect only).",
+      "native_deviations": "case-insensitive; additionally FAILs when another self-consent policy is assigned next to the low-risk one (source @> containment would pass a broader consent setting)"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    ],
+    "review_notes": "Previously-ready review preserved source casing despite documentation inconsistency; primary schema plus current HTTP example establish concrete mismatch. Corrected independent native security baseline remains conservative, without associating these invalid source definitions or claiming source equivalence.",
+    "source_review": {
+      "query_id": "ad_authorization_policy_user_consent_verified_publishers_selected_permissions",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 372,
+      "query_sha256": "1eac3a5811261ba410c6656677b7a37a2dd3591a41bc0acb101a5d8f1b60aac0",
+      "status_case_sql": "case when (p.default_user_role_permissions -> 'permissionGrantPoliciesAssigned')::jsonb @> '[\"ManagePermissionGrantsForSelf.microsoft-user-default-low\"]'::jsonb then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 461,
+      "arguments": [],
+      "scope": "authenticated tenant only",
+      "join_proof": "singleton tenant matches captured provenance/context; never another tenant",
+      "counterexample": {
+        "permissionGrantPoliciesAssigned": [
+          "managePermissionGrantsForSelf.microsoft-user-default-low"
+        ],
+        "source_status": "alarm",
+        "requirement_truth": "user_consent_enabled_low_risk",
+        "fault": "Case-sensitive uppercase-M source comparison misses documented lowercase-m actual value."
+      }
+    }
+  }
+}

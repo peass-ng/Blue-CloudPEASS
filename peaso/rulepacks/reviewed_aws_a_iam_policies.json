@@ -1,0 +1,318 @@
+{
+  "aws-compliance.control.cis_v120_1_22": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L334"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L250"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L249"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L249"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.root_console_summary_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountSummary.html"
+    ],
+    "reason": "Exact AccountPasswordPresent AND NOT AccountMFAEnabled alarms; root console-disabled passes independent of access-key flags. Distinct prior source unconditional root-MFA summary and credential-report source.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_root_user_account_console_access_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0880c0e0fafbd19fff0cc96551824ffe6f529eb3e253dfb412fd19a064db9e1f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L95"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L250"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_22": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.user_no_cloudshell_full_access",
+      "aws.a.iam.group_no_cloudshell_full_access",
+      "aws.a.iam.role_no_cloudshell_full_access"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
+    ],
+    "reason": "All three full source UNION branches preserved through user/group/role resource predicates, testing exact arn:aws:iam::aws:policy/AWSCloudShellFullAccess direct attachment. Inline/customer-namesake/inherited/effective CloudShell grants are separate and do not satisfy literal predicate.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_user_group_role_cloudshell_fullaccess_restricted",
+    "reviewed_source": {
+      "evaluator_sha256": "19df5a079ee9b023261c0f065d49df9fdd152ce7880f1502c0f78dc93527667e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L334"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L250"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_22": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_cloudshell_full_access",
+      "aws.a.iam.group_no_cloudshell_full_access",
+      "aws.a.iam.role_no_cloudshell_full_access"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
+    ],
+    "reason": "All three full source UNION branches preserved through user/group/role resource predicates, testing exact arn:aws:iam::aws:policy/AWSCloudShellFullAccess direct attachment. Inline/customer-namesake/inherited/effective CloudShell grants are separate and do not satisfy literal predicate.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_user_group_role_cloudshell_fullaccess_restricted",
+    "reviewed_source": {
+      "evaluator_sha256": "19df5a079ee9b023261c0f065d49df9fdd152ce7880f1502c0f78dc93527667e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L334"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L250"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_22": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_cloudshell_full_access",
+      "aws.a.iam.group_no_cloudshell_full_access",
+      "aws.a.iam.role_no_cloudshell_full_access"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
+    ],
+    "reason": "All three full source UNION branches preserved through user/group/role resource predicates, testing exact arn:aws:iam::aws:policy/AWSCloudShellFullAccess direct attachment. Inline/customer-namesake/inherited/effective CloudShell grants are separate and do not satisfy literal predicate.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_user_group_role_cloudshell_fullaccess_restricted",
+    "reviewed_source": {
+      "evaluator_sha256": "19df5a079ee9b023261c0f065d49df9fdd152ce7880f1502c0f78dc93527667e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L334"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L235"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_21": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_cloudshell_full_access",
+      "aws.a.iam.group_no_cloudshell_full_access",
+      "aws.a.iam.role_no_cloudshell_full_access"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
+    ],
+    "reason": "All three full source UNION branches preserved through user/group/role resource predicates, testing exact arn:aws:iam::aws:policy/AWSCloudShellFullAccess direct attachment. Inline/customer-namesake/inherited/effective CloudShell grants are separate and do not satisfy literal predicate.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_user_group_role_cloudshell_fullaccess_restricted",
+    "reviewed_source": {
+      "evaluator_sha256": "19df5a079ee9b023261c0f065d49df9fdd152ce7880f1502c0f78dc93527667e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L319"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_console_summary_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountSummary.html"
+    ],
+    "reason": "Exact AccountPasswordPresent AND NOT AccountMFAEnabled alarms; root console-disabled passes independent of access-key flags. Distinct prior source unconditional root-MFA summary and credential-report source.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_root_user_account_console_access_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0880c0e0fafbd19fff0cc96551824ffe6f529eb3e253dfb412fd19a064db9e1f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L81"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.attached_policy_no_star_star"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ManagedPolicyDetail.html"
+    ],
+    "reason": "Full attached-only WHERE/default-version source; explicit Allow Action * OR *:* and Resource * counts regardless Condition; customer policy alarms, AWS managed source info maps MANUAL, unattached skips. Different from prior unconditional-admin check with conditional MANUAL and missing *:* variant.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_policy_all_attached_no_star_star",
+    "reviewed_source": {
+      "evaluator_sha256": "795133c79faa5c870b16a9a7e144c373037fb86e8153e280bd94dee33c57420a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L235"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_21": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_cloudshell_full_access",
+      "aws.a.iam.group_no_cloudshell_full_access",
+      "aws.a.iam.role_no_cloudshell_full_access"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
+    ],
+    "reason": "All three full source UNION branches preserved through user/group/role resource predicates, testing exact arn:aws:iam::aws:policy/AWSCloudShellFullAccess direct attachment. Inline/customer-namesake/inherited/effective CloudShell grants are separate and do not satisfy literal predicate.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_user_group_role_cloudshell_fullaccess_restricted",
+    "reviewed_source": {
+      "evaluator_sha256": "19df5a079ee9b023261c0f065d49df9fdd152ce7880f1502c0f78dc93527667e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L319"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_console_summary_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountSummary.html"
+    ],
+    "reason": "Exact AccountPasswordPresent AND NOT AccountMFAEnabled alarms; root console-disabled passes independent of access-key flags. Distinct prior source unconditional root-MFA summary and credential-report source.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_root_user_account_console_access_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0880c0e0fafbd19fff0cc96551824ffe6f529eb3e253dfb412fd19a064db9e1f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L81"
+    }
+  }
+}

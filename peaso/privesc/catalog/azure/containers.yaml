@@ -1,12 +1,17 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Azure Container Instances, Container Apps and Container Apps Jobs techniques (declarative only).
-# Source: hacktricks-cloud az-container-instances-apps-jobs-privesc.md (rev a53b46392c; working-tree copy read).
+# Source: hacktricks-cloud az-container-instances-apps-jobs-privesc.md (rev 171e422, re-verified).
 
 - id: azure-aci-container-exec
   provider: azure
   service: containers
   title: Execute commands in a running Container Instances container
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftcontainerinstancecontainergroupsread-microsoftcontainerinstancecontainergroupscontainersexecaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of the container group's managed identities.
   requires:
     all_of:
@@ -35,7 +40,7 @@
   service: containers
   title: Redeploy an existing container group with changed command, image or environment
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftcontainerinstancecontainergroupswrite-environment-update
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of the container group's managed identities.
   requires:
     all_of:
@@ -66,7 +71,7 @@
   service: containers
   title: Create or update a container group with a user-assigned identity
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftresourcessubscriptionsresourcegroupsread-microsoftcontainerinstancecontainergroupswrite-microsoftmanagedidentityuserassignedidentitiesassignaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of user-assigned identities assignable in scope.
   requires:
     all_of:
@@ -97,7 +102,7 @@
   service: containers
   title: Open a console in a running Container App
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappcontainerappsread-microsoftappmanagedenvironmentsread-microsoftappcontainerappsrevisionsreplicasread-microsoftappcontainerappsrevisionsread-microsoftappcontainerappsgetauthtokenaction-microsoftappcontainerappsexecaction-microsoftappcontainerappsdebugaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of the Container App's managed identities.
   requires:
     all_of:
@@ -133,7 +138,7 @@
   service: containers
   title: Update an existing Container App's image, command or environment
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappcontainerappswrite
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of the Container App's managed identities.
   requires:
     all_of:
@@ -160,7 +165,7 @@
   service: containers
   title: Attach a user-assigned identity to an existing Container App
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappcontainerappswrite-microsoftmanagedidentityuserassignedidentitiesassignaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of user-assigned identities assignable in scope.
   requires:
     all_of:
@@ -191,7 +196,7 @@
   service: containers
   title: Create a Container App with a user-assigned identity
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappcontainerappswrite-microsoftmanagedidentityuserassignedidentitiesassignaction-microsoftappmanagedenvironmentsjoinaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of user-assigned identities assignable in scope.
   requires:
     all_of:
@@ -221,71 +226,12 @@
     - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
   notes: ''
 
-- id: azure-containerapp-sessionpool-mcp-credentials
-  provider: azure
-  service: containers
-  title: Fetch a session pool MCP API key and execute code in sessions
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappsessionpoolsfetchmcpservercredentialsaction
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the session pool's managed identity.
-  requires:
-    all_of:
-      - action: Microsoft.App/sessionPools/fetchMCPServerCredentials/action
-        scope: '{target.host_resource}'
-  target:
-    kind: azure_managed_identity
-    selector:
-      attached_to_service: Microsoft.App/sessionPools
-    scope: inherited_scope
-    aggregate_as: Identity of session pool {target.host_resource}
-  conditions:
-    - id: mcp_enabled
-      description: The platform-managed MCP server must be enabled on a Shell/Python pool.
-    - id: identity_exposed_to_sessions
-      description: The pool must deliberately enable managed-identity access during the session main lifecycle.
-  blockers: []
-  confidence: conditional
-  severity: high
-  mitigation: Disable the MCP server where unused and do not expose pool identities to sessions.
-  references:
-    - https://learn.microsoft.com/en-us/azure/container-apps/sessions
-  notes: Preview feature.
-
-- id: azure-containerapp-sessionpool-executions
-  provider: azure
-  service: containers
-  title: Execute code in a dynamic session
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappsessionpoolsexecutionsaction
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the session pool's managed identity.
-  requires:
-    all_of:
-      - action: Microsoft.App/sessionPools/executions/action
-        data_action: true
-        scope: '{target.host_resource}'
-  target:
-    kind: azure_managed_identity
-    selector:
-      attached_to_service: Microsoft.App/sessionPools
-    scope: inherited_scope
-    aggregate_as: Identity of session pool {target.host_resource}
-  conditions:
-    - id: identity_exposed_to_sessions
-      description: The pool must deliberately enable managed-identity access during the session main lifecycle.
-  blockers: []
-  confidence: conditional
-  severity: high
-  mitigation: Limit Session Executor assignments and do not expose pool identities to sessions.
-  references:
-    - https://learn.microsoft.com/en-us/azure/container-apps/sessions
-  notes: The page itself only claims code execution; identity reach is taken from the MCP section's statement.
-
 - id: azure-containerapp-job-start-template-override
   provider: azure
   service: containers
   title: Start a Container Apps Job execution with an overridden template
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftappjobsstartaction-microsoftappjobsread
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of the job's managed identities.
   requires:
     all_of: []
@@ -315,7 +261,7 @@
   service: containers
   title: Create or update a Container Apps Job with a user-assigned identity
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-instances-apps-jobs-privesc.md#microsoftmanagedidentityuserassignedidentitiesassignaction-microsoftappjobswrite
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of user-assigned identities assignable in scope.
   requires:
     all_of:
@@ -342,3 +288,32 @@
   references:
     - https://learn.microsoft.com/en-us/azure/container-apps/jobs
   notes: Covers the existing-job and new-job sections of the page.
+
+- id: azure-containerapp-sourcecontrols-write
+  provider: azure
+  service: containers
+  title: Repoint a Container App's GitHub Actions deployment to an attacker repository
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-container-apps-privesc.md#microsoftappcontainerappssourcecontrolswrite--repoint-github-actions-deployment
+  source_revision: 658a097d5c
+  summary: Rebinding the app's continuous-deployment source can reach its managed identity only after a reviewed attacker-code deployment and token use on that exact app.
+  requires:
+    all_of:
+      - action: Microsoft.App/containerApps/sourcecontrols/write
+        scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      azure_challenge_fact: azure-containerapp-sourcecontrols-write
+    scope: inherited_scope
+    aggregate_as: "Verified deployed identity of Container App {target.host_resource}"
+  conditions:
+    - id: exact_source_control_deployment
+      description: Reviewed evidence must bind the source and write action to one Container App, its attached managed identity, attacker-controlled repository, successful build and revision deployment, previously denied identity access, and successful token use.
+  blockers:
+    - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict Microsoft.App/containerApps/sourcecontrols/write (Container Apps Contributor, Contributor) and alert on source-control binding changes.
+  references:
+    - https://learn.microsoft.com/en-us/azure/container-apps/github-actions
+  notes: Uses typed azure_privesc_challenge_evidence validated by azure_deployment_pivots; a sourcecontrols/write grant or generic review flag alone cannot create an identity edge.

@@ -94,7 +94,8 @@ def main():
     wall = time.perf_counter() - started
     if result.returncode:
         raise RuntimeError("Default CLI failed with exit " + str(result.returncode))
-    snapshot, report = json.loads(snapshot_path.read_text()), json.loads(report_path.read_text())
+    from peaso.engine import hydrate_frameworks  # per-check fields live in check_meta (schema 1.1)
+    snapshot, report = json.loads(snapshot_path.read_text()), hydrate_frameworks(json.loads(report_path.read_text()))
     codes = Counter(c.get("error", {}).get("code", "") for c in snapshot["collections"] if c.get("error"))
     failures = {code: count for code, count in codes.items() if any(term in code for term in ("call_limit", "page_limit", "resource_limit", "inventory_not_requested"))}
     summary = {"command": command, "build_sha256": before, "wall_seconds": round(wall, 4),

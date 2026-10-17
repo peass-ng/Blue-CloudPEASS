@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -12,8 +12,29 @@ import {
 } from "lucide-react";
 import { categories } from "./types";
 import type { Catalog, Connector, Scan, Schedule } from "./types";
-import { downloadReport, items, json, request, useApi } from "./api";
-import { Badge, date, Evidence, Inspector, Panel, State } from "./ui";
+import { catalogFrameworksPath, downloadReport, items, json, request, useApi } from "./api";
+import { Badge, date, Evidence, humanError, Inspector, Panel, State } from "./ui";
+import { CoverageView } from "./Dashboard";
+type FrameworkChoice = { value: string; label: string; group: "family" | "version" };
+function frameworkChoices(catalog: Catalog | undefined, provider: Connector["provider"] | undefined): FrameworkChoice[] {
+  if (!provider) return [];
+  const versions = (catalog?.framework_versions || []).filter((row) =>
+    row.provider === provider || row.provider === "all");
+  const families = new Set<string>();
+  for (const row of versions) {
+    if (typeof row.family === "string" && row.family.trim()) families.add(row.family);
+  }
+  const choices: FrameworkChoice[] = [
+    { value: "HackTricks Cloud Best Practices", label: "HackTricks Cloud Best Practices", group: "family" },
+    ...[...families].sort((a, b) => a.localeCompare(b)).map((family) => ({
+      value: family, label: `${family.replaceAll("-", " ")} · all versions`, group: "family" as const,
+    })),
+    ...versions.filter((row) => typeof row.id === "string").map((row) => ({
+      value: String(row.id), label: `${String(row.name || row.id)} · ${String(row.status || "unknown")} · ${String(row.supported_native_checks ?? 0)} native checks`, group: "version" as const,
+    })).sort((a, b) => a.label.localeCompare(b.label)),
+  ];
+  return choices;
+}
 export const terminalStatuses = [
   "completed",
   "failed",
@@ -22,14 +43,17 @@ export const terminalStatuses = [
 ];
 export function Scans({
   demo,
+  canWrite = true,
   onSelect,
 }: {
   demo: boolean;
+  canWrite?: boolean;
   onSelect: (scan: Scan) => void;
 }) {
   const scansQuery = useApi<{ items: Scan[] }>("/scans", demo, true, true);
   const connectorsQuery = useApi<{ items: Connector[] }>("/connectors", demo);
   const schedulesQuery = useApi<{ items: Schedule[] }>("/schedules", demo);
+  const frameworkCatalog = useApi<Catalog>(catalogFrameworksPath, demo, true);
   const client = useQueryClient();
   const [launch, setLaunch] = useState(false);
   const [schedule, setSchedule] = useState<Schedule | null | undefined>();
@@ -78,7 +102,7 @@ export function Scans({
         <p>Run an assessment. Keep every result tied to its snapshot.</p>
         <button
           className="button primary"
-          disabled={demo}
+          disabled={demo || !canWrite}
           onClick={() => setLaunch(true)}
         >
           <Play size={16} />
@@ -92,7 +116,7 @@ export function Scans({
       )}
       <Panel
         title="Scan history"
-        kicker="NATIVE SNAPSHOT ENGINE"
+        kicker="ASSESSMENTS"
         action={
           <span className="count-pill">
             {items(scansQuery.data).length} scans
@@ -112,7 +136,7 @@ export function Scans({
         >
           <button
             className="button primary"
-            disabled={demo}
+            disabled={demo || !canWrite}
             onClick={() => setLaunch(true)}
           >
             Launch a scan
@@ -139,6 +163,9 @@ export function Scans({
                   )?.name || s.connector_id}{" "}
                   · {date(s.created_at)}
                 </p>
+                {s.status === "failed" && s.error && (
+                  <p role="alert">{humanError(s.error)}</p>
+                )}
                 <div className="scan-categories">
                   {s.categories?.map((c) => (
                     <span key={c}>{c.replaceAll("_", " ")}</span>
@@ -167,7 +194,7 @@ export function Scans({
                 !terminalStatuses.includes(s.status) && (
                   <button
                     className="button"
-                    disabled={cancel.isPending || demo}
+                    disabled={cancel.isPending || demo || !canWrite}
                     onClick={() => cancel.mutate(s.id)}
                   >
                     <Square size={13} />
@@ -185,7 +212,7 @@ export function Scans({
         action={
           <button
             className="button"
-            disabled={demo}
+            disabled={demo || !canWrite}
             onClick={() => setSchedule(null)}
           >
             <Plus size={16} />
@@ -208,7 +235,7 @@ export function Scans({
                   <div className="grow">
                     <button
                       className="text-button"
-                      disabled={demo}
+                      disabled={demo || !canWrite}
                       onClick={() => setSchedule(s)}
                     >
                       {s.name ||
@@ -224,7 +251,7 @@ export function Scans({
                   </div>
                   <button
                     className="button"
-                    disabled={demo || updateSchedule.isPending}
+                    disabled={demo || !canWrite || updateSchedule.isPending}
                     onClick={() =>
                       updateSchedule.mutate({ id: s.id, enabled: !s.enabled })
                     }
@@ -233,7 +260,7 @@ export function Scans({
                   </button>
                   <button
                     className="icon-button danger"
-                    disabled={demo || deleteSchedule.isPending}
+                    disabled={demo || !canWrite || deleteSchedule.isPending}
                     aria-label={`Delete schedule ${s.id}`}
                     onClick={() => deleteSchedule.mutate(s.id)}
                   >
@@ -258,6 +285,7 @@ export function Scans({
           demo={demo}
           connectors={items(connectorsQuery.data)}
           connectorError={connectorsQuery.error}
+          catalog={{ data: frameworkCatalog.data, isPending: frameworkCatalog.isPending, error: frameworkCatalog.error }}
           onClose={() => setLaunch(false)}
         />
       )}
@@ -266,6 +294,7 @@ export function Scans({
           demo={demo}
           connectors={items(connectorsQuery.data)}
           connectorError={connectorsQuery.error}
+          catalog={{ data: frameworkCatalog.data, isPending: frameworkCatalog.isPending, error: frameworkCatalog.error }}
           schedule={schedule}
           onClose={() => setSchedule(undefined)}
         />
@@ -273,8 +302,18 @@ export function Scans({
       {inspect && (
         <Inspector title="Scan details" onClose={() => setInspect(undefined)}>
           <Badge value={inspect.status} />
+          {inspect.status === "failed" && inspect.error && (
+            <p role="alert">{humanError(inspect.error)}</p>
+          )}
+          <h3>Recorded scan details</h3>
           <Evidence data={inspect} />
           {inspect.status === "completed" && (
+            <>
+            <Panel title="Coverage & limitations">
+              {demo && <p className="muted small">Fixture demo coverage for this example snapshot.</p>}
+              <CoverageView scanId={inspect.id} demo={demo} />
+            </Panel>
+            <CatalogSupport catalog={frameworkCatalog.data} loading={frameworkCatalog.isPending} error={frameworkCatalog.error} />
             <div className="button-row">
               <button
                 className="button primary"
@@ -292,26 +331,45 @@ export function Scans({
                 Download Markdown
               </button>
             </div>
+            </>
           )}
         </Inspector>
       )}
     </>
   );
 }
+
+function CatalogSupport({ catalog, loading, error }: { catalog?: Catalog; loading: boolean; error: Error | null }) {
+  const versions = [...new Map((catalog?.framework_versions || [])
+    .filter(row => row && typeof row === "object" && typeof row.id === "string")
+    .map(row => [String(row.id), row] as const)).values()]
+    .map(row => ({
+      id: String(row.id), name: String(row.name || row.id),
+      notAssessed: Number((row.requirements_by_status as Record<string, unknown> | undefined)?.not_assessed),
+    }))
+    .filter(row => Number.isSafeInteger(row.notAssessed) && row.notAssessed > 0);
+  return <Panel title="Catalog support (global)">
+    <p className="muted small">Not assessed describes checklist requirements without a reviewed automated assessment in the global catalog. These counts are not tenant results, passing checks, or coverage from this scan.</p>
+    {loading && <p role="status">Loading catalog support…</p>}
+    {error && <p role="alert">Catalog support could not be loaded.</p>}
+    {!loading && !error && (versions.length ? <details><summary>{versions.length} checklist versions with Not assessed requirements</summary><ul className="coverage-list">{versions.map(row => <li key={row.id} className="coverage-row"><strong>{row.name}</strong><span>Not assessed · {row.notAssessed.toLocaleString()} requirements</span></li>)}</ul></details> : <p className="muted">No Not assessed requirement counts are supplied by the current catalog.</p>)}
+  </Panel>;
+}
 function LaunchForm({
   demo,
   connectors,
   connectorError,
+  catalog,
   onClose,
   schedule,
 }: {
   demo: boolean;
   connectors: Connector[];
   connectorError: unknown;
+  catalog: { data?: Catalog; isPending: boolean; error: unknown };
   onClose: () => void;
   schedule?: Schedule | null;
 }) {
-  const catalog=useApi<Catalog>("/catalog",demo);
   const client = useQueryClient();
   const [connector, setConnector] = useState(
     schedule?.connector_id || connectors[0]?.id || "",
@@ -320,7 +378,13 @@ function LaunchForm({
     schedule?.categories || categories.map((c) => c.id),
   );
   const [checks, setChecks] = useState("");
-  const [frameworks, setFrameworks] = useState("");
+  const [frameworks, setFrameworks] = useState<string[]>(schedule?.frameworks || []);
+  const [frameworkSearch, setFrameworkSearch] = useState("");
+  const frameworkPicker = useRef<HTMLDetailsElement>(null);
+  const selectedConnector = connectors.find((item) => item.id === connector);
+  const availableFrameworks = frameworkChoices(catalog.data, selectedConnector?.provider);
+  const matchingFrameworks = availableFrameworks.filter((choice) =>
+    !frameworks.includes(choice.value) && `${choice.label} ${choice.value}`.toLocaleLowerCase().includes(frameworkSearch.trim().toLocaleLowerCase()));
   const [hours, setHours] = useState(schedule?.interval_hours || 168);
   const [error, setError] = useState("");
   const isSchedule = schedule !== undefined;
@@ -359,10 +423,7 @@ function LaunchForm({
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
-      frameworks: frameworks
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
+      frameworks,
       ...(isSchedule
         ? { interval_hours: hours, enabled: schedule?.enabled ?? true }
         : {}),
@@ -380,7 +441,7 @@ function LaunchForm({
           <select
             aria-label="Connector"
             value={connector}
-            onChange={(e) => setConnector(e.target.value)}
+            onChange={(e) => { setConnector(e.target.value); setFrameworks([]); setFrameworkSearch(""); }}
             required
           >
             <option value="">Select an environment</option>
@@ -396,22 +457,24 @@ function LaunchForm({
         )}
         <fieldset>
           <legend>Assessment categories</legend>
-          {categories.map((c) => (
-            <label key={c.id} className="checkbox">
-              <input
-                type="checkbox"
-                checked={selected.includes(c.id)}
-                onChange={(e) =>
-                  setSelected(
-                    e.target.checked
-                      ? [...selected, c.id]
-                      : selected.filter((x) => x !== c.id),
-                  )
-                }
-              />
-              {c.label}
-            </label>
-          ))}
+          <div className="assessment-category-grid">
+            {categories.map((c) => (
+              <label key={c.id} className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(c.id)}
+                  onChange={(e) =>
+                    setSelected(
+                      e.target.checked
+                        ? [...selected, c.id]
+                        : selected.filter((x) => x !== c.id),
+                    )
+                  }
+                />
+                {c.label}
+              </label>
+            ))}
+          </div>
         </fieldset>
         <label>
           Check IDs (optional, comma separated)
@@ -421,16 +484,39 @@ function LaunchForm({
             placeholder="Empty = supported checks in selected categories"
           />
         </label>
-        <label>
-          Frameworks (optional, comma separated)
-          <input
-            value={frameworks}
-            onChange={(e) => setFrameworks(e.target.value)}
-            placeholder="For example: HackTricks Cloud Best Practices"
-          />
-        </label>
-        <label>Exact framework / checklist version<select aria-label="Exact framework checklist" value="" onChange={e=>{if(e.target.value)setFrameworks(Array.from(new Set([...frameworks.split(',').map(s=>s.trim()).filter(Boolean),e.target.value])).join(', '));}}><option value="">Choose a reviewed checklist version</option>{(catalog.data?.framework_versions||[]).filter(row=>row.provider===connectors.find(c=>c.id===connector)?.provider||row.provider==='all').map((row,i)=><option key={String(row.id||i)} value={String(row.id)}>{String(row.name||row.id)} · {String(row.status||'unknown')} · {String(row.supported_native_checks??0)} native / {String(row.source_checks??'unknown')} source checks</option>)}</select></label>
-        <p className="muted small">Family names and exact checklist IDs are distinct selections. Pending checklist coverage is unknown and does not create passing checks.</p>
+        <details>
+          <summary>Frameworks and checklist versions (optional){frameworks.length ? ` · ${frameworks.length} selected` : ""}</summary>
+          <div className="form" style={{ marginTop: 12 }}>
+            <p className="muted small">Choose a framework family or an exact reviewed checklist version for this connector. Leave empty to run the selected assessment categories without a framework filter. Pending checklist coverage remains unknown.</p>
+            {frameworks.map((value, index) => <div className="framework-selection" key={`${index}-${value}`}>
+              <span aria-label={`Framework ${index + 1}`}>{availableFrameworks.find((choice) => choice.value === value)?.label || `${value} · unavailable for this connector`}</span>
+              <button type="button" className="text-button" aria-label={`Remove framework ${index + 1}`} onClick={() => setFrameworks(frameworks.filter((_, i) => i !== index))}>Remove</button>
+            </div>)}
+            <details ref={frameworkPicker} className="framework-picker" onToggle={(event) => { if (event.currentTarget.open) event.currentTarget.querySelector("input")?.focus(); }}>
+              <summary>Add another framework</summary>
+              <div className="framework-picker-content">
+                <label>Search frameworks and checklist versions
+                  <input type="search" value={frameworkSearch} onChange={(event) => setFrameworkSearch(event.target.value)} placeholder="Search by name or version" disabled={!selectedConnector || !catalog.data} />
+                </label>
+                {!selectedConnector || !catalog.data ? <p className="muted small">{catalog.isPending ? "Loading frameworks…" : "Choose a connector to see its frameworks."}</p> :
+                  matchingFrameworks.length ? <div className="framework-choice-list">
+                    {(["family", "version"] as const).map((group) => {
+                      const choices = matchingFrameworks.filter((choice) => choice.group === group);
+                      return choices.length ? <div key={group} className="framework-choice-group">
+                        <p>{group === "family" ? "Framework families" : "Exact checklist versions"}</p>
+                        {choices.map((choice) => <button key={choice.value} type="button" onClick={() => {
+                          setFrameworks([...frameworks, choice.value]);
+                          setFrameworkSearch("");
+                          frameworkPicker.current?.removeAttribute("open");
+                        }}>{choice.label}</button>)}
+                      </div> : null;
+                    })}
+                  </div> : <p className="muted small">No matching frameworks remain.</p>}
+              </div>
+            </details>
+            {!!catalog.error && <p role="alert">Framework catalog could not be loaded. You can still launch without a framework filter.</p>}
+          </div>
+        </details>
         {isSchedule && (
           <label>
             Interval in hours
@@ -450,7 +536,7 @@ function LaunchForm({
         </p>
         {(error || mutation.error) && (
           <p className="form-error" role="alert">
-            {error || mutation.error?.message}
+            {error || (mutation.error && humanError(mutation.error))}
           </p>
         )}
         <button

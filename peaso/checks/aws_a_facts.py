@@ -69,9 +69,9 @@ def api_optional(item, field, expected, default, *, operation):
     guard(item)
     if field in item:
         return get(item, field, expected)
-    coverage = item.get("_coverage", {}).get(field)
-    if coverage is not None and (not isinstance(coverage, dict) or coverage.get("status") not in {"collected", "empty"}):
-        raise Unavailable("optional fact unavailable: " + field)
+    coverage_entries = item.get("_coverage", {})
+    if field in coverage_entries:
+        get({"value": default, "_coverage": {"value": coverage_entries[field]}}, "value")
     if get(item, "_provenance.operation", str) != operation or get(item, "_provenance.native_response_complete", bool) is not True:
         raise Unavailable("optional API omission is not proven: " + field)
     return default

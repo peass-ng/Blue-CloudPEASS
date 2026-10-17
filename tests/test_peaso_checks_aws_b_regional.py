@@ -34,3 +34,10 @@ def test_inspector_organization_auto_enable_is_not_account_activation():
     status, evidence = check.evaluate(item, idx)
     assert status == "PASS" and "not a claim" in evidence["semantics"]
     assert check.evaluate(item, {})[0] == "UNKNOWN"
+
+
+@pytest.mark.parametrize("code, expected", [("not_delegated_administrator", "NOT_APPLICABLE"), ("region_operation_unsupported", "NOT_APPLICABLE"), (None, "FAIL")])
+def test_inspector_organization_auto_enable_not_delegated_admin_is_na(code, expected):
+    check = next(c for c in CHECKS if c.id == "aws.b.inspector.ec2_organization_auto_enable")
+    index = {"collections": {"inspector_organization_configuration": [{"status": "empty", "items": [], **({"error": {"code": code}} if code else {})}]}, "inspector_organization_configuration": []}
+    assert check.evaluate({"scope": "111111111111/us-east-1"}, index)[0] == expected

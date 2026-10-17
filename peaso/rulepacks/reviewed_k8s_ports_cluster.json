@@ -20,7 +20,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cis_kube_v120_v100_5_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/cis_kube_v120/cis_kube_v120_v100.pp#L100"
     }
   },
   "kubernetes-compliance.control.cis_kube_v120_v100_5_2_2": {
@@ -44,7 +46,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cis_kube_v120_v100_5_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/cis_kube_v120/cis_kube_v120_v100.pp#L114"
     }
   },
   "kubernetes-compliance.control.cis_kube_v120_v100_5_2_3": {
@@ -68,7 +72,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cis_kube_v120_v100_5_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/cis_kube_v120/cis_kube_v120_v100.pp#L128"
     }
   },
   "kubernetes-compliance.control.cis_kube_v120_v100_5_2_4": {
@@ -92,7 +98,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cis_kube_v120_v100_5_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/cis_kube_v120/cis_kube_v120_v100.pp#L142"
     }
   },
   "kubernetes-compliance.control.cis_kube_v120_v100_5_2_5": {
@@ -116,7 +124,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cis_kube_v120_v100_5_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/cis_kube_v120/cis_kube_v120_v100.pp#L156"
     }
   },
   "kubernetes-compliance.control.cis_v170_5_1_3": {
@@ -140,7 +150,9 @@
       "dependencies": [
         "kubernetes_cluster_role"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cis_v170_5_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/cis_v170/section_5.pp#L49"
     }
   },
   "kubernetes-compliance.control.cluster_role_binding_default_service_account_binding_not_active": {
@@ -164,13 +176,22 @@
       "dependencies": [
         "kubernetes_cluster_role_binding"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cluster_role_binding_default_service_account_binding_not_active",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cluster_role_binding.pp#L7"
     }
   },
   "kubernetes-compliance.control.cluster_role_with_validating_or_mutating_admission_webhook_configurations": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned SQL requires all mutation verbs simultaneously, missing valid single-verb RBAC grants that can modify the named admission configuration or CSR approval subresource; current Kubernetes RBAC authorizes each verb independently. Reject this false-negative conjunction and preserve corrected declared-capability review with exact resource/verb pairing; no effective permission or action-chain claim.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.clusterrole.cluster_role_with_validating_or_mutating_admission_webhook_configurations"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.clusterrole.cluster_role_with_validating_or_mutating_admission_webhook_configurations; native port(s) k8s.ports.clusterrole.cluster_role_with_validating_or_mutating_admission_webhook_configurations authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned SQL requires all mutation verbs simultaneously, missing valid single-verb RBAC grants that can modify the named admission configuration or CSR approval subresource; current Kubernetes RBAC authorizes each verb independently. Reject this false-negative conjunction and preserve corrected declared-capability review with exact resource/verb pairing; no effective permission or action-chain claim."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
       "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
@@ -186,12 +207,26 @@
       "dependencies": [
         "kubernetes_cluster_role"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cluster_role_with_validating_or_mutating_admission_webhook_configurations",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/role.pp#L43"
     },
     "replacement_checks": [
       "k8s.ports.clusterrole.cluster_role_with_validating_or_mutating_admission_webhook_configurations"
     ],
-    "review_classification": "invalid_predicate"
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cluster_role_with_validating_or_mutating_admission_webhook_configurations",
+      "target_native_checks": [
+        "k8s.ports.clusterrole.cluster_role_with_validating_or_mutating_admission_webhook_configurations"
+      ],
+      "resource": "Each ClusterRole (kind clusterrole)",
+      "property": "rules[] apiGroups/resources/verbs",
+      "pass_condition": "FAIL iff a rule grants admissionregistration.k8s.io validating/mutatingwebhookconfigurations with any of create, update, patch",
+      "upstream_defect_only": "Source requires all verbs simultaneously (single-verb grants missed).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.config_map_default_namespace_used": {
     "disposition": "ported",
@@ -214,7 +249,9 @@
       "dependencies": [
         "kubernetes_config_map"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.config_map_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/config_map.pp#L7"
     }
   },
   "kubernetes-compliance.control.cronjob_default_namespace_used": {
@@ -238,7 +275,9 @@
       "dependencies": [
         "kubernetes_cronjob"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.cronjob_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L131"
     }
   },
   "kubernetes-compliance.control.daemonset_default_namespace_used": {
@@ -262,7 +301,9 @@
       "dependencies": [
         "kubernetes_daemonset"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.daemonset_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L131"
     }
   },
   "kubernetes-compliance.control.deployment_default_namespace_used": {
@@ -286,7 +327,9 @@
       "dependencies": [
         "kubernetes_deployment"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.deployment_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L131"
     }
   },
   "kubernetes-compliance.control.ingress_default_namespace_used": {
@@ -310,7 +353,9 @@
       "dependencies": [
         "kubernetes_ingress"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.ingress_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/ingress.pp#L7"
     }
   },
   "kubernetes-compliance.control.job_default_namespace_used": {
@@ -334,7 +379,9 @@
       "dependencies": [
         "kubernetes_job"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.job_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L131"
     }
   },
   "kubernetes-compliance.control.namespace_limit_range_default_cpu_limit": {
@@ -359,7 +406,9 @@
         "kubernetes_limit_range",
         "kubernetes_namespace"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_limit_range_default_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L7"
     }
   },
   "kubernetes-compliance.control.namespace_limit_range_default_cpu_request": {
@@ -384,7 +433,9 @@
         "kubernetes_limit_range",
         "kubernetes_namespace"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_limit_range_default_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L27"
     }
   },
   "kubernetes-compliance.control.namespace_limit_range_default_memory_limit": {
@@ -409,7 +460,9 @@
         "kubernetes_limit_range",
         "kubernetes_namespace"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_limit_range_default_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L47"
     }
   },
   "kubernetes-compliance.control.namespace_limit_range_default_memory_request": {
@@ -434,7 +487,9 @@
         "kubernetes_limit_range",
         "kubernetes_namespace"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_limit_range_default_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L67"
     }
   },
   "kubernetes-compliance.control.namespace_resource_quota_cpu_limit": {
@@ -459,7 +514,9 @@
         "kubernetes_namespace",
         "kubernetes_resource_quota"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_resource_quota_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L17"
     },
     "supersedes": "kubernetes-compliance.control.namespace_resource_quota_cpu_limit"
   },
@@ -485,7 +542,9 @@
         "kubernetes_namespace",
         "kubernetes_resource_quota"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_resource_quota_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L37"
     },
     "supersedes": "kubernetes-compliance.control.namespace_resource_quota_cpu_request"
   },
@@ -511,7 +570,9 @@
         "kubernetes_namespace",
         "kubernetes_resource_quota"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_resource_quota_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L57"
     },
     "supersedes": "kubernetes-compliance.control.namespace_resource_quota_memory_limit"
   },
@@ -537,7 +598,9 @@
         "kubernetes_namespace",
         "kubernetes_resource_quota"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.namespace_resource_quota_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/namespace.pp#L77"
     },
     "supersedes": "kubernetes-compliance.control.namespace_resource_quota_memory_request"
   },
@@ -563,7 +626,9 @@
         "kubernetes_namespace",
         "kubernetes_network_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.network_policy_default_deny_egress",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/network_policy.pp#L7"
     }
   },
   "kubernetes-compliance.control.network_policy_default_deny_ingress": {
@@ -588,7 +653,9 @@
         "kubernetes_namespace",
         "kubernetes_network_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.network_policy_default_deny_ingress",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/network_policy.pp#L18"
     }
   },
   "kubernetes-compliance.control.network_policy_default_dont_allow_egress": {
@@ -612,7 +679,9 @@
       "dependencies": [
         "kubernetes_network_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.network_policy_default_dont_allow_egress",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/network_policy.pp#L29"
     }
   },
   "kubernetes-compliance.control.network_policy_default_dont_allow_ingress": {
@@ -636,7 +705,9 @@
       "dependencies": [
         "kubernetes_network_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.network_policy_default_dont_allow_ingress",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/network_policy.pp#L40"
     }
   },
   "kubernetes-compliance.control.pod_default_namespace_used": {
@@ -660,7 +731,9 @@
       "dependencies": [
         "kubernetes_pod"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.pod_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L118"
     }
   },
   "kubernetes-compliance.control.pod_security_policy_container_privilege_disabled": {
@@ -684,7 +757,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.pod_security_policy_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_security_policy.pp#L17"
     }
   },
   "kubernetes-compliance.control.pod_security_policy_container_privilege_escalation_disabled": {
@@ -708,7 +783,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.pod_security_policy_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_security_policy.pp#L27"
     }
   },
   "kubernetes-compliance.control.pod_security_policy_host_network_access_disabled": {
@@ -732,7 +809,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.pod_security_policy_host_network_access_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_security_policy.pp#L47"
     }
   },
   "kubernetes-compliance.control.pod_security_policy_hostipc_sharing_disabled": {
@@ -756,7 +835,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.pod_security_policy_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_security_policy.pp#L107"
     }
   },
   "kubernetes-compliance.control.pod_security_policy_hostpid_sharing_disabled": {
@@ -780,7 +861,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.pod_security_policy_hostpid_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_security_policy.pp#L97"
     }
   },
   "kubernetes-compliance.control.pod_security_policy_immutable_container_filesystem": {
@@ -804,7 +887,9 @@
       "dependencies": [
         "kubernetes_pod_security_policy"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.pod_security_policy_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_security_policy.pp#L67"
     }
   },
   "kubernetes-compliance.control.replicaset_default_namespace_used": {
@@ -828,7 +913,9 @@
       "dependencies": [
         "kubernetes_replicaset"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.replicaset_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L131"
     }
   },
   "kubernetes-compliance.control.replication_controller_default_namespace_used": {
@@ -852,7 +939,9 @@
       "dependencies": [
         "kubernetes_replication_controller"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L131"
     }
   },
   "kubernetes-compliance.control.role_binding_default_namespace_used": {
@@ -876,7 +965,9 @@
       "dependencies": [
         "kubernetes_role_binding"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.role_binding_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/role_binding.pp#L7"
     }
   },
   "kubernetes-compliance.control.role_binding_default_service_account_binding_not_active": {
@@ -900,7 +991,9 @@
       "dependencies": [
         "kubernetes_role_binding"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.role_binding_default_service_account_binding_not_active",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/role_binding.pp#L17"
     }
   },
   "kubernetes-compliance.control.role_default_namespace_used": {
@@ -924,13 +1017,22 @@
       "dependencies": [
         "kubernetes_role"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.role_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/role.pp#L7"
     }
   },
   "kubernetes-compliance.control.role_with_rbac_approve_certificate_signing_requests": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned SQL requires all mutation verbs simultaneously, missing valid single-verb RBAC grants that can modify the named admission configuration or CSR approval subresource; current Kubernetes RBAC authorizes each verb independently. Reject this false-negative conjunction and preserve corrected declared-capability review with exact resource/verb pairing; no effective permission or action-chain claim.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.clusterrole.role_with_rbac_approve_certificate_signing_requests"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.clusterrole.role_with_rbac_approve_certificate_signing_requests; native port(s) k8s.ports.clusterrole.role_with_rbac_approve_certificate_signing_requests authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned SQL requires all mutation verbs simultaneously, missing valid single-verb RBAC grants that can modify the named admission configuration or CSR approval subresource; current Kubernetes RBAC authorizes each verb independently. Reject this false-negative conjunction and preserve corrected declared-capability review with exact resource/verb pairing; no effective permission or action-chain claim."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
       "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
@@ -946,12 +1048,26 @@
       "dependencies": [
         "kubernetes_cluster_role"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.role_with_rbac_approve_certificate_signing_requests",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/role.pp#L51"
     },
     "replacement_checks": [
       "k8s.ports.clusterrole.role_with_rbac_approve_certificate_signing_requests"
     ],
-    "review_classification": "invalid_predicate"
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "role_with_rbac_approve_certificate_signing_requests",
+      "target_native_checks": [
+        "k8s.ports.clusterrole.role_with_rbac_approve_certificate_signing_requests"
+      ],
+      "resource": "Each ClusterRole (kind clusterrole)",
+      "property": "rules[] apiGroups/resources/verbs",
+      "pass_condition": "FAIL iff a rule grants certificates.k8s.io certificatesigningrequests/approval update|patch or signers approve",
+      "upstream_defect_only": "Source requires all verbs simultaneously (single-verb grants missed).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.role_with_rbac_escalate_permissions": {
     "disposition": "ported",
@@ -976,7 +1092,9 @@
         "kubernetes_cluster_role",
         "kubernetes_role"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.role_with_rbac_escalate_permissions",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/role.pp#L27"
     }
   },
   "kubernetes-compliance.control.role_with_wildcards_used": {
@@ -1000,7 +1118,9 @@
       "dependencies": [
         "kubernetes_cluster_role"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.role_with_wildcards_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/role.pp#L17"
     }
   },
   "kubernetes-compliance.control.secret_default_namespace_used": {
@@ -1024,7 +1144,9 @@
       "dependencies": [
         "kubernetes_secret"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.secret_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/secret.pp#L7"
     }
   },
   "kubernetes-compliance.control.service_account_default_namespace_used": {
@@ -1048,7 +1170,9 @@
       "dependencies": [
         "kubernetes_service_account"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.service_account_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/service_account.pp#L17"
     }
   },
   "kubernetes-compliance.control.service_default_namespace_used": {
@@ -1072,7 +1196,9 @@
       "dependencies": [
         "kubernetes_service"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.service_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/service.pp#L17"
     }
   },
   "kubernetes-compliance.control.service_type_forbidden": {
@@ -1096,7 +1222,9 @@
       "dependencies": [
         "kubernetes_service"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.service_type_forbidden",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/service.pp#L7"
     }
   },
   "kubernetes-compliance.control.statefulset_default_namespace_used": {
@@ -1120,7 +1248,9 @@
       "dependencies": [
         "kubernetes_stateful_set"
       ],
-      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim"
+      "semantics": "Declared administrative/authorization/admission/network policy only, no effective access or CNI enforcement claim",
+      "source_row_id": "kubernetes-compliance.control.statefulset_default_namespace_used",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L131"
     }
   }
 }

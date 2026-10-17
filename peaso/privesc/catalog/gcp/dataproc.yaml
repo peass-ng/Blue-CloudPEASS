@@ -1,5 +1,6 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
 # GCP Dataproc privilege escalation techniques.
-# Source: hacktricks-cloud gcp-privilege-escalation/gcp-dataproc-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-dataproc-privesc.md (rev 171e422).
 # Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
 # Create-time gates: actAs on the chosen SA (caller) and roles/dataproc.worker on that SA (else creation is rejected).
 
@@ -8,7 +9,7 @@
   service: dataproc
   title: Submit a job to an existing Dataproc cluster and use the cluster service account
   source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclustersget-dataprocclustersuse-dataprocjobscreate-dataprocjobsget-dataprocjobslist-storageobjectscreate-storageobjectsget
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of the service account of every Dataproc cluster on which it holds dataproc.clusters.use and dataproc.jobs.create.
   requires:
     all_of:
@@ -39,7 +40,7 @@
   service: dataproc
   title: Create a Dataproc cluster or serverless batch running as a chosen service account
   source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclusterscreate--dataprocbatchescreate--iamserviceaccountsactas--attach-an-arbitrary-service-account
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs and that holds roles/dataproc.worker.
   requires:
     all_of:
@@ -50,8 +51,6 @@
           resource: "*"
       - - action: dataproc.batches.create
           resource: "*"
-        - action: dataproc.autoscalingPolicies.use
-          resource: "*"
   target:
     kind: gcp_service_account
     selector:
@@ -61,9 +60,11 @@
     aggregate_as: "Service accounts usable as Dataproc VM/batch SA in {project}"
   conditions:
     - id: sa_worker_role
-      description: Creation is rejected unless the chosen SA already holds roles/dataproc.worker (staging/temp bucket access); not checked against the target's permissions.
+      description: The chosen SA must already be runtime-ready (roles/dataproc.worker for classic clusters and pre-3.0 Serverless runtimes, roles/dataproc.serverlessNode for runtime 3.x, plus staging/temp bucket access); not checked against the target's permissions. roles/dataproc.hubAgent carries both clusters.create and actAs.
+    - id: access_scopes
+      description: On classic clusters the node token is limited to the OAuth scopes chosen at create time; the creator can request cloud-platform. Serverless workloads use cloud-platform.
     - id: cluster_code_path
-      description: On the cluster path, initialization actions run code as the chosen SA at creation, so dataproc.jobs.create is not required.
+      description: On the cluster path, initialization actions or a startup-script/ssh-keys metadata key run code as root on the nodes at creation, so dataproc.jobs.create is not required.
   blockers:
     - gcp_deny_policy
     - vpc_sc_perimeter
@@ -78,7 +79,7 @@
   service: dataproc
   title: Create an interactive Dataproc Serverless session running as a chosen service account
   source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocsessionscreate--dataprocsessiontemplatescreate--interactive-serverless-session-run-as-sa
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs and that holds roles/dataproc.worker.
   requires:
     all_of:
@@ -108,13 +109,15 @@
   provider: gcp
   service: dataproc
   title: Self-grant job submission on a Dataproc cluster through its IAM policy
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclusterssetiampolicy--dataprocjobssetiampolicy--resource-level-self-grant
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclusterssetiampolicy--self-grant-use-of-a-specific-cluster
+  source_revision: 171e422
   summary: The source can obtain the privileges of the service account of every Dataproc cluster on which it holds dataproc.clusters.setIamPolicy.
   requires:
     all_of:
       - action: dataproc.clusters.setIamPolicy
         resource: "{target.host_resource}"
+      - action: dataproc.jobs.create
+        resource: "*"
   target:
     kind: gcp_service_account
     selector:
@@ -129,14 +132,16 @@
   confidence: derived
   severity: high
   mitigation: Restrict dataproc.clusters.setIamPolicy (roles/dataproc.admin).
-  notes: No actAs or project-level IAM change needed. jobs.setIamPolicy and workflowTemplates.setIamPolicy are listed by HackTricks too, but a job-level grant does not by itself confer clusters.use, so only the cluster-level self-grant is modelled.
+  references:
+    - https://docs.cloud.google.com/dataproc/docs/concepts/iam/granular-iam
+  notes: A cluster-level role does not turn its project-scoped permissions into project grants, so dataproc.jobs.create must already be held at project level (Granular IAM). On a Component Gateway-enabled cluster the self-granted clusters.use alone also reaches the cluster SA (see gcp-dataproc-component-gateway-existing-cluster). No actAs or project-level IAM change needed. jobs.setIamPolicy and workflowTemplates.setIamPolicy are listed by HackTricks too, but a job-level grant does not by itself confer clusters.use, so only the cluster-level self-grant is modelled.
 
 - id: gcp-dataproc-workflowtemplates-actas
   provider: gcp
   service: dataproc
   title: Create and instantiate a workflow template with a chosen SA and initialization actions
   source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocworkflowtemplatescreate----initialization-actions--template--init-action-tamper-persistence
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs and that holds roles/dataproc.worker.
   requires:
     all_of:
@@ -164,3 +169,117 @@
   severity: critical
   mitigation: Restrict dataproc.workflowTemplates create/update/instantiate and actAs grants.
   notes: The persistence aspect (others instantiating the template later) is not modelled.
+
+- id: gcp-dataproc-component-gateway-existing-cluster
+  provider: gcp
+  service: dataproc
+  title: Run notebook code as the service account of an existing Component Gateway-enabled Dataproc cluster
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#component-gateway-jupyter--zeppelin--interactive-code-exec-as-the-cluster-sa-without-jobscreate
+  source_revision: 171e422
+  summary: The source can obtain the privileges of the service account of every Component Gateway-enabled Dataproc cluster with a notebook component on which it holds dataproc.clusters.use, without dataproc.jobs.create.
+  requires:
+    all_of:
+      - action: dataproc.clusters.use
+        resource: "{target.host_resource}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: dataproc_cluster
+    scope: same_project
+    aggregate_as: "SAs of Component Gateway-enabled Dataproc clusters the source can use"
+  conditions:
+    - id: gateway_notebook_enabled
+      description: The cluster must have Component Gateway enabled with a code-executing web UI (Jupyter or Zeppelin optional component); dataproc.clusters.get is used to discover the gateway URL.
+    - id: access_scopes
+      description: The usable token is limited by the cluster VMs' access scopes.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: high
+  mitigation: Do not enable Jupyter/Zeppelin with Component Gateway on clusters with privileged SAs, and restrict dataproc.clusters.use.
+  references:
+    - https://docs.cloud.google.com/dataproc/docs/concepts/accessing/dataproc-gateways
+  notes: Google documents dataproc.clusters.use as the permission required to access enabled component web interfaces. No actAs needed; creating a new gateway cluster is covered by gcp-dataproc-clusters-batches-create-actas.
+
+- id: gcp-dataproc-staging-object-replace
+  provider: gcp
+  service: dataproc
+  title: Replace staged scripts or dependencies that an existing Dataproc cluster loads
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclustersget--config-leak-sa--scopes--buckets--metadata--properties--staging-bucket-poison
+  source_revision: 171e422
+  summary: The source can obtain the privileges of the service account of Dataproc clusters whose referenced staging/config bucket objects (job dependencies, initialization actions) it can replace.
+  requires:
+    all_of:
+      - action: storage.objects.create
+        resource: "{target.host_resource.content_storage}"
+      - action: storage.objects.delete
+        resource: "{target.host_resource.content_storage}"
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: dataproc_cluster
+    scope: any
+    aggregate_as: "SAs of Dataproc clusters loading code from objects the source can replace"
+  conditions:
+    - id: reused_object
+      description: A later legitimate job or node startup (initialization action, scale-up) must load the exact replaced object by name; per-job staging paths that are not reused give no execution.
+    - id: object_protection
+      description: Retention policies, object holds or generation pinning block replacement.
+    - id: access_scopes
+      description: The usable token is limited by the cluster VMs' access scopes.
+  blockers:
+    - gcp_deny_policy
+    - vpc_sc_perimeter
+  confidence: conditional
+  severity: high
+  mitigation: Keep Dataproc config/staging buckets and initialization-action scripts writable only by the cluster owners and the cluster SA.
+  references:
+    - https://docs.cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket
+    - https://docs.cloud.google.com/storage/docs/access-control/iam-permissions
+  notes: dataproc.clusters.get only discovers the SA, scopes and bucket names; the escalation is the object replacement. Planting a brand-new object needs only storage.objects.create but executes nothing unless a consumer references it.
+
+- id: gcp-dataproc-staging-object-plant
+  provider: gcp
+  service: dataproc
+  title: Plant a new Dataproc staging dependency for a later job
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclustersget--config-leak-sa--scopes--buckets--metadata--properties--staging-bucket-poison
+  source_revision: 6fb9ac51fd
+  summary: The source can place a new object at a Dataproc staging path that a later
+    cluster job loads, causing its code to run as the existing cluster service account.
+  requires:
+    all_of:
+    - action: storage.objects.create
+      resource: '{target.host_resource.content_storage}'
+  target:
+    kind: gcp_service_account
+    selector:
+      attached_to_service: dataproc_cluster
+    scope: any
+    aggregate_as: SAs of Dataproc clusters loading code from objects the source can
+      replace
+  conditions:
+  - id: new_object_path
+    description: The referenced object name must be unused; replacing an existing
+      live generation also requires storage.objects.delete and is covered by gcp-dataproc-staging-object-replace.
+  - id: trusted_consumer
+    description: A later job on the selected cluster must load the planted JAR or
+      script from that exact unpinned path; mere write access to the staging bucket
+      does not cause execution.
+  - id: staging_bucket
+    description: The caller must be able to create the object in the specific config
+      or temp bucket consumed by the cluster, and the cluster service account must
+      be able to read it.
+  blockers:
+  - gcp_deny_policy
+  - vpc_sc_perimeter
+  confidence: conditional
+  severity: high
+  mitigation: Restrict writes to Dataproc staging buckets and pin job dependencies
+    to reviewed immutable generations.
+  references:
+  - https://docs.cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket
+  - https://docs.cloud.google.com/storage/docs/access-control/iam-permissions
+  notes: dataproc.clusters.get only discovers the SA, scopes and bucket names; the
+    escalation is the object replacement. Planting a brand-new object needs only storage.objects.create
+    but executes nothing unless a consumer references it.

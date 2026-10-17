@@ -1,0 +1,1171 @@
+{
+  "gcp-compliance.control.cis_v120_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_ssl_policy_strict_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source declares missing SSL policy compliant although default COMPATIBLE negotiation does not establish the strict cipher/TLS criterion. It also excludes current FIPS_202205 policy. Replacement uses complete exact policy references, current supported profiles and configured minimum TLS, with no endpoint probe."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_ssl_policy_with_no_weak_cipher",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "577b414e4c37c0a73ea1853290bf780dc36f3edf0389d4ebea855cec9f90ff50",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L140"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_ssl_policy_with_no_weak_cipher",
+      "target_native_checks": [
+        "gcp.ports.compute_ssl_policy_strict_declaration"
+      ],
+      "resource": "Each HTTPS/SSL target proxy (kind target_proxy) joined to its ssl_policy by selfLink",
+      "property": "sslPolicy, profile, minTlsVersion, enabledFeatures",
+      "pass_condition": "PASS iff the referenced policy is RESTRICTED, or MODERN/FIPS_202205 with TLS_1_2, or CUSTOM with TLS_1_2 and no weak features; no policy = FAIL",
+      "upstream_defect_only": "Source treats a missing SSL policy (default COMPATIBLE) as compliant and omits FIPS_202205.",
+      "native_deviations": "Unrecognized profile/TLS values and unavailable CUSTOM features are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_oslogin_metadata_precedence. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source requires project enable-oslogin=true before honoring instance metadata, so project false/absent plus instance true falsely alarms. Official metadata precedence allows the instance to override the project. Replacement evaluates explicit instance first, then complete related project metadata, without guest-agent/SSH authorization claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_oslogin_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "70f67041d8c625fb68646d7d08f13bdc071052f06d99e4eceb622f174947b184",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L71"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_oslogin_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_oslogin_metadata_precedence"
+      ],
+      "resource": "Each VM instance (kind instance) with its project commonInstanceMetadata and effective compute.requireOsLogin",
+      "property": "metadata enable-oslogin (instance overrides project)",
+      "pass_condition": "PASS iff the effective enable-oslogin (instance value, else project value, else enforced requireOsLogin) is true",
+      "upstream_defect_only": "Source requires project enable-oslogin=true before honoring the instance value (instance true + project unset falsely alarms).",
+      "native_deviations": "Unset everywhere without the org-policy evidence is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_disk_encrypted_with_csk"
+    ],
+    "reason": "Reviewed CSEK-specific encryption-type declaration: native diskEncryptionKey.sha256 identifies CSEK without collecting raw or RSA-wrapped keys. This policy remains distinct from customer-managed-key metadata; successful missing digest means no CSEK declaration, denied encryption evidence remains unknown.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_disk_encrypted_with_csk",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "4ac3d3d4410eefd4f5f224bf8e86784b564042774296e0a441086ab84c3e9a45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L113"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.organization_essential_contacts_complete. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source expands contacts/categories before GROUP BY; an organization with zero contacts emits zero rows and cannot produce the required missing-configuration failure. Replacement evaluates each organization anchor against complete scoped contact metadata and the exact required subscription categories; denial remains unknown."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "organization_essential_contacts_configured",
+      "source_path": [
+        "policy_bundle/organization.pp"
+      ],
+      "source_query_sha256": "fcf0d7461fa4ed8b2dde1bef8a24a197e4a4bbf57960856a9e7f32ab5471a33a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L246"
+    },
+    "replacement_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "organization_essential_contacts_configured",
+      "target_native_checks": [
+        "gcp.ports.organization_essential_contacts_complete"
+      ],
+      "resource": "Each organization (kind organization) with complete essential_contact inventory",
+      "property": "notificationCategorySubscriptions",
+      "pass_condition": "PASS iff contacts subscribe ALL or every one of LEGAL, SECURITY, SUSPENSION, TECHNICAL, TECHNICAL_INCIDENTS",
+      "upstream_defect_only": "Source GROUP BY over expanded contacts emits no row for an organization with zero contacts.",
+      "native_deviations": "none"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.access_approval_explicit_enrollment. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source uses notificationEmails IS NOT NULL as Access Approval enablement: notificationEmails=[] and enrolledServices=[] falsely pass. Official enrollment is enrolledServices, while notification delivery is separate and can inherit. Replacement evaluates explicit enrollment and leaves unreadable ancestor enrollment unknown rather than inferring from email metadata."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "project_access_approval_settings_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "af116e5445be19a19a526be19525cb24ee17d4d8ddc4e5edb0965623d29ae10a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L229"
+    },
+    "replacement_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "project_access_approval_settings_enabled",
+      "target_native_checks": [
+        "gcp.ports.access_approval_explicit_enrollment"
+      ],
+      "resource": "Access Approval settings of each project/folder/organization (kind access_approval_settings)",
+      "property": "enrolledServices[].enrollmentLevel, enrolledAncestor",
+      "pass_condition": "PASS iff at least one enrolledServices entry has enrollmentLevel BLOCK_ALL; ancestor-only enrollment is UNKNOWN",
+      "upstream_defect_only": "Source treats notificationEmails/settings presence as enrollment (empty enrolledServices passes).",
+      "native_deviations": "Ancestor enrollment without parent metadata is UNKNOWN instead of PASS."
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_ssl_policy_strict_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source declares missing SSL policy compliant although default COMPATIBLE negotiation does not establish the strict cipher/TLS criterion. It also excludes current FIPS_202205 policy. Replacement uses complete exact policy references, current supported profiles and configured minimum TLS, with no endpoint probe."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_ssl_policy_with_no_weak_cipher",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "577b414e4c37c0a73ea1853290bf780dc36f3edf0389d4ebea855cec9f90ff50",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L140"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_ssl_policy_with_no_weak_cipher",
+      "target_native_checks": [
+        "gcp.ports.compute_ssl_policy_strict_declaration"
+      ],
+      "resource": "Each HTTPS/SSL target proxy (kind target_proxy) joined to its ssl_policy by selfLink",
+      "property": "sslPolicy, profile, minTlsVersion, enabledFeatures",
+      "pass_condition": "PASS iff the referenced policy is RESTRICTED, or MODERN/FIPS_202205 with TLS_1_2, or CUSTOM with TLS_1_2 and no weak features; no policy = FAIL",
+      "upstream_defect_only": "Source treats a missing SSL policy (default COMPATIBLE) as compliant and omits FIPS_202205.",
+      "native_deviations": "Unrecognized profile/TLS values and unavailable CUSTOM features are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_oslogin_metadata_precedence. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source requires project enable-oslogin=true before honoring instance metadata, so project false/absent plus instance true falsely alarms. Official metadata precedence allows the instance to override the project. Replacement evaluates explicit instance first, then complete related project metadata, without guest-agent/SSH authorization claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_oslogin_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "70f67041d8c625fb68646d7d08f13bdc071052f06d99e4eceb622f174947b184",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L72"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_oslogin_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_oslogin_metadata_precedence"
+      ],
+      "resource": "Each VM instance (kind instance) with its project commonInstanceMetadata and effective compute.requireOsLogin",
+      "property": "metadata enable-oslogin (instance overrides project)",
+      "pass_condition": "PASS iff the effective enable-oslogin (instance value, else project value, else enforced requireOsLogin) is true",
+      "upstream_defect_only": "Source requires project enable-oslogin=true before honoring the instance value (instance true + project unset falsely alarms).",
+      "native_deviations": "Unset everywhere without the org-policy evidence is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_disk_encrypted_with_csk"
+    ],
+    "reason": "Reviewed CSEK-specific encryption-type declaration: native diskEncryptionKey.sha256 identifies CSEK without collecting raw or RSA-wrapped keys. This policy remains distinct from customer-managed-key metadata; successful missing digest means no CSEK declaration, denied encryption evidence remains unknown.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_disk_encrypted_with_csk",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "4ac3d3d4410eefd4f5f224bf8e86784b564042774296e0a441086ab84c3e9a45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L114"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.organization_essential_contacts_complete. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source expands contacts/categories before GROUP BY; an organization with zero contacts emits zero rows and cannot produce the required missing-configuration failure. Replacement evaluates each organization anchor against complete scoped contact metadata and the exact required subscription categories; denial remains unknown."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "organization_essential_contacts_configured",
+      "source_path": [
+        "policy_bundle/organization.pp"
+      ],
+      "source_query_sha256": "fcf0d7461fa4ed8b2dde1bef8a24a197e4a4bbf57960856a9e7f32ab5471a33a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L246"
+    },
+    "replacement_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "organization_essential_contacts_configured",
+      "target_native_checks": [
+        "gcp.ports.organization_essential_contacts_complete"
+      ],
+      "resource": "Each organization (kind organization) with complete essential_contact inventory",
+      "property": "notificationCategorySubscriptions",
+      "pass_condition": "PASS iff contacts subscribe ALL or every one of LEGAL, SECURITY, SUSPENSION, TECHNICAL, TECHNICAL_INCIDENTS",
+      "upstream_defect_only": "Source GROUP BY over expanded contacts emits no row for an organization with zero contacts.",
+      "native_deviations": "none"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.access_approval_explicit_enrollment. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source uses notificationEmails IS NOT NULL as Access Approval enablement: notificationEmails=[] and enrolledServices=[] falsely pass. Official enrollment is enrolledServices, while notification delivery is separate and can inherit. Replacement evaluates explicit enrollment and leaves unreadable ancestor enrollment unknown rather than inferring from email metadata."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "project_access_approval_settings_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "af116e5445be19a19a526be19525cb24ee17d4d8ddc4e5edb0965623d29ae10a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L230"
+    },
+    "replacement_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "project_access_approval_settings_enabled",
+      "target_native_checks": [
+        "gcp.ports.access_approval_explicit_enrollment"
+      ],
+      "resource": "Access Approval settings of each project/folder/organization (kind access_approval_settings)",
+      "property": "enrolledServices[].enrollmentLevel, enrolledAncestor",
+      "pass_condition": "PASS iff at least one enrolledServices entry has enrollmentLevel BLOCK_ALL; ancestor-only enrollment is UNKNOWN",
+      "upstream_defect_only": "Source treats notificationEmails/settings presence as enrollment (empty enrolledServices passes).",
+      "native_deviations": "Ancestor enrollment without parent metadata is UNKNOWN instead of PASS."
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_url_map_backend_logging"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_url_map_backend_logging. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source joins only URL-map default_service. Counterexample: logged default backend plus an unlogged path-rule backend yields OK despite incomplete declared backend logging. Replacement inspects all declared route backend references, complete service/bucket inventories and backend applicability; no traffic or live log values are read."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_https_load_balancer_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "7c817d078e52431adc9602af8592e6d48332ca153fd4a4bcbf31fd48861702ca",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L244"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_url_map_backend_logging"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_https_load_balancer_logging_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_url_map_backend_logging"
+      ],
+      "resource": "Each URL map (kind url_map) joined to every referenced backend_service / backend_bucket",
+      "property": "backend_service.logConfig.enable for default and path-rule backends",
+      "pass_condition": "PASS iff every referenced backend service has logConfig.enable true",
+      "upstream_defect_only": "Source joins only defaultService, hiding unlogged path-rule backends.",
+      "native_deviations": "Redirect-only and bucket-only maps are NOT_APPLICABLE; missing/ambiguous backend relations are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_ssl_policy_strict_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source declares missing SSL policy compliant although default COMPATIBLE negotiation does not establish the strict cipher/TLS criterion. It also excludes current FIPS_202205 policy. Replacement uses complete exact policy references, current supported profiles and configured minimum TLS, with no endpoint probe."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_ssl_policy_with_no_weak_cipher",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "577b414e4c37c0a73ea1853290bf780dc36f3edf0389d4ebea855cec9f90ff50",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L140"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_ssl_policy_with_no_weak_cipher",
+      "target_native_checks": [
+        "gcp.ports.compute_ssl_policy_strict_declaration"
+      ],
+      "resource": "Each HTTPS/SSL target proxy (kind target_proxy) joined to its ssl_policy by selfLink",
+      "property": "sslPolicy, profile, minTlsVersion, enabledFeatures",
+      "pass_condition": "PASS iff the referenced policy is RESTRICTED, or MODERN/FIPS_202205 with TLS_1_2, or CUSTOM with TLS_1_2 and no weak features; no policy = FAIL",
+      "upstream_defect_only": "Source treats a missing SSL policy (default COMPATIBLE) as compliant and omits FIPS_202205.",
+      "native_deviations": "Unrecognized profile/TLS values and unavailable CUSTOM features are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_oslogin_metadata_precedence. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source requires project enable-oslogin=true before honoring instance metadata, so project false/absent plus instance true falsely alarms. Official metadata precedence allows the instance to override the project. Replacement evaluates explicit instance first, then complete related project metadata, without guest-agent/SSH authorization claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_oslogin_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "70f67041d8c625fb68646d7d08f13bdc071052f06d99e4eceb622f174947b184",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L72"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_oslogin_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_oslogin_metadata_precedence"
+      ],
+      "resource": "Each VM instance (kind instance) with its project commonInstanceMetadata and effective compute.requireOsLogin",
+      "property": "metadata enable-oslogin (instance overrides project)",
+      "pass_condition": "PASS iff the effective enable-oslogin (instance value, else project value, else enforced requireOsLogin) is true",
+      "upstream_defect_only": "Source requires project enable-oslogin=true before honoring the instance value (instance true + project unset falsely alarms).",
+      "native_deviations": "Unset everywhere without the org-policy evidence is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_disk_encrypted_with_csk"
+    ],
+    "reason": "Reviewed CSEK-specific encryption-type declaration: native diskEncryptionKey.sha256 identifies CSEK without collecting raw or RSA-wrapped keys. This policy remains distinct from customer-managed-key metadata; successful missing digest means no CSEK declaration, denied encryption evidence remains unknown.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_disk_encrypted_with_csk",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "4ac3d3d4410eefd4f5f224bf8e86784b564042774296e0a441086ab84c3e9a45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L114"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.organization_essential_contacts_complete. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source expands contacts/categories before GROUP BY; an organization with zero contacts emits zero rows and cannot produce the required missing-configuration failure. Replacement evaluates each organization anchor against complete scoped contact metadata and the exact required subscription categories; denial remains unknown."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "organization_essential_contacts_configured",
+      "source_path": [
+        "policy_bundle/organization.pp"
+      ],
+      "source_query_sha256": "fcf0d7461fa4ed8b2dde1bef8a24a197e4a4bbf57960856a9e7f32ab5471a33a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L245"
+    },
+    "replacement_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "organization_essential_contacts_configured",
+      "target_native_checks": [
+        "gcp.ports.organization_essential_contacts_complete"
+      ],
+      "resource": "Each organization (kind organization) with complete essential_contact inventory",
+      "property": "notificationCategorySubscriptions",
+      "pass_condition": "PASS iff contacts subscribe ALL or every one of LEGAL, SECURITY, SUSPENSION, TECHNICAL, TECHNICAL_INCIDENTS",
+      "upstream_defect_only": "Source GROUP BY over expanded contacts emits no row for an organization with zero contacts.",
+      "native_deviations": "none"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.access_approval_explicit_enrollment. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source uses notificationEmails IS NOT NULL as Access Approval enablement: notificationEmails=[] and enrolledServices=[] falsely pass. Official enrollment is enrolledServices, while notification delivery is separate and can inherit. Replacement evaluates explicit enrollment and leaves unreadable ancestor enrollment unknown rather than inferring from email metadata."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "project_access_approval_settings_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "af116e5445be19a19a526be19525cb24ee17d4d8ddc4e5edb0965623d29ae10a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L230"
+    },
+    "replacement_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "project_access_approval_settings_enabled",
+      "target_native_checks": [
+        "gcp.ports.access_approval_explicit_enrollment"
+      ],
+      "resource": "Access Approval settings of each project/folder/organization (kind access_approval_settings)",
+      "property": "enrolledServices[].enrollmentLevel, enrolledAncestor",
+      "pass_condition": "PASS iff at least one enrolledServices entry has enrollmentLevel BLOCK_ALL; ancestor-only enrollment is UNKNOWN",
+      "upstream_defect_only": "Source treats notificationEmails/settings presence as enrollment (empty enrolledServices passes).",
+      "native_deviations": "Ancestor enrollment without parent metadata is UNKNOWN instead of PASS."
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_url_map_backend_logging"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_url_map_backend_logging. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source joins only URL-map default_service. Counterexample: logged default backend plus an unlogged path-rule backend yields OK despite incomplete declared backend logging. Replacement inspects all declared route backend references, complete service/bucket inventories and backend applicability; no traffic or live log values are read."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_https_load_balancer_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "7c817d078e52431adc9602af8592e6d48332ca153fd4a4bcbf31fd48861702ca",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L244"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_url_map_backend_logging"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_https_load_balancer_logging_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_url_map_backend_logging"
+      ],
+      "resource": "Each URL map (kind url_map) joined to every referenced backend_service / backend_bucket",
+      "property": "backend_service.logConfig.enable for default and path-rule backends",
+      "pass_condition": "PASS iff every referenced backend service has logConfig.enable true",
+      "upstream_defect_only": "Source joins only defaultService, hiding unlogged path-rule backends.",
+      "native_deviations": "Redirect-only and bucket-only maps are NOT_APPLICABLE; missing/ambiguous backend relations are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_ssl_policy_strict_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source declares missing SSL policy compliant although default COMPATIBLE negotiation does not establish the strict cipher/TLS criterion. It also excludes current FIPS_202205 policy. Replacement uses complete exact policy references, current supported profiles and configured minimum TLS, with no endpoint probe."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_ssl_policy_with_no_weak_cipher",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "577b414e4c37c0a73ea1853290bf780dc36f3edf0389d4ebea855cec9f90ff50",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L140"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_ssl_policy_with_no_weak_cipher",
+      "target_native_checks": [
+        "gcp.ports.compute_ssl_policy_strict_declaration"
+      ],
+      "resource": "Each HTTPS/SSL target proxy (kind target_proxy) joined to its ssl_policy by selfLink",
+      "property": "sslPolicy, profile, minTlsVersion, enabledFeatures",
+      "pass_condition": "PASS iff the referenced policy is RESTRICTED, or MODERN/FIPS_202205 with TLS_1_2, or CUSTOM with TLS_1_2 and no weak features; no policy = FAIL",
+      "upstream_defect_only": "Source treats a missing SSL policy (default COMPATIBLE) as compliant and omits FIPS_202205.",
+      "native_deviations": "Unrecognized profile/TLS values and unavailable CUSTOM features are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_oslogin_metadata_precedence. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source requires project enable-oslogin=true before honoring instance metadata, so project false/absent plus instance true falsely alarms. Official metadata precedence allows the instance to override the project. Replacement evaluates explicit instance first, then complete related project metadata, without guest-agent/SSH authorization claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_oslogin_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "70f67041d8c625fb68646d7d08f13bdc071052f06d99e4eceb622f174947b184",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L72"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_oslogin_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_oslogin_metadata_precedence"
+      ],
+      "resource": "Each VM instance (kind instance) with its project commonInstanceMetadata and effective compute.requireOsLogin",
+      "property": "metadata enable-oslogin (instance overrides project)",
+      "pass_condition": "PASS iff the effective enable-oslogin (instance value, else project value, else enforced requireOsLogin) is true",
+      "upstream_defect_only": "Source requires project enable-oslogin=true before honoring the instance value (instance true + project unset falsely alarms).",
+      "native_deviations": "Unset everywhere without the org-policy evidence is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_disk_encrypted_with_csk"
+    ],
+    "reason": "Reviewed CSEK-specific encryption-type declaration: native diskEncryptionKey.sha256 identifies CSEK without collecting raw or RSA-wrapped keys. This policy remains distinct from customer-managed-key metadata; successful missing digest means no CSEK declaration, denied encryption evidence remains unknown.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_disk_encrypted_with_csk",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "4ac3d3d4410eefd4f5f224bf8e86784b564042774296e0a441086ab84c3e9a45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L114"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.organization_essential_contacts_complete. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source expands contacts/categories before GROUP BY; an organization with zero contacts emits zero rows and cannot produce the required missing-configuration failure. Replacement evaluates each organization anchor against complete scoped contact metadata and the exact required subscription categories; denial remains unknown."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "organization_essential_contacts_configured",
+      "source_path": [
+        "policy_bundle/organization.pp"
+      ],
+      "source_query_sha256": "fcf0d7461fa4ed8b2dde1bef8a24a197e4a4bbf57960856a9e7f32ab5471a33a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L245"
+    },
+    "replacement_checks": [
+      "gcp.ports.organization_essential_contacts_complete"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "organization_essential_contacts_configured",
+      "target_native_checks": [
+        "gcp.ports.organization_essential_contacts_complete"
+      ],
+      "resource": "Each organization (kind organization) with complete essential_contact inventory",
+      "property": "notificationCategorySubscriptions",
+      "pass_condition": "PASS iff contacts subscribe ALL or every one of LEGAL, SECURITY, SUSPENSION, TECHNICAL, TECHNICAL_INCIDENTS",
+      "upstream_defect_only": "Source GROUP BY over expanded contacts emits no row for an organization with zero contacts.",
+      "native_deviations": "none"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.access_approval_explicit_enrollment. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source uses notificationEmails IS NOT NULL as Access Approval enablement: notificationEmails=[] and enrolledServices=[] falsely pass. Official enrollment is enrolledServices, while notification delivery is separate and can inherit. Replacement evaluates explicit enrollment and leaves unreadable ancestor enrollment unknown rather than inferring from email metadata."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "project_access_approval_settings_enabled",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "af116e5445be19a19a526be19525cb24ee17d4d8ddc4e5edb0965623d29ae10a",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L230"
+    },
+    "replacement_checks": [
+      "gcp.ports.access_approval_explicit_enrollment"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "project_access_approval_settings_enabled",
+      "target_native_checks": [
+        "gcp.ports.access_approval_explicit_enrollment"
+      ],
+      "resource": "Access Approval settings of each project/folder/organization (kind access_approval_settings)",
+      "property": "enrolledServices[].enrollmentLevel, enrolledAncestor",
+      "pass_condition": "PASS iff at least one enrolledServices entry has enrollmentLevel BLOCK_ALL; ancestor-only enrollment is UNKNOWN",
+      "upstream_defect_only": "Source treats notificationEmails/settings presence as enrollment (empty enrolledServices passes).",
+      "native_deviations": "Ancestor enrollment without parent metadata is UNKNOWN instead of PASS."
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_url_map_backend_logging"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_url_map_backend_logging. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source joins only URL-map default_service. Counterexample: logged default backend plus an unlogged path-rule backend yields OK despite incomplete declared backend logging. Replacement inspects all declared route backend references, complete service/bucket inventories and backend applicability; no traffic or live log values are read."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_https_load_balancer_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "7c817d078e52431adc9602af8592e6d48332ca153fd4a4bcbf31fd48861702ca",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L244"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_url_map_backend_logging"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_https_load_balancer_logging_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_url_map_backend_logging"
+      ],
+      "resource": "Each URL map (kind url_map) joined to every referenced backend_service / backend_bucket",
+      "property": "backend_service.logConfig.enable for default and path-rule backends",
+      "pass_condition": "PASS iff every referenced backend service has logConfig.enable true",
+      "upstream_defect_only": "Source joins only defaultService, hiding unlogged path-rule backends.",
+      "native_deviations": "Redirect-only and bucket-only maps are NOT_APPLICABLE; missing/ambiguous backend relations are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_ssl_policy_strict_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source declares missing SSL policy compliant although default COMPATIBLE negotiation does not establish the strict cipher/TLS criterion. It also excludes current FIPS_202205 policy. Replacement uses complete exact policy references, current supported profiles and configured minimum TLS, with no endpoint probe."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_ssl_policy_with_no_weak_cipher",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "577b414e4c37c0a73ea1853290bf780dc36f3edf0389d4ebea855cec9f90ff50",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L140"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_ssl_policy_strict_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_ssl_policy_with_no_weak_cipher",
+      "target_native_checks": [
+        "gcp.ports.compute_ssl_policy_strict_declaration"
+      ],
+      "resource": "Each HTTPS/SSL target proxy (kind target_proxy) joined to its ssl_policy by selfLink",
+      "property": "sslPolicy, profile, minTlsVersion, enabledFeatures",
+      "pass_condition": "PASS iff the referenced policy is RESTRICTED, or MODERN/FIPS_202205 with TLS_1_2, or CUSTOM with TLS_1_2 and no weak features; no policy = FAIL",
+      "upstream_defect_only": "Source treats a missing SSL policy (default COMPATIBLE) as compliant and omits FIPS_202205.",
+      "native_deviations": "Unrecognized profile/TLS values and unavailable CUSTOM features are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_oslogin_metadata_precedence. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source requires project enable-oslogin=true before honoring instance metadata, so project false/absent plus instance true falsely alarms. Official metadata precedence allows the instance to override the project. Replacement evaluates explicit instance first, then complete related project metadata, without guest-agent/SSH authorization claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_oslogin_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "70f67041d8c625fb68646d7d08f13bdc071052f06d99e4eceb622f174947b184",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L72"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_oslogin_metadata_precedence"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_oslogin_enabled",
+      "target_native_checks": [
+        "gcp.ports.compute_oslogin_metadata_precedence"
+      ],
+      "resource": "Each VM instance (kind instance) with its project commonInstanceMetadata and effective compute.requireOsLogin",
+      "property": "metadata enable-oslogin (instance overrides project)",
+      "pass_condition": "PASS iff the effective enable-oslogin (instance value, else project value, else enforced requireOsLogin) is true",
+      "upstream_defect_only": "Source requires project enable-oslogin=true before honoring the instance value (instance true + project unset falsely alarms).",
+      "native_deviations": "Unset everywhere without the org-policy evidence is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_disk_encrypted_with_csk"
+    ],
+    "reason": "Reviewed CSEK-specific encryption-type declaration: native diskEncryptionKey.sha256 identifies CSEK without collecting raw or RSA-wrapped keys. This policy remains distinct from customer-managed-key metadata; successful missing digest means no CSEK declaration, denied encryption evidence remains unknown.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "compute_disk_encrypted_with_csk",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "4ac3d3d4410eefd4f5f224bf8e86784b564042774296e0a441086ab84c3e9a45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_relationships.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L114"
+    }
+  }
+}

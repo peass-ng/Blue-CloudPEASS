@@ -106,12 +106,19 @@ def test_aws_explicit_deny_removes_edge():
     assert reached(result, f"arn:aws:iam::{ACCOUNT}:user/alice", "aws-ec2-passrole-runinstances") == {}
 
 
-def test_aws_condition_makes_edge_conditional():
-    cond = [{"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*",
-             "Condition": {"StringEquals": {"iam:PassedToService": "ec2.amazonaws.com"}}}, PASS_RUN[1]]
+@pytest.mark.parametrize("condition,expected", [
+    # undecidable from a snapshot (MFA is a property of the session): conditional, not FAIL
+    ({"Bool": {"aws:MultiFactorAuthPresent": "true"}}, "conditional"),
+    # proven by the technique: the role is passed to EC2
+    ({"StringEquals": {"iam:PassedToService": "ec2.amazonaws.com"}}, "derived"),
+    # proven to exclude the technique: the edge is dropped
+    ({"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}, None),
+])
+def test_aws_condition_makes_edge_conditional(condition, expected):
+    cond = [{"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*", "Condition": condition}, PASS_RUN[1]]
     snap = aws_snapshot([aws_user("alice", *cond)], [aws_role("ec2-role", "ec2.amazonaws.com")], scp_status="empty")
     hit = reached(run(snap), f"arn:aws:iam::{ACCOUNT}:user/alice", "aws-ec2-passrole-runinstances")
-    assert hit == {f"arn:aws:iam::{ACCOUNT}:role/ec2-role": "conditional"}
+    assert hit == ({f"arn:aws:iam::{ACCOUNT}:role/ec2-role": expected} if expected else {})
 
 
 def test_aws_scp_not_collected_is_conditional_with_coverage():
@@ -464,3 +471,17 @@ def test_perf_10k_principals_gcp_k8s_azure():
     print(f"\ngcp {gcp_t:.2f}s edges={gcp['stats']['edges']}; k8s {k8s_t:.2f}s edges={k8s['stats']['edges']}; "
           f"azure {azure_t:.2f}s edges={azure['stats']['edges']}")
     assert max(gcp_t, k8s_t, azure_t) < 30
+
+
+def test_unknown_privesc_findings_always_carry_a_reason():
+    scope = f"{ACCOUNT}/us-east-1"
+    snap = snapshot("aws", [("iam_user", scope, [aws_user("alice", *PASS_RUN)]), ("iam_role", scope, [], "denied"),
+                            ("iam_group", scope, []), ("iam_policy", scope, []), ("scp_policy", scope, [], "empty")])
+    unknown = [f for f in run(snap)["findings"] if f["status"] == "UNKNOWN"]
+    assert unknown
+    for finding in unknown:
+        assert finding["evidence"]["reason"].startswith("missing_facts: ") and finding["evidence"]["reason"] != "missing_facts: "
+        assert finding["evidence"]["facts_needed"]
+    # Proven and conditional findings keep their evidence shape (no reason key added).
+    derived = run(aws_snapshot([aws_user("bob", *PASS_RUN)], [aws_role("ec2-role", "ec2.amazonaws.com")], scp_status="empty"))
+    assert all("reason" not in f["evidence"] for f in derived["findings"] if f["status"] != "UNKNOWN")

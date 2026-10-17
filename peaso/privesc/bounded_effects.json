@@ -1,0 +1,1295 @@
+{
+  "aws-audit-create-scheduled-query-to-exfiltrate-role-readable-secrets": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-timestream-privesc/README.md#timestreamcreatescheduledquery--iampassrole--run-sql-and-downstream-writes-as-a-scheduled-query-role",
+    "requires": {
+      "all_of": [
+        {
+          "action": "timestream:CreateScheduledQuery",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "timestream:DescribeEndpoints",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-audit-enable-centralized-root-sessions-then-call-assumeroot": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/README.md#enabling-the-feature-yourself-management-account",
+    "requires": {
+      "all_of": [
+        {
+          "action": "organizations:EnableAWSServiceAccess",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "iam:EnableOrganizationsRootCredentialsManagement",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "iam:EnableOrganizationsRootSessions",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "sts:AssumeRoot",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-audit-enable-permission-sets-then-create-admin-assignment": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sso-and-identitystore-privesc/README.md#aws-identity-center--aws-sso",
+    "requires": {
+      "all_of": [
+        {
+          "action": "sso:UpdateInstance",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "sso:CreatePermissionSet",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "sso:AttachManagedPolicyToPermissionSet",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "sso:CreateAccountAssignment",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-audit-lf-register-an-s3-location-under-a-privileged-384933ea": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-lakeformation-post-exploitation/README.md#register-an-s3-location-under-a-privileged-role",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lakeformation:RegisterResource",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "lakeformation:RegisterResourceWithPrivilegedAccess",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "iam:GetRole",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-audit-site-grant-yourself-access-to-a-legacy-sitewi-ec31fb70": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-iot-sitewise-post-exploitation/README.md#grant-yourself-access-to-a-legacy-sitewise-monitor-portal",
+    "requires": {
+      "all_of": [
+        {
+          "action": "iotsitewise:UpdateAccessPolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-audit-start-stored-state-manager-association": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md#ssmstartassociationsonce--run-a-stored-association-on-its-fixed-targets",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ssm:StartAssociationsOnce",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-audit-trigger-privileged-existing-canary": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/README.md#syntheticsstartcanary--run-unchanged-canary-code-under-its-stored-role",
+    "requires": {
+      "all_of": [
+        {
+          "action": "synthetics:StartCanary",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-audit2-appconfig-2": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-appconfig-post-exploitation/README.md#appconfig-data--read-the-deployed-configuration",
+    "requires": {
+      "all_of": [
+        {
+          "action": "appconfig:StartConfigurationSession",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "appconfig:GetLatestConfiguration",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-billing-enable-dormant-iam-console-access": {
+    "provider": "aws",
+    "conditions": [
+      "dormant_grant",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-invoicing-and-billing-privesc/README.md#enable-previously-granted-legacy-billing-permissions",
+    "requires": {
+      "all_of": [
+        {
+          "action": "billing:UpdateIAMAccessPreference",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-chime-rtmp-publisher-key-read": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-chime-sdk-enum.md#media-pipelines",
+    "requires": {
+      "all_of": [
+        {
+          "action": "chime:GetMediaPipeline",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-codeconnections-installation-consumer": {
+    "provider": "aws",
+    "conditions": [
+      "A provider installation changes source access, but privileged role execution requires a controlled repository revision consumed by an exact deployment."
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-codeconnections-post-exploitation/README.md#complete-or-replace-a-connection-installation",
+    "requires": {
+      "all_of": [
+        {
+          "action": "codeconnections:UpdateConnectionInstallation",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-controltower-preventive-scp-disable": {
+    "provider": "aws",
+    "conditions": [
+      "Only a preventive control that actually enforces an SCP Deny can activate a pre-existing Allow; detective controls do not."
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-control-tower-post-exploitation/README.md#enable--disable-controls",
+    "requires": {
+      "all_of": [
+        {
+          "action": "controltower:DisableControl",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-dynamodb-deleteresourcepolicy-guardrail": {
+    "provider": "aws",
+    "conditions": [
+      "condition_1",
+      "condition_2",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-dynamodb-privesc/README.md#dynamodbputresourcepolicy-and-optionally-dynamodbgetresourcepolicy",
+    "requires": {
+      "all_of": [
+        {
+          "action": "dynamodb:DeleteResourcePolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-payment-cryptography-crossaccount-key-policy": {
+    "provider": "aws",
+    "conditions": [
+      "compatible_key_and_policy",
+      "exact_external_principal"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-payment-cryptography-enum.md#resource-and-authorization-model",
+    "requires": {
+      "all_of": [
+        {
+          "action": "payment-cryptography:PutResourcePolicy",
+          "resource": "{target.resource_arn}"
+        }
+      ]
+    }
+  },
+  "aws-payment-cryptography-sameaccount-key-policy": {
+    "provider": "aws",
+    "conditions": [
+      "exact_key_and_operation"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-payment-cryptography-privesc/README.md#payment-cryptographyputresourcepolicy",
+    "requires": {
+      "all_of": [
+        {
+          "action": "payment-cryptography:PutResourcePolicy",
+          "resource": "{target.resource_arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-add-an-external-engagement-member-for-permanent-snapshot-access": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-partner-central-selling-persistence/README.md#add-an-external-engagement-member-for-permanent-snapshot-access",
+    "requires": {
+      "all_of": [
+        {
+          "action": "partnercentral:CreateEngagementInvitation",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "partnercentral:GetEngagement",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-backdoor-a-workspace-with-its-resource-policy": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-managed-prometheus-persistence/README.md#backdoor-a-workspace-with-its-resource-policy",
+    "requires": {
+      "all_of": [
+        {
+          "action": "aps:PutResourcePolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-cross-account-cluster-access-with-kafkaputclusterpolicy": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-msk-policy-persistence/README.md#cross-account-cluster-access-with-kafkaputclusterpolicy",
+    "requires": {
+      "all_of": [
+        {
+          "action": "kafka:PutClusterPolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-cross-account-data-accessor-persistence": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-q-business-persistence/README.md#cross-account-data-accessor-persistence",
+    "requires": {
+      "all_of": [
+        {
+          "action": "qbusiness:CreateDataAccessor",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "qbusiness:AssociatePermission",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "qbusiness:PutResourcePolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-grant-a-cross-account-flow-entitlement": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-mediaconnect-persistence/README.md#grant-a-cross-account-flow-entitlement",
+    "requires": {
+      "all_of": [
+        {
+          "action": "mediaconnect:GrantFlowEntitlements",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-grant-external-ingest-mediapackagev2putchannelpolicy": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-mediapackage-v2-policy-persistence/README.md#grant-external-ingest--mediapackagev2putchannelpolicy",
+    "requires": {
+      "all_of": [
+        {
+          "action": "mediapackagev2:PutChannelPolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-persist-cross-account-key-access-with-a-resource-policy": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-payment-cryptography-persistence/README.md#persist-cross-account-key-access-with-a-resource-policy",
+    "requires": {
+      "all_of": [
+        {
+          "action": "payment-cryptography:PutResourcePolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-publish-a-private-origin-endpoint-mediapackagev2putoriginendpointpolicy": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-mediapackage-v2-policy-persistence/README.md#publish-a-private-origin-endpoint--mediapackagev2putoriginendpointpolicy",
+    "requires": {
+      "all_of": [
+        {
+          "action": "mediapackagev2:PutOriginEndpointPolicy",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-peaso-share-a-core-network-with-an-external-account-through-aws-ram": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-network-manager-persistence/README.md#share-a-core-network-with-an-external-account-through-aws-ram",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ram:CreateResourceShare",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-qbusiness-crossaccount-data-accessor": {
+    "provider": "aws",
+    "conditions": [
+      "exact_isv_assignment_and_acl",
+      "tti_variant"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-q-business-enum.md#data-accessors-and-resource-policies",
+    "requires": {
+      "all_of": [
+        {
+          "action": "qbusiness:CreateDataAccessor",
+          "resource": "{target.resource_arn}"
+        },
+        {
+          "action": "qbusiness:AssociatePermission",
+          "resource": "{target.resource_arn}"
+        },
+        {
+          "action": "qbusiness:PutResourcePolicy",
+          "resource": "{target.resource_arn}"
+        },
+        {
+          "action": "sso:PutApplicationAssignmentConfiguration",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-06-lambda-addpermission": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdaaddpermission",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:AddPermission",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-07-expose-a-pre-existing-authtype-none-function-url": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#expose-a-pre-existing-authtypenone-function-url",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:AddPermission",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-08-lambda-addlayerversionpermission": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdaaddlayerversionpermission",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:AddLayerVersionPermission",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-83-pca-connector-ad-createtemplategroupaccesscontrolentry": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-pca-connector-ad-privesc/README.md#pca-connector-adcreatetemplategroupaccesscontrolentry--grant-enrollment-to-an-attacker-chosen-ad-group",
+    "requires": {
+      "all_of": [
+        {
+          "action": "pca-connector-ad:CreateTemplateGroupAccessControlEntry",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-connector-remote-directory-move-and-delete-capability-pivot": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-transfer-family-post-exploitation/README.md#connector-remote-directory-move-and-delete-capability-pivot",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "transfer:StartDirectoryListing",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "transfer:StartRemoteMove",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "transfer:StartRemoteDelete",
+            "resource": "{target.arn}"
+          }
+        ]
+      ]
+    }
+  },
+  "aws-s05-delete-or-corrupt-the-authorization-store": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-verified-permissions-post-exploitation/README.md#delete-or-corrupt-the-authorization-store",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "verifiedpermissions:DeletePolicy",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "verifiedpermissions:DeletePolicyStore",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "verifiedpermissions:UpdatePolicy",
+            "resource": "{target.arn}"
+          }
+        ]
+      ]
+    }
+  },
+  "aws-s05-ec2applysecuritygroupstoclientvpntargetnetwork-rebind-client-vpn-to-a": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2applysecuritygroupstoclientvpntargetnetwork--rebind-client-vpn-to-a-trusted-security-group",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ec2:ApplySecurityGroupsToClientVpnTargetNetwork",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-ec2associateclientvpntargetnetwork-ec2createclientvpnroute-attach-clie": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2associateclientvpntargetnetwork--ec2createclientvpnroute--attach-client-vpn-to-a-vpc-and-extend-reachable-networks",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "ec2:AssociateClientVpnTargetNetwork",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "ec2:CreateClientVpnRoute",
+            "resource": "{target.arn}"
+          }
+        ]
+      ]
+    }
+  },
+  "aws-s05-ec2authorizeclientvpningress-broaden-an-authenticated-vpn-clients-netw": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2authorizeclientvpningress--broaden-an-authenticated-vpn-clients-network-access",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ec2:AuthorizeClientVpnIngress",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-vpc-latticecreateservicenetworkvpcassociation-obtain-network-reachabil": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpc-lattice-post-exploitation/README.md#vpc-latticecreateservicenetworkvpcassociation--obtain-network-reachability-into-a-service-network",
+    "requires": {
+      "all_of": [
+        {
+          "action": "vpc-lattice:CreateServiceNetworkVpcAssociation",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-s05-wafv2tagresource-wafv2untagresource": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-waf-post-exploitation/README.md#wafv2tagresource-wafv2untagresource",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "wafv2:TagResource",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "wafv2:UntagResource",
+            "resource": "{target.arn}"
+          }
+        ]
+      ]
+    }
+  },
+  "aws-verifiedpermissions-alias-rebind": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-verified-permissions-enum.md#enumerate-stores-and-aliases",
+    "requires": {
+      "all_of": [
+        {
+          "action": "verifiedpermissions:DeletePolicyStoreAlias",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "verifiedpermissions:CreatePolicyStoreAlias",
+          "resource": "{target.arn}"
+        },
+        {
+          "action": "verifiedpermissions:CreatePolicyStoreAlias",
+          "resource": "{target.arn}"
+        }
+      ]
+    }
+  },
+  "aws-verifiedpermissions-policy-app-admin": {
+    "provider": "aws",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-verified-permissions-enum.md#exact-iam-boundaries",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "verifiedpermissions:CreatePolicy",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "verifiedpermissions:UpdatePolicy",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "verifiedpermissions:UpdatePolicyTemplate",
+            "resource": "{target.arn}"
+          }
+        ],
+        [
+          {
+            "action": "verifiedpermissions:CreatePolicyTemplate",
+            "resource": "{target.arn}"
+          },
+          {
+            "action": "verifiedpermissions:CreatePolicy",
+            "resource": "{target.arn}"
+          }
+        ]
+      ]
+    }
+  },
+  "azure-audit-authorization-rule-key-disclosure-and-rotation": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#authorization-rule-key-disclosure-and-rotation",
+    "requires": {
+      "all_of": [],
+      "any_of": [
+        [
+          {
+            "action": "Microsoft.ServiceBus/namespaces/authorizationRules/listKeys/action",
+            "scope": "{target.scope}"
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.ServiceBus/namespaces/authorizationRules/regenerateKeys/action",
+            "scope": "{target.scope}"
+          }
+        ]
+      ]
+    }
+  },
+  "azure-audit-listtestkeys-public-test-endpoints": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-spring-apps-privesc.md#listtestkeys--public-test-endpoints",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.AppPlatform/Spring/listTestKeys/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftappplatformspringregeneratetestkeyaction": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-spring-apps-privesc.md#microsoftappplatformspringregeneratetestkeyaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.AppPlatform/Spring/regenerateTestKey/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftpurviewpolicyelementswrite-purview-access-policies-into-governe": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-purview-privesc.md#microsoftpurviewpolicyelementswrite--purview-access-policies-into-governed-sqlstorage",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Purview/policyElements/write",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftservicebusnamespacesauthorizationruleswrite": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required",
+      "same_resource_binding"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesauthorizationruleswrite",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.ServiceBus/namespaces/authorizationRules/write",
+          "scope": "{target.scope}"
+        },
+        {
+          "action": "Microsoft.ServiceBus/namespaces/authorizationRules/listKeys/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftservicebusnamespacesdisasterrecoveryconfigsauthorizationrulesli": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesdisasterrecoveryconfigsauthorizationruleslistkeysaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.ServiceBus/namespaces/disasterRecoveryConfigs/authorizationRules/listkeys/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftservicebusnamespacesqueuestopicsauthorizationruleslistkeysactio": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesqueuestopicsauthorizationruleslistkeysaction-or-microsoftservicebusnamespacesqueuestopicsauthorizationrulesregeneratekeysaction",
+    "requires": {
+      "all_of": [],
+      "any_of": [
+        [
+          {
+            "action": "Microsoft.ServiceBus/namespaces/queues/authorizationRules/listKeys/action",
+            "scope": "{target.scope}"
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.ServiceBus/namespaces/queues/authorizationRules/regenerateKeys/action",
+            "scope": "{target.scope}"
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.ServiceBus/namespaces/topics/authorizationRules/listKeys/action",
+            "scope": "{target.scope}"
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.ServiceBus/namespaces/topics/authorizationRules/regenerateKeys/action",
+            "scope": "{target.scope}"
+          }
+        ]
+      ]
+    }
+  },
+  "azure-audit-microsoftstoragestorageaccountslistaccountsasaction": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistaccountsasaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Storage/storageAccounts/listAccountSas/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftstoragestorageaccountslistkeysaction": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistkeysaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Storage/storageAccounts/listKeys/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftstoragestorageaccountslistservicesasaction": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistservicesasaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Storage/storageAccounts/listServiceSas/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftstoragestorageaccountsregeneratekeyaction": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsregeneratekeyaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Storage/storageAccounts/regenerateKey/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-audit-microsoftwebstaticsiteslistsecretsaction": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsiteslistsecretsaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Web/staticSites/listSecrets/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    }
+  },
+  "azure-databricks-uc-temporary-storage-credential": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-databricks-privesc.md#unity-catalog-storage-credential--external-location-abuse",
+    "requires": {
+      "all_of": []
+    }
+  },
+  "azure-storage-hns-acl-takeover-and-blob-super-user-data-action": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#hns-acl-takeover-and-blob-super-user-data-action",
+    "requires": {
+      "all_of": [],
+      "any_of": [
+        [
+          {
+            "action": "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/modifyPermissions/action",
+            "scope": "{target.scope}",
+            "data_action": true
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/manageOwnership/action",
+            "scope": "{target.scope}",
+            "data_action": true
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/runAsSuperUser/action",
+            "scope": "{target.scope}",
+            "data_action": true
+          }
+        ]
+      ]
+    }
+  },
+  "azure-storage-microsoftstoragestorageaccountsfileservicesfilesharesfilesmodifypermissionsact": {
+    "provider": "azure",
+    "conditions": [
+      "collector_fact_required"
+    ],
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsfileservicesfilesharesfilesmodifypermissionsaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Storage/storageAccounts/fileServices/fileshares/files/modifypermissions/action",
+          "scope": "{target.scope}",
+          "data_action": true
+        }
+      ]
+    }
+  },
+  "gcp-audit-s01-02-loosen-access-level-for-atta": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanageraccesslevelsupdate--loosen-context-aware-access",
+    "requires": {
+      "all_of": [
+        {
+          "action": "accesscontextmanager.accessLevels.update",
+          "resource": "{target.resource}"
+        }
+      ]
+    }
+  },
+  "gcp-audit-s01-03-create-a-bridge-perimeter-jo": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence",
+      "existing_iam"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanagerserviceperimetersupdate--defeat-vpc-sc-data-exfil-protection",
+    "requires": {
+      "all_of": [
+        {
+          "action": "accesscontextmanager.servicePerimeters.create",
+          "resource": "{target.resource}"
+        }
+      ]
+    }
+  },
+  "gcp-audit-s01-04-delete-a-perimeter-or-access": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence",
+      "existing_iam"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanagerserviceperimetersupdate--defeat-vpc-sc-data-exfil-protection",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "accesscontextmanager.servicePerimeters.delete",
+            "resource": "{target.resource}"
+          }
+        ],
+        [
+          {
+            "action": "accesscontextmanager.accessLevels.delete",
+            "resource": "{target.resource}"
+          }
+        ]
+      ]
+    }
+  },
+  "gcp-audit-s01-06-delete-or-weaken-a-group-con": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#gcpuseraccessbindings-cloud-bindings--context-removal-or-extended-workforce-sessions",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "accesscontextmanager.gcpUserAccessBindings.delete",
+            "resource": "{target.resource}"
+          }
+        ],
+        [
+          {
+            "action": "accesscontextmanager.gcpUserAccessBindings.update",
+            "resource": "{target.resource}"
+          }
+        ]
+      ]
+    }
+  },
+  "gcp-audit-s01-21-repoint-accessible-gateway-a": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-beyondcorp-privesc.md#repoint-an-application-the-caller-can-already-use-to-another-web-target-behind-its-existing-upstream",
+    "requires": {
+      "all_of": [
+        {
+          "action": "beyondcorp.sgApplications.update",
+          "resource": "{target.resource}"
+        }
+      ]
+    }
+  },
+  "gcp-audit-s01-26-delete-policies-and-deactiva": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerydatapoliciesdelete--datacatalogtaxonomiesupdate--disable-column-level-enforcement",
+    "requires": {
+      "all_of": [
+        {
+          "action": "bigquery.dataPolicies.delete",
+          "resource": "{target.resource}"
+        },
+        {
+          "action": "datacatalog.taxonomies.update",
+          "resource": "{target.resource}"
+        }
+      ]
+    }
+  },
+  "gcp-audit-s01-29-widen-or-delete-row-access-p": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryrowaccesspolicies--widen-or-remove-row-level-security",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "bigquery.rowAccessPolicies.create",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigquery.rowAccessPolicies.setIamPolicy",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigquery.jobs.create",
+            "resource": "{target.resource}"
+          }
+        ],
+        [
+          {
+            "action": "bigquery.rowAccessPolicies.update",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigquery.rowAccessPolicies.setIamPolicy",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigquery.jobs.create",
+            "resource": "{target.resource}"
+          }
+        ],
+        [
+          {
+            "action": "bigquery.rowAccessPolicies.delete",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigquery.rowAccessPolicies.setIamPolicy",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigquery.jobs.create",
+            "resource": "{target.resource}"
+          }
+        ]
+      ]
+    }
+  },
+  "gcp-audit-s01-35-widen-a-view-caller-can-alre": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_target_evidence"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtableauthorizedviewsupdate--widen-a-view-that-you-can-already-use",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "bigtable.authorizedViews.update",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigtable.authorizedViews.readRows",
+            "resource": "{target.resource}"
+          }
+        ],
+        [
+          {
+            "action": "bigtable.authorizedViews.update",
+            "resource": "{target.resource}"
+          },
+          {
+            "action": "bigtable.authorizedViews.mutateRows",
+            "resource": "{target.resource}"
+          }
+        ]
+      ]
+    }
+  },
+  "gcp-integration-invoke-input-effect-12": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#integrationsintegrationsinvoke--invoke-a-credentialed-workflow",
+    "requires": {
+      "all_of": [
+        {
+          "action": "integrations.integrations.invoke",
+          "resource": "{target.resource}"
+        }
+      ]
+    }
+  },
+  "gcp-kcc-k8s-rbac-iam-member": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-cross-project-attacks/historical-cross-project-vulnerabilities.md#authorization-bypass-and-shadow-resources",
+    "requires": {
+      "all_of": []
+    }
+  },
+  "gcp-pab-delete-unblock-allow": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-basic-information/README.md#remove",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "iam.policyBindings.delete",
+            "resource": "{target.resource}"
+          }
+        ],
+        [
+          {
+            "action": "iam.principalAccessBoundaryPolicies.delete",
+            "resource": "{target.resource}"
+          }
+        ]
+      ]
+    }
+  },
+  "gcp-s08-16-associate-poisoned-catalog-with-additional-consumer-hie": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-persistence/gcp-private-catalog-persistence.md#durable-poisoned-product-in-an-associated-catalog",
+    "requires": {
+      "all_of": [],
+      "any_of": [
+        [
+          {
+            "action": "cloudprivatecatalogproducer.catalogAssociations.create",
+            "resource": "{target.resource}"
+          }
+        ]
+      ]
+    }
+  },
+  "gcp-workflow-input-effect-2": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflowsexecutionscreate--invoke-an-existing-privileged-workflow",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workflows.executions.create",
+          "resource": "{target.resource}"
+        }
+      ]
+    }
+  },
+  "gcp-workflow-input-effect-3": {
+    "provider": "gcp",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-workflows-privesc.md#workflowscallbackssend--inject-data-into-a-paused-privileged-execution",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workflows.callbacks.send",
+          "resource": "{target.resource}"
+        }
+      ]
+    }
+  }
+}

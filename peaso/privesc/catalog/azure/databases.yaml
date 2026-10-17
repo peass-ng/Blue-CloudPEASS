@@ -1,12 +1,17 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Azure managed database (MySQL / PostgreSQL / SQL) control-plane -> database admin techniques (declarative only).
-# Sources: hacktricks-cloud az-mysql-privesc.md, az-postgresql-privesc.md, az-sql-privesc.md (rev a53b46392c; working-tree copy read).
+# Sources: hacktricks-cloud az-mysql-privesc.md, az-postgresql-privesc.md, az-sql-privesc.md, az-sql-persistence.md (rev 171e422).
 
 - id: azure-mysql-flexible-admin-password-reset
   provider: azure
   service: databases
   title: Reset the MySQL Flexible Server administrator password
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-mysql-privesc.md#microsoftdbformysqlflexibleserversread--microsoftdbformysqlflexibleserverswrite--microsoftdbformysqlflexibleserversdelete
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the MySQL server administrator account.
   requires:
     all_of:
@@ -34,7 +39,7 @@
   service: databases
   title: Set the MySQL Flexible Server Entra administrator
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-mysql-privesc.md#microsoftdbformysqlflexibleserversread-microsoftdbformysqlflexibleserverswrite-microsoftmanagedidentityuserassignedidentitiesassignaction-microsoftdbformysqlflexibleserversadministratorswrite--microsoftdbformysqlflexibleserversadministratorsread
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain Entra administrator on the MySQL server.
   requires:
     all_of:
@@ -62,7 +67,7 @@
   service: databases
   title: Reset the PostgreSQL Flexible Server administrator password
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-postgresql-privesc.md#microsoftdbforpostgresqlflexibleserversread-microsoftdbforpostgresqlflexibleserverswrite-microsoftdbforpostgresqlflexibleserversconfigurationswrite
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the PostgreSQL server administrator account.
   requires:
     all_of:
@@ -83,14 +88,14 @@
   mitigation: Use Entra-only authentication and restrict flexibleServers/write.
   references:
     - https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-manage-server-cli
-  notes: The azure_storage extension / server identity part of the same section is not modelled (new SAMI has no roles).
+  notes: The azure_storage extension path (configurations/write) lets a database admin read blobs as the server's managed identity; this is a partial, Storage-read-only use of that identity and is not modelled as an identity edge. A newly enabled system-assigned identity has no roles.
 
 - id: azure-postgresql-flexible-entra-admin-write
   provider: azure
   service: databases
   title: Set a PostgreSQL Flexible Server Entra administrator
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-postgresql-privesc.md#microsoftdbforpostgresqlflexibleserversread-microsoftdbforpostgresqlflexibleserverswrite-microsoftdbforpostgresqlflexibleserversadministratorswrite--microsoftdbforpostgresqlflexibleserversadministratorsread
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain Entra administrator on the PostgreSQL server.
   requires:
     all_of:
@@ -120,7 +125,7 @@
   service: databases
   title: Reset the Azure SQL logical server administrator password
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversread--microsoftsqlserverswrite
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain the SQL server administrator account.
   requires:
     all_of:
@@ -143,14 +148,14 @@
   mitigation: Enforce Entra-only authentication with Azure Policy and restrict servers/write.
   references:
     - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication
-  notes: ''
+  notes: servers/write can also enable or attach a server identity; a privileged SQL session can then read Blob Storage as that identity through a database-scoped credential. That is a partial, read-only use of the identity and is not modelled as an identity edge.
 
 - id: azure-sql-server-entra-admin-write
   provider: azure
   service: databases
   title: Set the Azure SQL logical server Entra administrator
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#microsoftsqlserversadministratorswrite--microsoftsqlserversadministratorsread
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain Entra administrator on the SQL server.
   requires:
     all_of:
@@ -172,3 +177,61 @@
   references:
     - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure
   notes: ''
+
+- id: azure-sqlmi-entra-admin-write
+  provider: azure
+  service: databases
+  title: Set the Azure SQL Managed Instance Entra administrator
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#sql-managed-instance-parity-and-clr-based-persistence
+  source_revision: 658a097d5c
+  summary: The source can obtain Entra administrator on the SQL Managed Instance, the instance analogue of the logical-server Entra admin grant.
+  requires:
+    all_of:
+      - action: Microsoft.Sql/managedInstances/administrators/write
+        scope: '{target.scope}'
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: SQL Managed Instance admin of {target.scope}
+  conditions:
+    - id: network_reachable
+      description: The instance endpoint (VNet-local, or public endpoint if enabled) must be reachable from the source.
+  blockers: []
+  confidence: derived
+  severity: high
+  mitigation: Restrict managedInstances/administrators/write and alert on Entra admin changes.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure
+  notes: Sourced from the HackTricks SQL persistence page, which lists the Managed Instance equivalents of the SQL privesc page's control-plane techniques.
+
+- id: azure-sqlmi-admin-password-reset
+  provider: azure
+  service: databases
+  title: Reset the Azure SQL Managed Instance administrator password
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-sql-privesc.md#sql-managed-instance-parity-and-clr-based-persistence
+  source_revision: 658a097d5c
+  summary: The source can obtain the SQL Managed Instance administrator login.
+  requires:
+    all_of:
+      - action: Microsoft.Sql/managedInstances/write
+        scope: '{target.scope}'
+  target:
+    kind: azure_dataplane_admin
+    selector:
+      any_principal_in_scope: true
+    scope: inherited_scope
+    aggregate_as: SQL Managed Instance admin of {target.scope}
+  conditions:
+    - id: sql_auth_allowed
+      description: Entra-only authentication must be disabled on the instance (managedInstances/azureADOnlyAuthentications/write can disable it).
+    - id: network_reachable
+      description: The instance endpoint must be reachable from the source.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Enforce Entra-only authentication on managed instances and restrict managedInstances/write.
+  references:
+    - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication
+  notes: Disruptive to clients using the old password.

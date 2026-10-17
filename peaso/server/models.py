@@ -7,12 +7,32 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class WorkspaceCreate(StrictModel):
+    name: str = Field(min_length=3, max_length=80)
+
+
+class WorkspaceInvite(StrictModel):
+    email: str = Field(min_length=3, max_length=254)
+    role: Literal["read", "write", "admin"]
+
+
+class WorkspaceRole(StrictModel):
+    role: Literal["read", "write", "admin"]
+
+
 class ConnectorCreate(StrictModel):
     name: str = Field(min_length=1, max_length=200)
     provider: Literal["aws", "gcp", "azure", "k8s"]
     auth: dict = Field(default_factory=dict)
     scopes: list[str] = Field(default_factory=list)
     options: dict = Field(default_factory=dict)
+    prepared_id: str | None = None
+    check_token: str | None = None
+
+
+class ConnectorCheck(ConnectorCreate):
+    credential_expires_at: datetime | None = None
+    connector_id: str | None = None
 
 
 class ConnectorPatch(StrictModel):
@@ -66,3 +86,50 @@ class ReachabilityQuery(StrictModel):
     destination_port: int = Field(ge=1, le=65535, strict=True)
     source_port: int | None = Field(default=None, ge=1, le=65535, strict=True)
     address_family: Literal["ipv4", "ipv6"] = "ipv4"
+
+
+class ReachabilityBatchQuery(StrictModel):
+    source_resource_id: str = Field(min_length=1, max_length=2000)
+    destination_resource_ids: list[str] = Field(min_length=1, max_length=24)
+    protocol: Literal["tcp", "udp"]
+    destination_port: int = Field(ge=1, le=65535, strict=True)
+    source_port: int | None = Field(default=None, ge=1, le=65535, strict=True)
+    address_family: Literal["ipv4", "ipv6"] = "ipv4"
+
+    @field_validator("destination_resource_ids")
+    @classmethod
+    def unique_destinations(cls, values):
+        if any(not isinstance(value, str) or not value or len(value) > 2000 for value in values) or len(set(values)) != len(values):
+            raise ValueError("Destination IDs must be unique nonempty resource IDs")
+        return values
+
+
+class ReachabilityMatrixQuery(StrictModel):
+    endpoint_resource_ids: list[str] = Field(min_length=2, max_length=12)
+    protocol: Literal["tcp", "udp"]
+    destination_port: int = Field(ge=1, le=65535, strict=True)
+    source_port: int | None = Field(default=None, ge=1, le=65535, strict=True)
+    address_family: Literal["ipv4", "ipv6"] = "ipv4"
+
+    @field_validator("endpoint_resource_ids")
+    @classmethod
+    def unique_endpoints(cls, values):
+        if any(not isinstance(value, str) or not value or len(value) > 2000 for value in values) or len(set(values)) != len(values):
+            raise ValueError("Endpoint IDs must be unique nonempty resource IDs")
+        return values
+
+
+class ReachabilityGridQuery(StrictModel):
+    first_endpoint_resource_ids: list[str] = Field(min_length=1, max_length=12)
+    second_endpoint_resource_ids: list[str] = Field(min_length=1, max_length=12)
+    protocol: Literal["tcp", "udp"]
+    destination_port: int = Field(ge=1, le=65535, strict=True)
+    source_port: int | None = Field(default=None, ge=1, le=65535, strict=True)
+    address_family: Literal["ipv4", "ipv6"] = "ipv4"
+
+    @field_validator("first_endpoint_resource_ids", "second_endpoint_resource_ids")
+    @classmethod
+    def unique_window(cls, values):
+        if any(not isinstance(value, str) or not value or len(value) > 2000 for value in values) or len(set(values)) != len(values):
+            raise ValueError("Window IDs must be unique nonempty resource IDs")
+        return values

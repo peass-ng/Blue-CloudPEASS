@@ -1,0 +1,293 @@
+{
+  "azure-compliance.control.apimanagement_service_client_certificate_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.apimanagement_service_client_certificate_enabled"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "apimanagement_service_client_certificate_enabled",
+      "query_path": "regulatory_compliance/apimanagement.pp",
+      "query_line": 45,
+      "query_sha256": "3aa9547294586cc44e02db59ab658a3f57d3bee6e5a2560de556ae82d59869e2",
+      "control_path": "regulatory_compliance/apimanagement.pp",
+      "control_line": 19,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when enable_client_certificate then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when enable_client_certificate then a.name || ' client certificate enabled.'\n        else a.name || ' client certificate disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_api_management a\n      left join azure_subscription sub on a.subscription_id = sub.subscription_id;",
+      "status_case_sql": [
+        "case\n        when enable_client_certificate then 'ok'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.application_gateway_http2_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.application_gateway_http2_enabled"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "application_gateway_http2_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2352,
+      "query_sha256": "76c6bc5748dad7568a20f8b29de8591268d7b572519e8c04e67f5ff54c8d0208",
+      "control_path": "regulatory_compliance/network.pp",
+      "control_line": 410,
+      "arguments": [],
+      "pinned_sql": "select\n      ag.id as resource,\n      case\n        when enable_http2 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when enable_http2 then ag.name || ' HTTP2 enabled.'\n        else ag.name || ' HTTP2 disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_application_gateway as ag\n      left join azure_subscription as sub on sub.subscription_id = ag.subscription_id;",
+      "status_case_sql": [
+        "case\n        when enable_http2 then 'ok'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.application_insights_linked_to_log_analytics_workspace": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.application_insights_linked_to_log_analytics_workspace"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "application_insights_linked_to_log_analytics_workspace",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1292,
+      "query_sha256": "07841eb80bb20768dd4630ebb95d0f5de7d98ff2c67b209b4e1843f57f3432dc",
+      "control_path": "regulatory_compliance/monitor.pp",
+      "control_line": 222,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when type = 'microsoft.insights/components' and workspace_resource_id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when type = 'microsoft.insights/components' and workspace_resource_id is not null then a.name || ' linked to log analytics workspace.'\n        else a.name || ' not linked to log analytics workspace.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_application_insight as a\n      left join azure_subscription sub on sub.subscription_id = a.subscription_id;",
+      "status_case_sql": [
+        "case\n        when type = 'microsoft.insights/components' and workspace_resource_id is not null then 'ok'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.batch_account_encrypted_with_cmk": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.batch_account_encrypted_with_cmk"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "batch_account_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/batch.pp",
+      "query_line": 89,
+      "query_sha256": "0840d2a5c2da313530d3d54c7863c46300e009c63eceb721eb902eb2e7102628",
+      "control_path": "regulatory_compliance/batch.pp",
+      "control_line": 20,
+      "arguments": [],
+      "pinned_sql": "select\n      batch.id as resource,\n      case\n        when encryption ->> 'keySource' = 'Microsoft.KeyVault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption ->> 'keySource' = 'Microsoft.KeyVault' then batch.name || ' encrypted with CMK.'\n        else batch.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"batch.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"batch.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_batch_account as batch\n      left join azure_subscription sub on batch.subscription_id = sub.subscription_id;",
+      "status_case_sql": [
+        "case\n        when encryption ->> 'keySource' = 'Microsoft.KeyVault' then 'ok'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.batch_account_identity_provider_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.batch_account_identity_provider_enabled"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "batch_account_identity_provider_enabled",
+      "query_path": "regulatory_compliance/batch.pp",
+      "query_line": 110,
+      "query_sha256": "2b766189daff453e581a9eba9457373cb2b1545ce6f708aee8100e2387d10404",
+      "control_path": "regulatory_compliance/batch.pp",
+      "control_line": 32,
+      "arguments": [],
+      "pinned_sql": "select\n      b.id as resource,\n      case\n        when identity ->> 'type' = 'None' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when identity ->> 'type' = 'None' then b.name || ' identity provider disabled.'\n        else b.name || ' identity provider enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"b.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"b.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_batch_account as b\n      left join azure_subscription sub on b.subscription_id = sub.subscription_id;",
+      "status_case_sql": [
+        "case\n        when identity ->> 'type' = 'None' then 'alarm'\n        else 'ok'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_7_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.application_gateway_http2_enabled"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "application_gateway_http2_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2352,
+      "query_sha256": "76c6bc5748dad7568a20f8b29de8591268d7b572519e8c04e67f5ff54c8d0208",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 203,
+      "arguments": [],
+      "pinned_sql": "select\n      ag.id as resource,\n      case\n        when enable_http2 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when enable_http2 then ag.name || ' HTTP2 enabled.'\n        else ag.name || ' HTTP2 disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_application_gateway as ag\n      left join azure_subscription as sub on sub.subscription_id = ag.subscription_id;",
+      "status_case_sql": [
+        "case\n        when enable_http2 then 'ok'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_7_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.waf_policy_request_body_inspection"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "web_application_firewall_policy_request_body_inspection_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2458,
+      "query_sha256": "132c2c13e674498fc8be86ea73cbc0a089ea5f15e258ca6fe64ce8fc680ad66b",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 217,
+      "arguments": [],
+      "pinned_sql": "select\n      p.id as resource,\n      case\n        when (policy_settings -> 'requestBodyCheck')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (policy_settings -> 'requestBodyCheck')::bool then p.name || ' request body inspection is enabled.'\n        else p.name || ' request body inspection is disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"p.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"p.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_web_application_firewall_policy as p\n      left join azure_subscription sub on sub.subscription_id = p.subscription_id;",
+      "status_case_sql": [
+        "case\n        when (policy_settings -> 'requestBodyCheck')::bool then 'ok'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_7_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.waf_policy_bot_protection"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "web_application_firewall_policy_bot_protection_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2418,
+      "query_sha256": "23b0b288541ace55f5b1db3b5f4b6fbf79bebb8093b6efb1688a35cb50f507bd",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 231,
+      "arguments": [],
+      "pinned_sql": "select\n      ag.id as resource,\n      case\n        when managed_rules -> 'managedRuleSets' @> '[{\"ruleSetType\": \"Microsoft_BotManagerRuleSet\"}]'::jsonb\n        and not exists (\n        select 1\n        from jsonb_array_elements((managed_rules -> 'managedRuleSets')::jsonb) as mrs,\n             jsonb_array_elements(coalesce(mrs -> 'ruleGroupOverrides', '[]'::jsonb)) as rgo,\n             jsonb_array_elements(coalesce(rgo -> 'rules', '[]'::jsonb)) as rule\n        where mrs ->> 'ruleSetType' = 'Microsoft_BotManagerRuleSet'\n          and lower(rule ->> 'state') = 'disabled'\n      )\n        then 'ok'\n        when managed_rules -> 'managedRuleSets' @> '[{\"ruleSetType\": \"Microsoft_BotManagerRuleSet\"}]'::jsonb then 'alarm'\n        else 'alarm'\n      end as status,\n    case\n      when managed_rules -> 'managedRuleSets' @> '[{\"ruleSetType\": \"Microsoft_BotManagerRuleSet\"}]'::jsonb\n      and not exists (\n        select 1\n        from jsonb_array_elements((managed_rules -> 'managedRuleSets')::jsonb) as mrs,\n             jsonb_array_elements(coalesce(mrs -> 'ruleGroupOverrides', '[]'::jsonb)) as rgo,\n             jsonb_array_elements(coalesce(rgo -> 'rules', '[]'::jsonb)) as rule\n        where mrs ->> 'ruleSetType' = 'Microsoft_BotManagerRuleSet'\n          and lower(rule ->> 'state') = 'disabled'\n      ) then ag.name || ' bot protection (Microsoft_BotManagerRuleSet) is enabled.'\n      when managed_rules -> 'managedRuleSets' @> '[{\"ruleSetType\": \"Microsoft_BotManagerRuleSet\"}]'::jsonb then ag.name || ' bot protection rule set found but one or more rules are disabled.'\n      else ag.name || ' does not have Microsoft_BotManagerRuleSet configured.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_web_application_firewall_policy ag\n      left join azure_subscription sub on sub.subscription_id = ag.subscription_id;",
+      "status_case_sql": [
+        "case\n        when managed_rules -> 'managedRuleSets' @> '[{\"ruleSetType\": \"Microsoft_BotManagerRuleSet\"}]'::jsonb\n        and not exists (\n        select 1\n        from jsonb_array_elements((managed_rules -> 'managedRuleSets')::jsonb) as mrs,\n             jsonb_array_elements(coalesce(mrs -> 'ruleGroupOverrides', '[]'::jsonb)) as rgo,\n             jsonb_array_elements(coalesce(rgo -> 'rules', '[]'::jsonb)) as rule\n        where mrs ->> 'ruleSetType' = 'Microsoft_BotManagerRuleSet'\n          and lower(rule ->> 'state') = 'disabled'\n      )\n        then 'ok'\n        when managed_rules -> 'managedRuleSets' @> '[{\"ruleSetType\": \"Microsoft_BotManagerRuleSet\"}]'::jsonb then 'alarm'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.keyvault_certificate_validity_12_months"
+    ],
+    "reason": "Inspected full source/delegation, field mapping and target scope. Preserve exact scalar/group criteria; reuse only <=12certificatevalidity, WAFrequestBodyCheck and bot-rule-set/no-disabled-overrides predicates with identical provider kind/shape. Unknown/malformed/denied fields never certify source-null defaults.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.batch/2024-07-01/batchaccounts",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate-policy/get-certificate-policy?view=rest-keyvault-certificates-2025-07-01"
+    ],
+    "review_notes": "Declare enabled flags/identity/key source/workspace association only. Certificatepolicy metadata noPFX/privatekeys; WAFbot exactrules/disabledstate path, no probes or writes. No broadscope/argument merges.",
+    "source_review": {
+      "query_id": "keyvault_certificate_validity_period_less_equal_12_months",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 753,
+      "query_sha256": "ad76abb7551034978169a87de2090f0cc7e45ae397f39dcf152c4c3c7f8acb60",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 740,
+      "arguments": [],
+      "pinned_sql": "select\n      c.id as resource,\n      case\n        when (x509_certificate_properties -> 'validity_months')::int <= 12 then 'ok'\n        else 'alarm'\n      end as status,\n      c.title || ' validity period is ' || (x509_certificate_properties -> 'validity_months') || ' month(s).' as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"c.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"c.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_key_vault_certificate as c\n      left join azure_subscription as sub on sub.subscription_id = c.subscription_id;",
+      "status_case_sql": [
+        "case\n        when (x509_certificate_properties -> 'validity_months')::int <= 12 then 'ok'\n        else 'alarm'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.application_gateway_min_tls_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.application_gateway_min_tls_1_2"
+    ],
+    "reason": "Inspected source explicit minimum enum1.2/1.3; knownnull source default assumption is conservativelyUNKNOWN until authoritative default/predefined policy context exists, never scalarEMPTYsuccess. This is an explicitpolicy baseline, no TLSprobe.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways"
+    ],
+    "review_notes": "Missing/denied/malformed/default-policy metadataUNKNOWN; explicit good/bad enum fixture matchespinnedCASE.",
+    "source_review": {
+      "query_id": "application_gateway_min_tls_1_2",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2373,
+      "query_sha256": "95e8597206156e06f0372be6a405a5ad99ed6a53de6d6c006389d11f2a084557",
+      "control_path": "regulatory_compliance/network.pp",
+      "control_line": 418,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ssl_policy is null or ((ssl_policy ->> 'minProtocolVersion') in ('TLSv1_2' , 'TLSv1_3')) then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "pinned_sql": "select\n      ag.id as resource,\n      case\n        when ssl_policy is null or ((ssl_policy ->> 'minProtocolVersion') in ('TLSv1_2' , 'TLSv1_3')) then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when ssl_policy is null then ag.name || ' minimum TLS version set to TLSv1_2.'\n        else ag.name || ' minimum TLS version set to ' || (ssl_policy ->> 'minProtocolVersion') || '.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_application_gateway ag\n      left join azure_subscription sub on sub.subscription_id = ag.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_7_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.application_gateway_min_tls_1_2"
+    ],
+    "reason": "Inspected source explicit minimum enum1.2/1.3; knownnull source default assumption is conservativelyUNKNOWN until authoritative default/predefined policy context exists, never scalarEMPTYsuccess. This is an explicitpolicy baseline, no TLSprobe.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways"
+    ],
+    "review_notes": "Missing/denied/malformed/default-policy metadataUNKNOWN; explicit good/bad enum fixture matchespinnedCASE.",
+    "source_review": {
+      "query_id": "application_gateway_min_tls_1_2",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2373,
+      "query_sha256": "95e8597206156e06f0372be6a405a5ad99ed6a53de6d6c006389d11f2a084557",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 189,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ssl_policy is null or ((ssl_policy ->> 'minProtocolVersion') in ('TLSv1_2' , 'TLSv1_3')) then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "pinned_sql": "select\n      ag.id as resource,\n      case\n        when ssl_policy is null or ((ssl_policy ->> 'minProtocolVersion') in ('TLSv1_2' , 'TLSv1_3')) then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when ssl_policy is null then ag.name || ' minimum TLS version set to TLSv1_2.'\n        else ag.name || ' minimum TLS version set to ' || (ssl_policy ->> 'minProtocolVersion') || '.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"ag.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_application_gateway ag\n      left join azure_subscription sub on sub.subscription_id = ag.subscription_id;"
+    }
+  }
+}

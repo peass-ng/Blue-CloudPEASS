@@ -1,0 +1,736 @@
+{
+  "aws-compliance.control.cis_compute_service_v100_2_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/organizations/latest/APIReference/API_ListPolicies.html"
+    ],
+    "reason": "Full grouped CTE filters type=TAG_POLICY then groups by account before final CASE count>0: every emitted count is positive, account with zero tag policies emits no row and cannot reach alarm branch. Security requirement absence is silently absent from output. Concrete empty and SCP-only policy fixtures prove ineffective security predicate; no collection gap is used as rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "organizational_tag_policies_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0cf5d8da77a230f3e90ccdb79c71f1666a3985d05c2edd828d55c94147d532f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L202"
+    }
+  },
+  "aws-compliance.control.cis_v120_1_20": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L306"
+    }
+  },
+  "aws-compliance.control.cis_v120_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L27"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L264"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L29"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L155"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L169"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L263"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L29"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L155"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L169"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L263"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L29"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L155"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L169"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L264"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L29"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L155"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L169"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L264"
+    }
+  },
+  "aws-compliance.control.cis_v300_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L27"
+    }
+  },
+  "aws-compliance.control.cis_v300_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L125"
+    }
+  },
+  "aws-compliance.control.cis_v300_3_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L139"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L264"
+    }
+  },
+  "aws-compliance.control.cis_v400_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L27"
+    }
+  },
+  "aws-compliance.control.cis_v400_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L125"
+    }
+  },
+  "aws-compliance.control.cis_v400_3_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L139"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L249"
+    }
+  },
+  "aws-compliance.control.cis_v500_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L27"
+    }
+  },
+  "aws-compliance.control.cis_v500_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L125"
+    }
+  },
+  "aws-compliance.control.cis_v500_3_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L139"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html"
+    ],
+    "reason": "Full support_role_count CTE WHERE acts after account LEFT JOIN: account whose existing roles all have non-support nonempty policy attachments is removed before GROUP BY; intended count=0 alarm row never exists. Also split_part(policy_arn,/,2)=AWSSupportAccess accepts same-named customer policy lacking Support grants, a concrete falsePASS. This is substantive predicate/absence coverage invalidity, not unavailable roles or collector gap.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L249"
+    }
+  },
+  "aws-compliance.control.cis_v600_4_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L27"
+    }
+  },
+  "aws-compliance.control.cis_v600_4_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L125"
+    }
+  },
+  "aws-compliance.control.cis_v600_4_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L139"
+    }
+  },
+  "aws-compliance.control.cloudtrail_multi_region_read_write_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html"
+    ],
+    "reason": "Full basic/advanced CTEs independently inspected: basic ReadWriteType=All with IncludeManagementEvents=false passes; advanced branch accepts any selector whose serialized JSON lacks readOnly even if eventCategory=Data and eventName restricts one write-only action. This reports read/write all-region audit coverage absent the required selector category/read coverage. Official EventSelector and AdvancedFieldSelector semantics make valid data-only/write-filtered configurations a concrete falsePASS; no partially corrected source equivalence or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_multi_region_read_write_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7fa8b27c7d398da3b3b19b90aa00711d93e2cc8e0bf3d79863995cd67fe7fb20",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L245"
+    }
+  },
+  "aws-compliance.control.cloudtrail_s3_data_events_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_data_events_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "6b41dbefc40eaac17f4e6548a2864c47c9c88352aad5884cf0eeac7af71e61be",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L53"
+    }
+  },
+  "aws-compliance.control.cloudtrail_s3_object_read_events_audit_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. ReadOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_read_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "93c48f93a676865b3d03868ab1cdab87c48fd17542be373218e9d022fc2825e1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L7"
+    }
+  },
+  "aws-compliance.control.cloudtrail_s3_object_write_events_audit_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Individually inspected full pinned selector CTE and bucket JOIN: no IsLogging test, and bucket_selector LIKE bucket.arn||% permits bucket audit-other selector to satisfy separate bucket audit. A stopped multi-region trail with retained selectors also reports ok while recording no events. Official DataResource bucket-boundary and GetTrailStatus logging semantics prove substantive falsePASS on valid native configurations; corrected matching/logging predicate would differ, no missing-fact rejection. WriteOnly/All branch inspected separately.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_query_id": "cloudtrail_s3_object_write_events_audit_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "5c1a72a768f6b1862558ad5f51dd8510380b57c69d8a04c1ce8bbc7deff13857",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L15"
+    }
+  },
+  "prowler.aws.accessanalyzer_enabled_without_findings": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListFindings.html",
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListFindingsV2.html"
+    ],
+    "reason": "Pinned service lists every analyzer type, but calls external-only ListFindingsV1 and catches ValidationException leaving findings=[]; check reports PASS for ACTIVE analyzer with that empty list. Current official API requires ListFindingsV2 for UNUSED/INTERNAL analyzers, which can have real ACTIVE findings despite V1 failure. Concrete unsupported-type falsePASS is substantive obsolete API/predicate behavior; no runtime creation or missing implementation rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_source": {
+      "evaluator_sha256": "6f74db0753ad939085aac84790b86db9272233cc41329e2c7851a03f9f6b1f8d",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/accessanalyzer/accessanalyzer_enabled_without_findings/accessanalyzer_enabled_without_findings.metadata.json"
+    }
+  },
+  "prowler.aws.account_maintain_different_contact_details_to_security_billing_and_operations": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Pinned execute checks only set cardinalities4 names/phones and3 emails; service represents missing alternate contact with all None. Valid primary/billing/security distinct and absent operations yields sets of sizes4/4/3 because None counts as a distinct contact, falsely PASSing its missing-contact requirement. Exact service exception representation and predicate inspected; not a missing-facts rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source/check/service statically reviewed; eight inert differential truth cases pass in tests/test_peaso_checks_aws_a_source_counterexamples.py. Lead independent audit/integration still pending because Orca runtime disconnected; no blanket lack-of-facts rejection. Exact source/framework/version/control metadata retained.",
+    "reviewed_source": {
+      "evaluator_sha256": "5ea26ed39c2ea26b790e579556b7aee7c81f61c7719d43bb057ce83de6dd17cf",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/account/account_maintain_different_contact_details_to_security_billing_and_operations/account_maintain_different_contact_details_to_security_billing_and_operations.metadata.json"
+    }
+  }
+}

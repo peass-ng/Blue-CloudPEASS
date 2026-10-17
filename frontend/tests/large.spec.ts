@@ -107,27 +107,6 @@ test("actual large Azure snapshot uses summaries, complete server filters and bo
     path: "evidence/large-azure-findings.png",
     fullPage: true,
   });
-  await page
-    .getByRole("navigation")
-    .getByRole("button", { name: "IAM Risk Map", exact: true })
-    .click();
-  await expect(page.locator(".react-flow__node").first()).toBeVisible();
-  expect(await page.locator(".react-flow__node").count()).toBeLessThanOrEqual(
-    120,
-  );
-  await expect(page.getByText(/API has projected this graph/)).toBeVisible();
-  await page
-    .getByRole("button", { name: "Load complete graph evidence" })
-    .click();
-  await expect(page.getByText(/API has projected this graph/)).toHaveCount(0, {
-    timeout: 30000,
-  });
-  await page.getByRole("button", { name: "Table", exact: true }).click();
-  await expect(page.locator(".graph-table-row").first()).toBeVisible();
-  await page.screenshot({
-    path: "evidence/large-azure-iam-table.png",
-    fullPage: true,
-  });
   expect(fullReportRequests).toBe(0);
   expect(errors).toEqual([]);
   writeFileSync(

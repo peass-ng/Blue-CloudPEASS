@@ -1,0 +1,556 @@
+{
+  "azure-compliance.control.app_service_environment_internal_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_service_environment_internal_encryption_enabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "app_service_environment_internal_encryption_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1297,
+      "pinned_sql": "with app_service_environment as (\n      select\n        distinct id as id\n      from\n        azure_app_service_environment,\n        jsonb_array_elements(cluster_settings ) as s\n      where\n        s ->> 'name' = 'InternalEncryption'\n        and s ->> 'value' = 'true'\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is not null then a.title || ' internal encryption enabled.'\n        else a.name || ' internal encryption disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_environment as a\n      left join app_service_environment as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "ddc862b018095807181f10d85b91b793e2f78d7ec86317ff0796c711050de96e",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "38f3e1998b8fcf47a3240a50e9cc1f4eb791db12c5e778a4109cba1f31bf244a",
+      "upstream_evaluator_sha256": "ddc862b018095807181f10d85b91b793e2f78d7ec86317ff0796c711050de96e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.automation_account_variable_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.automation_account_variable_encryption_enabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "automation_account_variable_encryption_enabled",
+      "query_path": "regulatory_compliance/automation.pp",
+      "query_line": 30,
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when is_encrypted then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when is_encrypted then a.title || ' encryption enabled.'\n        else a.title || ' encryption disabled.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_automation_variable as a\n      left join azure_subscription sub on a.subscription_id = sub.subscription_id;",
+      "query_sha256": "97b5e205a8797ad123341c03c0fe86f21e28a852c7b84c32a8c52794365c8554",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "997489295ea6179f4c0029f3e9aa6554714f59a93b22dda34c634a866139ca5d",
+      "upstream_evaluator_sha256": "97b5e205a8797ad123341c03c0fe86f21e28a852c7b84c32a8c52794365c8554",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v400_3_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.databricks_workspace_subnet_with_nsg_configured"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "databricks_workspace_subnet_with_nsg_configured",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 107,
+      "pinned_sql": "with databricks_subnets as (\n      select\n        id,\n        'private' as subnet_type,\n        concat(parameters -> 'customVirtualNetworkId' ->> 'value', '/subnets/', parameters -> 'customPrivateSubnetName' ->> 'value') as subnet_id\n      from\n        azure_databricks_workspace\n      where\n        parameters -> 'customVirtualNetworkId' IS NOT NULL\n        and parameters -> 'customPrivateSubnetName' ->> 'value' IS NOT NULL\n      UNION ALL\n      select\n        id,\n        'public' as subnet_type,\n        concat(parameters -> 'customVirtualNetworkId' ->> 'value', '/subnets/', parameters -> 'customPublicSubnetName' ->> 'value') as subnet_id\n      from\n        azure_databricks_workspace\n      where\n        parameters -> 'customVirtualNetworkId' IS NOT NULL\n        and parameters -> 'customPublicSubnetName' ->> 'value' IS NOT NULL\n    ), databricks_subnets_without_nsg as (\n      select\n        distinct ds.id,\n        network_security_group_id\n      from\n        azure_subnet as s\n        right join databricks_subnets as ds on lower(s.id) = lower(ds.subnet_id)\n      where\n        s.network_security_group_id is null\n    )\n    select\n      a.id as resource,\n      case\n        when parameters -> 'customVirtualNetworkId' is null then 'skip'\n        when nsg.id is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when parameters -> 'customVirtualNetworkId' is null then a.name || ' is not deployed in a customer-managed virtual network.'\n        when nsg.id is null then a.name || ' subnets are configured with network security group.'\n        else a.name || ' subnets are not configured with network security group.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_databricks_workspace as a\n      left join databricks_subnets_without_nsg as nsg on nsg.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "1d94333d74f25ac7304e597bab978dedf3497d87f13c56e5da61344209cd8591",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "10109da12e13c4788ed5480552cbca8e21604ead41efbfe39160765f4b7411ed",
+      "upstream_evaluator_sha256": "1d94333d74f25ac7304e597bab978dedf3497d87f13c56e5da61344209cd8591",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v400_3_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.databricks_workspace_diagnostic_log_delivery_configured"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "databricks_workspace_diagnostic_log_delivery_configured",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 161,
+      "pinned_sql": "with diagnostic_settings_analysis as (\n      select\n        distinct id,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"clusters\", \"enabled\": true}]') as clusters_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"accounts\", \"enabled\": true}]') as accounts_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"jobs\", \"enabled\": true}]') as jobs_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"notebook\", \"enabled\": true}]') as notebook_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"workspace\", \"enabled\": true}]') as workspace_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"sqlPermissions\", \"enabled\": true}]') as sqlpermissions_logs_enabled\n      from\n        azure_databricks_workspace\n      where\n        diagnostic_settings is not null and jsonb_array_length(diagnostic_settings) > 0\n    )\n    select\n      w.id as resource,\n      case\n        when w.sku ->> 'name' in ('standard', 'trial') then 'skip'\n        when w.diagnostic_settings is null or jsonb_array_length(w.diagnostic_settings) = 0  then 'alarm'\n        when dsa.clusters_logs_enabled = 0 then 'alarm'\n        when dsa.accounts_logs_enabled = 0 then 'alarm'\n        when dsa.jobs_logs_enabled = 0 then 'alarm'\n        when dsa.notebook_logs_enabled = 0 then 'alarm'\n        when dsa.workspace_logs_enabled = 0 then 'alarm'\n        when dsa.sqlpermissions_logs_enabled = 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when w.sku ->> 'name' in ('standard', 'trial') then w.name || ' is on the ' || (w.sku -> 'name') || ' pricing tier.'\n        when w.diagnostic_settings is null or jsonb_array_length(w.diagnostic_settings) = 0 then w.name || ' has no diagnostic settings configured.'\n        when dsa.clusters_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: clusters.'\n        when dsa.accounts_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: accounts.'\n        when dsa.jobs_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: jobs.'\n        when dsa.notebook_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: notebook.'\n        when dsa.workspace_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: workspace.'\n        when dsa.sqlpermissions_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: sqlPermissions.'\n        else w.name || ' diagnostic logging is properly configured with required categories and destinations.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"w.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"w.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_databricks_workspace as w\n      left join diagnostic_settings_analysis as dsa on dsa.id = w.id\n      left join azure_subscription as sub on sub.subscription_id = w.subscription_id;",
+      "query_sha256": "9d1e666933b0012dc9c685345bf3210a75637ac7d95c72190dff5e4e360a1f88",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "c66d11d7fc4894327ae1438dcff138b44158b7b683f7ad60e81d9bc91acbeb2a",
+      "upstream_evaluator_sha256": "9d1e666933b0012dc9c685345bf3210a75637ac7d95c72190dff5e4e360a1f88",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v400_3_1_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.databricks_workspace_cmk_configured"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "databricks_workspace_cmk_configured",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 86,
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when parameters -> 'customerManagedKeyId' is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when parameters -> 'customerManagedKeyId' is not null then a.name || ' has a customer-managed key configured.'\n        else a.name || ' does not have a customer-managed key configured.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_databricks_workspace as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "ca77cdbe7895df37f3c2baa6c948ca30cadf2ac2d891a96d2ccccd8911cbce3e",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "60406d33cca10542061eac9b6431b64aaa947d18c8506a2bf9f1ef798f14aee6",
+      "upstream_evaluator_sha256": "ca77cdbe7895df37f3c2baa6c948ca30cadf2ac2d891a96d2ccccd8911cbce3e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v400_7_1_2_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_log_alert_service_health"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_service_health",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1376,
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and (\n          (\n            alert.condition -> 'allOf' @> '[{\"field\":\"category\", \"equals\":\"ServiceHealth\"}]'\n          )\n          or\n          (\n            alert.condition -> 'allOf' @> '[{\"field\":\"category\", \"equals\":\"ResourceHealth\"}]'\n          )\n        )\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for Service Health events.'\n        else 'Activity log alert does not exist for Service Health events.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "cdece7f9319699ca616b72942e81131f77d2efe103a47d202657bd2a281b6534",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "9cda009134b8a675abd172636218719041a4bc16c06787011b4dbb2de8b3e9ca",
+      "upstream_evaluator_sha256": "cdece7f9319699ca616b72942e81131f77d2efe103a47d202657bd2a281b6534",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v500_2_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.databricks_workspace_subnet_with_nsg_configured"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "databricks_workspace_subnet_with_nsg_configured",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 107,
+      "pinned_sql": "with databricks_subnets as (\n      select\n        id,\n        'private' as subnet_type,\n        concat(parameters -> 'customVirtualNetworkId' ->> 'value', '/subnets/', parameters -> 'customPrivateSubnetName' ->> 'value') as subnet_id\n      from\n        azure_databricks_workspace\n      where\n        parameters -> 'customVirtualNetworkId' IS NOT NULL\n        and parameters -> 'customPrivateSubnetName' ->> 'value' IS NOT NULL\n      UNION ALL\n      select\n        id,\n        'public' as subnet_type,\n        concat(parameters -> 'customVirtualNetworkId' ->> 'value', '/subnets/', parameters -> 'customPublicSubnetName' ->> 'value') as subnet_id\n      from\n        azure_databricks_workspace\n      where\n        parameters -> 'customVirtualNetworkId' IS NOT NULL\n        and parameters -> 'customPublicSubnetName' ->> 'value' IS NOT NULL\n    ), databricks_subnets_without_nsg as (\n      select\n        distinct ds.id,\n        network_security_group_id\n      from\n        azure_subnet as s\n        right join databricks_subnets as ds on lower(s.id) = lower(ds.subnet_id)\n      where\n        s.network_security_group_id is null\n    )\n    select\n      a.id as resource,\n      case\n        when parameters -> 'customVirtualNetworkId' is null then 'skip'\n        when nsg.id is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when parameters -> 'customVirtualNetworkId' is null then a.name || ' is not deployed in a customer-managed virtual network.'\n        when nsg.id is null then a.name || ' subnets are configured with network security group.'\n        else a.name || ' subnets are not configured with network security group.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_databricks_workspace as a\n      left join databricks_subnets_without_nsg as nsg on nsg.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "1d94333d74f25ac7304e597bab978dedf3497d87f13c56e5da61344209cd8591",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "10109da12e13c4788ed5480552cbca8e21604ead41efbfe39160765f4b7411ed",
+      "upstream_evaluator_sha256": "1d94333d74f25ac7304e597bab978dedf3497d87f13c56e5da61344209cd8591",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v500_2_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.databricks_workspace_diagnostic_log_delivery_configured"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "databricks_workspace_diagnostic_log_delivery_configured",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 161,
+      "pinned_sql": "with diagnostic_settings_analysis as (\n      select\n        distinct id,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"clusters\", \"enabled\": true}]') as clusters_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"accounts\", \"enabled\": true}]') as accounts_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"jobs\", \"enabled\": true}]') as jobs_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"notebook\", \"enabled\": true}]') as notebook_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"workspace\", \"enabled\": true}]') as workspace_logs_enabled,\n        (select count(*) from jsonb_array_elements(diagnostic_settings) as ds where ds -> 'properties' -> 'logs' @> '[{\"category\": \"sqlPermissions\", \"enabled\": true}]') as sqlpermissions_logs_enabled\n      from\n        azure_databricks_workspace\n      where\n        diagnostic_settings is not null and jsonb_array_length(diagnostic_settings) > 0\n    )\n    select\n      w.id as resource,\n      case\n        when w.sku ->> 'name' in ('standard', 'trial') then 'skip'\n        when w.diagnostic_settings is null or jsonb_array_length(w.diagnostic_settings) = 0  then 'alarm'\n        when dsa.clusters_logs_enabled = 0 then 'alarm'\n        when dsa.accounts_logs_enabled = 0 then 'alarm'\n        when dsa.jobs_logs_enabled = 0 then 'alarm'\n        when dsa.notebook_logs_enabled = 0 then 'alarm'\n        when dsa.workspace_logs_enabled = 0 then 'alarm'\n        when dsa.sqlpermissions_logs_enabled = 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when w.sku ->> 'name' in ('standard', 'trial') then w.name || ' is on the ' || (w.sku -> 'name') || ' pricing tier.'\n        when w.diagnostic_settings is null or jsonb_array_length(w.diagnostic_settings) = 0 then w.name || ' has no diagnostic settings configured.'\n        when dsa.clusters_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: clusters.'\n        when dsa.accounts_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: accounts.'\n        when dsa.jobs_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: jobs.'\n        when dsa.notebook_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: notebook.'\n        when dsa.workspace_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: workspace.'\n        when dsa.sqlpermissions_logs_enabled = 0 then w.name || ' diagnostic logging is missing required category: sqlPermissions.'\n        else w.name || ' diagnostic logging is properly configured with required categories and destinations.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"w.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"w.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_databricks_workspace as w\n      left join diagnostic_settings_analysis as dsa on dsa.id = w.id\n      left join azure_subscription as sub on sub.subscription_id = w.subscription_id;",
+      "query_sha256": "9d1e666933b0012dc9c685345bf3210a75637ac7d95c72190dff5e4e360a1f88",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "c66d11d7fc4894327ae1438dcff138b44158b7b683f7ad60e81d9bc91acbeb2a",
+      "upstream_evaluator_sha256": "9d1e666933b0012dc9c685345bf3210a75637ac7d95c72190dff5e4e360a1f88",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v500_2_1_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.databricks_workspace_cmk_configured"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "databricks_workspace_cmk_configured",
+      "query_path": "regulatory_compliance/databricks.pp",
+      "query_line": 86,
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when parameters -> 'customerManagedKeyId' is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when parameters -> 'customerManagedKeyId' is not null then a.name || ' has a customer-managed key configured.'\n        else a.name || ' does not have a customer-managed key configured.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_databricks_workspace as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "ca77cdbe7895df37f3c2baa6c948ca30cadf2ac2d891a96d2ccccd8911cbce3e",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "60406d33cca10542061eac9b6431b64aaa947d18c8506a2bf9f1ef798f14aee6",
+      "upstream_evaluator_sha256": "ca77cdbe7895df37f3c2baa6c948ca30cadf2ac2d891a96d2ccccd8911cbce3e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v500_6_1_2_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_log_alert_service_health"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_service_health",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1376,
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and (\n          (\n            alert.condition -> 'allOf' @> '[{\"field\":\"category\", \"equals\":\"ServiceHealth\"}]'\n          )\n          or\n          (\n            alert.condition -> 'allOf' @> '[{\"field\":\"category\", \"equals\":\"ResourceHealth\"}]'\n          )\n        )\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for Service Health events.'\n        else 'Activity log alert does not exist for Service Health events.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "cdece7f9319699ca616b72942e81131f77d2efe103a47d202657bd2a281b6534",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "9cda009134b8a675abd172636218719041a4bc16c06787011b4dbb2de8b3e9ca",
+      "upstream_evaluator_sha256": "cdece7f9319699ca616b72942e81131f77d2efe103a47d202657bd2a281b6534",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.cis_v500_7_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_virtual_network_gateway_aad_only"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "network_virtual_network_gateway_aad_only",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2394,
+      "pinned_sql": "select\n      g.id as resource,\n      case\n        when vpn_client_configuration -> 'vpnAuthenticationTypes' @> '[\"AAD\"]'::jsonb and jsonb_array_length(vpn_client_configuration -> 'vpnAuthenticationTypes') = 1 then 'ok'\n        when jsonb_array_length(vpn_client_configuration -> 'vpnAuthenticationTypes') < 1 then 'skip'\n        else 'alarm'\n      end as status,\n      case\n        when vpn_client_configuration -> 'vpnAuthenticationTypes' @> '[\"AAD\"]'::jsonb\n         and jsonb_array_length(vpn_client_configuration -> 'vpnAuthenticationTypes') = 1 then g.name || ' VPN authentication type is set to only Azure Active Directory.'\n        when jsonb_array_length(vpn_client_configuration -> 'vpnAuthenticationTypes') < 1 then g.name || ' has no point-to-site configuration defined.'\n        else g.name || ' VPN authentication type is not restricted to only Azure Active Directory.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"g.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"g.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_virtual_network_gateway as g\n      left join azure_subscription as sub on g.subscription_id = sub.subscription_id;",
+      "query_sha256": "03cb954d263cf140ce7251b27bc3ce48217e23fb639e9db663d1ffceabf71b32",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "ffa404b29682a468226100005dadb5da1f00dc243bdddc05fbf1c87a123802dc",
+      "upstream_evaluator_sha256": "03cb954d263cf140ce7251b27bc3ce48217e23fb639e9db663d1ffceabf71b32",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "azure-compliance.control.network_interface_ip_forwarding_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_interface_ip_forwarding_disabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "query_id": "network_interface_ip_forwarding_disabled",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2187,
+      "pinned_sql": "with vm_using_nic as (\n      select\n        id as vm_id,\n        name as vm_name,\n        resource_group,\n        _ctx,\n        region,\n        subscription_id,\n        tags,\n        b ->> 'id' as nic_id\n      from\n        azure_compute_virtual_machine as c,\n        jsonb_array_elements(network_interfaces) as b\n    )\n    select\n      v.vm_id as resource,\n      case\n        when i.enable_ip_forwarding then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.enable_ip_forwarding then v.vm_name || ' using ' || i.name || ' network interface enabled with IP forwarding.'\n        else v.vm_name || ' using ' || i.name || ' network interface disabled with IP forwarding.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"v.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"v.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub,\n      vm_using_nic as v\n      left join azure_network_interface as i on i.id = v.nic_id;",
+      "query_sha256": "13a2836e0888795e32d41e0556c9035ec99bccad71f9e073a28fd6a31101ffc4",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "2c2ae492926dd2cb6fff41aa6ea3f9dc27e6e1e8510e8904f05005b58f1a3552",
+      "upstream_evaluator_sha256": "13a2836e0888795e32d41e0556c9035ec99bccad71f9e073a28fd6a31101ffc4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.aisearch_service_not_publicly_accessible": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.search_service_public_network_access_disabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/aisearch/aisearch_service_not_publicly_accessible/aisearch_service_not_publicly_accessible.py",
+      "pinned_python": "from typing import List\n\nfrom prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.aisearch.aisearch_client import aisearch_client\n\n\nclass aisearch_service_not_publicly_accessible(Check):\n    def execute(self) -> List[Check_Report_Azure]:\n        findings = []\n\n        for (\n            subscription_id,\n            aisearch_services,\n        ) in aisearch_client.aisearch_services.items():\n            subscription_name = aisearch_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for aisearch_service in aisearch_services.values():\n                report = Check_Report_Azure(\n                    metadata=self.metadata(), resource=aisearch_service\n                )\n                report.subscription = subscription_id\n                report.status = \"FAIL\"\n                report.status_extended = f\"AISearch Service {aisearch_service.name} from subscription {subscription_name} ({subscription_id}) allows public access.\"\n\n                if not aisearch_service.public_network_access:\n                    report.status = \"PASS\"\n                    report.status_extended = f\"AISearch Service {aisearch_service.name} from subscription {subscription_name} ({subscription_id}) does not allows public access.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "31d073813b1dd6925be6109524291c2798d8fe95cf285b19cad529c97ac78a25",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "aisearch_service_not_publicly_accessible"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.aks_cluster_azure_monitor_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.aks_cluster_azure_monitor_enabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/aks/aks_cluster_azure_monitor_enabled/aks_cluster_azure_monitor_enabled.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.aks.aks_client import aks_client\n\n\nclass aks_cluster_azure_monitor_enabled(Check):\n    \"\"\"\n    Ensure Azure Monitor is enabled for AKS clusters.\n\n    This check evaluates whether each Azure Kubernetes Service cluster has Azure Monitor integration enabled for metrics collection, log aggregation, and alerting.\n\n    - PASS: The cluster has Azure Monitor enabled.\n    - FAIL: The cluster does not have Azure Monitor enabled.\n    \"\"\"\n\n    def execute(self) -> list[Check_Report_Azure]:\n        findings = []\n\n        for subscription_name, clusters in aks_client.clusters.items():\n            for cluster in clusters.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=cluster)\n                report.subscription = subscription_name\n\n                if cluster.azure_monitor_enabled:\n                    report.status = \"PASS\"\n                    report.status_extended = f\"Cluster '{cluster.name}' has Azure Monitor managed Prometheus metrics enabled.\"\n                else:\n                    report.status = \"FAIL\"\n                    report.status_extended = f\"Cluster '{cluster.name}' does not have Azure Monitor managed Prometheus metrics enabled.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "110a0f4f02d376764ea17196b0ad3af9f293150a66f3c8661c3737608671ffe2",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "aks_cluster_azure_monitor_enabled"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.aks_clusters_created_with_private_nodes": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.aks_clusters_created_with_private_nodes"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/aks/aks_clusters_created_with_private_nodes/aks_clusters_created_with_private_nodes.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.aks.aks_client import aks_client\n\n\nclass aks_clusters_created_with_private_nodes(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for subscription_id, clusters in aks_client.clusters.items():\n            subscription_name = aks_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for cluster in clusters.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=cluster)\n                report.subscription = subscription_id\n                report.status = \"PASS\"\n                report.status_extended = f\"Cluster '{cluster.name}' was created with private nodes in subscription '{subscription_name} ({subscription_id})'\"\n\n                for agent_pool in cluster.agent_pool_profiles:\n                    if getattr(agent_pool, \"enable_node_public_ip\", True):\n                        report.status = \"FAIL\"\n                        report.status_extended = f\"Cluster '{cluster.name}' was not created with private nodes in subscription '{subscription_name} ({subscription_id})'\"\n                        break\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "d75ed2c6915c105963351f45de26107803ae15e296bfca9e7f7abaadede5a3b5",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "aks_clusters_created_with_private_nodes"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.aks_network_policy_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.aks_network_policy_enabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/aks/aks_network_policy_enabled/aks_network_policy_enabled.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.aks.aks_client import aks_client\n\n\nclass aks_network_policy_enabled(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for subscription_id, clusters in aks_client.clusters.items():\n            subscription_name = aks_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for cluster_id, cluster in clusters.items():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=cluster)\n                report.subscription = subscription_id\n                report.status = \"PASS\"\n                report.status_extended = f\"Network policy is enabled for cluster '{cluster.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                if not getattr(cluster, \"network_policy\", False):\n                    report.status = \"FAIL\"\n                    report.status_extended = f\"Network policy is not enabled for cluster '{cluster.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "efab5e74ddb50d968c838bdbf3ebd19f609e1f3bbc5e59a45d960d02f44b15bd",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "aks_network_policy_enabled"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.app_function_ensure_http_is_redirected_to_https": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_function_ensure_http_is_redirected_to_https"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_ensure_http_is_redirected_to_https/app_function_ensure_http_is_redirected_to_https.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_function_ensure_http_is_redirected_to_https(Check):\n    \"\"\"Ensure Function Apps redirect HTTP traffic to HTTPS.\"\"\"\n\n    def execute(self) -> list[Check_Report_Azure]:\n        \"\"\"Execute the check logic.\n\n        Returns:\n            A list of reports for Function Apps HTTPS-only enforcement.\n        \"\"\"\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=function)\n                report.subscription = subscription_id\n                report.status = \"PASS\"\n                report.status_extended = f\"HTTP is redirected to HTTPS for Function app '{function.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                if not function.https_only:\n                    report.status = \"FAIL\"\n                    report.status_extended = f\"HTTP is not redirected to HTTPS for Function app '{function.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "2f984728edd3617cc75cc472e618c7e86642d39164b0bdc48625c7e00355821b",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_function_ensure_http_is_redirected_to_https"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.app_function_ftps_deployment_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_function_ftps_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_ftps_deployment_disabled/app_function_ftps_deployment_disabled.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_function_ftps_deployment_disabled(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=function)\n                report.subscription = subscription_id\n                report.status = \"FAIL\"\n                report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) has {'FTP' if function.ftps_state == 'AllAllowed' else 'FTPS' if function.ftps_state == 'FtpsOnly' else 'FTP or FTPS'} deployment enabled.\"\n                if function.ftps_state == \"Disabled\":\n                    report.status = \"PASS\"\n                    report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) has FTP and FTPS deployment disabled.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "2d10795d2adf1d139b0fab00b9c1f16e480edc363646d8dfdbf6654f1fc801b9",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_function_ftps_deployment_disabled"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.app_function_not_publicly_accessible": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_function_not_publicly_accessible"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_not_publicly_accessible/app_function_not_publicly_accessible.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_function_not_publicly_accessible(Check):\n    def execute(self):\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=function)\n                report.subscription = subscription_id\n                report.status = \"FAIL\"\n                report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) is publicly accessible.\"\n\n                if not function.public_access:\n                    report.status = \"PASS\"\n                    report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) is not publicly accessible.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "d4e0b086002d387f11eea753a018c9ac27344d9aa3c5bb3191334fe8a43c69d4",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_function_not_publicly_accessible"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.app_function_vnet_integration_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_function_vnet_integration_enabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_vnet_integration_enabled/app_function_vnet_integration_enabled.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_function_vnet_integration_enabled(Check):\n    def execute(self):\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=function)\n                report.subscription = subscription_id\n                report.status = \"FAIL\"\n                report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) does not have virtual network integration enabled.\"\n\n                if function.vnet_subnet_id:\n                    report.status = \"PASS\"\n                    report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) has Virtual Network integration enabled with subnet '{function.vnet_subnet_id}' enabled.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "a24cc301f568d289f28b74a07f0ad34079d2cc18bb4178c9fa05efb3e9444b68",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_function_vnet_integration_enabled"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.app_http_logs_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_http_logs_enabled"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_http_logs_enabled/app_http_logs_enabled.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_http_logs_enabled(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for subscription_id, apps in app_client.apps.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for app in apps.values():\n                if \"functionapp\" not in app.kind:\n                    report = Check_Report_Azure(metadata=self.metadata(), resource=app)\n                    report.subscription = subscription_id\n                    report.status = \"FAIL\"\n                    if not app.monitor_diagnostic_settings:\n                        report.status_extended = f\"App {app.name} does not have a diagnostic setting in subscription {subscription_name} ({subscription_id}).\"\n                    else:\n                        for diagnostic_setting in app.monitor_diagnostic_settings:\n                            report.status_extended = f\"App {app.name} does not have HTTP Logs enabled in diagnostic setting {diagnostic_setting.name} in subscription {subscription_name} ({subscription_id})\"\n                            for log in diagnostic_setting.logs:\n                                if log.category == \"AppServiceHTTPLogs\" and log.enabled:\n                                    report.status = \"PASS\"\n                                    report.status_extended = f\"App {app.name} has HTTP Logs enabled in diagnostic setting {diagnostic_setting.name} in subscription {subscription_name} ({subscription_id})\"\n                                    break\n                                elif log.category_group == \"allLogs\" and log.enabled:\n                                    report.status = \"PASS\"\n                                    report.status_extended = f\"App {app.name} has allLogs category group which includes HTTP Logs enabled in diagnostic setting {diagnostic_setting.name} in subscription {subscription_name} ({subscription_id})\"\n                                    break\n                    findings.append(report)\n\n        return findings\n",
+      "source_sha256": "28b8ba62795f00189ab674d288cff06bf54099f8e6b4daf5f4f2fc4eb2b9a79c",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_http_logs_enabled"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  },
+  "prowler.azure.appinsights_ensure_is_configured": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.monitor_application_insights_configured"
+    ],
+    "reason": "Inspected complete pinned query/check and upstream adapter. Exact scope/selector/SKU/parameter/category and full native resource joins retained; API-provider and malformed/coverage context require explicit facts and UNKNOWN rather than fabricated defaults. No priority/effective access or telemetry-delivery equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get?view=rest-searchmanagement-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/databricks/workspaces/get?view=rest-databricks-2024-05-01",
+      "https://learn.microsoft.com/en-us/azure/app-service/environment/app-service-app-service-environment-custom-settings",
+      "https://learn.microsoft.com/en-us/rest/api/automation/variable/list-by-automation-account?view=rest-automation-2024-10-23"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/appinsights/appinsights_ensure_is_configured/appinsights_ensure_is_configured.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.appinsights.appinsights_client import (\n    appinsights_client,\n)\n\n\nclass appinsights_ensure_is_configured(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for subscription_id, components in appinsights_client.components.items():\n            subscription_name = appinsights_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            report = Check_Report_Azure(metadata=self.metadata(), resource={})\n            report.status = \"PASS\"\n            report.subscription = subscription_id\n            report.resource_name = subscription_id\n            report.resource_id = f\"/subscriptions/{subscription_id}\"\n            report.status_extended = f\"There is at least one AppInsight configured in subscription {subscription_name} ({subscription_id}).\"\n\n            if len(components) < 1:\n                report.status = \"FAIL\"\n                report.status_extended = f\"There are no AppInsight configured in subscription {subscription_name} ({subscription_id}).\"\n\n            findings.append(report)\n\n        return findings\n",
+      "source_sha256": "4a84916c4b0b15cae013bb64e1431df799ce9932d088aa10c47adcc0fa12ab8d",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "appinsights_ensure_is_configured"
+    },
+    "review_notes": "All native evaluation is snapshot-only. Automation variable values stripped before persistence; no instrumentation, keys, or application settings reads. Complete empty enabled AKS agent-pool configuration remains UNKNOWN. Search publicNetworkAccess Disabled and subscription AppInsights presence aliases have exact same provider/scope/boolean predicates."
+  }
+}

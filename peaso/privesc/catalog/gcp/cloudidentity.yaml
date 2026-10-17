@@ -1,5 +1,6 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
 # GCP Cloud Identity (Google Groups) privilege escalation techniques.
-# Source: hacktricks-cloud gcp-privilege-escalation/gcp-cloudidentity-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-cloudidentity-privesc.md (rev 171e422).
 # Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
 # cloudidentity.groups.memberships.create is NOT a GCP IAM permission on the group: the evaluator must resolve it from the
 # source's Cloud Identity group role on that group (OWNER or MANAGER), a Workspace Groups Admin / Super Admin role, or a
@@ -9,8 +10,8 @@
   provider: gcp
   service: cloudidentity
   title: Add a controlled principal to a Google group that holds IAM roles
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudidentity-privesc.md#add-yourself-to-a-group
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudidentity-privesc.md#control-an-iam-bound-groups-membership--inherit-its-existing-gcp-roles
+  source_revision: 171e422
   summary: The source can obtain the privileges of every Google group whose membership it can manage.
   requires:
     all_of:

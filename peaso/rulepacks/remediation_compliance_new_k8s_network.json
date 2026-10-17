@@ -1,0 +1,46 @@
+{
+  "k8s_networkpolicy_no_world_ingress": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_network",
+      "kind": "networkpolicy",
+      "path": "spec.policyTypes, spec.ingress[].from[].ipBlock.cidr/except and peer selectors",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "d4775fa9fad74eb7280ce235d727367fb773b9c64f8ea81d297ae446d7a16d3e",
+    "references": [
+      {
+        "title": "Kubernetes NetworkPolicy v1 API",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/network-policy-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect each affected NetworkPolicy ingress rule, source peer and selected Pods with the namespace owner; the declaration alone does not prove traffic reaches a workload.",
+      "Replace an omitted/empty source or unexcepted /0 ipBlock with approved Pod/namespace selectors or bounded CIDRs in the owning manifest; an invalid empty peer needs a separate source-data review.",
+      "Stage the policy change with required service flows and CNI behavior tests; roll back the owned manifest revision if a required flow fails."
+    ],
+    "summary": "Narrow an observed all-source NetworkPolicy ingress allow declaration."
+  },
+  "k8s_networkpolicy_no_world_ssh_rdp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_network",
+      "kind": "networkpolicy",
+      "path": "spec.policyTypes, spec.ingress[].from, spec.ingress[].ports[].protocol/port/endPort",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "eeaad621b1b5cc7a78ccddc45234cbec6d9104041462e390476a6f6132855969",
+    "references": [
+      {
+        "title": "Kubernetes NetworkPolicy v1 API",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/network-policy-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the affected ingress rule and workload owner requirements; a NetworkPolicy port declaration alone does not establish an SSH/RDP listener.",
+      "Narrow the source peers to approved administration CIDRs/selectors or remove the TCP 22/3389 numeric port or containing range from the owned manifest.",
+      "Test required administration paths and CNI policy behavior in staging, deploy with the owner, and roll back the manifest revision if a required path fails."
+    ],
+    "summary": "Remove an observed all-source TCP 22/3389 NetworkPolicy ingress allow declaration."
+  }
+}

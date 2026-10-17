@@ -1,0 +1,26 @@
+{
+  "azure.cis.agentless_scanning_machines_component_status": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure_defender",
+      "kind": "security_pricing",
+      "kind_alias_scope": "This exact ID only: existing paged Microsoft.Security/pricings list",
+      "path": "properties.pricingTier, properties.extensions[].name/isEnabled/operationStatus.code",
+      "signed_kind": "defender_pricing",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "fc2a5d63b3ce36517a5388730a0340fab6c3ba4bffc42838f0e6c578eb4595d4",
+    "references": [
+      {
+        "title": "Microsoft Defender for Cloud Pricings 2024-01-01 REST API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/get?view=rest-defenderforcloud-2024-01-01"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the VirtualMachines pricing tier, AgentlessVmScanning isEnabled and operationStatus for the selected subscription; a True flag alone does not prove scans succeeded or machines are covered.",
+      "With the subscription and cost owner, review the Defender for Servers plan, extension permissions, exclusions and intended VM scope before changing the pricing configuration through the owning portal or IaC workflow.",
+      "Stage the owner-approved configuration change, verify operation status and separate per-VM coverage; if cost or operation impact is unacceptable, use the owning IaC revision or portal change history to roll back."
+    ],
+    "summary": "Enable the AgentlessVmScanning extension only after subscription owner review of the Defender plan."
+  }
+}

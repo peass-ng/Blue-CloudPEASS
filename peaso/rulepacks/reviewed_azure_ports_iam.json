@@ -1,0 +1,262 @@
+{
+  "azure-compliance.control.cis_v130_1_21": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v130/section_1.pp",
+      "control_line": 322,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v140_1_20": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v140/section_1.pp",
+      "control_line": 307,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v150_1_23": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v150/section_1.pp",
+      "control_line": 507,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v200_1_23": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v200/section_1.pp",
+      "control_line": 507,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v210_1_22": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v210/section_1.pp",
+      "control_line": 508,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v300_2_23": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v300/section_2.pp",
+      "control_line": 538,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v400_6_23": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v400/section_6.pp",
+      "control_line": 569,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v500_5_23": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_no_custom_subscription_owner_roles_created"
+    ],
+    "reason": "Inspected full source scope/condition. Custom-role criterion is literal Actions */*:* at selected subscription provider-list scope, not effective Owner; NotActions/dataActions/assignment conditions not treated as deny or erased. Tenant-transfer predicate exactlyconjoins into/leaving flags with captured tenant provenance. Required missing/denied context UNKNOWN; complete no-custom-wildcard inventory satisfies absence baseline.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01"
+    ],
+    "review_notes": "No privilege/effective-access/path/chain generation, remediation or transferoperation. Managementgroup role IDs returned by authoritative subscriptionlist retained without asserting local-only roleID, and parentcollectionscope proof required.",
+    "source_review": {
+      "query_id": "iam_no_custom_subscription_owner_roles_created",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 316,
+      "query_sha256": "3a1fad3b471ce59fa444cd9a7be2b8ed4805a2a51c881834108bb5803dfb1562",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 591,
+      "arguments": [],
+      "pinned_sql": "with owner_custom_roles as (\n      select\n        role_name,\n        role_type,\n        title,\n        action,\n        _ctx,\n        subscription_id\n      from\n        azure_role_definition,\n        jsonb_array_elements(permissions) as s,\n        jsonb_array_elements_text(s -> 'actions') as action\n      where\n        role_type = 'CustomRole'\n        and action in ('*', '*:*')\n    )\n    select\n      cr.subscription_id as resource,\n      case\n        when count(*) > 0 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when count(*) = 1 then 'There is one custom owner role.'\n        when count(*) > 1 then 'There are ' || count(*) || ' custom owner roles.'\n        else 'There are no custom owner roles.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"cr.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_custom_roles cr,\n      azure_subscription sub\n    where\n      sub.subscription_id = cr.subscription_id\n    group by\n      cr.subscription_id,\n      cr._ctx,\n      sub.display_name;"
+    }
+  },
+  "azure-compliance.control.cis_v500_5_25": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+      "https://learn.microsoft.com/en-us/rest/api/resources/subscription-policy/get-policy?view=rest-resources-2021-10-01",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_subscription_tenant_transfer_restricted",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 946,
+      "query_sha256": "ca9e866e5d6280cd0f67eb2404e66c806a2855eef185b8af80c5665546aec870",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 617,
+      "arguments": [],
+      "pinned_sql": "select\n      t.tenant_id as resource,\n      case\n        when (t.subscription_policy -> 'properties' -> 'blockSubscriptionsIntoTenant')::bool = true\n          and (t.subscription_policy -> 'properties' -> 'blockSubscriptionsLeavingTenant')::bool = true then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (t.subscription_policy -> 'properties' -> 'blockSubscriptionsIntoTenant')::bool = true\n          and (t.subscription_policy -> 'properties' -> 'blockSubscriptionsLeavingTenant')::bool = true then t.display_name || ' subscription tenant transfer is restricted (Permit no one).'\n        else t.display_name || ' subscription tenant transfer is not restricted. Block subscriptions into tenant: ' || coalesce((t.subscription_policy -> 'properties' -> 'blockSubscriptionsIntoTenant')::text, 'false') || ', Block subscriptions leaving tenant: ' || coalesce((t.subscription_policy -> 'properties' -> 'blockSubscriptionsLeavingTenant')::text, 'false') || '.'\n      end as reason,\n      t.tenant_id\n      -- ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      azure_tenant as t;",
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_subscription_tenant_transfer_restricted"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "5bf95d386f3c921bc171b304c9fe916d1807eff147c3066c76b61efbf160cbc4",
+      "upstream_evaluator_sha256": "ca9e866e5d6280cd0f67eb2404e66c806a2855eef185b8af80c5665546aec870",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v400_6_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_user_access_administrator_role_restricted"
+    ],
+    "reason": "Inspected full source exactroleDefinitionID join and literalroleName selector. Only matched namedassignments alarm; otherknownrolesPASS after complete negative selector proof, missing/ambiguous/unreadabledefinitionUNKNOWN. Assignmentconditions and actualpermissionauthority remainseparate, no builtinGUID-only or effectiveprivilege substitution.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions"
+    ],
+    "review_notes": "No scopebroadenings/namejoincollisions: definitions joined fullnativeIDs. Literalname criterion explicitly stated; no operations or grant changes.",
+    "source_review": {
+      "query_id": "iam_user_access_administrator_role_restricted",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 885,
+      "query_sha256": "e8903c443fb56953a6f73dcae1dcb08232d96cca778b627a43d2488154c2f21f",
+      "control_path": "cis_v400/section_6.pp",
+      "control_line": 275,
+      "arguments": [],
+      "pinned_sql": "with user_access_admin_role as (\n      select\n        id,\n        role_name,\n        subscription_id\n      from\n        azure_role_definition\n      where\n        role_name = 'User Access Administrator'\n    )\n    select\n      ra.id as resource,\n      case\n        when r.role_name is not null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when r.role_name is not null then ra.subscription_id || ' has User Access Administrator role assigned at scope ' || ra.scope\n        else 'No User Access Administrator role assignments found.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"ra.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_role_assignment ra\n      left join user_access_admin_role r on ra.role_definition_id = r.id\n      left join azure_subscription sub on sub.subscription_id = ra.subscription_id\n    where\n      r.role_name is not null;"
+    }
+  },
+  "azure-compliance.control.cis_v500_5_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.iam_user_access_administrator_role_restricted"
+    ],
+    "reason": "Inspected full source exactroleDefinitionID join and literalroleName selector. Only matched namedassignments alarm; otherknownrolesPASS after complete negative selector proof, missing/ambiguous/unreadabledefinitionUNKNOWN. Assignmentconditions and actualpermissionauthority remainseparate, no builtinGUID-only or effectiveprivilege substitution.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions"
+    ],
+    "review_notes": "No scopebroadenings/namejoincollisions: definitions joined fullnativeIDs. Literalname criterion explicitly stated; no operations or grant changes.",
+    "source_review": {
+      "query_id": "iam_user_access_administrator_role_restricted",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 885,
+      "query_sha256": "e8903c443fb56953a6f73dcae1dcb08232d96cca778b627a43d2488154c2f21f",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 279,
+      "arguments": [],
+      "pinned_sql": "with user_access_admin_role as (\n      select\n        id,\n        role_name,\n        subscription_id\n      from\n        azure_role_definition\n      where\n        role_name = 'User Access Administrator'\n    )\n    select\n      ra.id as resource,\n      case\n        when r.role_name is not null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when r.role_name is not null then ra.subscription_id || ' has User Access Administrator role assigned at scope ' || ra.scope\n        else 'No User Access Administrator role assignments found.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"ra.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_role_assignment ra\n      left join user_access_admin_role r on ra.role_definition_id = r.id\n      left join azure_subscription sub on sub.subscription_id = ra.subscription_id\n    where\n      r.role_name is not null;"
+    }
+  }
+}

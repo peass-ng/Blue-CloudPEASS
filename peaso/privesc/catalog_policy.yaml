@@ -1,0 +1,55 @@
+schema_version: 1
+providers:
+  aws:
+    description: >-
+      Active techniques must show how a source principal's effective permissions or
+      controlled credential permit a concrete action that yields another known
+      principal's usable credentials, tokens or execution context, or grants the
+      source additional permissions. Principal includes cloud, application,
+      database, device and other service identities; the provider boundary
+      alone does not exclude a path. A permission gain must identify the exact
+      action newly authorized for the source or the acquired principal. Reading
+      arbitrary configuration or a secret is exposure, not privilege escalation,
+      unless the exact usable credential and its target principal are verified.
+    source_sections:
+      - src/pentesting-cloud/aws-security/aws-privilege-escalation/
+  azure:
+    description: >-
+      Active techniques must show how a source principal's effective permissions or
+      controlled credential permit a concrete action that yields another known
+      principal's usable credentials, tokens or execution context, or grants the
+      source additional permissions. Principal includes cloud, application,
+      database, device and other service identities; the provider boundary
+      alone does not exclude a path. A permission gain must identify the exact
+      action newly authorized for the source or the acquired principal. Reading
+      arbitrary configuration or a secret is exposure, not privilege escalation,
+      unless the exact usable credential and its target principal are verified.
+    source_sections:
+      - src/pentesting-cloud/azure-security/az-privilege-escalation/
+  gcp:
+    description: >-
+      Active techniques must show how a source principal's effective permissions or
+      controlled credential permit a concrete action that yields another known
+      principal's usable credentials, tokens or execution context, or grants the
+      source additional permissions. Principal includes cloud, application,
+      database, device and other service identities; the provider boundary
+      alone does not exclude a path. A permission gain must identify the exact
+      action newly authorized for the source or the acquired principal. Reading
+      arbitrary configuration or a secret is exposure, not privilege escalation,
+      unless the exact usable credential and its target principal are verified.
+    source_sections:
+      - src/pentesting-cloud/gcp-security/gcp-privilege-escalation/
+  k8s:
+    description: >-
+      Active techniques must show how a source principal's effective permissions or
+      controlled credential permit a concrete action that yields another known
+      principal's usable credentials, tokens or execution context, or grants the
+      source additional permissions. Principal includes cloud, application,
+      database, device and other service identities; the provider boundary
+      alone does not exclude a path. A permission gain must identify the exact
+      action newly authorized for the source or the acquired principal. Reading
+      arbitrary configuration or a secret is exposure, not privilege escalation,
+      unless the exact usable credential and its target principal are verified.
+    source_sections:
+      - src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/
+      - src/pentesting-cloud/openshift-pentesting/openshift-privilege-escalation/

@@ -1,0 +1,22 @@
+{
+  "gcp_bucket_logging_enabled_fb7cc594582a": {
+    "summary": "Configure an approved Cloud Storage usage-log destination for this bucket.",
+    "steps": [
+      "Inspect logging.logBucket on the exact full-projection bucket and confirm that usage/storage logs are required for this selected bucket.",
+      "Choose a dedicated log bucket and prefix with the data owner, including write access for Cloud Storage analytics and a retention plan, then apply the reviewed logging configuration.",
+      "Read back logging.logBucket, check that usage logs arrive in the approved destination, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Cloud Storage usage and storage logs create billable objects and delivery is not guaranteed to be timely or complete; review cost and retention before enabling them.",
+      "Google generally recommends Cloud Audit Logs to track API operations, but this signed predicate tests the distinct bucket logging.logBucket field and does not infer that Audit Logs satisfy it."
+    ],
+    "references": [
+      {"title": "Cloud Storage bucket logging field", "url": "https://cloud.google.com/storage/docs/json_api/v1/buckets"},
+      {"title": "Cloud Storage usage logs, pricing and delivery caveats", "url": "https://cloud.google.com/storage/docs/access-logs"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_gcp_storage", "kind": "bucket", "target": "resource", "path": "name; _provenance.representation=full; logging.logBucket", "observed_fail_evidence": "bucket_name; log_bucket"},
+    "proposed_spec_sha256": "534da0a9ad87247d5e3c848cbda2404f83345a0cea3add85cae6b204e30213bd",
+    "review_status": "source_bound_pending_review"
+  }
+}

@@ -182,14 +182,18 @@ def build(sources_root):
     sources = read_json(PACK / "sources.json")
     reviewed = {}
     active = PACK / "active_reviews.json"
-    paths = [PACK / name for name in read_json(active)["shards"]] if active.exists() else sorted(PACK.glob("reviewed*.json"))
+    registry_config = read_json(active) if active.exists() else {}
+    paths = [PACK / name for name in registry_config["shards"]] if active.exists() else sorted(PACK.glob("reviewed*.json"))
     for path in paths:
         shard = read_json(path)
+        excluded = registry_config.get("deferred_source_ids", {}).get(path.name, {})
+        shard = {key: value for key, value in shard.items() if key not in excluded}
         duplicate = set(reviewed).intersection(shard)
         for key in duplicate:
-            if shard[key].get("supersedes") != key or reviewed[key]["disposition"] != "pending":
+            lead_supersession = registry_config.get("pending_supersessions", {}).get(path.name, {}).get(key)
+            if (shard[key].get("supersedes") != key and not lead_supersession) or reviewed[key]["disposition"] != "pending":
                 raise ValueError("duplicate review ownership requires explicit supersedes of pending row: " + key)
-            shard[key] = {**shard[key], "review_history": [reviewed[key]]}
+            shard[key] = {**shard[key], "review_history": [reviewed[key]], **({"lead_supersession_reason": lead_supersession} if lead_supersession else {})}
         reviewed.update(shard)
     rows = []
     for source in sources["sources"]:
@@ -255,10 +259,16 @@ def validate_manifest(data):
         for mapping in row["frameworks"]:
             if not mapping.get("framework") or not mapping.get("framework_id") or not mapping.get("control_id") or not mapping.get("version"):
                 raise ValueError("framework/control/version mapping required")
+    from peaso.checks.catalog import display_names_from_rows, raw_framework_catalog
+    display = display_names_from_rows(raw_framework_catalog(data))
+    canonical = set(display.values()) | {HACKTRICKS}
     for check in CHECKS:
         public = check.public()
         if HACKTRICKS not in public["frameworks"] or not public["dependencies"]:
             raise ValueError("native security check needs mapping and dependencies")
+        # One canonical display name per framework version; family slugs are filter aliases, never labels.
+        if not set(public["frameworks"]) <= canonical or any(display[fid] not in public["frameworks"] for fid in public["framework_ids"] if fid in display):
+            raise ValueError("non-canonical framework labels on " + check.id)
     totals = Counter(r["disposition"] for r in data["checks"])
     return {"native_checks": len(CHECKS), "upstream_total": len(ids), "entry_types": dict(Counter(r.get("catalog_entry_type", "definition") for r in data["checks"])), "dispositions": {key: totals[key] for key in ("ported", "merged", "rejected", "pending", "out_of_scope")},
         "outside_runtime_provider_scope": sum(not r.get("runtime_provider_supported", True) for r in data["checks"]),
@@ -284,13 +294,14 @@ def main():
         serialized = json.dumps(data, separators=(",", ":"), ensure_ascii=False) + "\n"
         (PACK / "upstream_manifest.json").write_text(serialized)
         (PACK / "upstream_manifest.json.gz").write_bytes(gzip.compress(serialized.encode(), mtime=0))
-        from peaso.checks.catalog import manifest, _mappings, _runtime, framework_catalog, runtime_metadata, manual_requirements
-        (PACK / "runtime_metadata.json").write_text(json.dumps(runtime_metadata(data), separators=(",", ":"), ensure_ascii=False) + "\n")
-        manifest.cache_clear()
-        _mappings.cache_clear()
-        _runtime.cache_clear()
+        from peaso.checks.catalog import clear_caches, framework_catalog, runtime_metadata, manual_requirements
+        runtime = runtime_metadata(data)
+        (PACK / "runtime_metadata.json").write_text(json.dumps(runtime, separators=(",", ":"), ensure_ascii=False) + "\n")
+        summary = {**runtime["coverage"], "phase": "expansion_in_progress" if runtime["coverage"]["upstream"]["pending"] else "review_complete"}
+        (PACK / "catalog_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+        clear_caches()
         from peaso.checks import CHECKS
-        (PACK / "native_catalog.json").write_text(json.dumps({"schema_version": "1.0", "evaluator_version": "1.0.0", "checks": [c.public() for c in CHECKS]}, indent=2) + "\n")
+        (PACK / "native_catalog.json").write_text(json.dumps({"schema_version": "1.0", "evaluator_version": "1.0.0", "checks": [c.public() for c in CHECKS]}, ensure_ascii=False, separators=(",", ":")) + "\n")
         (PACK / "framework_catalog.json").write_text(json.dumps({"schema_version": "1.0", "frameworks": framework_catalog()}, indent=2) + "\n")
         (PACK / "manual_catalog.json").write_text(json.dumps({"schema_version": "1.1", "requirements": manual_requirements()}, indent=2) + "\n")
     else:

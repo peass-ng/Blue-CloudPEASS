@@ -1,13 +1,14 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
 # GCP Infrastructure Manager privilege escalation techniques.
-# Source: hacktricks-cloud gcp-privilege-escalation/gcp-infra-manager-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-infra-manager-privesc.md (rev 171e422).
 # Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
 
 - id: gcp-inframanager-deployments-create-actas
   provider: gcp
   service: config
   title: Create an Infrastructure Manager deployment applied as a chosen service account
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-infra-manager-privesc.md#configdeploymentscreate--actas--run-terraform-as-an-arbitrary-service-account
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-infra-manager-privesc.md#configdeploymentscreate--iamserviceaccountsactas--apply-terraform-as-a-selected-service-account
+  source_revision: 171e422
   summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
   requires:
     all_of:

@@ -1,0 +1,44 @@
+{
+  "prowler.azure.apim_threat_detection_llm_jacking": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.apim_threat_detection_llm_jacking"
+    ],
+    "runtime_provider_supported": false,
+    "reason": "Full pinned check/adapter inspected. Native pure snapshot predicate preserves subscription-local distinct-operation per-IP sets, exact 20 action default/configurable arguments, Python round(...,2), strict >threshold and 1440-minute default. Required complete window/resource/customer provenance prevents missing/denied/unconfigured telemetry becoming a no-threat PASS.",
+    "review_notes": "Captured-only defensive usage metadata is supported by the predicate, but native Azure collection does not currently collect apim_usage_event; do not count this as native runtime coverage or an always-UNKNOWN supported stub. No upstream runtime, raw log payloads, APIM requests, probes, enabling diagnostics or remediation are used.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/apimanagementgatewaylogs",
+      "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/query-api"
+    ],
+    "source_review": {
+      "query_id": "apim_threat_detection_llm_jacking",
+      "source_path": "prowler/providers/azure/services/apim/apim_threat_detection_llm_jacking/apim_threat_detection_llm_jacking.py",
+      "pinned_python": "from typing import List\n\nfrom prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.apim.apim_client import apim_client\nfrom prowler.providers.azure.services.apim.apim_service import LogsQueryLogEntry\n\n\nclass apim_threat_detection_llm_jacking(Check):\n    def execute(self):\n        findings = []\n\n        # Get configuration from audit config with defaults\n        threshold = float(\n            getattr(apim_client, \"audit_config\", {}).get(\n                \"apim_threat_detection_llm_jacking_threshold\", 0.1\n            )\n        )\n        threat_detection_minutes = getattr(apim_client, \"audit_config\", {}).get(\n            \"apim_threat_detection_llm_jacking_minutes\", 1440\n        )\n        monitored_actions = getattr(apim_client, \"audit_config\", {}).get(\n            \"apim_threat_detection_llm_jacking_actions\",\n            [\n                # OpenAI API endpoints\n                \"ImageGenerations_Create\",\n                \"ChatCompletions_Create\",\n                \"Completions_Create\",\n                \"Embeddings_Create\",\n                \"FineTuning_Jobs_Create\",\n                \"Models_List\",\n                # Azure OpenAI endpoints\n                \"Deployments_List\",\n                \"Deployments_Get\",\n                \"Deployments_Create\",\n                \"Deployments_Delete\",\n                # Anthropic endpoints\n                \"Messages_Create\",\n                \"Claude_Create\",\n                # Google AI endpoints\n                \"GenerateContent\",\n                \"GenerateText\",\n                \"GenerateImage\",\n                # Meta AI endpoints\n                \"Llama_Create\",\n                \"CodeLlama_Create\",\n                # Other LLM endpoints\n                \"Gemini_Generate\",\n                \"Claude_Generate\",\n                \"Llama_Generate\",\n            ],\n        )\n\n        for subscription, instances in apim_client.instances.items():\n            subscription_name = apim_client.subscriptions.get(\n                subscription, subscription\n            )\n            all_llm_logs: List[LogsQueryLogEntry] = []\n            for instance in instances:\n                if instance.log_analytics_workspace_id:\n                    logs = apim_client.get_llm_operations_logs(\n                        subscription, instance, threat_detection_minutes\n                    )\n                    all_llm_logs.extend(logs)\n\n            # Analyze logs only within the current subscription to avoid\n            # cross-subscription attribution when scanning multiple subscriptions.\n            potential_llm_jacking_attackers = {}\n            for log in all_llm_logs:\n                operation_name = log.operation_id\n                caller_ip = log.caller_ip_address\n\n                if operation_name in monitored_actions and caller_ip:\n                    # Use IP address as the principal identifier\n                    if caller_ip not in potential_llm_jacking_attackers:\n                        potential_llm_jacking_attackers[caller_ip] = set()\n                    potential_llm_jacking_attackers[caller_ip].add(operation_name)\n\n            # 3. Check each principal against the threshold and report failures\n            found_potential_llm_jacking_attackers = False\n            for (\n                principal_ip,\n                distinct_actions,\n            ) in potential_llm_jacking_attackers.items():\n                action_ratio = round(len(distinct_actions) / len(monitored_actions), 2)\n\n                if action_ratio > threshold:\n                    found_potential_llm_jacking_attackers = True\n                    # Build Identity resource for the report\n                    resource = {\n                        \"name\": principal_ip,\n                        \"id\": principal_ip,\n                    }\n                    # Report against the subscription, identifying the offending principal (IP)\n                    report = Check_Report_Azure(self.metadata(), resource=resource)\n                    report.subscription = subscription\n                    report.status = \"FAIL\"\n                    report.status_extended = f\"Potential LLM Jacking attack detected from IP address {principal_ip} in subscription {subscription_name} ({subscription}) with an action ratio of {action_ratio}, above the configured threshold of {threshold}.\"\n                    findings.append(report)\n\n            # If no threats were found after checking all principals, create a single PASS report.\n            if not found_potential_llm_jacking_attackers:\n                report = Check_Report_Azure(self.metadata(), resource={})\n                report.resource_name = subscription_name\n                report.resource_id = f\"/subscriptions/{subscription}\"\n                report.subscription = subscription\n                report.status = \"PASS\"\n                report.status_extended = f\"No potential LLM Jacking attacks detected across monitored APIM instances in subscription {subscription_name} ({subscription}) in the last {threat_detection_minutes} minutes.\"\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "6d19d378e5a2dc6b98ba8a9a106824f677c24638f56e84a0865f78e20c5d5cbd",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "arguments": {
+        "threshold_default": 0.1,
+        "minutes_default": 1440,
+        "monitored_actions_default_count": 20
+      },
+      "native_scope": "subscription; complete metadata usage window bound to captured_at; exact authoritative APIM resource inventory"
+    },
+    "fact_requirements": {
+      "collection": "apim_usage_event",
+      "captured_only": true,
+      "metadata": [
+        "window_complete",
+        "window_start",
+        "window_end",
+        "covered_resource_ids"
+      ],
+      "event_fields": [
+        "resource_id",
+        "time_generated",
+        "operation_id",
+        "caller_ip_address"
+      ]
+    }
+  }
+}

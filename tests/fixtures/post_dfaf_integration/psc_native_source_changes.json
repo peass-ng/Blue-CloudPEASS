@@ -1,0 +1,85 @@
+{
+  "baseline_source_version": "e022caf8ffd81b18571939a12313dfd9afa60c8f2095239cf3ad25e3002a31b7",
+  "changes": {
+    "peaso/checks/__init__.py": {
+      "baseline_sha256": "caef27171667da9fd23216591ec2bb2e406a47e4ff2dcf47a45a490a0c6121c0",
+      "sha256": "057dd4a8b7d82718089f4a28b0352f09b4431f5a1f90c757c6f2d8f5320734d3",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/checks/gcp_psc_dns.py": {
+      "baseline_sha256": null,
+      "sha256": "4d820199813173d9f32ab2b4a5b4547c449d7f88e69affe1064247cb2df1e599",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/checks/gcp_psc_fixtures.json": {
+      "baseline_sha256": null,
+      "sha256": "d452ed303ed02d23d05e1ef1efce880264002779bf3073dee79239a3764a6138",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/gcp_psc_policy.py": {
+      "baseline_sha256": null,
+      "sha256": "ceb9da0dca6e28d011e9f0d779fe519991bb78ec4e7df9bbba67494306eb0ff1",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/collectors/gcp.py": {
+      "baseline_sha256": "241dc6616ff3f7a06a858c907ceedfcad68aeb408e43c7dda89a6c41cf501c06",
+      "sha256": "1f05830be1cd255bb7581e2a48ce935227ba18df84a6f4bf6d60a910fab8691b",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/collectors/gcp_history.py": {
+      "baseline_sha256": "247084b652dc8ceefeb3f4f60a099c7e4dff124f4054c46d4714d61b1576dfda",
+      "sha256": "21368065d8d1a46209e88d623bb848fe2e3dcb0e4e4c0e5b01f867b8ecf4e631",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/server/validation.py": {
+      "baseline_sha256": "0523b71273b2186d2471d160551e47ad46407917a663a338bff2dbcf2ff86889",
+      "sha256": "6a89cf4e98a8a70b0fd3b7dbea1ca6065278dee59a3ae636daf499d8b327decb",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "frontend/src/Connectors.tsx": {
+      "baseline_sha256": "afe37b96a0535237e18c1f36b353fd0c447ec56c06e220646b88a8937d712f1f",
+      "sha256": "dc47ce5625bbcabc927c12eac4771995831b3da4b5a75b381dc0887c192b0666",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/rulepacks/check_descriptions.json": {
+      "baseline_sha256": "b45c3a13ea0fe6ef085f52fd03078561cbebe477ba398d941f255d74315d80a2",
+      "sha256": "e58fff92f5cd9fd8ef2c646ee788265f71aff8d65e6e08861d4ecac7bcff6409",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/rulepacks/catalog_summary.json": {
+      "baseline_sha256": "b90f7860fb08b076e933c8469993888255dbb4963a5540422fd82067d4912439",
+      "sha256": "0a4338745c9d0517721e90fc937238f757e63f97dac7dc1aeb868e799c1614ba",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/rulepacks/runtime_metadata.json": {
+      "baseline_sha256": "da3623f3e9c2f3e39fb5375ba7835be29fdfa00d750f28beab2f699b7c3e53ed",
+      "sha256": "2a528fafc345323a393cbe20daf434c3a42feab67292406079d41cce9e0b70c3",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/rulepacks/compliance_lookup.json": {
+      "baseline_sha256": "a8406177d03a050ed0f057e39d050a871a3823a519357751829a4423f56bab62",
+      "sha256": "fa5d9d0cf13d9c1f0f38244f2885af5fae70e40da56118ebd0410b1b0648b530",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/rulepacks/compliance_requirements.json": {
+      "baseline_sha256": "7eacec75a219e90a59578613f30ebe367f4b7d97b47b6dee3a5883dc35545a26",
+      "sha256": "74c9961902b6af925911956c9ba383c468929ddd75fec49135ae01bb274dd1c4",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/rulepacks/native_catalog.json": {
+      "baseline_sha256": "c383dad30bc5da4429bddd25103487dc17593df70eee548f586e81cbb7c2380b",
+      "sha256": "887d428bf6ad5403ed3cdd516f0b0ec670a55e3983c5d7095ec5bf2c49bebf2f",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "peaso/rulepacks/framework_catalog.json": {
+      "baseline_sha256": "b991f8f65b92298da941b4761188e8a6c66bc4d9b2afd43553aa6ce6a6dd6e4a",
+      "sha256": "cffca9040e905045a0f783e20b62e9cba393833832106966895c815ba49db1ec",
+      "reason": "One reviewed PSC predicate and explicit owner input; exact signed association remains partial."
+    },
+    "frontend/tests/provider-policy.spec.ts": {
+      "baseline_sha256": "acb5f7820f180d46abf7fdf8449f1a68b181fefa57ade5666b7460a4b17b891b",
+      "sha256": "79a322dbb603948bfb853bcccadc44831309e6d12573f2eb84589a4e154db210",
+      "reason": "Exercise the dedicated PSC declaration form, exact request and foreign-project rejection."
+    }
+  }
+}

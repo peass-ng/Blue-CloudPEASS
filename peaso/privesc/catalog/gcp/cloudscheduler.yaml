@@ -1,5 +1,6 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
 # GCP Cloud Scheduler privilege escalation techniques.
-# Source: hacktricks-cloud gcp-privilege-escalation/gcp-cloudscheduler-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-cloudscheduler-privesc.md (rev 171e422).
 # Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
 # HTTP jobs with an OAuth token make attacker-defined requests to *.googleapis.com as the SA (the token is minted by the
 # Scheduler service agent at delivery; the creator needs actAs). OIDC-only paths are excluded (audience-bound tokens).
@@ -9,8 +10,8 @@
   provider: gcp
   service: cloudscheduler
   title: Create a scheduler job that calls Google APIs authenticated as a chosen service account
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobscreate--iamserviceaccountsactas-cloudschedulerlocationslist
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobscreate-or-update--iamserviceaccountsactas--authenticated-http-dispatch-as-a-service-account
+  source_revision: 171e422
   summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
   requires:
     all_of:
@@ -46,8 +47,8 @@
   provider: gcp
   service: cloudscheduler
   title: Update an existing scheduler job to call Google APIs as a chosen service account
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobsupdate--iamserviceaccountsactas-cloudschedulerlocationslist
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloudscheduler-privesc.md#cloudschedulerjobscreate-or-update--iamserviceaccountsactas--authenticated-http-dispatch-as-a-service-account
+  source_revision: 171e422
   summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs, by updating an existing job.
   requires:
     all_of:

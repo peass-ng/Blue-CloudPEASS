@@ -1,0 +1,433 @@
+{
+  "aws-compliance.control.cis_v150_2_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_instance.minor_upgrade"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L180",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef0cf058a2300754164f51c4ca1b81f06d75a17d9d6eaddfab59173bcf082a1d",
+      "query_id": "rds_db_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v200_2_3_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.minor_upgrade"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L165",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef0cf058a2300754164f51c4ca1b81f06d75a17d9d6eaddfab59173bcf082a1d",
+      "query_id": "rds_db_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v300_2_3_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.minor_upgrade"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L165",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef0cf058a2300754164f51c4ca1b81f06d75a17d9d6eaddfab59173bcf082a1d",
+      "query_id": "rds_db_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v400_2_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.minor_upgrade"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L135",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef0cf058a2300754164f51c4ca1b81f06d75a17d9d6eaddfab59173bcf082a1d",
+      "query_id": "rds_db_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v400_2_2_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_instance.multiple_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L163",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2a27615af116bafa64147619309554d339712e6fc9204630c7e2534fdc63cf95",
+      "query_id": "rds_db_instance_multiple_az_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v500_2_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.minor_upgrade"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L135",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef0cf058a2300754164f51c4ca1b81f06d75a17d9d6eaddfab59173bcf082a1d",
+      "query_id": "rds_db_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v500_2_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.multiple_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L163",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2a27615af116bafa64147619309554d339712e6fc9204630c7e2534fdc63cf95",
+      "query_id": "rds_db_instance_multiple_az_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v600_3_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.minor_upgrade"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L148",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef0cf058a2300754164f51c4ca1b81f06d75a17d9d6eaddfab59173bcf082a1d",
+      "query_id": "rds_db_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.cis_v600_3_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.multiple_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L176",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2a27615af116bafa64147619309554d339712e6fc9204630c7e2534fdc63cf95",
+      "query_id": "rds_db_instance_multiple_az_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_fsx_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.fsx.openzfs_copy_backup_and_volume_tags"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/fsx.pp#L23",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "5d9b1f3e8664ce62287f052c7e8db19e31bee73451cea744383f7343ea30d1a6",
+      "query_id": "fsx_file_system_copy_tags_to_backup_and_volume_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_fsx_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.fsx.lustre_copy_backup_tags"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/fsx.pp#L36",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "10fb0476bfae6098749d346b2d36481d2051a3deb89582289534f6548e137f59",
+      "query_id": "fsx_lustre_file_system_copy_tags_to_backup_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_fsx_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.fsx.openzfs_multi_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/fsx.pp#L49",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "57b1ce8b678aec50e1c29192dfd063d8b358d65039b15a19e2ee39d62169b200",
+      "query_id": "fsx_openzfs_file_system_multi_az_deployment_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_fsx_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.fsx.netapp_ontap_multi_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/fsx.pp#L62",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "44619cb6e33d49b8846e36e2130af26a5097afd4b8e008ccc42bb38ed8dba93a",
+      "query_id": "fsx_netapp_ontap_file_system_multi_az_deployment_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_fsx_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.fsx.windows_multi_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/fsx.pp#L75",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4b6feae9c193c70c11631a46236b567e0b155803efb161c0e4aedb1678d72473",
+      "query_id": "fsx_windows_file_system_multi_az_deployment_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_neptune_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.neptune_cluster.storage_encryption"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/neptune.pp#L26",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b3256018524ee15c0abccdee1b8ad210992ee3bf826cc728136222e7572c2c09",
+      "query_id": "neptune_db_cluster_encryption_at_rest_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_neptune_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.neptune.audit_logging"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/neptune.pp#L39",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "f4911d69df7a2d5c7c58de8c6212fd7a3ce1486dcba488aa07e852865ba281d8",
+      "query_id": "neptune_db_cluster_audit_logging_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_neptune_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.neptune_cluster.deletion_protection"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/neptune.pp#L65",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "8e65a25bdf4a230213531c475d783f66adc657e58047404757a273ed1701c4f8",
+      "query_id": "neptune_db_cluster_deletion_protection_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_neptune_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.neptune.backup_retention_seven_days"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/neptune.pp#L78",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "6588be6fe432c8c1d3df2e8a62c52ea58a66e45c6bd0236a88f542f0c071ed1e",
+      "query_id": "neptune_db_cluster_automated_backup_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_neptune_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.neptune_cluster.iam_authentication"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/neptune.pp#L104",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "538dbd4479774f74ab966106b17b3c6de1220b93ad2c63c96136136d2bf87627",
+      "query_id": "neptune_db_cluster_iam_authentication_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_neptune_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.neptune_cluster.snapshot_tags"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/neptune.pp#L117",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "5beccb9c2bb1d18084a33117dc05a2d8d9a8b56bba6d659d5a7b6b9b5ae0c623",
+      "query_id": "neptune_db_cluster_copy_tags_to_snapshot_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_instance.iam_authentication"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L173",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "15c98d4f5477873f4b0976ff3475a47a833551f79644f65699f0d853580c8080",
+      "query_id": "rds_db_instance_iam_authentication_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_cluster.iam_authentication"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L199",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ebc113e1b0876f48f8ba145a2823ad9c9ee84103ee0440b1822e860551f5167b",
+      "query_id": "rds_db_cluster_iam_authentication_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.minor_upgrade"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L212",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef0cf058a2300754164f51c4ca1b81f06d75a17d9d6eaddfab59173bcf082a1d",
+      "query_id": "rds_db_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_cluster.multiple_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L238",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "6f252c993e0153658934868ec40ea26932168af99a8f79b11efa2720ad43de46",
+      "query_id": "rds_db_cluster_multiple_az_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_17": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.rds_instance.snapshot_tags"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L264",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d1b92bedbb1dcda17e9ec6d1aeda4fb2d6e508c9a70ca18d641f6a77459deb2a",
+      "query_id": "rds_db_instance_copy_tags_to_snapshot_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_rds_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.rds_instance.multiple_az"
+    ],
+    "reason": "Reviewed exact pinned nonparameterized setting predicate, native SDK field/type and resource family. Aurora instance exclusion, FSx family eligibility and deployment-version alternatives remain explicit; missing, denied or malformed facts cannot pass. No database connectivity, content reads or cloud calls at evaluation. Equivalent checklist aliases retain their original control/version mappings.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/rds.pp#L108",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2a27615af116bafa64147619309554d339712e6fc9204630c7e2534fdc63cf95",
+      "query_id": "rds_db_instance_multiple_az_enabled"
+    }
+  }
+}

@@ -14,8 +14,7 @@ import type {
   NodeProps,
   ReactFlowInstance,
 } from "@xyflow/react";
-import ELK from "elkjs/lib/elk-api.js";
-import elkWorkerUrl from "elkjs/lib/elk-worker.min.js?url";
+import { sharedElk } from "./elkWorker";
 import type { ElkEdgeSection, ElkNode, ELK as ElkInstance } from "elkjs";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -29,18 +28,29 @@ import {
 import { useApi } from "./api";
 import { ConnectionAssessment } from "./ConnectionAssessment";
 import type { Graph, GraphEdge, GraphNode } from "./types";
-import { Evidence, Inspector, Panel, ProviderIcon, State } from "./ui";
-import { projectView, structuralIndex } from "./graphProjection";
+import { Evidence, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
+import { namePrefix, projectView, structuralIndex } from "./graphProjection";
 import type { GroupLevel, ProjectedNode } from "./graphProjection";
 import "@xyflow/react/dist/style.css";
 const MAX_NODES = 120,
-  MAX_EDGES = 400;
+  MAX_EDGES = 400,
+  // Edge labels collide once many edges converge; show them on selection only.
+  EDGE_LABELS_AT = 24,
+  // Inspector lists are not virtualised; keep huge groups responsive.
+  INSPECT_EDGES = 200,
+  INSPECT_MEMBERS = 50,
+  VIRTUALIZE_AT = 100;
 type MapNode = Node<
   { label: string; provider: string; subtitle: string; group?: boolean },
   "asset"
 >;
 type RoutedEdge = Edge<
-  { sections: ElkEdgeSection[]; label: string; count: number },
+  {
+    sections: ElkEdgeSection[];
+    label: string;
+    count: number;
+    showLabel: boolean;
+  },
   "routed"
 >;
 function AssetNode({ data }: NodeProps<MapNode>) {
@@ -75,7 +85,7 @@ function Routed({ id, data, selected }: EdgeProps<RoutedEdge>) {
                 strokeWidth: selected ? 3 : 1.6,
               }}
             />
-            {index === 0 && (
+            {index === 0 && (data.showLabel || selected) && (
               <text
                 x={midpoint.x - 8}
                 y={midpoint.y - 9}
@@ -109,8 +119,17 @@ export function GraphView({
   }>();
   const [sourceSelection, setSourceSelection] = useState("");
   const [completeEvidence, setCompleteEvidence] = useState(false);
+  // Server-side expansion of one projected aggregate (bounded subgraph of its
+  // members plus stubs), instead of downloading the complete graph.
+  const [expandNode, setExpandNode] = useState<{ id: string; label: string }>();
   const query = useApi<Graph>(
-    `/scans/${encodeURIComponent(scanId)}/graphs/${kind}${completeEvidence ? "" : "?max_nodes=500"}`,
+    `/scans/${encodeURIComponent(scanId)}/graphs/${kind}${
+      completeEvidence
+        ? ""
+        : expandNode
+          ? `/expand?node=${encodeURIComponent(expandNode.id)}`
+          : "?max_nodes=500"
+    }`,
     demo,
     !!scanId,
   );
@@ -122,6 +141,7 @@ export function GraphView({
     [service, setService] = useState(""),
     [network, setNetwork] = useState(""),
     [subnet, setSubnet] = useState(""),
+    [prefix, setPrefix] = useState(""),
     [risk, setRisk] = useState("");
   const [inspect, setInspect] = useState<ProjectedNode | GraphEdge>(),
     [nodes, setNodes] = useState<MapNode[]>([]),
@@ -133,18 +153,19 @@ export function GraphView({
     flow = useRef<ReactFlowInstance<MapNode, RoutedEdge> | null>(null),
     fitted = useRef(false);
   useEffect(() => {
-    elk.current = new ELK({ workerFactory: () => new Worker(elkWorkerUrl) });
+    elk.current = sharedElk();
     return () => {
-      elk.current?.terminateWorker();
       elk.current = null;
     };
   }, []);
   useEffect(() => {
     setCompleteEvidence(false);
+    setExpandNode(undefined);
     setScope("");
     setService("");
     setNetwork("");
     setSubnet("");
+    setPrefix("");
     setRisk("");
     setLevel("scope");
     setSearch("");
@@ -180,7 +201,7 @@ export function GraphView({
           riskMatches.add(e.target);
         }
       }
-    return graph.nodes.filter(
+    const selected = graph.nodes.filter(
       (n) =>
         (!scope || String(n.scope || "Unscoped") === scope) &&
         (!service ||
@@ -191,15 +212,40 @@ export function GraphView({
         (!subnet ||
           (structural.subnet(n)?.id ||
             `unassigned:${n.scope || "Unscoped"}`) === subnet) &&
+        (!prefix || namePrefix(n) === prefix) &&
         (!risk || riskMatches.has(n.id)) &&
         `${n.label || n.name || n.id} ${n.type || ""} ${n.service || ""} ${n.scope || ""}`
           .toLowerCase()
           .includes(search.toLowerCase()),
     );
-  }, [graph, structural, scope, service, network, subnet, search, risk]);
+    // Inside a subnet, security groups and route tables live at VPC level;
+    // pull the ones protecting/routing the subnet's members in as context so
+    // the firewall rules are visible next to the machines and interfaces.
+    if (!subnet || subnet.startsWith("unassigned:")) return selected;
+    const ids = new Set(selected.map((n) => n.id));
+    const extra = new Set<string>();
+    for (const e of graph.edges) {
+      if (e.type === "protected_by" && ids.has(e.source)) extra.add(e.target);
+      else if (e.type === "route_association" && ids.has(e.target))
+        extra.add(e.source);
+    }
+    for (const id of ids) extra.delete(id);
+    if (!extra.size) return selected;
+    return selected.concat(graph.nodes.filter((n) => extra.has(n.id)));
+  }, [graph, structural, scope, service, network, subnet, prefix, search, risk]);
   const view = useMemo(
-    () => projectView(graph, matching, level, page, MAX_NODES, MAX_EDGES),
-    [graph, matching, level, page],
+    () =>
+      projectView(
+        graph,
+        matching,
+        level,
+        page,
+        MAX_NODES,
+        MAX_EDGES,
+        structural,
+        !!network,
+      ),
+    [graph, matching, level, page, structural, network],
   );
   useEffect(() => {
     let active = true;
@@ -213,6 +259,15 @@ export function GraphView({
         "elk.edgeRouting": "ORTHOGONAL",
         "elk.spacing.nodeNode": "45",
         "elk.layered.spacing.nodeNodeBetweenLayers": "110",
+        // Dense group-level views otherwise become one very long row that
+        // fits at an unreadable zoom; wrap layers to a screen-like aspect.
+        ...(view.nodes.length > 12
+          ? {
+              "elk.aspectRatio": "1.8",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+            }
+          : {}),
+        "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
       },
       children: view.nodes.map((n) => ({ id: n.id, width: 240, height: 74 })),
       edges: view.edges.map((e) => ({
@@ -221,13 +276,16 @@ export function GraphView({
         targets: [e.target],
       })),
     };
-    elk.current
-      ?.layout(input)
+    (elk.current || sharedElk())
+      .layout(input)
       .then((result) => {
         if (!active) return;
+        const nodeById = new Map(view.nodes.map((x) => [x.id, x]));
+        const edgeById = new Map(view.edges.map((x) => [String(x.id), x]));
+        const showLabel = view.edges.length <= EDGE_LABELS_AT;
         setNodes(
           (result.children || []).map((n) => {
-            const original = view.nodes.find((x) => x.id === n.id)!;
+            const original = nodeById.get(n.id)!;
             const internal =
               original.internal_edges?.reduce(
                 (total, e) => total + Number(e.underlying_count || 1),
@@ -254,7 +312,7 @@ export function GraphView({
         );
         setEdges(
           (result.edges || []).map((e) => {
-            const original = view.edges.find((x) => x.id === e.id)!;
+            const original = edgeById.get(e.id)!;
             return {
               id: e.id,
               source: original.source,
@@ -266,6 +324,7 @@ export function GraphView({
                   original.label || original.type || "Observed relationship",
                 ),
                 count: Number(original.underlying_count || 1),
+                showLabel,
               },
               ariaLabel: String(
                 original.label || original.type || "Observed relationship",
@@ -289,8 +348,10 @@ export function GraphView({
   }, [view]);
   useEffect(() => {
     if (!layingOut && nodes.length && !fitted.current && flow.current) {
+      // Keep the first view legible on tall/wide layouts; "Fit view" still
+      // shows everything.
       requestAnimationFrame(() => {
-        void flow.current?.fitView({ padding: 0.2 });
+        void flow.current?.fitView({ padding: 0.2, minZoom: 0.45 });
       });
       fitted.current = true;
     }
@@ -314,13 +375,47 @@ export function GraphView({
     setService("");
     setNetwork("");
     setSubnet("");
+    setPrefix("");
     setPage(0);
+  }
+  // Leaf level: very large groups are split by name prefix first so the next
+  // view stays meaningful instead of paging through thousands of assets.
+  function leaf(n: ProjectedNode): GroupLevel {
+    return level !== "prefix" && (n.member_ids?.length || 0) > MAX_NODES
+      ? "prefix"
+      : "assets";
+  }
+  // Collapse back to the level a breadcrumb crumb represents.
+  function collapseTo(crumb: "scope" | "network" | "subnet" | "service") {
+    const split = !!prefix || level === "prefix";
+    fitted.current = false;
+    setPrefix("");
+    setPage(0);
+    setInspect(undefined);
+    if (crumb === "scope") {
+      setNetwork("");
+      setSubnet("");
+      setService("");
+      setLevel(kind === "network" ? "network" : "service");
+    } else if (crumb === "network") {
+      setSubnet("");
+      setLevel(
+        graph.nodes.find((x) => x.id === network)?.type === "namespace"
+          ? "assets"
+          : "subnet",
+      );
+    } else {
+      setLevel(split ? "prefix" : "assets");
+    }
   }
   function expand(n: ProjectedNode) {
     if (!n.group) return;
     const key = String(n.group_key);
     fitted.current = false;
-    if (level === "scope") {
+    if (level === "prefix") {
+      setPrefix(key);
+      setLevel("assets");
+    } else if (level === "scope") {
       setScope(key);
       setLevel(kind === "network" ? "network" : "service");
     } else if (level === "network") {
@@ -332,15 +427,16 @@ export function GraphView({
       );
     } else if (level === "subnet") {
       setSubnet(key);
-      setLevel("assets");
+      setLevel(leaf(n));
     } else {
       setService(key);
-      setLevel("assets");
+      setLevel(leaf(n));
     }
     setPage(0);
     setInspect(undefined);
   }
   const scroll = useRef<HTMLDivElement>(null);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const virtual = useVirtualizer({
     count: matching.length,
     getScrollElement: () => scroll.current,
@@ -349,6 +445,8 @@ export function GraphView({
   });
   const projection = graph.projection;
   const collapsed = projection?.collapsed;
+  const displayLimited = graph.truncated || graph.edges_truncated;
+  const omittedRelationships = graph.omitted_underlying_edges ?? Number(projection?.omitted_underlying_edges || 0);
   return (
     <>
       <div className="section-top">
@@ -370,16 +468,52 @@ export function GraphView({
             : "Groups follow explicit structural resource references, preserving provider scope and GCP global/shared network semantics. CIDR overlap does not establish connectivity. Rule candidates do not prove routed reachability."}
         </p>
       </div>
-      {collapsed && (
+      {displayLimited && (
+        <div className="notice" role="status">
+          <p>
+            This view is limited to keep the map responsive.
+            {omittedRelationships > 0 ? ` ${omittedRelationships.toLocaleString()} relationships are outside this view.` : " Additional relationships may be outside this view."}
+            {" "}Their absence from the canvas does not establish that access is blocked. Expand a group or load the complete graph to review the remaining evidence.
+          </p>
+          {!completeEvidence && (
+            <button className="button" onClick={() => setCompleteEvidence(true)}>
+              Load complete graph evidence
+            </button>
+          )}
+        </div>
+      )}
+      {expandNode && !completeEvidence && (
         <div className="notice">
           <p>
-            The API has projected this graph. Aggregate counts, node_refs,
-            resource_refs and edge_refs are retained in inspectors; supplied
-            evidence may be sampled. {projection?.expansion}
+            Showing the members of {expandNode.label}
+            {typeof graph.member_count === "number"
+              ? ` (${graph.member_count} members)`
+              : ""}
+            ; nodes outside it are folded into stubs.
           </p>
-          <button className="button" onClick={() => setCompleteEvidence(true)}>
-            Load complete graph evidence
+          <button
+            className="button"
+            onClick={() => {
+              setExpandNode(undefined);
+              setSearch("");
+              reset();
+            }}
+          >
+            Back to projection
           </button>
+        </div>
+      )}
+      {collapsed && !expandNode && (
+        <div className="notice">
+          <p>
+            Grouped overview. Expand a group to inspect its members and connections.
+            Evidence excerpts may be sampled; the complete graph retains the underlying records.
+          </p>
+          {!displayLimited && (
+            <button className="button" onClick={() => setCompleteEvidence(true)}>
+              Load complete graph evidence
+            </button>
+          )}
         </div>
       )}
       <Panel className="graph-panel">
@@ -442,13 +576,29 @@ export function GraphView({
           <button className="text-button" onClick={reset}>
             All scopes
           </button>
-          {[scope, network, subnet, service]
-            .filter(Boolean)
-            .map((value, index) => (
-              <span key={index}>
-                / {graph.nodes.find((n) => n.id === value)?.label || value}
+          {(
+            [
+              ["scope", scope],
+              ["network", network],
+              ["subnet", subnet],
+              ["service", service],
+            ] as const
+          )
+            .filter(([, value]) => value)
+            .map(([crumb, value]) => (
+              <span key={crumb}>
+                /{" "}
+                <button
+                  className="text-button crumb"
+                  onClick={() => collapseTo(crumb)}
+                >
+                  {String(
+                    graph.nodes.find((n) => n.id === value)?.label || value,
+                  )}
+                </button>
               </span>
             ))}
+          {prefix && <span>/ {prefix}…</span>}
           {level !== "assets" && (
             <button
               className="text-button push-right"
@@ -509,9 +659,26 @@ export function GraphView({
                         deleteKeyCode={null}
                         minZoom={0.1}
                         maxZoom={2}
-                        onNodeClick={(_, n) =>
-                          setInspect(view.nodes.find((x) => x.id === n.id))
-                        }
+                        onNodeClick={(_, n) => {
+                          // Deferred so a double-click can expand a group
+                          // without the inspector covering the canvas first.
+                          if (clickTimer.current)
+                            clearTimeout(clickTimer.current);
+                          clickTimer.current = setTimeout(() => {
+                            clickTimer.current = undefined;
+                            setInspect(view.nodes.find((x) => x.id === n.id));
+                          }, 220);
+                        }}
+                        onNodeDoubleClick={(_, n) => {
+                          if (clickTimer.current)
+                            clearTimeout(clickTimer.current);
+                          clickTimer.current = undefined;
+                          const target = view.nodes.find((x) => x.id === n.id);
+                          if (target?.group) expand(target);
+                          else setInspect(target);
+                        }}
+                        zoomOnDoubleClick={false}
+                        onlyRenderVisibleElements={nodes.length > VIRTUALIZE_AT}
                         onEdgeClick={(_, e) =>
                           setInspect(view.edges.find((x) => x.id === e.id))
                         }
@@ -658,6 +825,22 @@ export function GraphView({
               Explore group
             </button>
           )}
+          {!!inspect.aggregate && collapsed && !demo && !expandNode && (
+            <button
+              className="button primary"
+              onClick={() => {
+                setExpandNode({
+                  id: String(inspect.id),
+                  label: String(inspect.label || inspect.id),
+                });
+                reset();
+                setSearch("");
+                setInspect(undefined);
+              }}
+            >
+              Expand on the server
+            </button>
+          )}
           {!!inspect.aggregate && collapsed && (
             <button
               className="button"
@@ -703,6 +886,7 @@ export function GraphView({
               </div>
             )}
           <Evidence data={inspectionSummary(inspect)} />
+          <CompleteGrants scanId={scanId} demo={demo} value={inspect} />
           {"underlying_edges" in inspect &&
             Array.isArray(inspect.underlying_edges) && (
               <>
@@ -710,7 +894,7 @@ export function GraphView({
                   Underlying evidence · {String(inspect.underlying_count)}{" "}
                   relationships
                 </h3>
-                {inspect.underlying_edges.map((e, i) => (
+                {inspect.underlying_edges.slice(0, INSPECT_EDGES).map((e, i) => (
                   <button
                     key={i}
                     className="relationship-row"
@@ -727,12 +911,27 @@ export function GraphView({
               <h3>
                 {inspect.group ? "Internal relationships" : "Related evidence"}
               </h3>
+              {(() => {
+                const related = inspect.group
+                  ? (inspect as ProjectedNode).internal_edges || []
+                  : graph.edges.filter(
+                      (e) => e.source === inspect.id || e.target === inspect.id,
+                    );
+                return related.length > INSPECT_EDGES ? (
+                  <p className="muted small">
+                    Showing {INSPECT_EDGES} of {related.length} relationships.
+                    Explore the group to see the rest in context.
+                  </p>
+                ) : null;
+              })()}
               {(inspect.group
                 ? (inspect as ProjectedNode).internal_edges || []
                 : graph.edges.filter(
                     (e) => e.source === inspect.id || e.target === inspect.id,
                   )
-              ).map((e, i) => (
+              )
+                .slice(0, INSPECT_EDGES)
+                .map((e, i) => (
                 <button
                   key={i}
                   className="relationship-row"
@@ -753,11 +952,71 @@ export function GraphView({
   );
 }
 
+type GrantCard = {
+  grant_count?: number;
+  source_grants_truncated?: boolean;
+  detail_ref?: { resource_ref?: string };
+};
+// IAM cards carry a bounded grant sample; the complete severity-annotated grant
+// list for card.detail_ref is fetched only on request.
+function CompleteGrants({
+  scanId,
+  demo,
+  value,
+}: {
+  scanId: string;
+  demo: boolean;
+  value: ProjectedNode | GraphEdge;
+}) {
+  const card = (value as { card?: GrantCard }).card;
+  const ref = card?.source_grants_truncated
+    ? card.detail_ref?.resource_ref
+    : undefined;
+  const [open, setOpen] = useState(false);
+  const detail = useApi<{ grant_count?: number; grants?: unknown[] }>(
+    `/scans/${encodeURIComponent(scanId)}/graphs/iam/grants/` +
+      encodeURIComponent(ref || ""),
+    demo,
+    open && !!ref && !!scanId,
+  );
+  useEffect(() => setOpen(false), [ref]);
+  if (!ref) return null;
+  if (!open)
+    return (
+      <button
+        className="button"
+        disabled={demo || !scanId}
+        onClick={() => setOpen(true)}
+      >
+        Load all {Number(card?.grant_count || 0)} declared grants
+      </button>
+    );
+  if (detail.isLoading)
+    return <p className="muted small">Loading declared grants…</p>;
+  if (detail.error) return <p className="muted small">{humanError(detail.error)}</p>;
+  return (
+    <>
+      <h3>
+        All declared grants ·{" "}
+        {Number(detail.data?.grant_count ?? card?.grant_count ?? 0)}
+      </h3>
+      <Evidence data={detail.data?.grants ?? detail.data} />
+    </>
+  );
+}
+
 function inspectionSummary(value: ProjectedNode | GraphEdge) {
   const { internal_edges, underlying_edges, ...metadata } = value;
+  const members = (metadata as ProjectedNode).member_ids;
+  if (Array.isArray(members) && members.length > INSPECT_MEMBERS)
+    Object.assign(metadata, {
+      member_ids: members.slice(0, INSPECT_MEMBERS),
+      member_count: members.length,
+      member_ids_truncated: true,
+    });
   const relationSummary = (edges: unknown) =>
     Array.isArray(edges)
-      ? edges.map((e) => ({
+      ? edges.slice(0, INSPECT_EDGES).map((e) => ({
           id: e.id,
           source: e.source,
           target: e.target,

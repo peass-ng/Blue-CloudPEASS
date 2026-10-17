@@ -1,0 +1,200 @@
+{
+  "aws-compliance.control.account_alternate_contact_security_registered": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/account.pp#L23"
+    }
+  },
+  "aws-compliance.control.account_part_of_organizations": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.account.organization_member"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/organizations/latest/APIReference/API_DescribeOrganization.html"
+    ],
+    "reason": "Exact organization_id IS NOT NULL native membership predicate; DescribeOrganization success ID passes, typed AWSOrganizationsNotInUseException proves absence FAIL. Denied response remains unknown; organization membership does not assert policy effectiveness.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_part_of_organizations",
+    "reviewed_source": {
+      "evaluator_sha256": "4bfb2c0d26915b5a9e19a364d370c4f257e22c2363eaa5837f4aa4ce14a469a7",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/account.pp#L7"
+    }
+  },
+  "aws-compliance.control.cis_v120_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L278"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L54"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L53"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L53"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L54"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L54"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L54"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L53"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.account.security_contact_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/accounts/latest/APIReference/API_GetAlternateContact.html"
+    ],
+    "reason": "Full same-account LEFT JOIN alternate SECURITY contact Name IS NOT NULL predicate preserved; proven GetAlternateContact notfound fails, name-presence DTO passes without storing name/email/phone. GovCloud source info becomes MANUAL; arbitrary denied read unknown.",
+    "review_notes": "Full pinned query and every direct alias separately inspected; native pass/fail/missing/denied/malformed/purity and applicability/differential fixtures; direct SDK metadata only, no cloud evaluator calls or source runtime imports. HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "account_alternate_contact_security_registered",
+    "reviewed_source": {
+      "evaluator_sha256": "d9e21ad5a1b196d498f5d7a01534ce6aa05c41d41d5da89b97a522373c1ae03e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L53"
+    }
+  }
+}

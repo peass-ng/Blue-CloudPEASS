@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone, timedelta
 from . import register, result, unknown
-from .facts import get, list_of_objects, guard
+from .facts import get, list_of_objects, guard, optional
 from .fixtures import CASES, nest
 
 IDS = []
@@ -57,7 +57,27 @@ threshold("aws.b.rds.backup_retention_seven_days", "rds_instance", "BackupRetent
 scalar("aws.b.rds.cluster_minor_upgrade", "rds_cluster", "AutoMinorVersionUpgrade", True, False, "RDS cluster enables automatic minor upgrades", "rds_db_cluster_automatic_minor_version_upgrade_enabled")
 scalar("aws.b.rds.proxy_tls", "rds_proxy", "RequireTLS", True, False, "RDS proxy requires encrypted connections", "rds_db_proxy_tls_encryption_enabled")
 scalar("aws.b.lambda.active_tracing", "lambda_function", "Configuration.TracingConfig.Mode", "Active", "PassThrough", "Lambda active X-Ray tracing is enabled", "lambda_function_tracing_enabled", allowed={"Active", "PassThrough"})
-scalar("aws.b.eks.disable_public_endpoint", "eks_cluster", "Cluster.cluster.resourcesVpcConfig.endpointPublicAccess", False, True, "EKS API endpoint public access is disabled", "eks_cluster_endpoint_restrict_public_access", category="exposure")
+_EKS_VPC = "Cluster.cluster.resourcesVpcConfig"
+
+
+@install("aws.b.eks.disable_public_endpoint", "eks_cluster", "EKS API endpoint public access is disabled or CIDR-restricted",
+         nest(_EKS_VPC, {"endpointPublicAccess": False, "endpointPrivateAccess": True}),
+         nest(_EKS_VPC, {"endpointPublicAccess": True, "publicAccessCidrs": ["0.0.0.0/0"]}),
+         query="eks_cluster_endpoint_restrict_public_access", category="exposure",
+         extra={"restricted": nest(_EKS_VPC, {"endpointPublicAccess": True, "publicAccessCidrs": ["203.0.113.0/24"]}),
+                "unknown": nest(_EKS_VPC, {"endpointPublicAccess": True, "publicAccessCidrs": "0.0.0.0/0"})})
+def _eks_public_endpoint(item, index):
+    config = get(item, _EKS_VPC, dict)
+    public = get(config, "endpointPublicAccess", bool)
+    if not public:
+        return result(False, field=_EKS_VPC + ".endpointPublicAccess", configured=public, official_reference=DOCS.get("eks_cluster"))
+    cidrs = config.get("publicAccessCidrs", ["0.0.0.0/0"])
+    if not isinstance(cidrs, list) or any(not isinstance(c, str) for c in cidrs):
+        return unknown("malformed publicAccessCidrs", field=_EKS_VPC + ".publicAccessCidrs")
+    open_cidrs = [c for c in cidrs if c.strip() in ("0.0.0.0/0", "::/0")] or ([] if cidrs else ["0.0.0.0/0"])
+    return result(bool(open_cidrs), endpoint_public_access=True, public_access_cidrs=cidrs, internet_wide_cidrs=open_cidrs,
+                  semantics="Public endpoint restricted to authorized CIDRs passes; Kubernetes authentication still applies.",
+                  official_reference=DOCS.get("eks_cluster"))
 scalar("aws.b.dynamodb.point_in_time_recovery", "dynamodb_table", "ContinuousBackups.ContinuousBackupsDescription.PointInTimeRecoveryDescription.PointInTimeRecoveryStatus", "ENABLED", "DISABLED", "DynamoDB table has point-in-time recovery enabled", "dynamodb_table_point_in_time_recovery_enabled", allowed={"ENABLED", "DISABLED"})
 
 
@@ -126,7 +146,14 @@ def concurrency(item, index):
 
 @install("aws.b.lambda.insights_layer", "lambda_function", "Lambda function has the source's Lambda Insights extension layer", {"Configuration": {"Layers": [{"Arn": "arn:aws:lambda:us-east-1:111111111111:layer:LambdaInsightsExtension:1"}]}}, {"Configuration": {"Layers": []}}, query="lambda_function_cloudwatch_insights_enabled")
 def insights(item, index):
-    layers = list_of_objects(get(item, "Configuration.Layers", list))
+    configuration = get(item, "Configuration", dict)
+    if configuration.get("collection_status") == "collected":
+        # Successful native detail plus function identity establishes a known
+        # optional-field omission. An absent/unreadable detail cannot do so.
+        get(configuration, "FunctionName", str)
+        layers = list_of_objects(optional(configuration, "Layers", [], list))
+    else:
+        layers = list_of_objects(get(configuration, "Layers", list))
     matches = [get(layer, "Arn", str) for layer in layers if ":layer:LambdaInsightsExtension:" in get(layer, "Arn", str)]
     return result(not matches, matching_layer_arns=matches, semantics="Layer declaration only; invocation/log delivery was not inspected.")
 

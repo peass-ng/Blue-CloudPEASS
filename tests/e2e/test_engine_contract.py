@@ -6,7 +6,7 @@ import subprocess
 
 import pytest
 
-from peaso.engine import catalog, evaluate_snapshot
+from peaso.engine import catalog, evaluate_snapshot, hydrate_frameworks
 from peaso.snapshot import make_snapshot, validate
 
 
@@ -53,7 +53,7 @@ def test_category_check_and_framework_filters_use_same_snapshot(provider):
     assert filtered["resources"] == full["resources"]
     assert filtered["findings"]
     assert {row["check_id"] for row in filtered["findings"]} == {target["id"]}
-    assert {row["category"] for row in filtered["findings"]} == {target["category"]}
+    assert {row["category"] for row in hydrate_frameworks(filtered)["findings"]} == {target["category"]}
     assert filtered["stats"]["check_count"] == 1
     # Public empty selectors mean defaults, matching API model defaults.
     assert evaluate_snapshot(snapshot, categories=[], checks=[], frameworks=[]) == full

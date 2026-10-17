@@ -4,6 +4,7 @@ Every helper raises ``Unavailable`` (-> UNKNOWN) on a missing, denied, malformed
 or unrecognized native fact. A helper never turns absence into a FAIL.
 """
 from __future__ import annotations
+import re
 from . import register, result, unknown
 from .facts import get, list_of_objects, optional, complete_items, Unavailable
 from .fixtures import CASES, nest
@@ -85,17 +86,40 @@ INTERNET_SOURCES = ("*", "0.0.0.0", "0.0.0.0/0", "Internet", "any", "<nw>/0", "/
 
 
 def _strings(properties, plural, singular):
-    many = properties.get(plural)
+    many = optional(properties, plural, None)
     if many is not None and (not isinstance(many, list) or any(not isinstance(x, str) for x in many)):
         raise Unavailable("malformed NSG rule " + plural)
     if many:
         return list(many)
-    one = properties.get(singular)
+    one = optional(properties, singular, None)
     if one is None:
         return []
     if not isinstance(one, str):
         raise Unavailable("malformed NSG rule " + singular)
     return [one]
+
+
+def nsg_sources(properties):
+    sources = _strings(properties, "sourceAddressPrefixes", "sourceAddressPrefix")
+    if sources:
+        if any(not source.strip() for source in sources):
+            raise Unavailable("empty NSG source prefix")
+        return sources
+    groups = list_of_objects(optional(properties, "sourceApplicationSecurityGroups", [], list))
+    if not groups:
+        raise Unavailable("NSG source address or application security group selector unavailable")
+    identifiers = [get(group, "id", str) for group in groups]
+    pattern = r"/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Network/applicationSecurityGroups/[^/]+"
+    if any(not re.fullmatch(pattern, identifier, re.IGNORECASE) for identifier in identifiers):
+        raise Unavailable("malformed NSG application security group source")
+    return ["asg:" + identifier for identifier in identifiers]
+
+
+def nsg_protocol(properties):
+    protocol = get(properties, "protocol", str)
+    if protocol.lower() not in {"tcp", "udp", "icmp", "esp", "ah", "*"}:
+        raise Unavailable("unrecognized Azure NSG protocol")
+    return protocol
 
 
 def nsg_rules(item, include_default=False):
@@ -105,12 +129,15 @@ def nsg_rules(item, include_default=False):
     normalized = []
     for rule in rules:
         p = get(rule, "properties", dict)
-        direction, access, protocol = p.get("direction"), p.get("access"), p.get("protocol")
+        direction, access, protocol = get(p, "direction", str), get(p, "access", str), nsg_protocol(p)
         if direction not in ("Inbound", "Outbound") or access not in ("Allow", "Deny") or not isinstance(protocol, str):
             raise Unavailable("malformed NSG rule direction, access or protocol")
+        ports = _strings(p, "destinationPortRanges", "destinationPortRange")
+        if not ports and protocol.lower() in {"tcp", "udp", "*"}:
+            raise Unavailable("NSG TCP/UDP destination port declaration unavailable")
         normalized.append({"name": rule.get("name"), "priority": p.get("priority"), "direction": direction, "access": access,
-                           "protocol": protocol, "sources": _strings(p, "sourceAddressPrefixes", "sourceAddressPrefix"),
-                           "ports": _strings(p, "destinationPortRanges", "destinationPortRange")})
+                           "protocol": protocol, "sources": nsg_sources(p),
+                           "ports": ports})
     return normalized
 
 
@@ -119,6 +146,8 @@ def port_range(spec):
     spec = spec.strip()
     if spec == "*":
         return 0, 65535
+    if not re.fullmatch(r"[0-9]+(?:-[0-9]+)?", spec):
+        raise Unavailable("malformed NSG port specification: " + spec)
     try:
         if "-" in spec:
             low, high = (int(x) for x in spec.split("-", 1))
@@ -126,6 +155,8 @@ def port_range(spec):
             low = high = int(spec)
     except ValueError:
         raise Unavailable("malformed NSG port specification: " + spec)
+    if not 0 <= low <= high <= 65535:
+        raise Unavailable("NSG port range outside ordered 0-65535 domain")
     return low, high
 
 
@@ -160,6 +191,7 @@ def nsg_rule(name, protocol, sources, ports, direction="Inbound", access="Allow"
     props = {"direction": direction, "access": access, "protocol": protocol}
     props["sourceAddressPrefixes" if isinstance(sources, list) else "sourceAddressPrefix"] = sources
     props["destinationPortRanges" if isinstance(ports, list) else "destinationPortRange"] = ports
+    props["sourcePortRange"] = "*"
     return {"name": name, "properties": props}
 
 

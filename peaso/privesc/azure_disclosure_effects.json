@@ -1,0 +1,177 @@
+{
+  "azure-app-services-read-configured-third-party-credentials": {
+    "provider": "azure",
+    "conditions": [
+      "exact_native_resource",
+      "configured_secret_metadata",
+      "credential_customer_join",
+      "fresh_reviewed_metadata"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.Web/sourcecontrols/read",
+          "scope": "{target.scope}"
+        }
+      ]
+    },
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#read-configured-third-party-credentials",
+    "service": "app_services",
+    "normal_collector_status": "not_collected"
+  },
+  "azure-audit-cluster-client-certificate-theft-data-plane-admin": {
+    "provider": "azure",
+    "conditions": [
+      "exact_native_resource",
+      "configured_secret_metadata",
+      "credential_customer_join",
+      "fresh_reviewed_metadata",
+      "cluster_certificate_secret_link"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.KeyVault/vaults/secrets/getSecret/action",
+          "scope": "{target.scope}",
+          "data_action": true
+        }
+      ]
+    },
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-service-fabric-privesc.md#cluster--client-certificate-theft--data-plane-admin",
+    "service": "service_fabric",
+    "normal_collector_status": "not_collected"
+  },
+  "azure-service-linker-read-connection-configuration-to-exfiltrate-the-backing-secret": {
+    "provider": "azure",
+    "conditions": [
+      "exact_native_resource",
+      "configured_secret_metadata",
+      "credential_customer_join",
+      "fresh_reviewed_metadata"
+    ],
+    "requires": {
+      "all_of": [],
+      "any_of": [
+        [
+          {
+            "action": "Microsoft.ServiceLinker/linkers/read",
+            "scope": "{target.scope}"
+          },
+          {
+            "action": "Microsoft.ServiceLinker/linkers/listConfigurations/action",
+            "scope": "{target.scope}"
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.ServiceLinker/linkers/read",
+            "scope": "{target.scope}"
+          },
+          {
+            "action": "Microsoft.ServiceLinker/linkers/generateConfigurations/action",
+            "scope": "{target.scope}"
+          }
+        ]
+      ]
+    },
+    "source": "src/pentesting-cloud/azure-security/az-post-exploitation/az-service-connector-post-exploitation.md#read-connection-configuration-to-exfiltrate-the-backing-secret",
+    "service": "service_linker",
+    "normal_collector_status": "not_collected"
+  },
+  "azure-spring-apps-config-server-bindings-secret-exposure": {
+    "provider": "azure",
+    "conditions": [
+      "exact_native_resource",
+      "configured_secret_metadata",
+      "credential_customer_join",
+      "fresh_reviewed_metadata"
+    ],
+    "requires": {
+      "all_of": [],
+      "any_of": [
+        [
+          {
+            "action": "Microsoft.AppPlatform/Spring/apps/read",
+            "scope": "{target.scope}"
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.AppPlatform/Spring/apps/bindings/read",
+            "scope": "{target.scope}"
+          }
+        ],
+        [
+          {
+            "action": "Microsoft.AppPlatform/Spring/configService/read",
+            "scope": "{target.scope}",
+            "data_action": true
+          }
+        ]
+      ]
+    },
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-spring-apps-privesc.md#config-server--bindings--secret-exposure",
+    "service": "spring_apps",
+    "normal_collector_status": "not_collected"
+  },
+  "azure-spring-apps-microsoftappplatformspringapmslistsecretkeysaction": {
+    "provider": "azure",
+    "conditions": [
+      "exact_native_resource",
+      "configured_secret_metadata",
+      "credential_customer_join",
+      "fresh_reviewed_metadata"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.AppPlatform/Spring/apms/listSecretKeys/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    },
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-spring-apps-privesc.md#microsoftappplatformspringapmslistsecretkeysaction",
+    "service": "spring_apps",
+    "normal_collector_status": "not_collected"
+  },
+  "azure-sre-agent-microsoftappagentsdataconnectorslistsecretsaction": {
+    "provider": "azure",
+    "conditions": [
+      "exact_native_resource",
+      "configured_secret_metadata",
+      "credential_customer_join",
+      "fresh_reviewed_metadata"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.App/agents/dataconnectors/listSecrets/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    },
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-sre-agent-privesc.md#microsoftappagentsdataconnectorslistsecretsaction",
+    "service": "sre_agent",
+    "normal_collector_status": "not_collected"
+  },
+  "azure-sre-agent-microsoftappagentslistsecretsaction": {
+    "provider": "azure",
+    "conditions": [
+      "exact_native_resource",
+      "configured_secret_metadata",
+      "credential_customer_join",
+      "fresh_reviewed_metadata"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "Microsoft.App/agents/listSecrets/action",
+          "scope": "{target.scope}"
+        }
+      ]
+    },
+    "source": "src/pentesting-cloud/azure-security/az-privilege-escalation/az-sre-agent-privesc.md#microsoftappagentslistsecretsaction",
+    "service": "sre_agent",
+    "normal_collector_status": "not_collected"
+  }
+}

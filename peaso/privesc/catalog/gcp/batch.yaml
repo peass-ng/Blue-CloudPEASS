@@ -1,13 +1,14 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
 # GCP Batch privilege escalation techniques.
-# Source: hacktricks-cloud gcp-privilege-escalation/gcp-batch-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-batch-privesc.md (rev 171e422).
 # Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
 
 - id: gcp-batch-jobs-create-actas
   provider: gcp
   service: batch
   title: Create a Batch job whose VMs run as a chosen service account
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-batch-privesc.md#batchjobscreate-iamserviceaccountsactas
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-batch-privesc.md#submit-arbitrary-code-as-a-more-privileged-job-service-account
+  source_revision: 171e422
   summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
   requires:
     all_of:
@@ -26,7 +27,7 @@
     - id: default_sa_needs_actas
       description: Omitting the SA uses the Compute Engine default SA, and actAs on it is still required (enforced at submit).
     - id: custom_sa_agent_roles
-      description: A custom SA must itself hold roles/batch.agentReporter and roles/logging.logWriter (or equivalent), otherwise the job's VMs never report and the job fails before running.
+      description: The job SA must itself hold batch.states.report (roles/batch.agentReporter), otherwise the job's VMs never report and the job fails; roles/logging.logWriter is only needed when logs go to Cloud Logging.
     - id: access_scopes
       description: The usable token follows the job's VM access scopes.
   blockers:

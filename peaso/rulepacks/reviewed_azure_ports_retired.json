@@ -1,0 +1,1298 @@
+{
+  "azure-compliance.control.cis_v130_4_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_sql_ssl_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_sql_ssl_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 217,
+      "query_sha256": "da22777e600b17bebd1e8857c96b0327dfe6758f5583dad9645f1333647dc9f2",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 198,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_ssl_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_ssl_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 168,
+      "query_sha256": "afc1cbec6f1215c3d982e999fbf4f39df3533cfe3f9dff5767a9d80070958472",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 212,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_checkpoints_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_checkpoints_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 360,
+      "query_sha256": "7e6e949c294377ff9121ea1a65fd284c8216d752b306230e94c0da3d212808d7",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 226,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_3_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_connections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_connections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 384,
+      "query_sha256": "bc6d18c2634942cc9a092efd96d7bd3da2b556ae0a71e89dd2cfada81d84fb3c",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 240,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_disconnections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_disconnections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 408,
+      "query_sha256": "823e4b4e277bc2dea632b6648e4c5007535920a2e4f1a77e95b376b7f45ad214",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 254,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_3_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_connection_throttling_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_connection_throttling_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 336,
+      "query_sha256": "ee2ff661cbfc0456e6b94d6f9cf92401d713c3449baba8f2cc6a2a23ff71d1cf",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 268,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_3_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_retention_days_3 targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_retention_days_3",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 456,
+      "query_sha256": "3fe1a9a96cda7cc6c44e804cbf08f46548f545b72f72e1b4a635eb7e58a2c67c",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 282,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_sql_ssl_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_sql_ssl_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 217,
+      "query_sha256": "da22777e600b17bebd1e8857c96b0327dfe6758f5583dad9645f1333647dc9f2",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 202,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_checkpoints_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_checkpoints_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 360,
+      "query_sha256": "7e6e949c294377ff9121ea1a65fd284c8216d752b306230e94c0da3d212808d7",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 216,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_connections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_connections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 384,
+      "query_sha256": "bc6d18c2634942cc9a092efd96d7bd3da2b556ae0a71e89dd2cfada81d84fb3c",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 230,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_3_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_disconnections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_disconnections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 408,
+      "query_sha256": "823e4b4e277bc2dea632b6648e4c5007535920a2e4f1a77e95b376b7f45ad214",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 244,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_connection_throttling_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_connection_throttling_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 336,
+      "query_sha256": "ee2ff661cbfc0456e6b94d6f9cf92401d713c3449baba8f2cc6a2a23ff71d1cf",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 258,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_3_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_retention_days_3 targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_retention_days_3",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 456,
+      "query_sha256": "3fe1a9a96cda7cc6c44e804cbf08f46548f545b72f72e1b4a635eb7e58a2c67c",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 272,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgresql_server_infrastructure_encryption_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgresql_server_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 259,
+      "query_sha256": "11bb983600c83f8da5b5bbf377ded700dce0e2be3836f5f224d37586bcd3ae9a",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 300,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_4_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_ssl_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_ssl_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 168,
+      "query_sha256": "afc1cbec6f1215c3d982e999fbf4f39df3533cfe3f9dff5767a9d80070958472",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 328,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_4_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_min_tls_1_2 targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_min_tls_1_2",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 419,
+      "query_sha256": "08c9155cc1c3346be100803a86970b84630ffc22f7e13eb3adfd04bd78f5739f",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 342,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_sql_ssl_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_sql_ssl_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 217,
+      "query_sha256": "da22777e600b17bebd1e8857c96b0327dfe6758f5583dad9645f1333647dc9f2",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 249,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_checkpoints_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_checkpoints_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 360,
+      "query_sha256": "7e6e949c294377ff9121ea1a65fd284c8216d752b306230e94c0da3d212808d7",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 263,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_connections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_connections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 384,
+      "query_sha256": "bc6d18c2634942cc9a092efd96d7bd3da2b556ae0a71e89dd2cfada81d84fb3c",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 277,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_3_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_disconnections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_disconnections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 408,
+      "query_sha256": "823e4b4e277bc2dea632b6648e4c5007535920a2e4f1a77e95b376b7f45ad214",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 291,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_connection_throttling_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_connection_throttling_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 336,
+      "query_sha256": "ee2ff661cbfc0456e6b94d6f9cf92401d713c3449baba8f2cc6a2a23ff71d1cf",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 305,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_3_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_retention_days_3 targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_retention_days_3",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 456,
+      "query_sha256": "3fe1a9a96cda7cc6c44e804cbf08f46548f545b72f72e1b4a635eb7e58a2c67c",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 319,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgresql_server_infrastructure_encryption_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgresql_server_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 259,
+      "query_sha256": "11bb983600c83f8da5b5bbf377ded700dce0e2be3836f5f224d37586bcd3ae9a",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 347,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_4_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_ssl_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_ssl_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 168,
+      "query_sha256": "afc1cbec6f1215c3d982e999fbf4f39df3533cfe3f9dff5767a9d80070958472",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 377,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_4_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_min_tls_1_2 targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_min_tls_1_2",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 419,
+      "query_sha256": "08c9155cc1c3346be100803a86970b84630ffc22f7e13eb3adfd04bd78f5739f",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 391,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_4_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_audit_logging_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_audit_logging_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 371,
+      "query_sha256": "745860dda8e07b1c335a4e46ea776a3c3c08d55792868ff733e616dad11d1d93",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 405,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_4_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_audit_logging_events_connection_set targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_audit_logging_events_connection_set",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 395,
+      "query_sha256": "a649200260f737043bfbd81fb7d2ff690b3c3ca4a19748518403614c3297ed9e",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 419,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_sql_ssl_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_sql_ssl_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 217,
+      "query_sha256": "da22777e600b17bebd1e8857c96b0327dfe6758f5583dad9645f1333647dc9f2",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 249,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_checkpoints_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_checkpoints_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 360,
+      "query_sha256": "7e6e949c294377ff9121ea1a65fd284c8216d752b306230e94c0da3d212808d7",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 263,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_connections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_connections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 384,
+      "query_sha256": "bc6d18c2634942cc9a092efd96d7bd3da2b556ae0a71e89dd2cfada81d84fb3c",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 277,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_disconnections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_disconnections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 408,
+      "query_sha256": "823e4b4e277bc2dea632b6648e4c5007535920a2e4f1a77e95b376b7f45ad214",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 291,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_connection_throttling_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_connection_throttling_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 336,
+      "query_sha256": "ee2ff661cbfc0456e6b94d6f9cf92401d713c3449baba8f2cc6a2a23ff71d1cf",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 305,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_retention_days_3 targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_retention_days_3",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 456,
+      "query_sha256": "3fe1a9a96cda7cc6c44e804cbf08f46548f545b72f72e1b4a635eb7e58a2c67c",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 319,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_allow_access_to_azure_services_disabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_allow_access_to_azure_services_disabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 480,
+      "query_sha256": "63f96a6bab8b4fad3f41238ac95abe80129fd26847153efb3c74cd3e0b9349a0",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 333,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgresql_server_infrastructure_encryption_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgresql_server_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 259,
+      "query_sha256": "11bb983600c83f8da5b5bbf377ded700dce0e2be3836f5f224d37586bcd3ae9a",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 347,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_4_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_ssl_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_ssl_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 168,
+      "query_sha256": "afc1cbec6f1215c3d982e999fbf4f39df3533cfe3f9dff5767a9d80070958472",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 377,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_4_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_min_tls_1_2 targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_min_tls_1_2",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 419,
+      "query_sha256": "08c9155cc1c3346be100803a86970b84630ffc22f7e13eb3adfd04bd78f5739f",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 391,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_4_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_audit_logging_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_audit_logging_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 371,
+      "query_sha256": "745860dda8e07b1c335a4e46ea776a3c3c08d55792868ff733e616dad11d1d93",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 405,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_4_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_audit_logging_events_connection_set targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_audit_logging_events_connection_set",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 395,
+      "query_sha256": "a649200260f737043bfbd81fb7d2ff690b3c3ca4a19748518403614c3297ed9e",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 419,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_sql_ssl_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_sql_ssl_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 217,
+      "query_sha256": "da22777e600b17bebd1e8857c96b0327dfe6758f5583dad9645f1333647dc9f2",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 158,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_checkpoints_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_checkpoints_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 360,
+      "query_sha256": "7e6e949c294377ff9121ea1a65fd284c8216d752b306230e94c0da3d212808d7",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 172,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_connections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_connections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 384,
+      "query_sha256": "bc6d18c2634942cc9a092efd96d7bd3da2b556ae0a71e89dd2cfada81d84fb3c",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 186,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_disconnections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_disconnections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 408,
+      "query_sha256": "823e4b4e277bc2dea632b6648e4c5007535920a2e4f1a77e95b376b7f45ad214",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 200,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_connection_throttling_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_connection_throttling_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 336,
+      "query_sha256": "ee2ff661cbfc0456e6b94d6f9cf92401d713c3449baba8f2cc6a2a23ff71d1cf",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 214,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_retention_days_3 targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_retention_days_3",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 456,
+      "query_sha256": "3fe1a9a96cda7cc6c44e804cbf08f46548f545b72f72e1b4a635eb7e58a2c67c",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 228,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_allow_access_to_azure_services_disabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_allow_access_to_azure_services_disabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 480,
+      "query_sha256": "63f96a6bab8b4fad3f41238ac95abe80129fd26847153efb3c74cd3e0b9349a0",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 242,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_3_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgresql_server_infrastructure_encryption_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgresql_server_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 259,
+      "query_sha256": "11bb983600c83f8da5b5bbf377ded700dce0e2be3836f5f224d37586bcd3ae9a",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 256,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_4_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_ssl_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_ssl_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 168,
+      "query_sha256": "afc1cbec6f1215c3d982e999fbf4f39df3533cfe3f9dff5767a9d80070958472",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 286,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_4_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_min_tls_1_2 targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_min_tls_1_2",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 419,
+      "query_sha256": "08c9155cc1c3346be100803a86970b84630ffc22f7e13eb3adfd04bd78f5739f",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 300,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_4_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_audit_logging_enabled targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_audit_logging_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 371,
+      "query_sha256": "745860dda8e07b1c335a4e46ea776a3c3c08d55792868ff733e616dad11d1d93",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 314,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_4_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected mysql_server_audit_logging_events_connection_set targets the retired Single Server generation Microsoft.DBforMySQL/servers, via upstream table azure_mysql_server and its legacy servers SDK adapter. Microsoft retirement 2024-09-17 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "mysql_server_audit_logging_events_connection_set",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 395,
+      "query_sha256": "a649200260f737043bfbd81fb7d2ff690b3c3ca4a19748518403614c3297ed9e",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 328,
+      "arguments": [],
+      "legacy_table": "azure_mysql_server",
+      "resource_generation": "Microsoft.DBforMySQL/servers",
+      "retired_on": "2024-09-17",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_mysql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_connections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_connections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 384,
+      "query_sha256": "bc6d18c2634942cc9a092efd96d7bd3da2b556ae0a71e89dd2cfada81d84fb3c",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 243,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgres_db_server_log_disconnections_on targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgres_db_server_log_disconnections_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 408,
+      "query_sha256": "823e4b4e277bc2dea632b6648e4c5007535920a2e4f1a77e95b376b7f45ad214",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 257,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_2_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "obsolete_definition",
+    "reason": "Individually inspected postgresql_server_infrastructure_encryption_enabled targets the retired Single Server generation Microsoft.DBforPostgreSQL/servers, via upstream table azure_postgresql_server and its legacy servers SDK adapter. Microsoft retirement 2025-03-28 precedes current2026 review; this historical predicate is not silently merged with Flexible Server configuration or counted as current automated support. Original framework/question/provenance retained.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview"
+    ],
+    "review_notes": "Retirement of the explicitly inspected resource generation is substantive version/applicability evidence, not a missing-facts rejection. Flexible Server predicates are separate valid current candidates and remain assigned independently.",
+    "source_review": {
+      "query_id": "postgresql_server_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 259,
+      "query_sha256": "11bb983600c83f8da5b5bbf377ded700dce0e2be3836f5f224d37586bcd3ae9a",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 271,
+      "arguments": [],
+      "legacy_table": "azure_postgresql_server",
+      "resource_generation": "Microsoft.DBforPostgreSQL/servers",
+      "retired_on": "2025-03-28",
+      "reviewed_at": "2026-10-10",
+      "generation_adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_postgresql_server.go"
+    }
+  }
+}

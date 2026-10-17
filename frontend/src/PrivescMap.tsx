@@ -10,8 +10,7 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import type { Edge, Node, NodeProps, ReactFlowInstance } from "@xyflow/react";
-import ELK from "elkjs/lib/elk-api.js";
-import elkWorkerUrl from "elkjs/lib/elk-worker.min.js?url";
+import { sharedElk } from "./elkWorker";
 import type { ELK as ElkInstance, ElkNode } from "elkjs";
 import {
   ArrowRight,
@@ -21,6 +20,7 @@ import {
   Focus,
   Layers,
   Minimize2,
+  CircleHelp,
   PanelLeftClose,
   PanelLeftOpen,
   Radar,
@@ -51,11 +51,16 @@ import type {
   PrivescNode,
   PrivescPath,
 } from "./types";
-import { Badge, Inspector, Panel, ProviderIcon, State } from "./ui";
+import { Badge, EvidenceFields, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
+import { Remediation } from "./Remediation";
+import { explainPrivescCondition } from "./privescCondition";
 import "@xyflow/react/dist/style.css";
 
 const INITIAL_CAP = 150,
   CAP_STEP = 150,
+  // Hard ceiling for "Show more": beyond this ELK layout and DOM size stop
+  // being interactive, so the user must narrow with search, focus or filters.
+  HARD_CAP = 900,
   MEMBER_CAP = 40,
   FOCUS_DEPTH = 2,
   VIRTUALIZE_AT = 100;
@@ -108,7 +113,20 @@ type VEdge = {
   membership?: boolean;
 };
 type Highlight = { nodes: Set<string>; edges: Set<string>; label: string };
-type Card = { type: "principal"; id: string } | { type: "edge"; id: string };
+function displayedStepEdge(step: PrivescPath["steps"][number], index: PrivescIndex) {
+  if (step.via === "edge" && step.edge) return step.edge;
+  const group = index.nodes.get(step.to)?.type === "principal_group";
+  const aggregate = group ? step.to : step.from;
+  return `m:${aggregate}->${group ? step.from : step.to}`;
+}
+type Card =
+  | { type: "principal"; id: string }
+  | { type: "edge"; id: string }
+  | { type: "unresolved"; id: string };
+// Above this many unresolved placeholders they start hidden (they only carry unknown edges).
+const UNRESOLVED_AUTO_HIDE = 20;
+export const isUnresolved = (n?: PrivescNode) =>
+  !!n && (n.unresolved === true || n.id.startsWith("unresolved:") || n.id.startsWith("unknown:"));
 type QueryKind = "admins" | "path" | "broad" | "from";
 type PeFlowNode = Node<
   {
@@ -125,7 +143,7 @@ type PeFlowNode = Node<
 export function hacktricksUrl(source?: string | null) {
   if (!source) return undefined;
   const [path, hash] = source.split("#");
-  const page = path.replace(/^src\//, "").replace(/\.md$/, ".html");
+  const page = path.replace(/^src\//, "").replace(/(?:^|\/)README\.md$/, "/").replace(/\.md$/, ".html");
   return `https://cloud.hacktricks.wiki/en/${page}${hash ? `#${hash}` : ""}`;
 }
 export function humanType(type?: string | null) {
@@ -137,13 +155,64 @@ export function humanType(type?: string | null) {
     : type.replaceAll("_", " ");
 }
 const shortId = (id: string) => id.split(/[/:]/).filter(Boolean).pop() || id;
+const unresolvedTitle = (n: PrivescNode) =>
+  (n.label || n.candidate_set || n.id).replace(/^Unresolved:\s*/i, "");
+// Read-only collection the analyser would need to resolve an "<x>_attachment_not_collected" set.
+const AWS_COLLECT: Record<string, string> = {
+  batch: "batch:DescribeJobDefinitions, batch:DescribeJobQueues",
+  cloudformation: "cloudformation:ListStacks, cloudformation:DescribeStacks",
+  glue: "glue:GetJobs, glue:GetDevEndpoints",
+  sagemaker: "sagemaker:ListNotebookInstances, sagemaker:DescribeNotebookInstance",
+  codebuild: "codebuild:ListProjects, codebuild:BatchGetProjects",
+  codepipeline: "codepipeline:ListPipelines, codepipeline:GetPipeline",
+  ecs: "ecs:ListClusters, ecs:ListServices, ecs:DescribeServices, ecs:DescribeTaskDefinition",
+  ecs_task: "ecs:ListTasks, ecs:DescribeTasks, ecs:DescribeTaskDefinition",
+  elasticbeanstalk_environment: "elasticbeanstalk:DescribeEnvironments, elasticbeanstalk:DescribeConfigurationSettings",
+  emr_cluster: "elasticmapreduce:ListClusters, elasticmapreduce:DescribeCluster",
+  rds_db_instance: "rds:DescribeDBInstances",
+  redshift_cluster: "redshift:DescribeClusters",
+  redshift_serverless_workgroup: "redshift-serverless:ListWorkgroups, redshift-serverless:ListNamespaces",
+  stepfunctions: "states:ListStateMachines, states:DescribeStateMachine",
+};
+export function unresolvedAdvice(n: PrivescNode): { missing: string; collect: string } {
+  const reason = n.unresolved_reason || "";
+  const facts = (n.facts_needed || "").replace(/^facts not in snapshot:\s*/i, "");
+  const attach = /^(.+)_attachment_not_collected$/.exec(reason);
+  if (attach) {
+    const svc = attach[1];
+    const actions = n.provider === "aws" ? AWS_COLLECT[svc] : undefined;
+    return {
+      missing: `The snapshot has no ${humanType(svc)} resources with their attached execution roles, so the roles this technique would hand over cannot be listed.`,
+      collect: actions
+        ? `Grant the collector read access (${actions}) and rescan with the privesc category.`
+        : `Collect ${humanType(svc)} resources and their attached roles, then rescan with the privesc category.`,
+    };
+  }
+  if (/_not_evaluated$/.test(reason))
+    return {
+      missing: `The evaluator could not resolve this target selector from the snapshot${facts ? `; it needs ${facts}` : ""}.`,
+      collect: facts
+        ? `Collect ${facts} and rescan. Until then, review the inbound principals and their exact permission and target prerequisites manually.`
+        : "Review the inbound principals and their exact permission and target prerequisites manually.",
+    };
+  return {
+    missing: facts ? `Facts not in the snapshot: ${facts}.` : "Facts needed to resolve the targets were not collected.",
+    collect: "Widen collection for the resources named above and rescan with the privesc category.",
+  };
+}
 const nodeLabel = (n?: PrivescNode, id = "") =>
   n?.label || (n ? shortId(n.id) : shortId(id));
 const plural = (n: number, word: string) =>
   `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export function formatRef(ref: PrivescEvidenceRef): string {
-  const v = (k: string) => (ref[k] == null ? "" : String(ref[k]));
+  const v = (k: string) => {
+    const value = ref[k];
+    return value == null ? "" :
+      typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+        ? String(value)
+        : "structured field";
+  };
   if ("policy_name" in ref || "policy_type" in ref)
     return `${v("policy_type") || "policy"} policy ${v("policy_name") || v("policy")} · statement ${v("statement") || "0"}${v("sid") ? ` (${v("sid")})` : ""} · ${v("effect") || "Allow"}`;
   if ("assignment" in ref)
@@ -152,14 +221,24 @@ export function formatRef(ref: PrivescEvidenceRef): string {
     return `${v("binding")} → ${v("role")}${v("namespace") ? ` in ${v("namespace")}` : " (cluster-wide)"}`;
   if ("role" in ref)
     return `${v("role")} on ${v("policy") || v("binding")}${v("condition") ? ` · condition: ${v("condition")}` : ""}`;
-  return JSON.stringify(ref);
+  const fields = Object.entries(ref).map(([key, value]) => {
+    const label = key.replaceAll("_", " ");
+    if (value == null) return `${label}: not supplied`;
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean")
+      return `${label}: ${value}`;
+    return `${label}: structured fields supplied`;
+  });
+  return fields.length ? fields.join(" · ") : "Reference fields were not supplied";
 }
 
 const PeNodeView = memo(function PeNodeView({ data }: NodeProps<PeFlowNode>) {
   const n = data.node;
-  const aggregate = n.kind === "aggregate";
+  const unresolved = isUnresolved(n);
+  const aggregate = n.kind === "aggregate" && !unresolved;
   const count = aggregate ? n.underlying_count : undefined;
-  const subtitle = aggregate
+  const subtitle = unresolved
+    ? `Unresolved · facts missing · ${n.scope || "unscoped"}`
+    : aggregate
     ? `${count == null ? "Unknown" : count} ${n.type === "principal_group" ? "possible sources" : "members"} · ${data.expanded ? "collapse" : "expand"}`
     : n.kind === "entity"
       ? data.admin
@@ -178,19 +257,31 @@ const PeNodeView = memo(function PeNodeView({ data }: NodeProps<PeFlowNode>) {
         data.dimmed ? "is-dim" : "",
         data.focused ? "is-focus" : "",
         n.confidence === "unknown" ? "is-unknown" : "",
+        unresolved ? "pe-unresolved" : "",
       ].join(" ")}
-      title={n.id}
+      title={unresolved ? `${n.id}\n${n.facts_needed || n.unresolved_reason || ""}` : n.id}
     >
       <Handle type="target" position={Position.Left} />
       <span className="pe-node-icon">
-        {data.admin ? (
+        {unresolved ? (
+          <CircleHelp size={20} aria-label="Unresolved" />
+        ) : data.admin ? (
           <Crown size={18} />
         ) : (
           <ProviderIcon provider={String(n.provider || "generic")} size={22} />
         )}
       </span>
       <span className="pe-node-text">
-        <strong>{nodeLabel(n)}</strong>
+        <strong>
+          {unresolved ? (
+            <>
+              <em className="pe-unresolved-tag">Unresolved</em>
+              {unresolvedTitle(n)}
+            </>
+          ) : (
+            nodeLabel(n)
+          )}
+        </strong>
         <span>{subtitle}</span>
       </span>
       {aggregate && (
@@ -256,7 +347,9 @@ export function PrivescMap({
   const [provider, setProvider] = useState(""),
     [minSeverity, setMinSeverity] = useState(""),
     [confidence, setConfidence] = useState(""),
-    [hideUnknown, setHideUnknown] = useState(false),
+    [hideUnknown, setHideUnknown] = useState(true),
+    // null = automatic (hidden when there are many placeholders).
+    [unresolvedChoice, setUnresolvedChoice] = useState<boolean | null>(null),
     [expanded, setExpanded] = useState<Set<string>>(() => new Set()),
     [focus, setFocus] = useState(""),
     [highlight, setHighlight] = useState<Highlight | null>(null),
@@ -264,6 +357,7 @@ export function PrivescMap({
     [card, setCard] = useState<Card | null>(null),
     [query, setQuery] = useState<QueryKind | null>(null),
     [cap, setCap] = useState(INITIAL_CAP);
+  const displayedPaths = useRef<{ query: QueryKind | null; paths: PrivescPath[] } | null>(null);
 
   useEffect(() => {
     setExpanded(new Set());
@@ -273,13 +367,24 @@ export function PrivescMap({
     setCard(null);
     setQuery(null);
     setCap(INITIAL_CAP);
+    setUnresolvedChoice(null);
+    displayedPaths.current = null;
   }, [scanId, demo]);
+  const unresolvedStats = useMemo(() => {
+    const ids = new Set(graph.nodes.filter(isUnresolved).map((n) => n.id));
+    let edges = 0;
+    for (const e of graph.edges) if (ids.has(e.target) || ids.has(e.source)) edges++;
+    return { nodes: ids.size, edges };
+  }, [graph]);
+  const showUnresolved =
+    !hideUnknown && (unresolvedChoice ?? unresolvedStats.nodes <= UNRESOLVED_AUTO_HIDE);
 
   const visible = useMemo(() => {
     const hlNodes = highlight?.nodes || new Set<string>();
     const passNode = (n?: PrivescNode) =>
       !!n &&
       (!provider || n.provider === provider) &&
+      (showUnresolved || !isUnresolved(n) || hlNodes.has(n.id)) &&
       !(
         hideUnknown &&
         (n.id.startsWith("unknown:") ||
@@ -390,6 +495,7 @@ export function PrivescMap({
     index,
     provider,
     hideUnknown,
+    showUnresolved,
     confidence,
     minSeverity,
     edgeSeverity,
@@ -436,9 +542,8 @@ export function PrivescMap({
   }, []);
   const [layoutError, setLayoutError] = useState("");
   useEffect(() => {
-    elk.current = new ELK({ workerFactory: () => new Worker(elkWorkerUrl) });
+    elk.current = sharedElk();
     return () => {
-      elk.current?.terminateWorker();
       elk.current = null;
     };
   }, []);
@@ -484,8 +589,8 @@ export function PrivescMap({
         targets: [e.target],
       })),
     };
-    elk.current
-      ?.layout(input)
+    (elk.current || sharedElk())
+      .layout(input)
       .then((result) => {
         if (!active) return;
         const pos: Record<string, { x: number; y: number }> = {};
@@ -700,6 +805,7 @@ export function PrivescMap({
   }, []);
   const highlightPaths = useCallback(
     (paths: PrivescPath[], label: string) => {
+      displayedPaths.current = { query, paths };
       const nodes = new Set<string>(),
         edges = new Set<string>(),
         aggs: string[] = [];
@@ -707,12 +813,11 @@ export function PrivescMap({
         for (const s of p.steps) {
           nodes.add(s.from);
           nodes.add(s.to);
-          if (s.via === "edge" && s.edge) edges.add(s.edge);
-          else {
+          edges.add(displayedStepEdge(s, index));
+          if (s.via !== "edge" || !s.edge) {
             const fromNode = index.nodes.get(s.from);
             const group = index.nodes.get(s.to)?.type === "principal_group";
             const agg = group ? s.to : s.from;
-            edges.add(`m:${agg}->${group ? s.from : s.to}`);
             if (fromNode?.kind === "aggregate" || group) aggs.push(agg);
           }
         }
@@ -721,10 +826,11 @@ export function PrivescMap({
       setFocus("");
       setHighlight(nodes.size ? { nodes, edges, label } : null);
     },
-    [index],
+    [index, query],
   );
   const highlightSet = useCallback(
     (nodes: Set<string>, edges: Set<string>, label: string) => {
+      displayedPaths.current = null;
       setFocus("");
       setHighlight(nodes.size ? { nodes, edges, label } : null);
     },
@@ -749,6 +855,7 @@ export function PrivescMap({
       aggregates = 0,
       admins = 0;
     for (const n of graph.nodes) {
+      if (isUnresolved(n)) continue;
       if (n.kind === "aggregate") aggregates++;
       else if (n.kind === "principal") principals++;
       if (index.isAdmin(n.id)) admins++;
@@ -766,6 +873,22 @@ export function PrivescMap({
   const missing =
     graphQ.error instanceof ApiError &&
     [404, 422].includes(graphQ.error.status);
+  if (graphQ.error instanceof ApiError && graphQ.error.status === 401)
+    return (
+      <Panel className="pe-empty">
+        <div className="state" role="alert">
+          <ShieldAlert />
+          <h3>Authentication is required to view this map</h3>
+          <p>Sign in to your workspace or add a valid API token in Settings, then retry.</p>
+          <div className="button-row">
+            <a className="button primary" href="https://tools.hacktricks.wiki/login.html">Sign in at Tools</a>
+            <button className="button" onClick={() => onNavigate?.("Settings")}>
+              Open authentication settings
+            </button>
+          </div>
+        </div>
+      </Panel>
+    );
   if (graphQ.error && !missing)
     return (
       <State error={graphQ.error} onRetry={() => void graphQ.refetch()} />
@@ -788,16 +911,18 @@ export function PrivescMap({
         <span className="count-pill">
           {counts.principals} principals · {counts.aggregates} aggregates ·{" "}
           {counts.admins} admin scopes · {graph.edges.length} escalation edges
+          {unresolvedStats.nodes > 0 && ` · ${unresolvedStats.nodes} unresolved`}
         </span>
       </div>
       <div className="notice">
         <ShieldAlert size={18} />
         <p>
-          Each edge means the source effectively holds permissions that a
-          HackTricks Cloud technique needs to obtain the target&apos;s
-          privileges. Dashed edges are conditional (a condition or an
-          unevaluated guardrail); dotted edges are unknown because facts were
-          missing. Nothing was executed against your cloud.
+          Edges show modelled escalation paths from observed permissions and
+          collected facts. A solid edge is derived from evaluated evidence; a
+          dashed edge is conditional on the prerequisites shown in its
+          inspector. A dotted edge needs facts the snapshot did not collect.
+          Select an edge to see the exact condition or missing evidence.
+          Nothing was executed against your cloud.
         </p>
       </div>
       {graphQ.data?.truncated && (
@@ -863,6 +988,17 @@ export function PrivescMap({
               />
               Hide unknown
             </label>
+            {unresolvedStats.nodes > 0 && (
+              <label className="pe-check" title="Placeholders for target sets the snapshot could not resolve">
+                <input
+                  type="checkbox"
+                  checked={showUnresolved}
+                  disabled={hideUnknown}
+                  onChange={(e) => setUnresolvedChoice(e.target.checked)}
+                />
+                Show unresolved ({unresolvedStats.nodes})
+              </label>
+            )}
           </div>
         </div>
         <div className="graph-breadcrumb pe-status">
@@ -972,10 +1108,19 @@ export function PrivescMap({
                   maxZoom={2}
                   onNodeClick={(_, n) => {
                     const node = (n as PeFlowNode).data.node;
-                    if (node.kind === "aggregate") toggleExpand(node.id);
+                    if (isUnresolved(node)) setCard({ type: "unresolved", id: node.id });
+                    else if (node.kind === "aggregate") toggleExpand(node.id);
                     else openPrincipal(node.id);
                   }}
                   onEdgeClick={(_, e) => {
+                    const current = displayedPaths.current;
+                    const path = current?.query === query
+                      ? current.paths.find((item) => item.steps.some(
+                          (step) => displayedStepEdge(step, index) === e.id,
+                        ))
+                      : undefined;
+                    if (path)
+                      highlightPaths([path], `${path.confidence} path · ${path.steps.length} hops`);
                     if (!e.id.startsWith("m:"))
                       setCard({ type: "edge", id: e.id });
                   }}
@@ -990,6 +1135,7 @@ export function PrivescMap({
                     nodeColor={(n) => {
                       const d = (n as PeFlowNode).data;
                       if (d.admin) return "#ff6b85";
+                      if (isUnresolved(d.node)) return "#6b7785";
                       if (d.node.kind === "aggregate") return "#b59cff";
                       return (
                         {
@@ -1034,12 +1180,35 @@ export function PrivescMap({
               ` · ${visible.hidden} nodes hidden by the render cap`}
           </span>
           <Legend />
-          {visible.hidden > 0 && (
-            <button className="button" onClick={() => setCap(cap + CAP_STEP)}>
-              Show {Math.min(CAP_STEP, visible.hidden)} more nodes
+          {visible.hidden > 0 && cap < HARD_CAP && (
+            <button
+              className="button pe-show-more"
+              disabled={layingOut}
+              onClick={() => setCap(Math.min(HARD_CAP, cap + CAP_STEP))}
+            >
+              {layingOut
+                ? "Laying out…"
+                : `Show ${Math.min(CAP_STEP, visible.hidden, HARD_CAP - cap)} more nodes`}
             </button>
           )}
+          {visible.hidden > 0 && cap >= HARD_CAP && (
+            <span className="pe-hard-cap" role="status">
+              Render limit of {HARD_CAP} nodes reached
+            </span>
+          )}
         </div>
+        {!showUnresolved && unresolvedStats.nodes > 0 && (
+          <p className="notice small pe-cap-notice pe-unresolved-notice">
+            <CircleHelp size={14} /> {plural(unresolvedStats.nodes, "unresolved target set")}{" "}
+            ({plural(unresolvedStats.edges, "unknown edge")}) hidden: the snapshot lacks the facts to
+            resolve them.{" "}
+            {!hideUnknown && (
+              <button className="text-button inline" onClick={() => setUnresolvedChoice(true)}>
+                Show them
+              </button>
+            )}
+          </p>
+        )}
         {visible.hidden > 0 && (
           <p className="notice small pe-cap-notice">
             Large map: the view renders the {cap} most connected nodes (admin
@@ -1070,6 +1239,16 @@ export function PrivescMap({
           }}
         />
       )}
+      {card?.type === "unresolved" && (
+        <UnresolvedCard
+          key={card.id}
+          id={card.id}
+          index={index}
+          onClose={() => setCard(null)}
+          onEdge={(id) => setCard({ type: "edge", id })}
+          onPrincipal={openPrincipal}
+        />
+      )}
       {card?.type === "edge" && (
         <EdgeCard
           key={card.id}
@@ -1084,6 +1263,93 @@ export function PrivescMap({
         />
       )}
     </>
+  );
+}
+
+function UnresolvedCard({
+  id,
+  index,
+  onClose,
+  onEdge,
+  onPrincipal,
+}: {
+  id: string;
+  index: PrivescIndex;
+  onClose: () => void;
+  onEdge: (id: string) => void;
+  onPrincipal: (id: string) => void;
+}) {
+  const node = index.nodes.get(id);
+  if (!node) return null;
+  const inbound = index.inc.get(id) || [];
+  const advice = unresolvedAdvice(node);
+  const techniques = [...new Set(inbound.flatMap((e) => e.techniques))];
+  const SHOW = 40;
+  return (
+    <Inspector title="Unresolved target set" onClose={onClose}>
+      <div className="pe-card-head">
+        <span className="pe-node-icon pe-unresolved-icon">
+          <CircleHelp size={22} />
+        </span>
+        <div>
+          <h3>{unresolvedTitle(node)}</h3>
+          <code className="pe-id">{node.id}</code>
+        </div>
+      </div>
+      <div className="inspector-badges pe-badges">
+        <Badge value="unknown" />
+        <Badge value={humanType(node.type)} />
+        {node.scope && <Badge value={node.scope} />}
+      </div>
+      <p className="pe-query-summary">
+        A placeholder, not a principal: these principals hold the permissions a
+        technique needs, but the snapshot lacks the facts that say which identities
+        the technique would reach. Every edge into it is <strong>unknown</strong>,
+        never proven.
+      </p>
+      <h3>Missing facts</h3>
+      <dl className="pe-dl">
+        <div className="pe-dl-row">
+          <dt>Reason</dt>
+          <dd><code>{node.unresolved_reason || "not reported"}</code></dd>
+        </div>
+        {node.facts_needed && (
+          <div className="pe-dl-row">
+            <dt>Facts needed</dt>
+            <dd>{node.facts_needed}</dd>
+          </div>
+        )}
+      </dl>
+      <p>{advice.missing}</p>
+      <h3>What to collect</h3>
+      <p>{advice.collect}</p>
+      {techniques.length > 0 && (
+        <>
+          <h3>Techniques · {techniques.length}</h3>
+          <p className="pe-ref">{techniques.join(" · ")}</p>
+        </>
+      )}
+      <h3>Principals pointing here · {inbound.length}</h3>
+      {inbound.slice(0, SHOW).map((e) => (
+        <div key={e.id} className="pe-edge-row inbound">
+          <div className="pe-edge-row-head">
+            <span>
+              ←{" "}
+              <button className="text-button inline" onClick={() => onPrincipal(e.source)}>
+                {nodeLabel(index.nodes.get(e.source), e.source)}
+              </button>
+            </span>
+            <Badge value={e.confidence} />
+          </div>
+          <button className="text-button" onClick={() => onEdge(e.id)}>
+            View technique details <ArrowRight size={13} />
+          </button>
+        </div>
+      ))}
+      {inbound.length > SHOW && (
+        <p className="muted small-text">…and {inbound.length - SHOW} more.</p>
+      )}
+    </Inspector>
   );
 }
 
@@ -1347,10 +1613,20 @@ function PathList({
 }
 
 function AdminsQuery({ scanId, demo, index, highlightPaths, highlightSet }: SidebarProps) {
-  const q = usePrivescAdmins(scanId, demo);
-  const rows = useMemo(() => listOf(q.data), [q.data]);
-  const [pick, setPick] = useState<{ from: string; to: string } | null>(null);
-  const paths = usePrivescPaths(scanId, demo, pick?.from || "", pick?.to || "");
+  const all = usePrivescAdmins(scanId, demo, true, true);
+  // The API's known-only query includes both derived and conditional edges.
+  // Keep unknown-only reach separate; neither group is labelled proven.
+  const potentialQ = usePrivescAdmins(scanId, demo, true, false);
+  const q = potentialQ.isPending || potentialQ.error ? potentialQ : all;
+  const potential = useMemo(() => listOf(potentialQ.data), [potentialQ.data]);
+  const unknownRows = useMemo(() => {
+    const ok = new Set(potential.map((r) => r.principal));
+    return listOf(all.data).filter((r) => !ok.has(r.principal));
+  }, [all.data, potential]);
+  const rows = useMemo(() => [...potential, ...unknownRows], [potential, unknownRows]);
+  const [pick, setPick] = useState<{ from: string; to: string; knownOnly: boolean } | null>(null);
+  // Exclude unknown shortcuts when tracing a derived or conditional row.
+  const paths = usePrivescPaths(scanId, demo, pick?.from || "", pick?.to || "", 6, !pick?.knownOnly);
   useEffect(() => {
     if (!rows.length) return;
     const nodes = new Set<string>(),
@@ -1364,11 +1640,11 @@ function AdminsQuery({ scanId, demo, index, highlightPaths, highlightSet }: Side
         if (e) edges.add(e.id);
       }
     }
-    // Edges between highlighted nodes complete the visible chains.
-    for (const id of nodes)
-      for (const e of index.out.get(id) || [])
-        if (nodes.has(e.target)) edges.add(e.id);
-    highlightSet(nodes, edges, `${plural(rows.length, "principal")} reach admin`);
+    highlightSet(
+      nodes,
+      edges,
+      `${potential.length} potential · ${unknownRows.length} unknown reach admin`,
+    );
   }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
   const pathRows = useMemo(() => listOf(paths.data), [paths.data]);
   useEffect(() => {
@@ -1381,15 +1657,28 @@ function AdminsQuery({ scanId, demo, index, highlightPaths, highlightSet }: Side
   return (
     <QueryState q={q} empty={!rows.length} emptyText="No principal reaches an admin-equivalent scope within 6 hops.">
       <p className="pe-query-summary">
-        {plural(rows.length, "principal")} can reach an admin-equivalent scope.
-        Select one to trace its path.
+        {plural(potential.length, "principal")} have a derived or conditional
+        path to an admin-equivalent scope; {unknownRows.length} more have only
+        unknown paths with missing facts. Select one to trace its path.
       </p>
-      <ul className="pe-results" aria-label="Principals reaching admin">
-        {rows.map((r) => (
+      {([
+        ["potential", "Potential paths", "Hops are derived or conditional; inspect each condition before treating a path as usable.", potential],
+        ["unknown", "Unknown paths", "At least one hop depends on facts the snapshot did not collect.", unknownRows],
+      ] as const).map(([kind, title, hint, list]) => (
+        <section key={kind} className={`pe-admin-group pe-admin-${kind}`}>
+          <h4 className="pe-group-title">
+            {title} · {list.length}
+          </h4>
+          <p className="muted small-text">{hint}</p>
+          {list.length === 0 ? (
+            <p className="muted small-text">None.</p>
+          ) : (
+      <ul className="pe-results" aria-label={kind === "potential" ? "Principals with potential admin paths" : "Principals reaching admin over unknown edges"}>
+        {list.map((r) => (
           <li key={`${r.principal}-${r.admin}`}>
             <button
               className={`pe-result ${pick?.from === r.principal ? "active" : ""}`}
-              onClick={() => setPick({ from: r.principal, to: r.admin })}
+              onClick={() => setPick({ from: r.principal, to: r.admin, knownOnly: kind === "potential" })}
             >
               <span className="pe-result-title">
                 {r.label || nodeLabel(index.nodes.get(r.principal), r.principal)}
@@ -1407,6 +1696,9 @@ function AdminsQuery({ scanId, demo, index, highlightPaths, highlightSet }: Side
           </li>
         ))}
       </ul>
+          )}
+        </section>
+      ))}
     </QueryState>
   );
 }
@@ -1570,7 +1862,7 @@ function QueryState({
   if (q.error)
     return (
       <div className="pe-query-error" role="alert">
-        {q.error instanceof Error ? q.error.message : "Query failed"}
+        {humanError(q.error)}
         <button className="text-button" onClick={() => void q.refetch()}>
           Retry
         </button>
@@ -1595,7 +1887,12 @@ function findingFor(
   return undefined;
 }
 const text = (v: unknown) =>
-  v == null ? "" : typeof v === "string" ? v : JSON.stringify(v);
+  v == null ? "Not supplied" :
+    typeof v === "string" || typeof v === "number" || typeof v === "boolean"
+      ? String(v)
+      : Array.isArray(v) && v.every((item) => ["string", "number", "boolean"].includes(typeof item))
+        ? v.map(String).join(", ")
+        : "Structured fields supplied";
 
 function PrincipalCard({
   scanId,
@@ -1658,7 +1955,7 @@ function PrincipalCard({
         {attrs.map(([k, v]) => (
           <div key={k} className="pe-dl-row">
             <dt>{k.replaceAll("_", " ")}</dt>
-            <dd>{text(v)}</dd>
+            <dd>{typeof v === "object" && v !== null ? <EvidenceFields data={v} /> : text(v)}</dd>
           </div>
         ))}
       </dl>
@@ -1706,13 +2003,13 @@ function PrincipalCard({
                 <strong>{f?.title || t}</strong>
                 {f && <Badge value={String(f.severity)} />}
                 {!!f?.remediation && (
-                  <p><span className="pe-k">Mitigation</span> {text(f.remediation)}</p>
+                  <div><span className="pe-k">Mitigation</span> {typeof f.remediation === "object" ? <EvidenceFields data={f.remediation} /> : text(f.remediation)}</div>
                 )}
               </div>
             );
           })}
           {(e.evidence_refs || []).map((r, i) => (
-            <p key={i} className="pe-ref"><span className="pe-k">Evidence</span> {formatRef(r)}</p>
+            <div key={i} className="pe-ref evidence-policy-statement"><strong>Evidence reference {i + 1}</strong><p>{formatRef(r)}</p><EvidenceFields data={r} /></div>
           ))}
           <button className="text-button" onClick={() => onEdge(e.id)}>
             View technique details <ArrowRight size={13} />
@@ -1799,7 +2096,7 @@ function EdgeCard({
       <h3>Granting evidence</h3>
       {(edge.evidence_refs || []).length ? (
         edge.evidence_refs!.map((r, i) => (
-          <p key={i} className="pe-ref">{formatRef(r)}</p>
+          <div key={i} className="pe-ref evidence-policy-statement"><strong>Evidence reference {i + 1}</strong><p>{formatRef(r)}</p><EvidenceFields data={r} /></div>
         ))
       ) : (
         <p className="muted small-text">No granting statement recorded.</p>
@@ -1842,13 +2139,12 @@ function TechniqueSection({
   const requires = tech.requires ?? ev.required_permissions;
   const href = hacktricksUrl(tech.source);
   const conditions = [
-    ...(ev.conditions || []).map((c) => ({ id: c, description: "" })),
-    ...(ev.technique_conditions || []),
-    ...(ev.blockers_not_evaluated || []).map((b) => ({
-      id: b,
-      description: "Blocker not evaluated",
-    })),
-  ];
+    ...(ev.conditions || []).map((code) => explainPrivescCondition(code)),
+    ...(ev.technique_conditions || []).map((c) => explainPrivescCondition(c.id, c.description)),
+    ...(ev.blockers_not_evaluated || []).map((blocker) =>
+      `${explainPrivescCondition(blocker)} This blocker was not evaluated.`),
+    ...(ev.blocker_verdicts || []).map((verdict) => explainPrivescCondition(verdict)),
+  ].filter((value, index, values) => values.indexOf(value) === index);
   return (
     <section className="pe-technique" aria-label={`Technique ${technique}`}>
       <div className="pe-technique-head">
@@ -1860,6 +2156,18 @@ function TechniqueSection({
         <p className="muted small-text">Loading technique evidence…</p>
       )}
       {tech.summary && <p>{tech.summary}</p>}
+      {ev.confidence === "conditional" && (
+        <p className="pe-path-explanation">
+          Conditional path: the permissions and target are modelled. The
+          prerequisites and possible blockers listed below still need verification.
+        </p>
+      )}
+      {ev.confidence === "unknown" && (
+        <p className="pe-path-explanation">
+          Unknown path: the snapshot cannot establish the target or a required
+          prerequisite. {ev.facts_needed || "Inspect the missing facts below before treating this path as usable."}
+        </p>
+      )}
       {technique === "admin-equivalent" && (
         <p>The source already holds an administrator-equivalent grant on this scope; no technique is needed.</p>
       )}
@@ -1869,9 +2177,7 @@ function TechniqueSection({
           {requires.map((r, i) => (
             <li key={i}>
               {typeof r === "object" && r
-                ? Object.entries(r as Record<string, unknown>).map(([k, v]) => (
-                    <span key={k}><span className="pe-k">{k}</span> {text(v)} </span>
-                  ))
+                ? <EvidenceFields data={r} />
                 : text(r)}
             </li>
           ))}
@@ -1892,15 +2198,13 @@ function TechniqueSection({
       )}
       {tech.source_revision && <p className="muted small-text">Catalog revision {tech.source_revision}</p>}
       <h4>Mitigation</h4>
-      <p>{text(finding?.remediation) || "Remove the granting permission or scope it to the intended resources."}</p>
+      <Remediation legacy={finding?.remediation || "Remove the granting permission or scope it to the intended resources."} details={finding?.remediation_details} />
       {conditions.length > 0 && (
         <>
-          <h4>Conditions</h4>
+          <h4>Conditions and blockers</h4>
           <ul className="pe-conditions">
-            {conditions.map((c, i) => (
-              <li key={i}>
-                <code>{c.id}</code> {c.description}
-              </li>
+            {conditions.map((condition, i) => (
+              <li key={i}>{condition}</li>
             ))}
           </ul>
         </>

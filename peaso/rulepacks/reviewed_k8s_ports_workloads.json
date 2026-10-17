@@ -18,7 +18,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L183"
     }
   },
   "kubernetes-compliance.control.cronjob_container_capabilities_drop_all": {
@@ -40,7 +42,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L207"
     }
   },
   "kubernetes-compliance.control.cronjob_container_host_port_not_specified": {
@@ -62,7 +66,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L663"
     },
     "supersedes": "kubernetes-compliance.control.cronjob_container_host_port_not_specified"
   },
@@ -71,7 +77,7 @@
     "native_checks": [
       "k8s.ports.cronjob.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -85,7 +91,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L175"
     }
   },
   "kubernetes-compliance.control.cronjob_container_image_tag_specified": {
@@ -107,7 +115,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L167"
     }
   },
   "kubernetes-compliance.control.cronjob_container_liveness_probe": {
@@ -129,7 +139,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L115"
     }
   },
   "kubernetes-compliance.control.cronjob_container_privilege_disabled": {
@@ -152,7 +164,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L47"
     },
     "supersedes": "kubernetes-compliance.control.cronjob_container_privilege_disabled"
   },
@@ -175,7 +189,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L57"
     }
   },
   "kubernetes-compliance.control.cronjob_container_readiness_probe": {
@@ -197,7 +213,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L107"
     }
   },
   "kubernetes-compliance.control.cronjob_container_security_context_exists": {
@@ -219,13 +237,22 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L159"
     }
   },
   "kubernetes-compliance.control.cronjob_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.cronjob.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.cronjob.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -239,20 +266,41 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L199"
     },
     "replacement_native_checks": [
       "k8s.ports.cronjob.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.cronjob.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cronjob_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.cronjob.no_sys_admin"
+      ],
+      "resource": "Each cronjob object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.cronjob_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.cronjob.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.cronjob.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -266,15 +314,29 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L151"
     },
     "replacement_native_checks": [
       "k8s.ports.cronjob.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.cronjob.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cronjob_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.cronjob.no_added_capabilities"
+      ],
+      "resource": "Each cronjob object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.cronjob_cpu_limit": {
     "disposition": "ported",
@@ -295,7 +357,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L7"
     }
   },
   "kubernetes-compliance.control.cronjob_cpu_request": {
@@ -317,7 +381,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L17"
     }
   },
   "kubernetes-compliance.control.cronjob_default_seccomp_profile_enabled": {
@@ -339,7 +405,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L141"
     }
   },
   "kubernetes-compliance.control.cronjob_hostpid_hostipc_sharing_disabled": {
@@ -361,7 +429,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L77"
     }
   },
   "kubernetes-compliance.control.cronjob_immutable_container_filesystem": {
@@ -383,7 +453,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L87"
     }
   },
   "kubernetes-compliance.control.cronjob_memory_limit": {
@@ -405,7 +477,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L27"
     }
   },
   "kubernetes-compliance.control.cronjob_memory_request": {
@@ -427,7 +501,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L37"
     }
   },
   "kubernetes-compliance.control.cronjob_non_root_container": {
@@ -449,7 +525,9 @@
         "kubernetes_cronjob"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.cronjob_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/cronjob.pp#L97"
     },
     "supersedes": "kubernetes-compliance.control.cronjob_non_root_container"
   },
@@ -472,7 +550,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L183"
     }
   },
   "kubernetes-compliance.control.daemonset_container_capabilities_drop_all": {
@@ -494,7 +574,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L207"
     }
   },
   "kubernetes-compliance.control.daemonset_container_host_port_not_specified": {
@@ -516,7 +598,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L663"
     },
     "supersedes": "kubernetes-compliance.control.daemonset_container_host_port_not_specified"
   },
@@ -525,7 +609,7 @@
     "native_checks": [
       "k8s.ports.daemonset.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -539,7 +623,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L175"
     }
   },
   "kubernetes-compliance.control.daemonset_container_image_tag_specified": {
@@ -561,7 +647,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L167"
     }
   },
   "kubernetes-compliance.control.daemonset_container_liveness_probe": {
@@ -583,7 +671,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L115"
     }
   },
   "kubernetes-compliance.control.daemonset_container_privilege_disabled": {
@@ -606,7 +696,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L47"
     },
     "supersedes": "kubernetes-compliance.control.daemonset_container_privilege_disabled"
   },
@@ -629,7 +721,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L57"
     }
   },
   "kubernetes-compliance.control.daemonset_container_readiness_probe": {
@@ -651,7 +745,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L107"
     }
   },
   "kubernetes-compliance.control.daemonset_container_security_context_exists": {
@@ -673,13 +769,22 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L159"
     }
   },
   "kubernetes-compliance.control.daemonset_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.daemonset.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.daemonset.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -693,20 +798,41 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L199"
     },
     "replacement_native_checks": [
       "k8s.ports.daemonset.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.daemonset.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "daemonset_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.daemonset.no_sys_admin"
+      ],
+      "resource": "Each daemonset object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.daemonset_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.daemonset.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.daemonset.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -720,15 +846,29 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L151"
     },
     "replacement_native_checks": [
       "k8s.ports.daemonset.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.daemonset.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "daemonset_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.daemonset.no_added_capabilities"
+      ],
+      "resource": "Each daemonset object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.daemonset_cpu_limit": {
     "disposition": "ported",
@@ -749,7 +889,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L7"
     }
   },
   "kubernetes-compliance.control.daemonset_cpu_request": {
@@ -771,7 +913,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L17"
     }
   },
   "kubernetes-compliance.control.daemonset_default_seccomp_profile_enabled": {
@@ -793,7 +937,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L141"
     }
   },
   "kubernetes-compliance.control.daemonset_hostpid_hostipc_sharing_disabled": {
@@ -815,7 +961,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L77"
     }
   },
   "kubernetes-compliance.control.daemonset_immutable_container_filesystem": {
@@ -837,7 +985,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L87"
     }
   },
   "kubernetes-compliance.control.daemonset_memory_limit": {
@@ -859,7 +1009,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L27"
     }
   },
   "kubernetes-compliance.control.daemonset_memory_request": {
@@ -881,7 +1033,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L37"
     }
   },
   "kubernetes-compliance.control.daemonset_non_root_container": {
@@ -903,7 +1057,9 @@
         "kubernetes_daemonset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.daemonset_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/daemonset.pp#L97"
     },
     "supersedes": "kubernetes-compliance.control.daemonset_non_root_container"
   },
@@ -926,7 +1082,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L191"
     }
   },
   "kubernetes-compliance.control.deployment_container_capabilities_drop_all": {
@@ -948,7 +1106,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L215"
     }
   },
   "kubernetes-compliance.control.deployment_container_host_port_not_specified": {
@@ -970,7 +1130,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L671"
     },
     "supersedes": "kubernetes-compliance.control.deployment_container_host_port_not_specified"
   },
@@ -979,7 +1141,7 @@
     "native_checks": [
       "k8s.ports.deployment.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -993,7 +1155,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L183"
     }
   },
   "kubernetes-compliance.control.deployment_container_image_tag_specified": {
@@ -1015,7 +1179,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L175"
     }
   },
   "kubernetes-compliance.control.deployment_container_liveness_probe": {
@@ -1037,7 +1203,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L115"
     }
   },
   "kubernetes-compliance.control.deployment_container_privilege_disabled": {
@@ -1060,7 +1228,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L47"
     },
     "supersedes": "kubernetes-compliance.control.deployment_container_privilege_disabled"
   },
@@ -1083,7 +1253,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L57"
     }
   },
   "kubernetes-compliance.control.deployment_container_readiness_probe": {
@@ -1105,7 +1277,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L107"
     }
   },
   "kubernetes-compliance.control.deployment_container_security_context_exists": {
@@ -1127,13 +1301,22 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L167"
     }
   },
   "kubernetes-compliance.control.deployment_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.deployment.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.deployment.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -1147,20 +1330,41 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L207"
     },
     "replacement_native_checks": [
       "k8s.ports.deployment.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.deployment.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "deployment_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.deployment.no_sys_admin"
+      ],
+      "resource": "Each deployment object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.deployment_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.deployment.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.deployment.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -1174,15 +1378,29 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L159"
     },
     "replacement_native_checks": [
       "k8s.ports.deployment.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.deployment.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "deployment_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.deployment.no_added_capabilities"
+      ],
+      "resource": "Each deployment object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.deployment_cpu_limit": {
     "disposition": "ported",
@@ -1203,7 +1421,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L7"
     }
   },
   "kubernetes-compliance.control.deployment_cpu_request": {
@@ -1225,7 +1445,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L17"
     }
   },
   "kubernetes-compliance.control.deployment_default_seccomp_profile_enabled": {
@@ -1247,7 +1469,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L149"
     }
   },
   "kubernetes-compliance.control.deployment_hostpid_hostipc_sharing_disabled": {
@@ -1269,7 +1493,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L77"
     }
   },
   "kubernetes-compliance.control.deployment_immutable_container_filesystem": {
@@ -1291,7 +1517,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L87"
     }
   },
   "kubernetes-compliance.control.deployment_memory_limit": {
@@ -1313,7 +1541,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L27"
     }
   },
   "kubernetes-compliance.control.deployment_memory_request": {
@@ -1335,7 +1565,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L37"
     }
   },
   "kubernetes-compliance.control.deployment_non_root_container": {
@@ -1357,7 +1589,9 @@
         "kubernetes_deployment"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.deployment_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/deployment.pp#L97"
     },
     "supersedes": "kubernetes-compliance.control.deployment_non_root_container"
   },
@@ -1380,7 +1614,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L183"
     }
   },
   "kubernetes-compliance.control.job_container_capabilities_drop_all": {
@@ -1402,7 +1638,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L207"
     }
   },
   "kubernetes-compliance.control.job_container_host_port_not_specified": {
@@ -1424,7 +1662,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L663"
     },
     "supersedes": "kubernetes-compliance.control.job_container_host_port_not_specified"
   },
@@ -1433,7 +1673,7 @@
     "native_checks": [
       "k8s.ports.job.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -1447,7 +1687,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L175"
     }
   },
   "kubernetes-compliance.control.job_container_image_tag_specified": {
@@ -1469,7 +1711,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L167"
     }
   },
   "kubernetes-compliance.control.job_container_liveness_probe": {
@@ -1491,7 +1735,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L115"
     }
   },
   "kubernetes-compliance.control.job_container_privilege_disabled": {
@@ -1514,7 +1760,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.job_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L47"
     },
     "supersedes": "kubernetes-compliance.control.job_container_privilege_disabled"
   },
@@ -1537,7 +1785,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L57"
     }
   },
   "kubernetes-compliance.control.job_container_readiness_probe": {
@@ -1559,7 +1809,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L107"
     }
   },
   "kubernetes-compliance.control.job_container_security_context_exists": {
@@ -1581,13 +1833,22 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L159"
     }
   },
   "kubernetes-compliance.control.job_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.job.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.job.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -1601,20 +1862,41 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L199"
     },
     "replacement_native_checks": [
       "k8s.ports.job.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.job.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "job_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.job.no_sys_admin"
+      ],
+      "resource": "Each job object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.job_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.job.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.job.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -1628,15 +1910,29 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L151"
     },
     "replacement_native_checks": [
       "k8s.ports.job.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.job.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "job_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.job.no_added_capabilities"
+      ],
+      "resource": "Each job object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.job_cpu_limit": {
     "disposition": "ported",
@@ -1657,7 +1953,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L7"
     }
   },
   "kubernetes-compliance.control.job_cpu_request": {
@@ -1679,7 +1977,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L17"
     }
   },
   "kubernetes-compliance.control.job_default_seccomp_profile_enabled": {
@@ -1701,7 +2001,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L141"
     }
   },
   "kubernetes-compliance.control.job_hostpid_hostipc_sharing_disabled": {
@@ -1723,7 +2025,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L77"
     }
   },
   "kubernetes-compliance.control.job_immutable_container_filesystem": {
@@ -1745,7 +2049,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L87"
     }
   },
   "kubernetes-compliance.control.job_memory_limit": {
@@ -1767,7 +2073,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L27"
     }
   },
   "kubernetes-compliance.control.job_memory_request": {
@@ -1789,7 +2097,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L37"
     }
   },
   "kubernetes-compliance.control.job_non_root_container": {
@@ -1811,7 +2121,9 @@
         "kubernetes_job"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.job_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/job.pp#L97"
     },
     "supersedes": "kubernetes-compliance.control.job_non_root_container"
   },
@@ -1834,7 +2146,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L170"
     }
   },
   "kubernetes-compliance.control.pod_container_host_port_not_specified": {
@@ -1856,7 +2170,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L666"
     },
     "supersedes": "kubernetes-compliance.control.pod_container_host_port_not_specified"
   },
@@ -1865,7 +2181,7 @@
     "native_checks": [
       "k8s.ports.pod.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -1879,7 +2195,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L162"
     }
   },
   "kubernetes-compliance.control.pod_container_image_tag_specified": {
@@ -1901,7 +2219,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L154"
     }
   },
   "kubernetes-compliance.control.pod_container_liveness_probe": {
@@ -1923,7 +2243,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L102"
     }
   },
   "kubernetes-compliance.control.pod_container_memory_limit": {
@@ -1945,7 +2267,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L194"
     }
   },
   "kubernetes-compliance.control.pod_container_memory_request": {
@@ -1967,7 +2291,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L202"
     }
   },
   "kubernetes-compliance.control.pod_container_privilege_disabled": {
@@ -1990,7 +2316,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.pod_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L17"
     }
   },
   "kubernetes-compliance.control.pod_container_privilege_escalation_disabled": {
@@ -2013,7 +2341,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.pod_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L27"
     }
   },
   "kubernetes-compliance.control.pod_container_readiness_probe": {
@@ -2035,7 +2365,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L94"
     }
   },
   "kubernetes-compliance.control.pod_container_security_context_exists": {
@@ -2057,13 +2389,22 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L146"
     }
   },
   "kubernetes-compliance.control.pod_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.pod.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2077,20 +2418,41 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L186"
     },
     "replacement_native_checks": [
       "k8s.ports.pod.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.pod.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "pod_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.pod.no_sys_admin"
+      ],
+      "resource": "Each pod object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.pod_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.pod.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.pod.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2104,15 +2466,29 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L138"
     },
     "replacement_native_checks": [
       "k8s.ports.pod.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.pod.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "pod_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.pod.no_added_capabilities"
+      ],
+      "resource": "Each pod object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.pod_default_seccomp_profile_enabled": {
     "disposition": "ported",
@@ -2133,7 +2509,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L128"
     }
   },
   "kubernetes-compliance.control.pod_host_network_access_disabled": {
@@ -2155,7 +2533,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_host_network_access_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L37"
     }
   },
   "kubernetes-compliance.control.pod_hostpid_hostipc_sharing_disabled": {
@@ -2177,7 +2557,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L46"
     }
   },
   "kubernetes-compliance.control.pod_immutable_container_filesystem": {
@@ -2200,7 +2582,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.pod_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L56"
     }
   },
   "kubernetes-compliance.control.pod_non_root_container": {
@@ -2222,7 +2606,9 @@
         "kubernetes_pod"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L66"
     }
   },
   "kubernetes-compliance.control.pod_service_account_not_exist": {
@@ -2245,7 +2631,9 @@
         "kubernetes_service_account"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_service_account_not_exist",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod.pp#L76"
     }
   },
   "kubernetes-compliance.control.pod_template_container_admission_capability_restricted": {
@@ -2267,7 +2655,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L199"
     }
   },
   "kubernetes-compliance.control.pod_template_container_capabilities_drop_all": {
@@ -2289,7 +2679,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L271"
     }
   },
   "kubernetes-compliance.control.pod_template_container_host_port_not_specified": {
@@ -2311,7 +2703,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L591"
     }
   },
   "kubernetes-compliance.control.pod_template_container_image_pull_policy_always": {
@@ -2319,7 +2713,7 @@
     "native_checks": [
       "k8s.ports.podtemplate.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2333,7 +2727,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L207"
     }
   },
   "kubernetes-compliance.control.pod_template_container_image_tag_specified": {
@@ -2355,7 +2751,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L215"
     }
   },
   "kubernetes-compliance.control.pod_template_container_liveness_probe": {
@@ -2377,7 +2775,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L247"
     }
   },
   "kubernetes-compliance.control.pod_template_container_privilege_disabled": {
@@ -2399,7 +2799,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L279"
     }
   },
   "kubernetes-compliance.control.pod_template_container_privilege_escalation_disabled": {
@@ -2421,7 +2823,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L7"
     }
   },
   "kubernetes-compliance.control.pod_template_container_readiness_probe": {
@@ -2443,7 +2847,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L295"
     }
   },
   "kubernetes-compliance.control.pod_template_container_security_context_exists": {
@@ -2465,13 +2871,22 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L191"
     }
   },
   "kubernetes-compliance.control.pod_template_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.podtemplate.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.podtemplate.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2485,20 +2900,41 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L23"
     },
     "replacement_native_checks": [
       "k8s.ports.podtemplate.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.podtemplate.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "pod_template_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.podtemplate.no_sys_admin"
+      ],
+      "resource": "Each podtemplate object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.pod_template_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.podtemplate.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.podtemplate.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2512,15 +2948,29 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L15"
     },
     "replacement_native_checks": [
       "k8s.ports.podtemplate.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.podtemplate.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "pod_template_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.podtemplate.no_added_capabilities"
+      ],
+      "resource": "Each podtemplate object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.pod_template_cpu_limit": {
     "disposition": "ported",
@@ -2541,7 +2991,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L175"
     }
   },
   "kubernetes-compliance.control.pod_template_cpu_request": {
@@ -2563,7 +3015,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L183"
     }
   },
   "kubernetes-compliance.control.pod_template_immutable_container_filesystem": {
@@ -2585,7 +3039,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L287"
     }
   },
   "kubernetes-compliance.control.pod_template_memory_limit": {
@@ -2607,7 +3063,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L255"
     }
   },
   "kubernetes-compliance.control.pod_template_memory_request": {
@@ -2629,7 +3087,9 @@
         "kubernetes_pod_template"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.pod_template_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/pod_template.pp#L263"
     }
   },
   "kubernetes-compliance.control.replicaset_container_admission_capability_restricted": {
@@ -2651,7 +3111,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L183"
     }
   },
   "kubernetes-compliance.control.replicaset_container_capabilities_drop_all": {
@@ -2673,7 +3135,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L207"
     }
   },
   "kubernetes-compliance.control.replicaset_container_host_port_not_specified": {
@@ -2695,7 +3159,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L664"
     },
     "supersedes": "kubernetes-compliance.control.replicaset_container_host_port_not_specified"
   },
@@ -2704,7 +3170,7 @@
     "native_checks": [
       "k8s.ports.replicaset.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2718,7 +3184,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L175"
     }
   },
   "kubernetes-compliance.control.replicaset_container_image_tag_specified": {
@@ -2740,7 +3208,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L167"
     }
   },
   "kubernetes-compliance.control.replicaset_container_liveness_probe": {
@@ -2762,7 +3232,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L115"
     }
   },
   "kubernetes-compliance.control.replicaset_container_privilege_disabled": {
@@ -2785,7 +3257,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L47"
     },
     "supersedes": "kubernetes-compliance.control.replicaset_container_privilege_disabled"
   },
@@ -2808,7 +3282,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L57"
     }
   },
   "kubernetes-compliance.control.replicaset_container_readiness_probe": {
@@ -2830,7 +3306,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L107"
     }
   },
   "kubernetes-compliance.control.replicaset_container_security_context_exists": {
@@ -2852,13 +3330,22 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L159"
     }
   },
   "kubernetes-compliance.control.replicaset_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.replicaset.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.replicaset.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2872,20 +3359,41 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L199"
     },
     "replacement_native_checks": [
       "k8s.ports.replicaset.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.replicaset.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "replicaset_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.replicaset.no_sys_admin"
+      ],
+      "resource": "Each replicaset object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.replicaset_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.replicaset.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.replicaset.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -2899,15 +3407,29 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L151"
     },
     "replacement_native_checks": [
       "k8s.ports.replicaset.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.replicaset.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "replicaset_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.replicaset.no_added_capabilities"
+      ],
+      "resource": "Each replicaset object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.replicaset_cpu_limit": {
     "disposition": "ported",
@@ -2928,7 +3450,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L7"
     }
   },
   "kubernetes-compliance.control.replicaset_cpu_request": {
@@ -2950,7 +3474,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L17"
     }
   },
   "kubernetes-compliance.control.replicaset_default_seccomp_profile_enabled": {
@@ -2972,7 +3498,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L141"
     }
   },
   "kubernetes-compliance.control.replicaset_hostpid_hostipc_sharing_disabled": {
@@ -2994,7 +3522,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L77"
     }
   },
   "kubernetes-compliance.control.replicaset_immutable_container_filesystem": {
@@ -3016,7 +3546,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L87"
     }
   },
   "kubernetes-compliance.control.replicaset_memory_limit": {
@@ -3038,7 +3570,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L27"
     }
   },
   "kubernetes-compliance.control.replicaset_memory_request": {
@@ -3060,7 +3594,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L37"
     }
   },
   "kubernetes-compliance.control.replicaset_non_root_container": {
@@ -3082,7 +3618,9 @@
         "kubernetes_replicaset"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replicaset_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replicaset.pp#L97"
     },
     "supersedes": "kubernetes-compliance.control.replicaset_non_root_container"
   },
@@ -3105,7 +3643,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L183"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_capabilities_drop_all": {
@@ -3127,7 +3667,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L207"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_host_port_not_specified": {
@@ -3149,7 +3691,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L663"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_image_pull_policy_always": {
@@ -3157,7 +3701,7 @@
     "native_checks": [
       "k8s.ports.replicationcontroller.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -3171,7 +3715,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L175"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_image_tag_specified": {
@@ -3193,7 +3739,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L167"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_liveness_probe": {
@@ -3215,7 +3763,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L115"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_privilege_disabled": {
@@ -3237,7 +3787,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L47"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_privilege_escalation_disabled": {
@@ -3259,7 +3811,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L57"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_readiness_probe": {
@@ -3281,7 +3835,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L107"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_security_context_exists": {
@@ -3303,13 +3859,22 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L159"
     }
   },
   "kubernetes-compliance.control.replication_controller_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.replicationcontroller.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.replicationcontroller.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -3323,20 +3888,41 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L199"
     },
     "replacement_native_checks": [
       "k8s.ports.replicationcontroller.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.replicationcontroller.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "replication_controller_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.replicationcontroller.no_sys_admin"
+      ],
+      "resource": "Each replicationcontroller object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.replication_controller_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.replicationcontroller.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.replicationcontroller.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -3350,15 +3936,29 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L151"
     },
     "replacement_native_checks": [
       "k8s.ports.replicationcontroller.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.replicationcontroller.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "replication_controller_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.replicationcontroller.no_added_capabilities"
+      ],
+      "resource": "Each replicationcontroller object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.replication_controller_cpu_limit": {
     "disposition": "ported",
@@ -3379,7 +3979,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L7"
     }
   },
   "kubernetes-compliance.control.replication_controller_cpu_request": {
@@ -3401,7 +4003,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L17"
     }
   },
   "kubernetes-compliance.control.replication_controller_default_seccomp_profile_enabled": {
@@ -3423,7 +4027,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L141"
     }
   },
   "kubernetes-compliance.control.replication_controller_host_network_access_disabled": {
@@ -3445,7 +4051,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_host_network_access_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L67"
     }
   },
   "kubernetes-compliance.control.replication_controller_hostpid_hostipc_sharing_disabled": {
@@ -3467,7 +4075,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L77"
     }
   },
   "kubernetes-compliance.control.replication_controller_immutable_container_filesystem": {
@@ -3489,7 +4099,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L87"
     }
   },
   "kubernetes-compliance.control.replication_controller_memory_limit": {
@@ -3511,7 +4123,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L27"
     }
   },
   "kubernetes-compliance.control.replication_controller_memory_request": {
@@ -3533,7 +4147,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L37"
     }
   },
   "kubernetes-compliance.control.replication_controller_non_root_container": {
@@ -3555,7 +4171,9 @@
         "kubernetes_replication_controller"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.replication_controller_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/replication_controller.pp#L97"
     }
   },
   "kubernetes-compliance.control.statefulset_container_admission_capability_restricted": {
@@ -3577,7 +4195,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_admission_capability_restricted",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L183"
     }
   },
   "kubernetes-compliance.control.statefulset_container_capabilities_drop_all": {
@@ -3599,7 +4219,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_capabilities_drop_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L207"
     }
   },
   "kubernetes-compliance.control.statefulset_container_host_port_not_specified": {
@@ -3621,7 +4243,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_host_port_not_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L663"
     },
     "supersedes": "kubernetes-compliance.control.statefulset_container_host_port_not_specified"
   },
@@ -3630,7 +4254,7 @@
     "native_checks": [
       "k8s.ports.statefulset.always_pull"
     ],
-    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement.",
+    "reason": "Reviewed the exact CASE expression, table/PodSpec extraction, optional native field defaults and entity applicability. Native evaluator preserves the declared predicate and adds explicit malformed/denied coverage; regular, init and ephemeral container records use the same predicate, without inferring runtime enforcement. Deliberate deviation: a container image pinned by a valid @sha256 content digest satisfies the control (the pulled content is immutable, so IfNotPresent/unset cannot run a stale or substituted image); imagePullPolicy Never still fails and malformed digest references are UNKNOWN.",
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -3644,7 +4268,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_image_pull_policy_always",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L175"
     }
   },
   "kubernetes-compliance.control.statefulset_container_image_tag_specified": {
@@ -3666,7 +4292,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_image_tag_specified",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L167"
     }
   },
   "kubernetes-compliance.control.statefulset_container_liveness_probe": {
@@ -3688,7 +4316,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_liveness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L115"
     }
   },
   "kubernetes-compliance.control.statefulset_container_privilege_disabled": {
@@ -3711,7 +4341,9 @@
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
       "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
-      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused."
+      "canonical_reuse": "Same entity, predicate and container/default applicability; existing strict canonical evaluator reused.",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_privilege_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L47"
     },
     "supersedes": "kubernetes-compliance.control.statefulset_container_privilege_disabled"
   },
@@ -3734,7 +4366,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_privilege_escalation_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L57"
     }
   },
   "kubernetes-compliance.control.statefulset_container_readiness_probe": {
@@ -3756,7 +4390,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_readiness_probe",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L107"
     }
   },
   "kubernetes-compliance.control.statefulset_container_security_context_exists": {
@@ -3778,13 +4414,22 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_security_context_exists",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L159"
     }
   },
   "kubernetes-compliance.control.statefulset_container_sys_admin_capability_disabled": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.statefulset.no_sys_admin"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.statefulset.no_sys_admin. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate checks CAP_SYS_ADMIN while the Kubernetes securityContext uses SYS_ADMIN without a CAP_ prefix; it passes a container that adds SYS_ADMIN. Reject this false-negative evaluator, preserving replacement guidance to restrict SYS_ADMIN in native capability controls."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -3798,20 +4443,41 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_sys_admin_capability_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L199"
     },
     "replacement_native_checks": [
       "k8s.ports.statefulset.no_sys_admin"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.statefulset.no_sys_admin"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "statefulset_container_sys_admin_capability_disabled",
+      "target_native_checks": [
+        "k8s.ports.statefulset.no_sys_admin"
+      ],
+      "resource": "Each statefulset object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds SYS_ADMIN or CAP_SYS_ADMIN",
+      "upstream_defect_only": "Source matches only CAP_SYS_ADMIN (Kubernetes uses SYS_ADMIN).",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.statefulset_container_with_added_capabilities": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries.",
+    "disposition": "merged",
+    "native_checks": [
+      "k8s.ports.statefulset.no_added_capabilities"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) k8s.ports.statefulset.no_added_capabilities. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned predicate alarms whenever capabilities.add exists, including the valid empty list; it treats a declaration with no added capability as a security failure. Reject that false-positive predicate and retain the replacement rule which checks actual added capability entries."
+    },
     "official_docs": [
       "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
     ],
@@ -3825,15 +4491,29 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_container_with_added_capabilities",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L151"
     },
     "replacement_native_checks": [
       "k8s.ports.statefulset.no_added_capabilities"
     ],
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "k8s.ports.statefulset.no_added_capabilities"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "statefulset_container_with_added_capabilities",
+      "target_native_checks": [
+        "k8s.ports.statefulset.no_added_capabilities"
+      ],
+      "resource": "Each statefulset object, every container in its pod spec",
+      "property": "securityContext.capabilities.add",
+      "pass_condition": "FAIL iff any container adds a capability (empty add list passes)",
+      "upstream_defect_only": "Source alarms on the presence of an empty capabilities.add list.",
+      "native_deviations": "none"
+    }
   },
   "kubernetes-compliance.control.statefulset_cpu_limit": {
     "disposition": "ported",
@@ -3854,7 +4534,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_cpu_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L7"
     }
   },
   "kubernetes-compliance.control.statefulset_cpu_request": {
@@ -3876,7 +4558,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_cpu_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L17"
     }
   },
   "kubernetes-compliance.control.statefulset_default_seccomp_profile_enabled": {
@@ -3898,7 +4582,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_default_seccomp_profile_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L141"
     }
   },
   "kubernetes-compliance.control.statefulset_hostpid_hostipc_sharing_disabled": {
@@ -3920,7 +4606,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_hostpid_hostipc_sharing_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L77"
     }
   },
   "kubernetes-compliance.control.statefulset_immutable_container_filesystem": {
@@ -3942,7 +4630,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_immutable_container_filesystem",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L87"
     }
   },
   "kubernetes-compliance.control.statefulset_memory_limit": {
@@ -3964,7 +4654,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_memory_limit",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L27"
     }
   },
   "kubernetes-compliance.control.statefulset_memory_request": {
@@ -3986,7 +4678,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_memory_request",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L37"
     }
   },
   "kubernetes-compliance.control.statefulset_non_root_container": {
@@ -4008,7 +4702,9 @@
         "kubernetes_stateful_set"
       ],
       "applicability": "resource PodSpec or actual workload template; namespace is an administrative boundary",
-      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence"
+      "evaluation_limits": "Configuration declaration; admission enforcement and runtime state remain separate evidence",
+      "source_row_id": "kubernetes-compliance.control.statefulset_non_root_container",
+      "source_url": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/blob/4a387a1a4e1adc7e4314216f499b0b42d710be89/controls/statefulset.pp#L97"
     },
     "supersedes": "kubernetes-compliance.control.statefulset_non_root_container"
   }

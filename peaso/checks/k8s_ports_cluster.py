@@ -2,7 +2,7 @@
 import copy
 from . import register, result, unknown
 from .facts import get, optional, complete_items, Unavailable, list_of_objects
-from .fixtures import CASES
+from .fixtures import CASES, nest
 
 IDS, REFERENCE_SPECS = [], {}
 NAMESPACE_KINDS = {"pod": "pod", "deployment": "deployment", "daemonset": "daemonset", "statefulset": "statefulset",
@@ -205,7 +205,7 @@ def admission_legacy(query, field, good, bad):
         configured = get(item, field, type(good))
         return result(configured != good, field=field, configured=configured,
             semantics="Legacy PSP configuration, not binding or admission enforcement proof")
-    entry = lambda value: {"_provenance": {"kubernetes_version": "v1.24.0"}, "spec": {field.split(".")[-1]: value}}
+    entry = lambda value: {"_provenance": {"kubernetes_version": "v1.24.0"}, **nest(field, value)}
     named("podsecuritypolicy", query, "Legacy PSP " + query.replace("_", " "), evaluate, entry(good), entry(bad))
 
 
@@ -218,3 +218,5 @@ for _query, _field, _good in (
     ("pod_security_policy_immutable_container_filesystem", "readOnlyRootFilesystem", True),
 ):
     admission_legacy(_query, "spec." + _field, _good, not _good)
+
+admission_legacy("pod_security_policy_non_root_container", "spec.runAsUser.rule", "MustRunAsNonRoot", "RunAsAny")

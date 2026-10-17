@@ -126,7 +126,8 @@ still be granted only for the reads required by selected facts.
 ## API and fact coverage
 
 Native configuration fields retain their provider names. Sensitive fields are
-removed before sealing. Public/internal addresses, references and IAM identities
+removed before sealing. Token configuration objects (`oidcToken`, `oauthToken`) keep only
+`serviceAccountEmail`, `audience` and `scope`; they never contain a token. Public/internal addresses, references and IAM identities
 are configuration evidence, so treat snapshots as private inventory artifacts.
 
 | Types | Reads and evidence |
@@ -140,6 +141,7 @@ are configuration evidence, so treat snapshots as private inventory artifacts.
 | `activity` | Bounded Logging audit entries list over `activity_days` (default 30). Only timestamp, principal, service-account key name, service/method/log identity and the coverage window survive projection. Empty or incomplete logs do not prove inactivity. |
 | `recommendation`, `insight` | IAM Policy Recommender recommendations/insights; native removed/unused-permission evidence. `recommender_locations` explicitly selects locations (default `global`), without refresh/mark/apply operations. |
 | `network`, `subnetwork`, `firewall`, `firewall_policy` | Global VPCs/firewalls; aggregate regional subnets and global/regional network firewall policies; organization hierarchical firewall policies. Native ranges, priority, direction, tags, service accounts, disabled/deny/allow semantics and peering are preserved. |
+| `firewall_policy_association` | Direct organization/folder association lists. These detect policies created elsewhere in the organization but applied to a project ancestor; denied or malformed reads cannot prove absence. |
 | `instance`, `route`, `router`, `vpn_gateway`, `vpn_tunnel`, `address`, `instance_group` | Global routes and aggregate instance/router/VPN/address/group reads. Includes VM interfaces/access configs, service-account scopes, shielded/confidential configuration and declared network references. Both HA and classic VPN gateways are read. |
 | `forwarding_rule`, `backend_service`, `backend_bucket`, `target_proxy`, `url_map`, `health_check` | Aggregate global/regional forwarding rules/backends/maps/health checks and HTTP/HTTPS/TCP proxies; global SSL/gRPC proxies/backend buckets. Backend group and health-check references retain relationships. |
 | `shared_vpc` | Compute `getXpnHost` and paged `getXpnResources`; preserve host/service ownership references without traversing unselected host projects. A failed host/resources read is visible coverage evidence. |
@@ -152,8 +154,19 @@ are configuration evidence, so treat snapshots as private inventory artifacts.
 | `bigquery_dataset` | BigQuery dataset list including hidden datasets, plus full dataset metadata with access-policy version 3. Dataset ACL, default encryption and location/retention metadata; no queries, table data or exports. |
 | `artifact_repository` | Artifact Registry region/repository list plus repository IAM; format, immutable-tag, encryption, vulnerability-scanning and cleanup metadata. No image/package downloads. |
 | `cloudrun_service` | Cloud Run v2 region/service list plus IAM; ingress, service identity, network/VPC, encryption and public URI metadata. Container environment values/commands are stripped. The v2 service list cannot use a wildcard location, so supported locations are enumerated, or explicitly selected with `cloudrun_locations`/`regions`. |
-| `function` | Functions v2 cross-location function list and IAM; runtime, ingress, service identity, VPC and encryption references. Inline environment values are stripped. No source downloads or function invocations. |
+| `function` | Functions v2 cross-location function list and IAM; runtime, ingress, service identity, VPC and encryption references. Inline environment values are stripped; variable names survive as `environmentVariableNames` and secret-backed variables keep their Secret Manager reference. No source downloads or function invocations. |
 | `workload_identity_pool`, `workload_identity_provider`, `workforce_pool`, `workforce_provider` | IAM workload/workforce pool/provider metadata including OIDC/AWS trust configuration, attribute mappings/conditions and state. Workforce pools are organization-scoped. |
+| `cloudbuild_trigger` | Cloud Build `projects.locations.triggers.list` (GET `v1/{project}/locations/global/triggers`, plus each `cloudbuild_locations` region) as full resources. Inline build steps, scripts and substitution values are dropped (`substitutionNames`, `inlineBuild.stepCount` remain); source, PR comment control, approval and service account remain. Permission: `cloudbuild.builds.list`. |
+| `storage_hmac_key` | Cloud Storage `projects.hmacKeys.list` (GET `storage/v1/projects/{project}/hmacKeys`): access ID, bound service account, state and timestamps only (the secret is only ever returned by create). Permission: `storage.hmacKeys.list`. |
+| `composer_environment` | Cloud Composer `environments.list` per region (Compute `regions.list`, or `composer_locations`/`regions`). Airflow environment variable and config-override values are dropped (names kept); node service account remains. Permissions: `composer.environments.list`, `compute.regions.list`. |
+| `workbench_instance` | Vertex AI Workbench (`notebooks.googleapis.com/v2`) `instances.list` with the `-` location wildcard; GCE setup service accounts and network flags. Metadata values are dropped except root/terminal/download/proxy flags. The wildcard is documented by the v2 `instances.list` reference ("`projects/{projectId}/locations/-` to list instances in all locations"); a non-empty `unreachable[]` makes the read unavailable coverage. Permission: `notebooks.instances.list`. |
+| `org_policy_effective` | Org Policy v2 `projects.policies.getEffectivePolicy`, one GET per requested constraint per project (no list-all): `storage.publicAccessPrevention`, `compute.requireOsLogin`, `iam.disableCrossProjectServiceAccountUsage`, `iam.automaticIamGrantsForDefaultServiceAccounts`, `iam.disableServiceAccountKeyCreation`, `iam.disableServiceAccountKeyUpload`, `iam.allowedPolicyMemberDomains`, `essentialcontacts.allowedContactDomains`, and managed successors `iam.managed.disableServiceAccountKeyCreation`, `iam.managed.disableServiceAccountKeyUpload`, `iam.managed.preventPrivilegedBasicRolesForDefaultServiceAccounts`, `iam.managed.allowedPolicyMembers`, `essentialcontacts.managed.allowedContactDomains`. Permission: `orgpolicy.policy.get`. |
+
+Effective Org Policy responses are bound to the requested constraint suffix and project before collection is marked complete. The exact requested `projects/{projectId}` parent needs no additional read. A numeric `projects/{number}` response parent is accepted only after one cached, read-only Cloud Resource Manager v3 `projects.get` response for that selected project reports the same `projectId` and numeric `name`; the policy response and its requested-scope wrapper cannot establish that alias. Missing or mismatched policy names, and unavailable or contradictory alias evidence, leave the collection incomplete so inherited bucket prevention and OS Login remain UNKNOWN. This validates response identity; it does not prove bucket IAM exposure or guest OS Login enforcement.
+| `domains_registration` | Cloud Domains `registrations.list` (GET `domains.googleapis.com/v1/{project}/locations/global/registrations`, `fields` mask): name, domainName, state, expireTime only; contact settings are never requested. Permission: `domains.registrations.list`. |
+| `bucket_notification` | Cloud Storage `notifications.list` per collected bucket (GET `storage/v1/b/{bucket}/notificationConfigs`): id, topic, event types, payload format, object prefix, bucket project; custom attribute names only (values dropped). Incomplete bucket inventory makes it unavailable. Permission: `storage.buckets.get`. |
+| `group.groupSettings` (opt-in) | Only with option `group_settings=true`: Groups Settings `groups.get` (GET `www.googleapis.com/groups/v1/groups/{email}`) per collected group, keeping `whoCanJoin` and `allowExternalMembers`. Needs the `apps.groups.settings` OAuth scope and a Workspace admin token, which default cloud-platform ADC lacks; denied reads are per-group coverage (UNKNOWN), never empty settings. |
+| `scheduler_job` | Cloud Scheduler `locations.list` then `jobs.list` per location (or `cloudscheduler_locations`/`regions`). Target URI keeps scheme/host/path only (query dropped), method, OAuth/OIDC service account/scope/audience; bodies, header and attribute values are dropped (names kept). Permissions: `cloudscheduler.locations.list`, `cloudscheduler.jobs.list`. |
 
 API paths were checked against Google's live
 [Compute discovery document](https://www.googleapis.com/discovery/v1/apis/compute/v1/rest).
@@ -270,3 +283,60 @@ claim. Run extended acceptance tests with:
 ```sh
 python3 -m pytest tests/test_peaso_checks_gcp_extended.py -q
 ```
+
+## Native GCP Storage, OS Config and KMS evidence
+
+Storage public-access controls inspect literal public grants. Enforced public access prevention never masks raw public grants. Complete bucket and object ACL metadata, all versions/pages, actual bucket/root IAM policies and complete verified hierarchy are required. Object names and private ACL identities are hashed; object contents are never read. Uniform bucket-level access disables ACLs only when explicitly reported by the provider. Managed folders, hierarchical namespaces, conditional/custom public grants and incomplete sources remain UNKNOWN.
+
+KMS uses complete verified project/folder/org policies plus key-ring/key policies, actual IAM roles.get permissions, and the native v3beta Policy Troubleshooter to resolve direct unconditional user/service-account cryptographic use, including deny and principal access boundary policies. Groups, public/domain/federated principals, conditional cryptographic grants, unknown access decisions and denied or incomplete sources remain UNKNOWN. Native v3 is insufficient because it excludes principal access boundary evaluation. The only new POST endpoint allowed is the read-only `https://policytroubleshooter.googleapis.com/v3beta/iam:troubleshoot`. Role resolution is bounded to 128 distinct roles per project and 256 candidate principals per key, in addition to shared HTTP/resource/deadline limits.
+
+Live account validation for these batches is blocked by interactive GCP reauthentication. No credentials were changed, no replacement service-account credentials were used, and no cloud resources were created. API-shaped collection-to-engine tests verify positive, negative, denial, partial and foreign-identity paths.
+
+### OS Config evidence boundaries
+
+Inspected the actual v1 REST discovery schema saved in `osconfig-discovery.json`, and the three frozen SW53 predicates. No guest command, agent installation, or cloud write was performed.
+
+| Required fact | Native field and exact meaning | Safe use |
+| --- | --- | --- |
+| Latest full inventory observation | `Inventory.updateTime` | Inventory freshness only; not installation or fix publication. |
+| Latest vulnerability scan | `VulnerabilityReport.updateTime` | Report freshness only. |
+| First detection of CVE on this VM | `VulnerabilityReportVulnerability.createTime` | Detection history only; not CVE advisory publication or vendor fix availability. |
+| Inventory item first detection/change | `InventoryItem.createTime/updateTime` | Observation/change history only. |
+| Available fix identity | `VulnerabilityReportVulnerabilityItem.availableInventoryItemId` joined to FULL `Inventory.items[id]` | Confirms available package identity; not its publication date. Empty reference means no available fix per the provider, but unsupported cases conservatively remain UNKNOWN here. |
+| Linux standard package identity/version | `InventoryVersionedPackage.packageName/version/architecture` | No install or publication timestamp exists in this schema. |
+| Windows update publication | `InventoryWindowsUpdatePackage.lastDeploymentChangeTime` | Actual last publication date exists for WUA updates. A future extension can join the exact available WUA inventory item and revision, without using report time. |
+| Windows QFE installation | `InventoryWindowsQuickFixEngineeringPackage.installTime` | Actual QFE install date exists. Cannot substitute this subset for all installed packages. |
+| Windows application service date | `InventoryWindowsApplication.installDate` | Last service/repair date; not a universal original installation date. |
+| Enabled patch deployment | `PatchDeployment.state` ACTIVE or PAUSED | Real API state; never invented `enabled` property. |
+| Recurrence bounds | `RecurringSchedule.startTime/endTime/nextExecuteTime` | Proves active configured recurring schedule; not successful package installation. |
+| VM targeting | `PatchInstanceFilter` | Actual `all` or explicit `instances` supported; other criteria remain UNKNOWN in this stage. |
+
+The two vulnerability checks now have a concrete native PASS path: full current supported OS inventory and a current empty vulnerability report. The critical-only check can also ignore known noncritical findings. A nonempty relevant Linux vulnerability remains UNKNOWN because the predicate requires fix publication age. No report timestamp supplies that missing fact.
+
+The patch-deployment check now has concrete native FAIL paths: current inventory plus a complete empty schedule roster, or only paused/expired/explicitly nonmatching supported schedules. A matching enabled schedule remains UNKNOWN when the package install times required by the second predicate are absent.
+
+Feasible further read-only sources:
+
+* Windows: extend FULL inventory normalization for actual WUA and QFE records, preserving package kind, update ID/revision, and complete package universe. Join the vulnerability's exact available inventory ID to WUA `lastDeploymentChangeTime`; QFE `installTime` proves only the specific installed QFE record. Unsupported mixed package kinds must stay UNKNOWN.
+* Linux fix publication: ingest an authoritative vendor advisory/package feed that explicitly ties distro release, architecture, fixed version and release/publication date to the exact package referenced by the OS Config report. A CVE's NVD publication date by itself does not establish when a vendor fix became available. Missing exact version/date joins stay UNKNOWN.
+* Linux installation: ingest an already-existing owner-provided inventory/export containing package-manager installation events with retained provenance and completeness. RPM databases can contain package install epochs; Debian status metadata alone generally cannot prove full installation history, and rotated/incomplete logs must not close the age check. This stage does not execute commands or deploy software inside VMs.
+
+Primary schema references:
+
+* https://osconfig.googleapis.com/$discovery/rest?version=v1
+* https://docs.cloud.google.com/compute/docs/osconfig/rest/v1/projects.patchDeployments
+* https://docs.cloud.google.com/compute/docs/osconfig/rest/v1/projects.locations.instances.vulnerabilityReports
+* https://docs.cloud.google.com/compute/docs/osconfig/rest/v1/projects.locations.instances.inventories
+
+
+## Native SBOM metadata for an approved Cloud Run subset
+
+The SBOM path reads Artifact Registry Docker-image metadata and Container Analysis `SBOM_REFERENCE` occurrence metadata. An explicit owner review selects the Cloud Run services whose deployed images are in scope; it supplies neither image digests nor SBOM observations. Hosted intake stores the review in encrypted connector input, and the worker reconstructs and validates the same collector options.
+
+```json
+{"sw52":{"status":"collected","scope":"projects/example-project","sbomCloudRunServices":["projects/example-project/locations/us-central1/services/example-service"]}}
+```
+
+Put this declaration directly in connector `options.sw52`, not `compliance_policy`. The actual selected project scopes must equal the single declared project. The collector joins each approved service's observed generation and serving or tagged revisions to a ready native Cloud Run v1 revision and its resolved `status.imageDigest`, then matches repository/image identity and SBOM occurrence metadata. Calls use literal registered regional metadata endpoints and bounded field masks.
+
+Coverage is explicitly limited to the owner-approved service subset; it never implies that every workload in the project has an SBOM. Missing review, foreign project, unresolved traffic or digest, multiple containers, non-ready revision, inaccessible or incomplete inventories and unsupported image formats remain UNKNOWN. Container commands, environments, image layers, SBOM document contents and secret values are not fetched.

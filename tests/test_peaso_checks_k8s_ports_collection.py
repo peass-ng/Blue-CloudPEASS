@@ -22,6 +22,70 @@ class API:
                 "spec": {"containers": [{"name": "app"}]}} for i in range(self.page_items)]}
 
 
+def test_modern_psp_api_absence_is_observed_not_applicable_and_denial_is_unknown():
+    class PSPAPI(API):
+        def __init__(self, denied=False):
+            super().__init__(1, 1)
+            self.denied = denied
+        def get_json(self, path, params=None):
+            self.calls.append((path, dict(params or {})))
+            if self.denied:
+                raise k8s.K8sReadError("permission_denied", 403)
+            if path == "/apis":
+                return {"groups": [{"name": "policy", "versions": [{"groupVersion": "policy/v1"}]}]}
+            assert path == "/version"
+            return {"gitVersion": "v1.37.0"}
+    for denied in (False, True):
+        api = PSPAPI(denied)
+        snapshot = k8s.collect({"provider": "k8s", "options": {"inventories": ["podsecuritypolicy"]}, "auth": {"cluster_id": "fixture"}}, api=api)
+        row = next(row for row in snapshot["collections"] if row["type"] == "podsecuritypolicy")
+        if denied:
+            assert row.get("coverage_status") != "not_applicable" and row["status"] == "unknown"
+            assert row["error"]["kind"] == "K8sReadError"
+        else:
+            assert row["coverage_status"] == "not_applicable"
+            assert row["applicability"]["kubernetes_version"] == "v1.37.0"
+            assert "not evidence of secure admission" in row["applicability"]["guidance"]
+        assert not any(path.endswith("/podsecuritypolicies") for path, _ in api.calls)
+
+
+def test_k8s_progress_counts_kept_envelopes_and_full_default_namespaces():
+    import json
+    class NamespaceAPI(API):
+        def get_json(self, path, params=None):
+            self.calls.append((path, dict(params or {})))
+            namespace = path.split("/namespaces/")[1].split("/")[0]
+            return {"metadata": {"resourceVersion": "1"}, "items": [{"metadata": {"name": "p", "namespace": namespace, "uid": namespace}, "spec": {"containers": [{"name": "app"}]}}]}
+    events = []
+    scopes = ["n-" + str(i) for i in range(101)]
+    api = NamespaceAPI(1, 1)
+    options = {"inventories": ["pod"], "_progress_callback": events.append, "max_resources": 2}
+    request = {"provider": "k8s", "scopes": scopes, "options": options, "auth": {"cluster_id": "fixture"}}
+    snapshot = k8s.collect(request, api=api)
+    assert len(api.calls) == 101 and snapshot["scopes"] == scopes
+    assert options["_progress_callback"] == events.append
+    assert events[-1]["completed"] == 101 and events[-1]["total"] == 101
+    assert events[-1]["resources"] == 2 and events[-1]["dynamic_total"] is False
+    assert all(event["provider"] == "k8s" for event in events)
+    assert [event["completed"] for event in events] == sorted(event["completed"] for event in events)
+    assert [event["resources"] for event in events] == sorted(event["resources"] for event in events)
+    assert all(set(event) <= {"phase", "provider", "scope", "completed", "total", "resources", "dynamic_total"} for event in events)
+    assert "_progress_callback" not in json.dumps(snapshot)
+
+
+def test_explicit_namespace_cap_has_coverage_and_k8s_error_class():
+    class NamespaceAPI(API):
+        def get_json(self, path, params=None):
+            self.calls.append((path, dict(params or {})))
+            return {"metadata": {"resourceVersion": "1"}, "items": []}
+    api = NamespaceAPI(1, 1)
+    snapshot = k8s.collect({"provider": "k8s", "scopes": ["apps", "other"], "options": {"inventories": ["pod"], "max_scopes": 1}, "auth": {"cluster_id": "fixture"}}, api=api)
+    assert len(api.calls) == 1
+    omitted = next(row for row in snapshot["collections"] if row["scope"] == "other")
+    assert omitted["status"] == "unknown" and omitted["error"] == {"kind": "K8sReadError", "code": "scope_limit"}
+    assert snapshot["metadata"]["intentional_partial"] is True
+
+
 def test_k8s_default_has_no_hidden_page_call_or_resource_cap():
     api = API()
     result = k8s.collect({"provider": "k8s", "options": {"inventories": ["pod"]}, "auth": {"cluster_id": "fixture"}}, api=api)

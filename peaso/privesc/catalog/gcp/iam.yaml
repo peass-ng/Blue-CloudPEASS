@@ -1,5 +1,6 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
 # GCP IAM / service-account impersonation privilege escalation techniques.
-# Source: hacktricks-cloud gcp-privilege-escalation/gcp-iam-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-iam-privesc.md (rev 171e422).
 # Conventions used across catalog/gcp/*.yaml (see SCHEMA EXTENSIONS in the GCP agent report):
 #   resource "{target.email}"   -> the target service account (SA-level policy or project/folder/org inheritance).
 #   resource "*" + selector gcp_sa_in_scope_of_permission -> the permission must hold on the target SA's project (or an
@@ -25,8 +26,8 @@
   provider: gcp
   service: iam
   title: Mint OAuth access tokens for a service account
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountsgetaccesstoken-iamserviceaccountsget
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountsgetaccesstoken--impersonate-a-service-account
+  source_revision: 171e422
   summary: The source can obtain the privileges of every service account on which it holds iam.serviceAccounts.getAccessToken.
   requires:
     all_of:
@@ -54,8 +55,8 @@
   provider: gcp
   service: iam
   title: Create or upload a user-managed key for a service account
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountkeyscreate
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountkeyscreate--create-or-upload-a-durable-private-key
+  source_revision: 171e422
   summary: The source can obtain the privileges of every service account on which it holds iam.serviceAccountKeys.create.
   requires:
     all_of:
@@ -84,8 +85,8 @@
   provider: gcp
   service: iam
   title: Chain token minting through an intermediate service account via implicitDelegation
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountsimplicitdelegation
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountsimplicitdelegation--reach-a-service-account-through-a-delegation-chain
+  source_revision: 171e422
   summary: The source can obtain the privileges of the service accounts that a delegate chain can mint credentials for. The chain starts at a delegate SA on which the source holds iam.serviceAccounts.implicitDelegation, may continue through further implicitDelegation grants, and ends at SAs on which the last delegate holds getAccessToken, signBlob or signJwt. The delegates themselves are not reached.
   requires:
     all_of:
@@ -113,8 +114,8 @@
   provider: gcp
   service: iam
   title: Sign arbitrary bytes (a JWT assertion) with a service account's Google-managed key
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountssignblob
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountssignblob--iamserviceaccountssignjwt--sign-an-assertion-and-exchange-it-for-tokens
+  source_revision: 171e422
   summary: The source can obtain the privileges of every service account on which it holds iam.serviceAccounts.signBlob.
   requires:
     all_of:
@@ -142,8 +143,8 @@
   provider: gcp
   service: iam
   title: Sign a JWT with a service account's Google-managed key
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountssignjwt
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountssignblob--iamserviceaccountssignjwt--sign-an-assertion-and-exchange-it-for-tokens
+  source_revision: 171e422
   summary: The source can obtain the privileges of every service account on which it holds iam.serviceAccounts.signJwt.
   requires:
     all_of:
@@ -170,8 +171,8 @@
   provider: gcp
   service: iam
   title: Rewrite a service account's IAM policy to self-grant impersonation
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountssetiampolicy
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountssetiampolicy--grant-yourself-token-creation-access
+  source_revision: 171e422
   summary: The source can obtain the privileges of every service account on which it holds iam.serviceAccounts.setIamPolicy.
   requires:
     all_of:
@@ -199,8 +200,8 @@
   provider: gcp
   service: iam
   title: Add permissions to a custom role bound to the source
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamrolesupdate-iamrolesget
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamrolesupdate--add-permissions-to-an-already-bound-custom-role
+  source_revision: 171e422
   summary: The source can obtain the privileges of the scope owner of every project/folder/org where a custom role it can update is bound to it.
   requires:
     all_of:
@@ -214,7 +215,7 @@
     aggregate_as: "Scopes where a source-bound custom role is editable"
   conditions:
     - id: add_permission_limits
-      description: HackTricks reports roles.update may be constrained to permissions the caller already holds for least-privileged callers; project-level custom roles cannot contain org/folder-only permissions.
+      description: The caller need not hold the added permission, but it must be supported in custom roles at that level (project-level roles cannot contain folder/org-only permissions, no wildcards), the role must be active (roles.update can also re-activate a disabled role), and any binding condition must hold.
   blockers:
     - gcp_deny_policy
   confidence: conditional

@@ -24,7 +24,7 @@ test("real API queued scan cancellation retains honest status", async ({
     .getByLabel("Connector name", { exact: true })
     .fill("Queued cancellation fixture");
   await page
-    .getByText("Advanced native configuration", { exact: true })
+    .getByText("Advanced configuration", { exact: true })
     .click();
   await page
     .getByLabel("Additional collector options JSON")

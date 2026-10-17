@@ -1,0 +1,256 @@
+"""Reproduce the exact pre-bulk admission view, without changing runtime state.
+
+Historical conservation tests describe the 3,434-check release. The successor
+adds precisely the 552 signed entries in bulk_pending.json. Recompile that
+ancestor from its retained signed inputs instead of rewriting old hashes or
+pretending the new checks remain unregistered. Current compiler/materializer
+tests still verify the complete successor artifacts.
+"""
+import copy
+from functools import lru_cache
+import hashlib
+import gzip
+import json
+from pathlib import Path
+import shutil
+import tempfile
+
+ROOT = Path(__file__).resolve().parents[1]
+BULK = json.loads((ROOT / "peaso/checks/bulk_pending.json").read_text())
+BULK_IDS = frozenset(BULK["checks"])
+POST_BASELINE_IDS = frozenset({
+    "aws.route53resolver.query_log_config_delivery_ready",
+    "aws.organizations.resource_tag_policy_compliance",
+    "aws.organizations.effective_tag_policy_values",
+    "azure.vm.iaas_antimalware_extension_minor_version_selection",
+})
+ANCESTOR_MANIFEST = "db02091367b0067b5c4db3439d9fa13805877bb933e7e2dfab37113c1ffcaac8"
+VIEWS_SHA256 = "149b54a78e6811c1ec4d639e5912d5c7f4fe6a7aba16a2e6e2ee3550d995d41e"
+
+
+def registered_before_bulk(checks):
+    ids = [check.id for check in checks]
+    assert len(ids) == len(set(ids))
+    assert BULK_IDS <= set(ids) and len(BULK_IDS) == 552
+    # Post-baseline draft checks may be intentionally unregistered until
+    # their catalog admission is signed. Historical membership is unaffected.
+    old = [check for check in checks if check.id not in BULK_IDS | POST_BASELINE_IDS]
+    assert len(old) == BULK["baseline_native_checks"] == 3434
+    return old
+
+
+def registry_source_before_bulk():
+    source = (ROOT / "tests/fixtures/post_dfaf_integration/registry_pre_bulk.py.txt").read_bytes()
+    delta = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/sprint_source_changes.json").read_text())
+    assert hashlib.sha256(source).hexdigest() == delta["changes"]["peaso/checks/__init__.py"]["baseline_sha256"]
+    return source.decode()
+
+
+def encoded(value, *, compact=False):
+    options = {"separators": (",", ":")} if compact else {"indent": 2}
+    return (json.dumps(value, ensure_ascii=False, **options) + "\n").encode()
+
+
+@lru_cache(maxsize=1)
+def _history():
+    from scripts.peaso_compliance_compile import compile_verified, matrix_from, lookup_index
+
+    ledger = ROOT / "docs/compliance-ledgers"
+    manifest = json.loads((ledger / "manifest.json").read_text())
+    supplemental = json.loads((ledger / "descriptions/implemented-new-checks.json").read_text())
+    assert BULK_IDS <= supplemental.keys()
+    supplemental = {key: row for key, row in supplemental.items() if key not in BULK_IDS}
+    assert len(supplemental) == 329
+    manifest["new_descriptions"].update(checks=329, sha256=hashlib.sha256(encoded(supplemental)).hexdigest())
+    assert hashlib.sha256(encoded(manifest)).hexdigest() == ANCESTOR_MANIFEST
+    native = json.loads((ROOT / "peaso/rulepacks/native_catalog.json").read_text())
+    # These two long-standing predicates were corrected after the published
+    # historical cohort. Reconstruct their old descriptions from the exact
+    # Source414e archive; current runtime retains the corrected descriptions.
+    legacy = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/legacy_native_records.json").read_text())
+    assert legacy["source_version"] == "414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d"
+    baseline = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/conservation.json").read_text())
+    for index, row in enumerate(native["checks"]):
+        if row["id"] in legacy["records"]:
+            historical = legacy["records"][row["id"]]
+            masked = copy.deepcopy(historical)
+            masked.get("proposal_provenance", {}).pop("source_manifest_sha256", None)
+            digest = hashlib.sha256(json.dumps(masked, sort_keys=True, separators=(",", ":"),
+                                                ensure_ascii=False).encode()).hexdigest()
+            assert digest == baseline["old_native_masked_sha256"][row["id"]]
+            native["checks"][index] = historical
+    native["checks"] = [row for row in native["checks"] if row["id"] not in BULK_IDS]
+    assert len(native["checks"]) == 3434
+    with tempfile.TemporaryDirectory(prefix="peaso-admission-history-") as folder:
+        target = Path(folder)
+        # Reconstruct only the two changed inputs; every retained slice stays exact.
+        for path in ledger.rglob("*.json"):
+            rel = path.relative_to(ledger)
+            if ".work" in rel.parts or rel.as_posix() in ("manifest.json", "descriptions/implemented-new-checks.json"):
+                continue
+            output = target / rel
+            output.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, output)
+        (target / "manifest.json").write_bytes(encoded(manifest))
+        (target / "descriptions/implemented-new-checks.json").write_bytes(encoded(supplemental))
+        requirements, descriptions = compile_verified(target, matrix_from(ROOT / "docs/handoff/compliance-requirements-matrix.json.gz"), native)
+    # Rebind the only derived mapping fields that registration of a new proposal can alter.
+    native["compliance_source_manifest_sha256"] = ANCESTOR_MANIFEST
+    for row in native["checks"]:
+        tags = requirements["by_check"].get(row["id"], [])
+        row["requirement_controls"] = copy.deepcopy(tags)
+        if isinstance(row.get("proposal_provenance"), dict):
+            row["proposal_provenance"]["source_manifest_sha256"] = ANCESTOR_MANIFEST
+        lookup = {(tag["framework_id"], tag["requirement_id"]): tag for tag in tags}
+        for mapping in row.get("mapping", {}).values():
+            for control in mapping.get("controls", []):
+                tag = lookup.get((control["framework_id"], control["control_id"]))
+                if tag:
+                    control.update(decision=tag["decision"], runtime_status=tag["runtime_status"])
+    result = {
+        "docs/compliance-ledgers/manifest.json": manifest,
+        "docs/compliance-ledgers/descriptions/implemented-new-checks.json": supplemental,
+        "peaso/rulepacks/native_catalog.json": native,
+        "peaso/rulepacks/compliance_requirements.json": requirements,
+        "peaso/rulepacks/check_descriptions.json": descriptions,
+        "peaso/rulepacks/compliance_lookup.json": lookup_index(requirements, hashlib.sha256(encoded(requirements, compact=True)).hexdigest()),
+    }
+    archived = ROOT / "tests/fixtures/post_dfaf_integration/pre_bulk_views.json.gz"
+    assert hashlib.sha256(archived.read_bytes()).hexdigest() == VIEWS_SHA256
+    views = json.loads(gzip.decompress(archived.read_bytes()))
+    pins = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/two_hour_native_cohort.json").read_text())["source_changes"]
+    for path, text in views.items():
+        assert hashlib.sha256(text.encode()).hexdigest() == pins[path]["sha256"]
+        result[path] = json.loads(text)
+    return result
+
+
+def ancestor_json(path):
+    relative = str(Path(path).resolve().relative_to(ROOT))
+    return copy.deepcopy(_history().get(relative, json.loads(Path(path).read_text())))
+
+
+def ancestor_bytes(path):
+    relative = str(Path(path).resolve().relative_to(ROOT))
+    if relative in _history():
+        compact = Path(relative).name in ("native_catalog.json", "runtime_metadata.json", "compliance_requirements.json",
+                                         "compliance_lookup.json", "check_descriptions.json", "frameworkCatalog.json")
+        return encoded(_history()[relative], compact=compact)
+    if relative == "peaso/checks/__init__.py":
+        return registry_source_before_bulk().encode()
+    return Path(path).read_bytes()
+
+
+def ancestor_sha(path):
+    path = Path(path)
+    relative = str(path.resolve().relative_to(ROOT))
+    delta_path = ROOT / "tests/fixtures/post_dfaf_integration/sprint_source_changes.json"
+    delta = json.loads(delta_path.read_text()) if delta_path.exists() else {"changes": {}}
+    published = _published_sprint()
+    if relative in delta["changes"]:
+        change = delta["changes"][relative]
+        assert published["files"].get(relative) == change["sha256"], relative
+        if change["baseline_sha256"] is not None:
+            return change["baseline_sha256"]
+    if relative in published["files"]:
+        return published["files"][relative]
+    return hashlib.sha256(ancestor_bytes(path)).hexdigest()
+
+
+@lru_cache(maxsize=1)
+def _published_sprint():
+    return historical_release(ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip")
+
+
+def historical_release(path):
+    """Read an authentic release manifest; source archives need not be nested."""
+    import re
+    import zipfile
+    path = Path(path)
+    match = re.fullmatch(r"peaso-source-([0-9a-f]{64})\.zip", path.name)
+    if match is None:
+        raise ValueError("Unexpected historical source archive name")
+    version = match.group(1)
+    if path.is_file():
+        with zipfile.ZipFile(path) as archive:
+            result = json.loads(archive.read("release.json"))
+    else:
+        payload = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/historical-release-manifests.json").read_text())
+        if payload.get("schema") != 1:
+            raise ValueError("Historical release manifest schema differs")
+        visiting = set()
+        def reconstruct(wanted):
+            if wanted in visiting:
+                raise ValueError("Historical release manifest cycle")
+            visiting.add(wanted)
+            row = payload["releases"][wanted]
+            manifest = reconstruct(row["base"])["files"].copy() if row["base"] else {}
+            for name, digest in row["files_delta"].items():
+                if digest is None:
+                    manifest.pop(name, None)
+                else:
+                    manifest[name] = digest
+            value = {key: item for key, item in row.items() if key not in {"base", "files_delta"}}
+            value["files"] = manifest
+            if value.get("source_version") != wanted or hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()).hexdigest() != wanted:
+                raise ValueError("Historical release manifest binding differs")
+            visiting.remove(wanted)
+            return value
+        result = reconstruct(version)
+    if result.get("source_version") != version or hashlib.sha256(json.dumps(result["files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest() != version:
+        raise ValueError("Historical release manifest binding differs")
+    return result
+
+
+def historical_bytes(path, member):
+    """Return retained historical bytes bound to the original release roster."""
+    import zipfile
+    from pathlib import PurePosixPath
+    relative = PurePosixPath(member)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError("Unexpected historical source member")
+    release = historical_release(path)
+    if Path(path).is_file():
+        with zipfile.ZipFile(path) as archive:
+            raw = archive.read(member)
+    else:
+        payload = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/historical-release-manifests.json").read_text())
+        patch = payload["member_patches"][release["source_version"]][member]
+        baseline = (ROOT / member).read_bytes()
+        if hashlib.sha256(baseline).hexdigest() != patch["baseline_sha256"]:
+            raise ValueError("Historical source baseline digest differs")
+        if "select_keys" in patch:
+            value = json.loads(baseline)
+            raw = (json.dumps({key: value[key] for key in patch["select_keys"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode()
+        else:
+            lines = baseline.decode().splitlines(keepends=True)
+            parts = []
+            for operation in patch["operations"]:
+                if set(operation) == {"copy"}:
+                    start, end = operation["copy"]
+                    if not 0 <= start <= end <= len(lines):
+                        raise ValueError("Historical source copy range differs")
+                    parts.append("".join(lines[start:end]))
+                elif set(operation) == {"text"}:
+                    parts.append(operation["text"])
+                else:
+                    raise ValueError("Historical source operation differs")
+            raw = "".join(parts).encode()
+    if hashlib.sha256(raw).hexdigest() != release["files"][member]:
+        raise ValueError("Historical source member digest differs")
+    return raw
+
+
+def historical_catalog_ids(path):
+    """Read a hash-pinned ID projection, not a fabricated historical catalog."""
+    release = historical_release(path)
+    version = release["source_version"]
+    payload = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/historical-release-manifests.json").read_text())
+    projection = payload["catalog_id_projections"][version]
+    if projection["source_member_sha256"] != release["files"][projection["source_member"]]:
+        raise ValueError("Historical catalog projection source differs")
+    ids = projection["ids"]
+    expected = {"e022caf8ffd81b18571939a12313dfd9afa60c8f2095239cf3ad25e3002a31b7": "30bc3897a0e8a0b37ac28235f17d5f2a6a5e7deffa8e002daf55ac26bf355007"}
+    if len(ids) != len(set(ids)) or hashlib.sha256(json.dumps(ids, separators=(",", ":")).encode()).hexdigest() != expected[version]:
+        raise ValueError("Historical catalog ID projection digest differs")
+    return set(ids)

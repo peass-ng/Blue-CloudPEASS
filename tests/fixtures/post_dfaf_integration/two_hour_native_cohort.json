@@ -1,0 +1,1388 @@
+{
+  "baseline_source_version": "e022caf8ffd81b18571939a12313dfd9afa60c8f2095239cf3ad25e3002a31b7",
+  "ids": [
+    "aws.nist.all_iam_policies_no_star_star",
+    "aws.nist.all_managed_policies_no_service_wildcard",
+    "aws.nist.emr_master_nodes_no_public_ip",
+    "aws_fedramp_emr_master_no_public_ip",
+    "aws_g6_emr_master_nodes_no_public_address",
+    "aws_g6_iam_all_policy_service_wildcard",
+    "aws_g6_iam_all_policy_star_star",
+    "aws_nist_efs_access_point_enforce_root_directory",
+    "aws_nist_emr_cluster_master_nodes_no_public_ip",
+    "aws_nist_iam_all_policy_no_service_wild_card",
+    "aws_nist_iam_policy_no_star_star",
+    "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5",
+    "gcp_logging_detect_t1518",
+    "gcp_logging_detect_t1614"
+  ],
+  "psc_id": "gcp.network.private_service_connect_google_apis",
+  "native_count": 3434,
+  "description_count": 3441,
+  "supplemental_count": 329,
+  "pending_checks": 552,
+  "pending_privesc": 112,
+  "source_changes": {
+    "peaso/checks/__init__.py": {
+      "baseline_sha256": "caef27171667da9fd23216591ec2bb2e406a47e4ff2dcf47a45a490a0c6121c0",
+      "sha256": "d5fd63069d4bc6d6d3ecfe339e91139ad4b435f0de44684f65b9473f33a9340b"
+    },
+    "peaso/collectors/aws.py": {
+      "baseline_sha256": "90a237628b2a45012e07adff78d3c9e9e92c3d855fa5237d1b11fdd3945df7f4",
+      "sha256": "bdae3a0eb065dc9b4745db86b6747120bf79047c4c5fd4990e3cbc5f7cc6f7ad"
+    },
+    "peaso/collectors/aws_privesc_facts.py": {
+      "baseline_sha256": "b026d38ec493d01192b6be1f85806c0d6a006af62b2a416084540556e9523ab6",
+      "sha256": "b0d6c5be4c068a7422c844f050c60d212931cdd87b6ce30fc1e2437aadcbf310"
+    },
+    "peaso/collectors/aws_facts_data_identity.py": {
+      "baseline_sha256": "6565705352c2e501c0bb5d994eb1037305614f59c39ef4300d69fbcdac18999b",
+      "sha256": "253132c2a4e51b7d4f4a4f722d115877a4e30d41982e907438a5b2bb4cb4f86b"
+    },
+    "peaso/collectors/azure.py": {
+      "baseline_sha256": "c9e85901af5d95fabdeed5911f697d2aee1eca1a1b06b3a9b890614bd9774cb8",
+      "sha256": "cb95f3578f40b9d3a45868f4b301588356a8efe700c6a8c65a25b82b2d958199"
+    },
+    "peaso/collectors/gcp_audit_native.py": {
+      "baseline_sha256": "be7442b7feb98f7b54a288a559b276fd93d34d80de56919451e29169db48d49e",
+      "sha256": "02554f3aa9bf2a4d450455c75c6b7fac5ca2396e1afededd34db42a6ec4179e8"
+    },
+    "peaso/privesc/schema.py": {
+      "baseline_sha256": "838c1576f0701c6c30908769c1041e8263d17f8519fbeaf8d9e3cd47f779cc3a",
+      "sha256": "ff810d99bd41f28140e8ecfc8703ac9e9775c12ea6deae86c7ffdbb44e123420"
+    },
+    "peaso/privesc/privesc-technique.schema.json": {
+      "baseline_sha256": "66870af6a15c42b9161e9c9f015afc3085baaf52e1c54eeb3a9a1289d4fb7934",
+      "sha256": "66870af6a15c42b9161e9c9f015afc3085baaf52e1c54eeb3a9a1289d4fb7934"
+    },
+    "peaso/privesc/versioned_catalog.py": {
+      "baseline_sha256": "7208003138d9686636f0037c19b2bf2edee3af33910aa511c8ade3bb99ffc8f2",
+      "sha256": "c596a12076c502ac1027fdfe2b41b9ce2b6464077ae54feb63a9d6f7ea58a916"
+    },
+    "peaso/privesc/effective_permissions/aws.py": {
+      "baseline_sha256": "c08dfe2ecd960277ec737d96d2463885fad3596f48271cf104b51ced28c2b5c7",
+      "sha256": "13f1caea607bf1801ae060434aa6977a370e08940096df5708864a87f1018357"
+    },
+    "peaso/privesc/effective_permissions/gcp.py": {
+      "baseline_sha256": "9ab02a8ddbbbe58a3bda7adeeafe98d4e1456464e032ff99c089db7b87b43e6b",
+      "sha256": "fd9b0b2874eea988df33143a27311e686c9d61ab07af32dec059f495b43842a7"
+    },
+    "peaso/privesc/effective_permissions/exact_evidence.py": {
+      "baseline_sha256": "760bd1da78cce994474135979395b3fb54b4906abfa5d8070f07052b12d015ae",
+      "sha256": "966d87018abc0269ecb9d94cd7d7cd1c51798816440e5b8aeefd11f3a36a4f4a"
+    },
+    "risk_rules/hacktricks-privesc-source.json": {
+      "baseline_sha256": "6008acf71acda21408c7039dddff2d7ccaeeaa3aecfc6f31ef5d2cdc5a4ea388",
+      "sha256": "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429"
+    },
+    "peaso/checks/aws_all_policies.py": {
+      "baseline_sha256": null,
+      "sha256": "46c12e7ef9f8ed1eac29709c720c0b703e71ee7d0ac15c2427c99346747ab9fe"
+    },
+    "peaso/checks/aws_all_policies.json": {
+      "baseline_sha256": null,
+      "sha256": "8e1cdcc44749b643d95e4ee223e386a4b4aba609d9e09a0577779cc34daa83bf"
+    },
+    "peaso/checks/aws_all_policies_fixtures.json": {
+      "baseline_sha256": null,
+      "sha256": "f93d3feb539b593561b3cf9878a0f151e5619ab29bb43984e9963e141eee9401"
+    },
+    "peaso/checks/gcp_audit_rates.py": {
+      "baseline_sha256": null,
+      "sha256": "efb0da440e417b40efbcbf189b0fb62385be3b849136b04de08f61baff8e748c"
+    },
+    "peaso/checks/gcp_audit_rates.json": {
+      "baseline_sha256": null,
+      "sha256": "5010787138c533e7af252d5cfc2aab641097fb6bc9607d6018a66aac943554d9"
+    },
+    "peaso/checks/gcp_audit_rates_fixtures.json": {
+      "baseline_sha256": null,
+      "sha256": "2d2fd4319e86bb5f54d0f99b6c28ca0788504e46e822afdaed5d0dfe108a4354"
+    },
+    "peaso/checks/native_storage_compute.py": {
+      "baseline_sha256": null,
+      "sha256": "66bc80ff2d43d7d394defa1180199abf42fb0c40b56ff2696ce5f9733f1de318"
+    },
+    "peaso/checks/native_storage_compute.json": {
+      "baseline_sha256": null,
+      "sha256": "e4891a7a99339126380eab0a9e66e855c4b1f7ee8558e79abe64a2471fac7c9d"
+    },
+    "peaso/checks/native_storage_compute_fixtures.json": {
+      "baseline_sha256": null,
+      "sha256": "815860e018a22d38bf666b17a981d28993bea720567d369e28e1d26b1339f274"
+    },
+    "peaso/collectors/aws_all_policies.py": {
+      "baseline_sha256": null,
+      "sha256": "4be1797ead0658962fe64ddd17ac4437df49b3612e0d8746cf7315734e4a9886"
+    },
+    "peaso/collectors/azure_sql_inventory.py": {
+      "baseline_sha256": null,
+      "sha256": "2bffcc5421ab573eb535cd3f36186e98db87defea014f7c7f7df5c55b586d65d"
+    },
+    "peaso/privesc/bounded_effects.json": {
+      "baseline_sha256": null,
+      "sha256": "4ce1a0b29fbf026bbc26166915f87e5fb2c4e6396a8aa37ee91e56ca1840806d"
+    },
+    "peaso/privesc/exact_principal_tranche.json": {
+      "baseline_sha256": null,
+      "sha256": "c02921ad9a694b07415ffd5de0c97a0e8b0f34b73bbf40dc3b78e149e29b4af6"
+    },
+    "peaso/privesc/effective_permissions/bounded_evidence.py": {
+      "baseline_sha256": null,
+      "sha256": "1cd1a44f2d955bb5dc877e404ab09294a3df9b67bb1ff9e867aec1cd0cf212af"
+    },
+    "peaso/privesc/effective_permissions/principal_evidence.py": {
+      "baseline_sha256": null,
+      "sha256": "32839d9a782ab7d0a3ff09e31b99f49484024c7953930cb0187e576fd9c2e4e7"
+    },
+    "peaso/privesc/catalog_versions/principal-v4-manifest.json": {
+      "baseline_sha256": null,
+      "sha256": "6008acf71acda21408c7039dddff2d7ccaeeaa3aecfc6f31ef5d2cdc5a4ea388"
+    },
+    "peaso/privesc/catalog/aws/bounded-effects-v5.yaml": {
+      "baseline_sha256": null,
+      "sha256": "d38ce968f6af36e9d5c72a098916978320ebf61653df6e6b2c1916de3fbaf80a"
+    },
+    "peaso/privesc/catalog/azure/bounded-effects-v5.yaml": {
+      "baseline_sha256": null,
+      "sha256": "1ca7a8398150cd05f2146e3466be8713481870cdcedfaf8813aad3e41b12a9f4"
+    },
+    "peaso/privesc/catalog/gcp/bounded-effects-v5.yaml": {
+      "baseline_sha256": null,
+      "sha256": "336a51ee7c3e5411d23c7e6fffd90849a28de2577ce2ccc02ff6e03877da5505"
+    },
+    "peaso/privesc/catalog/aws/exact-principal-v5.yaml": {
+      "baseline_sha256": null,
+      "sha256": "b198454714e4e530682cea805f5e1db595c9eb7a8057f35b1f8d426f88c2a709"
+    },
+    "peaso/privesc/catalog/gcp/exact-principal-v5.yaml": {
+      "baseline_sha256": null,
+      "sha256": "345e1f41d7baf6f859b65eb6abdf8b6be5bf25781a9b25602ab1481bf1c7ec0b"
+    },
+    "peaso/rulepacks/native_catalog.json": {
+      "baseline_sha256": "c383dad30bc5da4429bddd25103487dc17593df70eee548f586e81cbb7c2380b",
+      "sha256": "cd072d7a7979bebfa74ffb33e2e1422b94766dada038af56f0ea55b3169c7f54"
+    },
+    "peaso/rulepacks/framework_catalog.json": {
+      "baseline_sha256": "b991f8f65b92298da941b4761188e8a6c66bc4d9b2afd43553aa6ce6a6dd6e4a",
+      "sha256": "43962407bc8e143cf636317ee4c7323e36d6b6ce1657498287fad6c558d1fe11"
+    },
+    "peaso/rulepacks/runtime_metadata.json": {
+      "baseline_sha256": "da3623f3e9c2f3e39fb5375ba7835be29fdfa00d750f28beab2f699b7c3e53ed",
+      "sha256": "1078d8fec808295b8af910288d5c55dee0aeab91fa7010fedec1d2f332625662"
+    },
+    "peaso/rulepacks/check_descriptions.json": {
+      "baseline_sha256": "b45c3a13ea0fe6ef085f52fd03078561cbebe477ba398d941f255d74315d80a2",
+      "sha256": "35c0b0acc983a55a90b9fa28fdb871f19240fed9660808357e12df00791a1900"
+    },
+    "peaso/rulepacks/compliance_lookup.json": {
+      "baseline_sha256": "a8406177d03a050ed0f057e39d050a871a3823a519357751829a4423f56bab62",
+      "sha256": "41dc9ce71e2cb64e3fad28c80d495b53c85af03d7c94c0d2f9ffa95a70eb0694"
+    },
+    "peaso/rulepacks/compliance_requirements.json": {
+      "baseline_sha256": "7eacec75a219e90a59578613f30ebe367f4b7d97b47b6dee3a5883dc35545a26",
+      "sha256": "9488ad1b038ddb32ddf0f8a8671c88c7242ae8623473cc0a9390f49f43664673"
+    },
+    "peaso/rulepacks/catalog_summary.json": {
+      "baseline_sha256": "b90f7860fb08b076e933c8469993888255dbb4963a5540422fd82067d4912439",
+      "sha256": "1677e0d7e9d98794741b244ef0880880444409e0a50e0d0798a6065e3e7c175b"
+    },
+    "docs/compliance-ledgers/manifest.json": {
+      "baseline_sha256": "d5bcf2525ad2a4b0dc974d2bb2269e5486201f229d6f4a1833c7052460d4ec32",
+      "sha256": "db02091367b0067b5c4db3439d9fa13805877bb933e7e2dfab37113c1ffcaac8"
+    },
+    "docs/compliance-ledgers/descriptions/implemented-new-checks.json": {
+      "baseline_sha256": "8b686bea9df673c6c2777285151ca32696c684a9a6b06b9b16c32b3d54f00c1a",
+      "sha256": "58df9eff53d9ae4a3f6e52ed4acfb94e02625495cfcbab2116653005361cc8fa"
+    },
+    "frontend/src/frameworkCatalog.json": {
+      "baseline_sha256": "a4f89b9c3321d2c7c99b702677c00eabf848fe4c1696e604d27a2882a61ecb89",
+      "sha256": "84217160d64732f3c2f91b8d4cc4f4ebcaac1a1a4065b53abaf7cd3ebd760269"
+    },
+    "peaso/engine.py": {
+      "baseline_sha256": "8b0e0bfeec538469a0f4550307416b3a5b640b05a55e28680dcdf9d0dcd1a46a",
+      "sha256": "ce3d8e1566a1c48f275b1135cb5d02101bcfb60f9df8f52a58a7b523a339936b"
+    },
+    "peaso/server/app.py": {
+      "baseline_sha256": "c51d90c65f00d695f4b3ec393084b8cbdaed93b84591b97ae942aee0b56b2b78",
+      "sha256": "72a1536afbb8dd194c1b5d8e8dcf2604426ced4272354a1b004d098bd99e7ebb"
+    }
+  },
+  "changed_requirements": {
+    "aws-compliance.benchmark.fedramp_low_rev_4|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "removed_checks": [],
+        "reason": "The subnet check tests auto-assignment, and the added primary-node check tests a public DNS name. Explicit public IP association without that name still requires direct assessment.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562",
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "The subnet check tests auto-assignment, and the added primary-node check tests a public DNS name. Explicit public IP association without that name still requires direct assessment. Native scoped evidence is now evaluated for aws_fedramp_emr_master_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562",
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.fedramp_moderate_rev_4|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "removed_checks": [],
+        "reason": "The subnet check tests auto-assignment, and the added primary-node check tests a public DNS name. Explicit public IP association without that name still requires direct assessment.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562",
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_fedramp_emr_master_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "The subnet check tests auto-assignment, and the added primary-node check tests a public DNS name. Explicit public IP association without that name still requires direct assessment. Native scoped evidence is now evaluated for aws_fedramp_emr_master_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562",
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.ffiec|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former check reads subnet MapPublicIpOnLaunch, which does not reveal an existing master address. The replacement checks the primary-node public DNS heuristic; all master ENI public IPv4 and IPv6 addresses remain untested; proposed aws.nist.emr_master_nodes_no_public_ip covers the remaining scope.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former check reads subnet MapPublicIpOnLaunch, which does not reveal an existing master address. The replacement checks the primary-node public DNS heuristic; all master ENI public IPv4 and IPv6 addresses remain untested; proposed aws.nist.emr_master_nodes_no_public_ip covers the remaining scope. Native scoped evidence is now evaluated for aws.nist.emr_master_nodes_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.ffiec|aws-compliance.control.iam_all_policy_no_service_wild_card": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "pending_checks": [
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "removed_checks": [],
+        "reason": "The evaluator scans customer-managed policies only; AWS-managed policies and inline policies attached to identities remain outside this all-policy requirement; proposed aws.nist.all_managed_policies_no_service_wildcard covers the remaining scope.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws.nist.all_managed_policies_no_service_wildcard",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.ffiec|aws-compliance.control.iam_policy_no_star_star": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "pending_checks": [
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "removed_checks": [],
+        "reason": "The evaluator scans customer-managed policies only; inline and AWS-managed policy grants with Action \"*\" and Resource \"*\" remain untested; proposed aws.nist.all_iam_policies_no_star_star covers the remaining scope.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws.nist.all_iam_policies_no_star_star",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_171_rev_2|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former check reads subnet MapPublicIpOnLaunch, which does not reveal an existing master address. The replacement checks the primary-node public DNS heuristic; all master ENI public IPv4 and IPv6 addresses remain untested; proposed aws.nist.emr_master_nodes_no_public_ip covers the remaining scope.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former check reads subnet MapPublicIpOnLaunch, which does not reveal an existing master address. The replacement checks the primary-node public DNS heuristic; all master ENI public IPv4 and IPv6 addresses remain untested; proposed aws.nist.emr_master_nodes_no_public_ip covers the remaining scope. Native scoped evidence is now evaluated for aws.nist.emr_master_nodes_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_171_rev_2|aws-compliance.control.iam_all_policy_no_service_wild_card": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "pending_checks": [
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "removed_checks": [],
+        "reason": "The evaluator scans customer-managed policies only; AWS-managed policies and inline policies attached to identities remain outside this all-policy requirement; proposed aws.nist.all_managed_policies_no_service_wildcard covers the remaining scope.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws.nist.all_managed_policies_no_service_wildcard"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws.nist.all_managed_policies_no_service_wildcard",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_171_rev_2|aws-compliance.control.iam_policy_no_star_star": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "pending_checks": [
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "removed_checks": [],
+        "reason": "The evaluator scans customer-managed policies only; inline and AWS-managed policy grants with Action \"*\" and Resource \"*\" remain untested; proposed aws.nist.all_iam_policies_no_star_star covers the remaining scope.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws.nist.all_iam_policies_no_star_star"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws.nist.all_iam_policies_no_star_star",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_172|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former check reads subnet MapPublicIpOnLaunch, which does not reveal an existing master address. The replacement checks the primary-node public DNS heuristic; all master ENI public IPv4 and IPv6 addresses remain untested; proposed aws.nist.emr_master_nodes_no_public_ip covers the remaining scope.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_no_public_dns",
+          "aws.nist.emr_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former check reads subnet MapPublicIpOnLaunch, which does not reveal an existing master address. The replacement checks the primary-node public DNS heuristic; all master ENI public IPv4 and IPv6 addresses remain untested; proposed aws.nist.emr_master_nodes_no_public_ip covers the remaining scope. Native scoped evidence is now evaluated for aws.nist.emr_master_nodes_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:588"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_53_rev_4|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "removed_checks": [],
+        "reason": "Subnet auto-assignment policy does not prove an existing master node has no public address. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Subnet auto-assignment policy does not prove an existing master node has no public address. Proposed read-only check covers the automatable remainder; it is not a native pass. Native scoped evidence is now evaluated for aws_nist_emr_cluster_master_nodes_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_53_rev_4|aws-compliance.control.iam_policy_no_star_star": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "pending_checks": [
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "removed_checks": [],
+        "reason": "Inline and AWS-managed policies remain outside the customer-managed evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_nist_iam_policy_no_star_star",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_53_rev_5|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "removed_checks": [],
+        "reason": "Subnet auto-assignment policy does not prove an existing master node has no public address. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Subnet auto-assignment policy does not prove an existing master node has no public address. Proposed read-only check covers the automatable remainder; it is not a native pass. Native scoped evidence is now evaluated for aws_nist_emr_cluster_master_nodes_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_53_rev_5|aws-compliance.control.iam_all_policy_no_service_wild_card": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "pending_checks": [
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "removed_checks": [],
+        "reason": "AWS-managed and inline policies remain outside the customer-managed evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_nist_iam_all_policy_no_service_wild_card",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_800_53_rev_5|aws-compliance.control.iam_policy_no_star_star": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "pending_checks": [
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "removed_checks": [],
+        "reason": "Inline and AWS-managed policies remain outside the customer-managed evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_nist_iam_policy_no_star_star",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_csf|aws-compliance.control.efs_access_point_enforce_root_directory": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.efs_access_point_enforce_root_directory",
+        "name": "EFS access points should enforce a root directory",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.efs.access_point_root_directory"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.efs.access_point_root_directory",
+          "aws_nist_efs_access_point_enforce_root_directory"
+        ],
+        "pending_checks": [
+          "aws_nist_efs_access_point_enforce_root_directory"
+        ],
+        "removed_checks": [],
+        "reason": "The evaluator treats an empty path as enforcing a root directory. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:313"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.efs_access_point_enforce_root_directory",
+        "name": "EFS access points should enforce a root directory",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.efs.access_point_root_directory",
+          "aws_nist_efs_access_point_enforce_root_directory"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.efs.access_point_root_directory",
+          "aws_nist_efs_access_point_enforce_root_directory"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "The evaluator treats an empty path as enforcing a root directory. Proposed read-only check covers the automatable remainder; it is not a native pass. Native scoped evidence is now evaluated for aws_nist_efs_access_point_enforce_root_directory. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:313"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_csf|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "removed_checks": [],
+        "reason": "Subnet auto-assignment policy does not prove an existing master node has no public address. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "declared_check_ids": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip",
+          "aws_nist_emr_cluster_master_nodes_no_public_ip"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Subnet auto-assignment policy does not prove an existing master node has no public address. Proposed read-only check covers the automatable remainder; it is not a native pass. Native scoped evidence is now evaluated for aws_nist_emr_cluster_master_nodes_no_public_ip. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/claude2_aws_b_analytics.py:562"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_csf|aws-compliance.control.iam_all_policy_no_service_wild_card": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "pending_checks": [
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "removed_checks": [],
+        "reason": "AWS-managed and inline policies remain outside the customer-managed evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_nist_iam_all_policy_no_service_wild_card"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_nist_iam_all_policy_no_service_wild_card",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_csf|aws-compliance.control.iam_policy_no_star_star": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "pending_checks": [
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "removed_checks": [],
+        "reason": "Inline and AWS-managed policies remain outside the customer-managed evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_nist_iam_policy_no_star_star"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_nist_iam_policy_no_star_star",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_csf_v2|aws-compliance.control.iam_all_policy_no_service_wild_card": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_g6_iam_all_policy_service_wildcard"
+        ],
+        "pending_checks": [
+          "aws_g6_iam_all_policy_service_wildcard"
+        ],
+        "removed_checks": [],
+        "reason": "The native evaluator covers default versions of customer-managed IAM policies only. Inline identity policies and AWS-managed policies can still grant every action on a service resource.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card",
+        "name": "Ensure IAM policy should not grant full access to service",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_g6_iam_all_policy_service_wildcard"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_service_wildcard",
+          "aws_g6_iam_all_policy_service_wildcard"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_g6_iam_all_policy_service_wildcard",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:252"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nist_csf_v2|aws-compliance.control.iam_policy_no_star_star": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "pending_checks": [
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "removed_checks": [],
+        "reason": "The native evaluator reads only the default document of customer-managed IAM policies and detects literal Action=* with Resource=*. Inline identity policies and AWS-managed policies are outside that scope.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_g6_iam_all_policy_star_star",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nydfs_23|aws-compliance.control.emr_cluster_master_nodes_no_public_ip": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "NEW_CHECK",
+        "runtime_status": "not_assessed",
+        "native_checks": [],
+        "declared_check_ids": [
+          "aws_g6_emr_master_nodes_no_public_address"
+        ],
+        "pending_checks": [
+          "aws_g6_emr_master_nodes_no_public_address"
+        ],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former evaluator reads MapPublicIpOnLaunch on the EMR primary subnet, which does not directly test the master node network interfaces or assigned public addresses. The node address must be inspected.",
+        "evidence": [
+          "conformance_pack/emr.pp#L39"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip",
+        "name": "EMR cluster master nodes should not have public IP addresses",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws_g6_emr_master_nodes_no_public_address"
+        ],
+        "declared_check_ids": [
+          "aws_g6_emr_master_nodes_no_public_address"
+        ],
+        "pending_checks": [],
+        "removed_checks": [
+          "aws.c2b.emr.master_subnet_no_auto_public_ip"
+        ],
+        "reason": "The former evaluator reads MapPublicIpOnLaunch on the EMR primary subnet, which does not directly test the master node network interfaces or assigned public addresses. The node address must be inspected. Native scoped evidence is now evaluated for aws_g6_emr_master_nodes_no_public_address. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "conformance_pack/emr.pp#L39"
+        ]
+      }
+    },
+    "aws-compliance.benchmark.nydfs_23|aws-compliance.control.iam_policy_no_star_star": {
+      "baseline": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "pending_checks": [
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "removed_checks": [],
+        "reason": "The native evaluator reads only the default document of customer-managed IAM policies and detects literal Action=* with Resource=*. Inline identity policies and AWS-managed policies are outside that scope.",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      },
+      "current": {
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star",
+        "name": "IAM policy should not have statements with admin access",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "declared_check_ids": [
+          "aws.claude_a.iam.custom_policy_no_star_star",
+          "aws_g6_iam_all_policy_star_star"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native full IAM managed-default and inline policy configuration scan is implemented. Effective authorization, MFA and other control obligations remain separate evidence. aws_g6_iam_all_policy_star_star",
+        "evidence": [
+          "peaso/checks/claude_aws_a_iam.py:197"
+        ]
+      }
+    },
+    "cis_5.0_gcp|3.9": {
+      "baseline": {
+        "requirement_id": "3.9",
+        "name": "",
+        "decision": "NEW_CHECK",
+        "runtime_status": "not_assessed",
+        "native_checks": [],
+        "declared_check_ids": [
+          "gcp.network.private_service_connect_google_apis"
+        ],
+        "pending_checks": [
+          "gcp.network.private_service_connect_google_apis"
+        ],
+        "removed_checks": [],
+        "reason": "The requirement calls for Ensure Private Service Connect is Used for Access to Google APIs; the proposed read-only predicate tests the corresponding cloud configuration.",
+        "evidence": [
+          "prowler/compliance/gcp/cis_5.0_gcp.json"
+        ]
+      },
+      "current": {
+        "requirement_id": "3.9",
+        "name": "",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "gcp.network.private_service_connect_google_apis"
+        ],
+        "declared_check_ids": [
+          "gcp.network.private_service_connect_google_apis"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native evidence checks declared Google API PSC bundles and exact owner-required private DNS A records. Effective DNS resolution, actual traffic paths and firewall enforcement in CIS 3.9 still require separate evidence; no complete control certification is inferred.",
+        "evidence": [
+          "prowler/compliance/gcp/cis_5.0_gcp.json"
+        ]
+      }
+    },
+    "mitre_attack_gcp|T1518": {
+      "baseline": {
+        "requirement_id": "T1518",
+        "name": "Software Discovery",
+        "decision": "PARTIAL",
+        "runtime_status": "not_assessed",
+        "native_checks": [],
+        "declared_check_ids": [
+          "gcp_logging_detect_t1518"
+        ],
+        "pending_checks": [
+          "gcp_logging_detect_t1518"
+        ],
+        "removed_checks": [],
+        "reason": "The proposed read-only audit-log predicate observes a specific activity signal. ATT&CK technique attribution, intent and complete event coverage require additional telemetry and analyst review.",
+        "evidence": [
+          "prowler/compliance/gcp/mitre_attack_gcp.json"
+        ]
+      },
+      "current": {
+        "requirement_id": "T1518",
+        "name": "Software Discovery",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "gcp_logging_detect_t1518"
+        ],
+        "declared_check_ids": [
+          "gcp_logging_detect_t1518"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native read-rate anomaly detector over observed, complete-window audit events. Broader threat detection and logging enablement remain separate evidence. Native scoped evidence is now evaluated for gcp_logging_detect_t1518. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "prowler/compliance/gcp/mitre_attack_gcp.json"
+        ]
+      }
+    },
+    "mitre_attack_gcp|T1614": {
+      "baseline": {
+        "requirement_id": "T1614",
+        "name": "System Location Discovery",
+        "decision": "PARTIAL",
+        "runtime_status": "not_assessed",
+        "native_checks": [],
+        "declared_check_ids": [
+          "gcp_logging_detect_t1614"
+        ],
+        "pending_checks": [
+          "gcp_logging_detect_t1614"
+        ],
+        "removed_checks": [],
+        "reason": "The proposed read-only audit-log predicate observes a specific activity signal. ATT&CK technique attribution, intent and complete event coverage require additional telemetry and analyst review.",
+        "evidence": [
+          "prowler/compliance/gcp/mitre_attack_gcp.json"
+        ]
+      },
+      "current": {
+        "requirement_id": "T1614",
+        "name": "System Location Discovery",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "gcp_logging_detect_t1614"
+        ],
+        "declared_check_ids": [
+          "gcp_logging_detect_t1614"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "Native read-rate anomaly detector over observed, complete-window audit events. Broader threat detection and logging enablement remain separate evidence. Native scoped evidence is now evaluated for gcp_logging_detect_t1614. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "prowler/compliance/gcp/mitre_attack_gcp.json"
+        ]
+      }
+    },
+    "pci_4.0_azure|3.5.1.25": {
+      "baseline": {
+        "requirement_id": "3.5.1.25",
+        "name": "Azure Database",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "azure.sql.tde_enabled"
+        ],
+        "declared_check_ids": [
+          "azure.sql.tde_enabled",
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "pending_checks": [
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "removed_checks": [],
+        "reason": "The native SQL TDE predicate covers SQL databases; SQL Managed Instance encryption remains. Evaluated native signal: sql_tde: User SQL database enables transparent data encryption (properties.state).",
+        "evidence": [
+          "peaso/checks/azure_extended.py:164"
+        ]
+      },
+      "current": {
+        "requirement_id": "3.5.1.25",
+        "name": "Azure Database",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "azure.sql.tde_enabled",
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "declared_check_ids": [
+          "azure.sql.tde_enabled",
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "The native SQL TDE predicate covers SQL databases; SQL Managed Instance encryption remains. Evaluated native signal: sql_tde: User SQL database enables transparent data encryption (properties.state). Native scoped evidence is now evaluated for azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/azure_extended.py:164"
+        ]
+      }
+    },
+    "pci_4.0_azure|8.3.2.42": {
+      "baseline": {
+        "requirement_id": "8.3.2.42",
+        "name": "Azure Database",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "azure.sql.tde_enabled"
+        ],
+        "declared_check_ids": [
+          "azure.sql.tde_enabled",
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "pending_checks": [
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "removed_checks": [],
+        "reason": "The native SQL TDE predicate covers SQL databases; SQL Managed Instance encryption remains. Evaluated native signal: sql_tde: User SQL database enables transparent data encryption (properties.state).",
+        "evidence": [
+          "peaso/checks/azure_extended.py:164"
+        ]
+      },
+      "current": {
+        "requirement_id": "8.3.2.42",
+        "name": "Azure Database",
+        "decision": "PARTIAL",
+        "runtime_status": "partial",
+        "native_checks": [
+          "azure.sql.tde_enabled",
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "declared_check_ids": [
+          "azure.sql.tde_enabled",
+          "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5"
+        ],
+        "pending_checks": [],
+        "removed_checks": [],
+        "reason": "The native SQL TDE predicate covers SQL databases; SQL Managed Instance encryption remains. Evaluated native signal: sql_tde: User SQL database enables transparent data encryption (properties.state). Native scoped evidence is now evaluated for azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5. Broader control obligations remain separate evidence.",
+        "evidence": [
+          "peaso/checks/azure_extended.py:164"
+        ]
+      }
+    }
+  },
+  "changed_slices": [
+    "aws-nist-ffiec-nydfs",
+    "azure-pci",
+    "gcp-cis-cft",
+    "gcp-other"
+  ]
+}

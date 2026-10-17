@@ -1,8 +1,13 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Entra ID (Azure AD) identity-plane privilege escalation: directory-role management,
 # PIM activation, user credential takeover (password / authentication methods) and
 # domain federation.
 # Source: hacktricks-cloud az-entraid-privesc/README.md, az-services/az-azuread.md,
-# az-basic-information/README.md, az-persistence/README.md (rev a53b46392c).
+# az-basic-information/README.md, az-persistence/README.md (rev 171e422; all entries re-verified against the page text at that revision).
 # Target user sets follow Microsoft's "Who can reset passwords" / "Who can perform
 # sensitive actions" tables (privileged-roles-permissions, checked 2026-10).
 #
@@ -21,7 +26,7 @@
   service: entraid
   title: Graph RoleManagement.ReadWrite.Directory assigns any directory role
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#rolemanagementreadwritedirectory
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A service principal holding the Graph RoleManagement.ReadWrite.Directory application permission can obtain the privileges of any Entra directory role, including Global Administrator.
   requires:
     all_of:
@@ -49,8 +54,8 @@
   provider: azure
   service: entraid
   title: Manage directory role assignments (Privileged Role Administrator)
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#c9d4cde0-7dcc-45d5-aa95-59d198ae84b2
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#role-privileged-role-administrator
+  source_revision: 171e422
   summary: A principal allowed to manage tenant-scoped directory role assignments (e.g. Privileged Role Administrator) can obtain the privileges of any Entra directory role, including Global Administrator.
   requires:
     any_of:
@@ -82,8 +87,8 @@
   provider: azure
   service: entraid
   title: Expand a custom directory role the source already holds
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#c9d4cde0-7dcc-45d5-aa95-59d198ae84b2
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#role-privileged-role-administrator
+  source_revision: 171e422
   summary: A principal allowed to update directory role definitions can obtain the privileges of any custom-role-eligible permission set through the custom roles already assigned to it.
   requires:
     any_of:
@@ -111,8 +116,8 @@
   provider: azure
   service: entraid
   title: Activate a PIM-eligible directory role
-  source: src/pentesting-cloud/azure-security/az-services/az-azuread.md#privileged-identity-management-pim
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-pim-privesc.md#activate-an-eligible-role-in-model-jit-self-elevation
+  source_revision: 171e422
   summary: A principal with an eligible PIM assignment can obtain the privileges of the eligible Entra directory role.
   requires:
     all_of:
@@ -133,7 +138,8 @@
   mitigation: Require approval and MFA/authentication context for activation of privileged roles and review eligible assignments with access reviews.
   references:
     - https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure
-  notes: Eligibility can also come from membership of a role-assignable group that is eligible. Severity should be raised to critical by the evaluator when the eligible role is privileged (e.g. Global Administrator, Privileged Role Administrator).
+    - https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-approval-workflow
+  notes: Eligibility can also come from membership of a role-assignable group that is eligible. Severity should be raised to critical by the evaluator when the eligible role is privileged (e.g. Global Administrator, Privileged Role Administrator). BloodHound AZRoleApprover (approver -> role) does not give the approver the role; approvers cannot approve their own activation and service principals cannot approve, so it only lifts pim_approval_required_by_other_principal when the source also controls a different eligible user. With no approvers selected for a directory role, active Privileged Role Administrators / Global Administrators approve.
 
 # ---------------------------------------------------------------------------
 # User credential takeover. Target sets follow the Microsoft "Who can reset
@@ -154,7 +160,7 @@
   service: entraid
   title: Password Administrator resets passwords of non-admins and limited roles
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryuserspasswordupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A Password Administrator can obtain the privileges of users with no directory role or only Directory Readers, Guest Inviter or Password Administrator.
   requires:
     all_of:
@@ -188,7 +194,7 @@
   service: entraid
   title: Helpdesk Administrator resets passwords of non-admins and limited roles
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryuserspasswordupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A Helpdesk Administrator can obtain the privileges of users with no directory role or only Helpdesk-resettable limited roles.
   requires:
     all_of:
@@ -222,7 +228,7 @@
   service: entraid
   title: Authentication Administrator resets passwords and authentication methods of non-admins
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryuserspasswordupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: An Authentication Administrator can obtain the privileges of users with no directory role or only Authentication-Administrator-resettable limited roles, including through authentication-method registration.
   requires:
     all_of:
@@ -257,7 +263,7 @@
   service: entraid
   title: User Administrator resets passwords of non-admins and limited admins
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryuserspasswordupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A User Administrator can obtain the privileges of users with no directory role and of users holding only User-Administrator-resettable roles (incl. Groups, Helpdesk, Password and User Administrators).
   requires:
     all_of:
@@ -290,8 +296,8 @@
   provider: azure
   service: entraid
   title: Privileged Authentication Administrator resets credentials of any user
-  source: src/pentesting-cloud/azure-security/az-persistence/README.md#applications-and-service-principals
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryuserspasswordupdate
+  source_revision: a66f094ede
   summary: A Privileged Authentication Administrator (or Global Administrator) can obtain the privileges of any user in its scope, including Global Administrators.
   requires:
     any_of:
@@ -327,7 +333,7 @@
   service: entraid
   title: Non-admin-only password reset roles (Partner Tier1 Support, Security Operator, SOC Identity Responder)
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryuserspasswordupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A holder of Partner Tier1 Support, Security Operator or Entra SOC Identity Responder can obtain the privileges of users with no directory role.
   requires:
     any_of:
@@ -359,7 +365,7 @@
   service: entraid
   title: Graph UserAuthenticationMethod.ReadWrite.All issues a Temporary Access Pass for any user
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#userauthenticationmethodreadwriteall
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A service principal holding UserAuthenticationMethod.ReadWrite.All or UserAuthMethod-TAP.ReadWrite.All can obtain the privileges of any user covered by the Temporary Access Pass policy, including administrators.
   requires:
     any_of:
@@ -390,8 +396,8 @@
   provider: azure
   service: entraid
   title: Federate a verified domain with an attacker-trusted issuer
-  source: src/pentesting-cloud/azure-security/az-persistence/README.md#federation---trusted-domain
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#federation---trusted-domain
+  source_revision: 658a097d5c
   summary: A principal allowed to update domain federation settings can obtain the privileges of users whose UPN is on a verified custom domain it can federate.
   requires:
     any_of:

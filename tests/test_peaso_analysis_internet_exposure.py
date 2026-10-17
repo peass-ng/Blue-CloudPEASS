@@ -1,0 +1,398 @@
+"""Internet-to-asset exposure (peaso.analysis.internet_exposure): PASS/FAIL/UNKNOWN per scenario."""
+import copy
+
+import pytest
+
+from peaso.analysis import analyze
+from peaso.analysis.internet_exposure import describe, intersect, pset, subtract, union
+from peaso.engine import evaluate_snapshot
+from peaso.snapshot import make_snapshot
+
+ACCOUNT = "111122223333"
+SCOPE = f"{ACCOUNT}/us-east-1"
+CHECK = "analysis.internet_exposure"
+
+
+def coll(kind, items, scope=SCOPE, status=None, service="ec2"):
+    return {"type": kind, "scope": scope, "service": service, "status": status or ("collected" if items else "empty"), "items": items}
+
+
+def exposure(snapshot, kind=None):
+    findings = [f for f in analyze(snapshot)["findings"] if f["check_id"] == CHECK and not f["resource_id"].startswith("inventory")]
+    return findings
+
+
+def one(snapshot, resource_type):
+    report = analyze(snapshot)
+    ids = {r["id"]: r["type"] for r in report["resources"]}
+    found = [f for f in report["findings"] if f["check_id"] == CHECK and ids.get(f["resource_id"]) == resource_type]
+    assert len(found) == 1, found
+    return found[0]
+
+
+# ------------------------------------------------------------------ ports
+
+def test_port_set_arithmetic():
+    allowed = union(pset("tcp", 20, 30), pset("tcp", 25, 90))
+    assert describe(allowed) == ["tcp/20-90"]
+    assert describe(subtract(allowed, pset("tcp", 22, 22))) == ["tcp/20-21", "tcp/23-90"]
+    assert describe(intersect(pset("all"), pset("udp", 53, 53))) == ["udp/53"]
+    assert describe(pset("-1")) == ["tcp/all", "udp/all", "icmp"]
+
+
+# -------------------------------------------------------------------- AWS
+
+def aws_network(sg_rules=None, nacl_entries=None, igw=True, extra=()):
+    sg_rules = sg_rules if sg_rules is not None else [{"IpProtocol": "tcp", "FromPort": 22, "ToPort": 22, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]
+    nacl_entries = nacl_entries if nacl_entries is not None else [
+        {"RuleNumber": 100, "Egress": False, "Protocol": "-1", "RuleAction": "allow", "CidrBlock": "0.0.0.0/0"},
+        {"RuleNumber": 100, "Egress": True, "Protocol": "-1", "RuleAction": "allow", "CidrBlock": "0.0.0.0/0"}]
+    routes = [{"DestinationCidrBlock": "10.0.0.0/16", "GatewayId": "local", "State": "active"}]
+    if igw:
+        routes.append({"DestinationCidrBlock": "0.0.0.0/0", "GatewayId": "igw-1", "State": "active"})
+    return [
+        coll("vpc", [{"VpcId": "vpc-1", "CidrBlock": "10.0.0.0/16"}]),
+        coll("subnet", [{"SubnetId": "subnet-1", "VpcId": "vpc-1", "CidrBlock": "10.0.1.0/24"}]),
+        coll("route_table", [{"RouteTableId": "rtb-1", "VpcId": "vpc-1", "Associations": [{"SubnetId": "subnet-1"}], "Routes": routes}]),
+        coll("network_acl", [{"NetworkAclId": "acl-1", "VpcId": "vpc-1", "Associations": [{"SubnetId": "subnet-1"}], "Entries": nacl_entries}]),
+        coll("security_group", [{"GroupId": "sg-1", "VpcId": "vpc-1", "IpPermissions": sg_rules}]),
+        *extra]
+
+
+def instance(public=True, groups=("sg-1",)):
+    interface = {"NetworkInterfaceId": "eni-1", "SubnetId": "subnet-1", "VpcId": "vpc-1", "Groups": [{"GroupId": g} for g in groups]}
+    if public:
+        interface["Association"] = {"PublicIp": "54.1.2.3"}
+    return coll("instance", [{"InstanceId": "i-1", "State": {"Name": "running"}, "SubnetId": "subnet-1", "VpcId": "vpc-1", "NetworkInterfaces": [interface]}])
+
+
+def aws(*collections, metadata=None):
+    return make_snapshot("aws", [SCOPE], list(collections), created_at="2026-10-10T00:00:00+00:00", metadata=metadata)
+
+
+def test_aws_instance_open_ssh_fails_with_path_evidence():
+    result = one(aws(*aws_network(), instance()), "instance")
+    assert result["status"] == "FAIL" and result["severity"] == "critical"
+    assert result["evidence"]["exposed_ports"] == ["tcp/22"]
+    assert result["evidence"]["public_addresses"] == ["54.1.2.3"]
+    assert result["title"] == "Internet access to tcp/22 at 54.1.2.3"
+    assert [s["layer"] for s in result["evidence"]["path"]] == ["security_group", "route", "network_acl"]
+
+
+def test_aws_nacl_deny_before_allow_blocks():
+    entries = [{"RuleNumber": 50, "Egress": False, "Protocol": "6", "PortRange": {"From": 22, "To": 22}, "RuleAction": "deny", "CidrBlock": "0.0.0.0/0"},
+               {"RuleNumber": 100, "Egress": False, "Protocol": "-1", "RuleAction": "allow", "CidrBlock": "0.0.0.0/0"}]
+    result = one(aws(*aws_network(nacl_entries=entries), instance()), "instance")
+    assert result["status"] == "PASS" and result["evidence"]["blocked_by"] == "network_acl"
+
+
+def test_aws_no_igw_route_passes_and_private_sg_passes():
+    assert one(aws(*aws_network(igw=False), instance()), "instance")["status"] == "PASS"
+    private = [{"IpProtocol": "tcp", "FromPort": 22, "ToPort": 22, "IpRanges": [{"CidrIp": "10.0.0.0/8"}]}]
+    result = one(aws(*aws_network(sg_rules=private), instance()), "instance")
+    assert result["status"] == "PASS" and result["evidence"]["blocked_by"] == "security_group"
+
+
+def test_aws_missing_security_group_inventory_is_unknown():
+    network = [c for c in aws_network() if c["type"] != "security_group"] + [coll("security_group", [], status="denied")]
+    assert one(aws(*network, instance()), "instance")["status"] == "UNKNOWN"
+
+
+def test_aws_instance_without_public_ip_is_not_assessed():
+    assert not exposure(aws(*aws_network(), instance(public=False)))
+
+
+def test_aws_internet_facing_alb_listener_and_sg():
+    lb = {"LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:111122223333:loadbalancer/app/web/1", "Scheme": "internet-facing", "Type": "application",
+          "DNSName": "web-1.us-east-1.elb.amazonaws.com", "VpcId": "vpc-1", "SecurityGroups": ["sg-1"], "AvailabilityZones": [{"SubnetId": "subnet-1"}],
+          "Listeners": {"collection_status": "collected", "items": [{"Port": 443, "Protocol": "HTTPS"}, {"Port": 8080, "Protocol": "HTTP"}]}}
+    rules = [{"IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]
+    result = one(aws(*aws_network(sg_rules=rules), coll("load_balancer", [lb], service="elbv2")), "load_balancer")
+    assert result["status"] == "FAIL" and result["evidence"]["exposed_ports"] == ["tcp/443"]
+    internal = copy.deepcopy(lb) | {"Scheme": "internal"}
+    assert not exposure(aws(*aws_network(sg_rules=rules), coll("load_balancer", [internal], service="elbv2")))
+    unknown = copy.deepcopy(lb) | {"Listeners": {"collection_status": "denied", "items": []}}
+    assert one(aws(*aws_network(sg_rules=rules), coll("load_balancer", [unknown], service="elbv2")), "load_balancer")["status"] == "UNKNOWN"
+
+
+def test_aws_public_rds_instance():
+    db = {"DBInstanceArn": "arn:aws:rds:us-east-1:111122223333:db:prod", "PubliclyAccessible": True, "Engine": "postgres", "Endpoint": {"Address": "prod.x.rds.amazonaws.com", "Port": 5432},
+          "VpcSecurityGroups": [{"VpcSecurityGroupId": "sg-1", "Status": "active"}], "DBSubnetGroup": {"VpcId": "vpc-1", "Subnets": [{"SubnetIdentifier": "subnet-1"}]}}
+    rules = [{"IpProtocol": "tcp", "FromPort": 5432, "ToPort": 5432, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]
+    result = one(aws(*aws_network(sg_rules=rules), coll("rds_instance", [db], service="rds")), "rds_instance")
+    assert result["status"] == "FAIL" and result["severity"] == "critical" and result["evidence"]["exposed_ports"] == ["tcp/5432"]
+    assert one(aws(*aws_network(), coll("rds_instance", [db], service="rds")), "rds_instance")["status"] == "PASS"
+
+
+def lambda_function(auth="NONE", policy=True):
+    statement = {"Effect": "Allow", "Principal": "*", "Action": "lambda:InvokeFunctionUrl", "Resource": "*", "Condition": {"StringEquals": {"lambda:FunctionUrlAuthType": "NONE"}}}
+    return {"FunctionArn": f"arn:aws:lambda:us-east-1:{ACCOUNT}:function:f", "FunctionName": "f",
+            "FunctionUrl": {"collection_status": "collected", "AuthType": auth, "FunctionUrl": "https://abc.lambda-url.us-east-1.on.aws/"},
+            "Policy": {"collection_status": "collected", "Policy": {"Version": "2012-10-17", "Statement": [statement]}} if policy else {"collection_status": "empty", "absent": True}}
+
+
+def test_lambda_function_url_auth_none():
+    assert one(aws(coll("lambda_function", [lambda_function()], service="lambda")), "lambda_function")["status"] == "FAIL"
+    assert one(aws(coll("lambda_function", [lambda_function(policy=False)], service="lambda")), "lambda_function")["status"] == "PASS"
+    assert one(aws(coll("lambda_function", [lambda_function(auth="AWS_IAM")], service="lambda")), "lambda_function")["status"] == "PASS"
+    denied = lambda_function() | {"Policy": {"collection_status": "denied"}}
+    assert one(aws(coll("lambda_function", [denied], service="lambda")), "lambda_function")["status"] == "UNKNOWN"
+
+
+def test_api_gateway_auth_not_collected_is_unknown_and_private_passes():
+    api = {"id": "a1b2", "name": "api", "endpointConfiguration": {"types": ["REGIONAL"]}}
+    result = one(aws(coll("rest_api", [api], service="apigateway")), "rest_api")
+    assert result["status"] == "UNKNOWN" and result["evidence"]["collector_facts_needed"]
+    private = api | {"endpointConfiguration": {"types": ["PRIVATE"]}}
+    assert one(aws(coll("rest_api", [private], service="apigateway")), "rest_api")["status"] == "PASS"
+    http = {"ApiId": "h1", "ApiEndpoint": "https://h1.execute-api.us-east-1.amazonaws.com", "ProtocolType": "HTTP",
+            "Routes": [{"RouteKey": "GET /", "AuthorizationType": "NONE"}]}
+    assert one(aws(coll("http_api", [http], service="apigatewayv2")), "http_api")["status"] == "FAIL"
+    http["Routes"] = [{"RouteKey": "GET /", "AuthorizationType": "JWT"}]
+    assert one(aws(coll("http_api", [http], service="apigatewayv2")), "http_api")["status"] == "PASS"
+
+
+def test_public_and_external_rds_snapshots():
+    def snap(values):
+        return {"DBSnapshotArn": f"arn:aws:rds:us-east-1:{ACCOUNT}:snapshot:s", "SnapshotType": "manual",
+                "Attributes": {"collection_status": "collected", "DBSnapshotAttributesResult": {"DBSnapshotAttributes": [{"AttributeName": "restore", "AttributeValues": values}]}}}
+    public = one(aws(coll("rds_snapshot", [snap(["all"])], service="rds")), "rds_snapshot")
+    assert public["status"] == "FAIL" and public["severity"] == "critical" and public["evidence"]["data_exposure"]
+    external = one(aws(coll("rds_snapshot", [snap(["999988887777"])], service="rds")), "rds_snapshot")
+    assert external["status"] == "FAIL" and external["evidence"]["external_scope_ids"] == ["999988887777"]
+    assert one(aws(coll("rds_snapshot", [snap([ACCOUNT])], service="rds")), "rds_snapshot")["status"] == "PASS"
+    missing = snap([]) | {"Attributes": {"collection_status": "denied"}}
+    assert one(aws(coll("rds_snapshot", [missing], service="rds")), "rds_snapshot")["status"] == "UNKNOWN"
+
+
+def bucket(public_policy=True, bucket_pab=None):
+    policy = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": "*", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::b/*"}]}
+    return {"Name": "b", "PolicyStatus": {"collection_status": "collected", "PolicyStatus": {"IsPublic": public_policy}},
+            "Policy": {"collection_status": "collected", "Policy": policy}, "Acl": {"collection_status": "collected", "Grants": []},
+            "PublicAccessBlock": {"collection_status": "collected", "PublicAccessBlockConfiguration": bucket_pab} if bucket_pab else {"collection_status": "empty", "absent": True}}
+
+
+def test_s3_public_bucket_honours_account_block_public_access():
+    account_open = coll("s3_account_public_access_block", [], status="empty", service="s3control")
+    assert one(aws(coll("bucket", [bucket()], service="s3"), account_open), "bucket")["status"] == "FAIL"
+    restricted = coll("s3_account_public_access_block", [{"PublicAccessBlockConfiguration": {"BlockPublicAcls": True, "IgnorePublicAcls": True,
+        "BlockPublicPolicy": True, "RestrictPublicBuckets": True}}], service="s3control")
+    result = one(aws(coll("bucket", [bucket()], service="s3"), restricted), "bucket")
+    assert result["status"] == "PASS" and result["evidence"]["blocked_by"] == "public_access_block"
+    assert one(aws(coll("bucket", [bucket()], service="s3")), "bucket")["status"] == "UNKNOWN"
+    assert not exposure(aws(coll("bucket", [bucket(public_policy=False)], service="s3"), account_open))
+
+
+def test_eks_public_endpoint_honours_cidrs():
+    def cluster(cidrs):
+        return {"name": "c", "Cluster": {"cluster": {"endpoint": "https://x.eks.amazonaws.com", "resourcesVpcConfig": {"endpointPublicAccess": True, "publicAccessCidrs": cidrs}}}}
+    assert one(aws(coll("eks_cluster", [cluster(["0.0.0.0/0"])], service="eks")), "eks_cluster")["status"] == "FAIL"
+    assert one(aws(coll("eks_cluster", [cluster(["203.0.113.0/24"])], service="eks")), "eks_cluster")["status"] == "PASS"
+
+
+def test_network_graph_marks_exposed_nodes_from_internet():
+    graph = analyze(aws(*aws_network(), instance()))["graphs"]["network"]
+    internet = [n for n in graph["nodes"] if n["type"] == "internet"]
+    assert len(internet) == 1
+    edges = [e for e in graph["edges"] if e["type"] == "internet_exposure"]
+    assert edges and edges[0]["source"] == internet[0]["id"] and edges[0]["evidence"]["exposed_ports"] == ["tcp/22"]
+    target = next(n for n in graph["nodes"] if n["id"] == edges[0]["target"])
+    assert target["exposure"]["status"] == "FAIL"
+    assert any(a.get("kind") == "internet_exposed" for a in target["risk_annotations"])
+
+
+def test_coverage_finding_lists_missing_inventory():
+    snapshot = aws(coll("instance", [], status="denied"))
+    report = analyze(snapshot)
+    gap = [f for f in report["findings"] if f["check_id"] == CHECK and f["resource_id"] == "inventory:internet_exposure"]
+    assert gap and gap[0]["status"] == "UNKNOWN" and {"type": "instance", "status": "denied"} in gap[0]["evidence"]["gaps"]
+
+
+# -------------------------------------------------------------------- GCP
+
+GSCOPE = "projects/p1"
+NET = "https://www.googleapis.com/compute/v1/projects/p1/global/networks/default"
+
+
+def gcp(*collections):
+    return make_snapshot("gcp", [GSCOPE], list(collections), created_at="2026-10-10T00:00:00+00:00")
+
+
+def gcoll(kind, items, status=None, service="compute"):
+    return coll(kind, items, scope=GSCOPE, status=status, service=service)
+
+
+def gcp_instance(tags=("web",)):
+    return gcoll("instance", [{"id": "1", "name": "vm", "status": "RUNNING", "tags": {"items": list(tags)},
+        "serviceAccounts": [{"email": "sa@p1.iam.gserviceaccount.com"}],
+        "networkInterfaces": [{"name": "nic0", "network": NET, "accessConfigs": [{"natIP": "34.1.1.1"}]}]}])
+
+
+def fw(name, priority, action, ports, targets=None, sources=("0.0.0.0/0",)):
+    rule = {"id": name, "name": name, "network": NET, "direction": "INGRESS", "priority": priority, "sourceRanges": list(sources),
+            action: [{"IPProtocol": "tcp", "ports": ports}]}
+    if targets:
+        rule["targetTags"] = targets
+    return rule
+
+
+def test_gcp_firewall_priority_deny_and_target_tags():
+    rules = [fw("allow-ssh", 1000, "allowed", ["22"], ["web"]), fw("allow-rdp", 1000, "allowed", ["3389"], ["db"])]
+    result = one(gcp(gcoll("firewall", rules), gcoll("firewall_policy", [], status="empty"), gcp_instance()), "instance")
+    assert result["status"] == "FAIL" and result["evidence"]["exposed_ports"] == ["tcp/22"]
+    rules.append(fw("deny-ssh", 1000, "denied", ["22"]))
+    result = one(gcp(gcoll("firewall", rules), gcoll("firewall_policy", [], status="empty"), gcp_instance()), "instance")
+    assert result["status"] == "PASS"
+    assert one(gcp(gcoll("firewall", [], status="denied"), gcp_instance()), "instance")["status"] == "UNKNOWN"
+
+
+def test_gcp_cloud_run_invoker_and_ingress():
+    def service(ingress="INGRESS_TRAFFIC_ALL", members=("allUsers",)):
+        return {"name": "projects/p1/locations/r/services/s", "uri": "https://s.run.app", "ingress": ingress,
+                "iamPolicy": {"bindings": [{"role": "roles/run.invoker", "members": list(members)}]}}
+    assert one(gcp(gcoll("cloudrun_service", [service()], service="run")), "cloudrun_service")["status"] == "FAIL"
+    assert one(gcp(gcoll("cloudrun_service", [service(members=["user:a@x.com"])], service="run")), "cloudrun_service")["status"] == "PASS"
+    assert one(gcp(gcoll("cloudrun_service", [service(ingress="INGRESS_TRAFFIC_INTERNAL_ONLY")], service="run")), "cloudrun_service")["status"] == "PASS"
+    no_policy = service()
+    no_policy.pop("iamPolicy")
+    assert one(gcp(gcoll("cloudrun_service", [no_policy], service="run")), "cloudrun_service")["status"] == "UNKNOWN"
+
+
+def test_gcp_proxy_lb_cloud_armor():
+    fr = {"id": "fr", "name": "fr", "selfLink": "fr", "loadBalancingScheme": "EXTERNAL_MANAGED", "IPAddress": "34.2.2.2", "IPProtocol": "TCP",
+          "portRange": "443-443", "target": "https://x/targetHttpsProxies/p"}
+    proxy = {"id": "p", "selfLink": "https://x/targetHttpsProxies/p", "urlMap": "https://x/urlMaps/m"}
+    url_map = {"id": "m", "selfLink": "https://x/urlMaps/m", "defaultService": "https://x/backendServices/b"}
+    backend = {"id": "b", "selfLink": "https://x/backendServices/b"}
+    def snap(service):
+        return gcp(gcoll("forwarding_rule", [fr]), gcoll("target_proxy", [proxy]), gcoll("url_map", [url_map]), gcoll("backend_service", [service]))
+    assert one(snap(backend), "forwarding_rule")["status"] == "FAIL"
+    assert one(snap(backend | {"securityPolicy": "https://x/securityPolicies/armor"}), "forwarding_rule")["status"] == "UNKNOWN"
+
+
+def test_gcp_gke_and_sql():
+    gke = {"name": "c", "endpoint": "35.1.1.1", "masterAuthorizedNetworksConfig": {"enabled": True, "cidrBlocks": [{"cidrBlock": "203.0.113.0/24"}]}}
+    assert one(gcp(gcoll("gke_cluster", [gke], service="container")), "gke_cluster")["status"] == "PASS"
+    assert one(gcp(gcoll("gke_cluster", [{"name": "c", "endpoint": "35.1.1.1"}], service="container")), "gke_cluster")["status"] == "FAIL"
+    sql = {"name": "db", "databaseVersion": "MYSQL_8_0", "settings": {"ipConfiguration": {"ipv4Enabled": True, "authorizedNetworks": [{"value": "0.0.0.0/0"}]}}}
+    result = one(gcp(gcoll("sql_instance", [sql], service="sqladmin")), "sql_instance")
+    assert result["status"] == "FAIL" and result["evidence"]["exposed_ports"] == ["tcp/3306"]
+
+
+# ------------------------------------------------------------------ Azure
+
+SUB = "/subscriptions/00000000-0000-0000-0000-000000000001"
+RG = SUB + "/resourceGroups/rg/providers/Microsoft.Network"
+
+
+def azure(*collections):
+    return make_snapshot("azure", [SUB], list(collections), created_at="2026-10-10T00:00:00+00:00")
+
+
+def acoll(kind, items, status=None, scope=SUB):
+    return coll(kind, items, scope=scope, status=status, service="network")
+
+
+def nsg(name, rules):
+    return {"id": f"{RG}/networkSecurityGroups/{name}", "name": name, "properties": {"securityRules": [
+        {"name": n, "properties": {"priority": p, "direction": "Inbound", "access": a, "protocol": "Tcp", "sourceAddressPrefix": "*",
+                                   "destinationAddressPrefix": "*", "destinationPortRange": port}} for n, p, a, port in rules]}}
+
+
+def azure_vm(subnet_rules, nic_rules, sku="Standard"):
+    vnet = {"id": f"{RG}/virtualNetworks/v", "name": "v", "properties": {"subnets": [
+        {"id": f"{RG}/virtualNetworks/v/subnets/s", "properties": {"networkSecurityGroup": {"id": f"{RG}/networkSecurityGroups/subnet-nsg"}} if subnet_rules is not None else {}}]}}
+    nic = {"id": f"{RG}/networkInterfaces/nic", "name": "nic", "properties": {
+        "virtualMachine": {"id": SUB + "/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"},
+        "networkSecurityGroup": {"id": f"{RG}/networkSecurityGroups/nic-nsg"} if nic_rules is not None else None,
+        "ipConfigurations": [{"id": f"{RG}/networkInterfaces/nic/ipConfigurations/ip", "name": "ip", "properties": {
+            "privateIPAddress": "10.0.0.4", "subnet": {"id": f"{RG}/virtualNetworks/v/subnets/s"}, "publicIPAddress": {"id": f"{RG}/publicIPAddresses/pip"}}}]}}
+    nsgs = ([nsg("subnet-nsg", subnet_rules)] if subnet_rules is not None else []) + ([nsg("nic-nsg", nic_rules)] if nic_rules is not None else [])
+    return [acoll("vnet", [vnet]), acoll("nic", [nic]), acoll("nsg", nsgs),
+            acoll("public_ip", [{"id": f"{RG}/publicIPAddresses/pip", "sku": {"name": sku}, "properties": {"ipAddress": "20.1.1.1"}}]),
+            coll("vm", [{"id": SUB + "/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm", "name": "vm"}], scope=SUB, service="compute")]
+
+
+def test_azure_nsg_subnet_and_nic_must_both_allow():
+    result = one(azure(*azure_vm([("ssh", 100, "Allow", "22"), ("web", 110, "Allow", "443")], [("ssh", 100, "Allow", "22")])), "vm")
+    assert result["status"] == "FAIL" and result["evidence"]["exposed_ports"] == ["tcp/22"]
+    blocked = one(azure(*azure_vm([("deny", 90, "Deny", "22"), ("ssh", 100, "Allow", "22")], [("ssh", 100, "Allow", "22")])), "vm")
+    assert blocked["status"] == "PASS"
+    assert one(azure(*azure_vm(None, None, sku="Standard")), "vm")["status"] == "PASS"
+    open_basic = one(azure(*azure_vm(None, None, sku="Basic")), "vm")
+    assert open_basic["status"] == "FAIL" and open_basic["severity"] == "critical"
+
+
+def test_azure_app_service_and_aks():
+    app = {"id": SUB + "/resourceGroups/rg/providers/Microsoft.Web/sites/app", "name": "app", "properties": {"defaultHostName": "app.azurewebsites.net", "httpsOnly": True}}
+    config = {"id": app["id"] + "/config/web", "parent_id": app["id"], "properties": {"ipSecurityRestrictions": [{"ipAddress": "Any", "action": "Allow", "priority": 2147483647, "name": "Allow all"}]}}
+    snapshot = azure(coll("app_service", [app], scope=SUB, service="web"), coll("app_service_config", [config], scope=app["id"], service="web"))
+    assert one(snapshot, "app_service")["status"] == "FAIL"
+    restricted = copy.deepcopy(config)
+    restricted["properties"] = {"ipSecurityRestrictions": [{"ipAddress": "203.0.113.0/24", "action": "Allow", "priority": 100}], "ipSecurityRestrictionsDefaultAction": "Deny"}
+    snapshot = azure(coll("app_service", [app], scope=SUB, service="web"), coll("app_service_config", [restricted], scope=app["id"], service="web"))
+    assert one(snapshot, "app_service")["status"] == "PASS"
+    assert one(azure(coll("app_service", [app], scope=SUB, service="web")), "app_service")["status"] == "UNKNOWN"
+    aks = {"id": SUB + "/resourceGroups/rg/providers/Microsoft.ContainerService/managedClusters/k", "properties": {"apiServerAccessProfile": {"authorizedIPRanges": ["203.0.113.0/24"]}}}
+    assert one(azure(coll("aks_cluster", [aks], scope=SUB, service="aks")), "aks_cluster")["status"] == "PASS"
+    aks["properties"]["apiServerAccessProfile"] = {}
+    assert one(azure(coll("aks_cluster", [aks], scope=SUB, service="aks")), "aks_cluster")["status"] == "FAIL"
+
+
+# -------------------------------------------------------------------- K8s
+
+def k8s(*collections):
+    return make_snapshot("k8s", ["cluster"], list(collections), created_at="2026-10-10T00:00:00+00:00")
+
+
+def svc(spec, annotations=None, status=None):
+    return coll("service", [{"metadata": {"name": "web", "namespace": "apps", "annotations": annotations or {}}, "spec": spec,
+                             "status": status or {"loadBalancer": {"ingress": [{"hostname": "a.elb.amazonaws.com"}]}}}], scope="cluster", service="core")
+
+
+@pytest.mark.parametrize("spec,annotations,expected", [
+    ({"type": "LoadBalancer", "ports": [{"port": 443, "protocol": "TCP"}]}, None, "FAIL"),
+    ({"type": "LoadBalancer", "ports": [{"port": 443}], "loadBalancerSourceRanges": ["203.0.113.0/24"]}, None, "PASS"),
+    ({"type": "LoadBalancer", "ports": [{"port": 443}]}, {"service.beta.kubernetes.io/aws-load-balancer-scheme": "internal"}, "PASS"),
+    ({"type": "LoadBalancer", "ports": [{"port": 443}]}, {"service.beta.kubernetes.io/load-balancer-source-ranges": "10.0.0.0/8"}, "PASS"),
+])
+def test_k8s_load_balancer_source_ranges(spec, annotations, expected):
+    assert one(k8s(svc(spec, annotations)), "service")["status"] == expected
+
+
+def test_k8s_nodeport_depends_on_node_addresses():
+    spec = {"type": "NodePort", "ports": [{"port": 80, "nodePort": 30080}]}
+    assert one(k8s(svc(spec), coll("node", [], status="denied", scope="cluster")), "service")["status"] == "UNKNOWN"
+    private = coll("node", [{"metadata": {"name": "n"}, "status": {"addresses": [{"type": "InternalIP", "address": "10.0.0.5"}]}}], scope="cluster")
+    assert one(k8s(svc(spec), private), "service")["status"] == "PASS"
+
+
+def test_k8s_ingress_allowlist():
+    ingress = {"metadata": {"name": "i", "namespace": "apps", "annotations": {}}, "spec": {"rules": [{"host": "x.example.com"}], "tls": [{}]},
+               "status": {"loadBalancer": {"ingress": [{"ip": "34.9.9.9"}]}}}
+    result = one(k8s(coll("ingress", [ingress], scope="cluster")), "ingress")
+    assert result["status"] == "FAIL" and result["evidence"]["exposed_ports"] == ["tcp/80", "tcp/443"]
+    ingress["metadata"]["annotations"] = {"nginx.ingress.kubernetes.io/whitelist-source-range": "10.0.0.0/8"}
+    assert one(k8s(coll("ingress", [ingress], scope="cluster")), "ingress")["status"] == "PASS"
+
+
+# ------------------------------------------------------------ end to end
+
+def test_end_to_end_engine_report_on_demo_snapshot():
+    snapshot = aws(*aws_network(), instance(), coll("lambda_function", [lambda_function()], service="lambda"),
+                   coll("bucket", [bucket()], service="s3"), coll("s3_account_public_access_block", [], status="empty", service="s3control"))
+    report = evaluate_snapshot(snapshot, categories=["exposure", "network"])
+    found = {(f["resource_id"], f["status"]) for f in report["findings"] if f["check_id"] == CHECK}
+    statuses = sorted(status for _, status in found)
+    assert statuses.count("FAIL") == 3, found
+    s3 = [f for f in report["findings"] if f["check_id"] == "aws.s3.public_access_block"]
+    assert s3 and s3[0]["status"] == "FAIL"
+    graph = report["graphs"]["network"]
+    assert any(e["type"] == "internet_exposure" for e in graph["edges"])
+
+
+def test_stopped_instance_keeps_fail_with_lower_severity():
+    stopped = instance()
+    stopped["items"][0]["State"] = {"Name": "stopped"}
+    result = one(aws(*aws_network(), stopped), "instance")
+    assert result["status"] == "FAIL" and result["severity"] == "high" and any("stopped" in n for n in result["evidence"]["notes"])

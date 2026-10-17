@@ -63,7 +63,8 @@ def main():
                    "CLOUDSDK_CONFIG": str(root / "absent-gcloud-config"), "AZURE_CONFIG_DIR": str(root / "absent-azure-config"), "KUBECONFIG": str(root / "absent-kubeconfig")}
     subprocess.run(cli + ["evaluate", str(snapshot_path), "--output", str(offline_path)], env=environment, cwd=build, check=True, timeout=180)
     subprocess.run(cli + ["report", str(offline_path), "--format", "markdown", "--output", str(md_path)], env=environment, cwd=build, check=True, timeout=180)
-    report = json.loads(report_path.read_text())
+    from peaso.engine import hydrate_frameworks  # per-check fields live in check_meta (schema 1.1)
+    report = hydrate_frameworks(json.loads(report_path.read_text()))
     embedded = report.pop("snapshot")
     snapshot = json.loads(snapshot_path.read_text())
     offline = json.loads(offline_path.read_text())

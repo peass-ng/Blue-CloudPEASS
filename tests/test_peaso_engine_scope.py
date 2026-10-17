@@ -76,11 +76,12 @@ def test_human_labels_preserve_native_identity_and_stable_routing():
 
 
 def test_default_scan_plans_full_supported_inventory_and_explicit_filters_remain_targeted():
-    from peaso.engine import plan_collection, get_catalog
+    from peaso.engine import plan_collection, get_catalog, BULK_STREAM_TYPES
     catalog = get_catalog()
     for provider in catalog["providers"]:
-        assert plan_collection({"connector": {"provider": provider}}) == sorted(catalog["inventories"][provider])
-        assert plan_collection({"connector": {"provider": provider}, "categories": list(catalog["categories"]), "checks": [], "frameworks": []}) == sorted(catalog["inventories"][provider])
+        expected = sorted(set(catalog["inventories"][provider]) - BULK_STREAM_TYPES.get(provider, set()))
+        assert plan_collection({"connector": {"provider": provider}}) == expected
+        assert plan_collection({"connector": {"provider": provider}, "categories": list(catalog["categories"]), "checks": [], "frameworks": []}) == expected
     assert plan_collection({"connector": {"provider": "aws"}, "categories": ["hardening"], "checks": ["aws.ec2.imdsv2"]}) == ["instance"]
 
 
@@ -132,3 +133,22 @@ def test_manual_account_question_deduplicates_regions_only_with_verified_account
     assert {f["scope"] for f in report["findings"]} == {"111111111111", "222222222222/us-east-1"}
     report = evaluate_snapshot(make_snapshot("aws", scopes, []), categories=["hardening"], checks=[requirement["id"]])
     assert len(report["findings"]) == 3
+
+
+def test_scopeless_manual_requirements_are_asked_once_per_tenant():
+    from collections import Counter
+    from peaso.checks.catalog import manual_requirements
+    from peaso.engine import evaluate_snapshot
+    from peaso.snapshot import make_snapshot
+    subs = ["/subscriptions/%08d-0000-0000-0000-000000000000" % i for i in range(3)]
+    tenant = "/tenants/11111111-1111-1111-1111-111111111111"
+    snap = make_snapshot("azure", subs, [{"type": "tenant", "scope": tenant, "service": "entra", "status": "empty", "items": []}])
+    report = evaluate_snapshot(snap, categories=["hardening"])
+    kinds = {r["id"]: r.get("scope_kinds", []) for r in manual_requirements(provider="azure")}
+    manual = Counter(f["check_id"] for f in report["findings"] if f["status"] == "MANUAL")
+    scopes = {f["check_id"]: f["scope"] for f in report["findings"] if f["status"] == "MANUAL"}
+    tenant_wide = [rid for rid, k in kinds.items() if not k and rid in manual]
+    per_sub = [rid for rid, k in kinds.items() if "subscription" in k and rid in manual]
+    assert tenant_wide and per_sub
+    assert all(manual[rid] == 1 and scopes[rid] == tenant for rid in tenant_wide)
+    assert all(manual[rid] == len(subs) for rid in per_sub)

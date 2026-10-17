@@ -1,5 +1,172 @@
 # Peaso integration validation
 
+## Current direct-owner validation — 2026-10-14
+
+This checkpoint supersedes the old execution status below. The user authorized
+fresh AWS (`naxusai-admin`), Azure, GCP and disposable GKE validation, defect
+repairs and test cleanup. No agents were spawned by this owner. At the user's
+explicit request, the hidden legacy supervisor, its relaunch keeper and their
+seven processes were terminated; the keeper's STOP marker prevents resumption.
+
+One complete current-source pytest invocation passed **36,164 tests and 312
+subtests**, with **zero failures/errors** in 517.11 seconds. Its only two skips
+were the opt-in scale tests; both separately passed. The 10x evaluation measured
+5,980 resources, 182,231 findings, 6.34 seconds and 610 MiB peak RSS. The 100x
+privilege graph measured 31,506 principals, 34,324 edges and 110.21 seconds.
+The complete browser suite passed **89 tests**, with seven explicitly configured
+live-environment tests omitted; actual Compose and public hosted navigation were
+also exercised separately. These are distinct gates, not one combined invocation.
+
+| Fresh CLI capture | Resources | Selected checks, including analysis | Findings | Result |
+| --- | ---: | ---: | ---: | --- |
+| AWS default enabled-region inventory | 4,043 | 1,317 | 17,612 | All six categories, JSON and Markdown |
+| Azure default accessible-subscription inventory | 7,623 | 656 | 41,191 | All six categories, JSON and Markdown |
+| GCP testing project | 628 | 472 | 1,698 | All six categories, JSON and Markdown |
+| Disposable GKE namespaced Kubernetes capture | 15 | 1,005 | 1,000 | Live five-category CLI; privilege/category joins evaluated offline separately |
+
+Separate GCP project/organization/network discovery passed across 78 accessible
+projects and two organizations; it is selected inventory evidence, not a full
+service inventory for all 80 scopes. Original captures and full reports are
+private under `.cache/validation-20261014/` and must not be published.
+
+Live defects repaired: official Certificate Manager and Network Security API
+hosts were absent from the GCP transport allow-list; the Azure subscription
+tenant policy returned its exact ID without a leading slash; report/coverage
+ordering and Azure endpoint selection differed after saved-JSON reevaluation;
+synthetic network nodes omitted the native-ID field; the privilege inspector
+treated `{target.arn}` as malformed JSON; Docker excluded its required SDK
+constraints file. Captured-snapshot assessments now match across independent
+process hash seeds for all four providers, excluding measured timing metadata.
+The corrected Azure policy and GCP certificate collectors were rerun live,
+yielding `collected` and `empty` respectively. Host validation confirms the
+[official Certificate Manager metadata endpoint](https://docs.cloud.google.com/certificate-manager/docs/reference/certificate-manager/rest).
+
+The actual Compose test passed immutable-image/source checks, authenticated live
+AWS scan, free quota rejection, next-week scheduled rescan, automatically due
+schedule quota rejection, and browser inspection of report sections. Cleanup
+verified absence of every owned container, volume and network. GKE's original
+acceptance helper compared different NOT_APPLICABLE options and failed its
+comparison; after correcting the helper, its saved live report reproduced
+exactly with the required PASS/FAIL/UNKNOWN pod fixtures and both cloud identity
+joins. The failed original lifecycle receipt is retained. The cluster, network,
+subnet and two service accounts were deleted and independently verified absent,
+along with eight generated node/disk/group/firewall references. Private
+kubeconfig was removed. No permanent cloud application infrastructure was
+deleted. Existing AWS/Azure inventories contained no prior QA-prefix resources;
+the GCP matches were the exact newly owned, subsequently deleted lifecycle.
+
+The Tools catalog now links to `https://cspm.hacktricks.wiki/`; exactly its
+`index.html` object was updated after byte-for-byte baseline verification and
+an ETag condition. Public HTTPS bytes and real browser navigation matched the
+intended result. The hosted CSPM remains Source940c at this checkpoint, with
+health200 and protected anonymous requests401; Settings offers the established
+sign-in, registration and password-reset flow. Current working-source fixes
+have not yet been published to that CSPM release.
+
+The 36,164-test gate was followed by a packaging-only delta: include Compose,
+its Docker ignore list and the public empty-token environment example in the
+downloadable source; use the project's declared cloud/hosted dependencies for
+the worker; bound source members at1,600 for the measured1,581-member archive.
+The focused packaging/deployment gate passed **98 tests and208 subtests** with
+zero failures/errors/skips. Historical admission branches and archives remain
+intact; the exact live-validation runtime branch independently binds both
+collector repairs and deterministic-report changes.
+
+Coverage remains explicitly incomplete: **3,419 active native predicates**,
+**567 pending proposal IDs** across **1,865 automatable requirement occurrences**,
+and **1,052 admitted privilege techniques** with **186 new candidates held**.
+All50 staged test files were executed separately after fixing their registry
+isolation:45 passed; five retain failures in historical draft metadata/remediation
+artifacts or superseded spec assertions. They are not admitted runtime checks.
+Manual, denied, unknown, partial and unsupported evidence remains visible; these
+execution results do not promote missing implementations or certify a cloud.
+
+## Current authorized collector-only full AWS evidence
+
+**Final corrected collector-only run completed exit 0:** 18 regions, 94 types,
+1420 collection envelopes, 1439 resources and 2241 counted collector API calls
+(plus one QA identity prerequisite call). Collection took 414.6787s and JSON
+serialization/write 1.3143s; snapshot 28,473,078 bytes. Statuses: 1117 empty,
+284 collected, 18 denied, 1 not_collected. There are **zero unknown read failures,
+zero global adapter dispatch gaps and zero implicit cap/omission reasons**.
+Only Inspector organization AccessDeniedException (18 regions) and MemoryDB
+ap-northeast-3 `unsupported_region_service` remain; neither is a security pass.
+
+Fresh credential report was reused (`existing_report_read`), with zero new
+generation calls in the final run. Network inventory remains 300 resources and
+544 structural relationships. Engine/evaluator/checks/analysis/privilege-chain
+modules were not imported; no graph or whole-CLI acceptance claim.
+
+Final snapshot ID:
+`sha256:f06de0ae4ec45dbf751a77bff97e6ccfabe5b5bf9204b33badb769a34a6473ef`.
+Final collector source-manifest SHA256:
+`a226f83360ecc21d1d347490cf2ef9d000d135d1a914ec91dff8f795b2b613f6`.
+Primary aws.py and snapshot.py changed during the read; measured pinned files
+stayed immutable. Final private receipt is in `aws-default-collector-final/`
+under the task's private evidence directory. No further broad rerun is needed.
+
+The coordinator separately relayed supervisor-reported end-to-end CLI metrics:
+338s, 21 regions, 1439 resources, 360 checks, 6598 findings and network 313 nodes/
+430 edges. Its private artifact path was not provided, so those are attributed
+supervisor reports, not independently verified QA results, and remain separate
+from this worker's 18-region collector-only receipt.
+
+### First full collector capture (preserved historical evidence)
+
+The revised assigned gate calls the AWS collector directly with existing
+`naxusai-admin`, options `{}` and no scope/region/type/page/call/resource override.
+It completed exit 0. Evaluator, analysis, checks and supplied privilege-chain
+modules were explicitly blocked from import; no default engine or chain-enabled
+CLI executed. The pinned collector source copy is measurement-only.
+
+| Actual metric | Result |
+| --- | --- |
+| Account / enabled regions | `947247140022` / 18 |
+| Supported / observed inventory types | 91 / 91 |
+| Collection envelopes / resources | 1366 / 1395 |
+| Counted collector API calls | 2198; 2 additional QA identity-verification calls; SDK credential-resolution calls not counted |
+| Collection / JSON serialization and write | 283.2915s / 0.4104s |
+| Snapshot bytes | 28,371,524 |
+| Status counts | 1084 empty, 259 collected, 3 not_collected, 18 denied, 2 unknown |
+| Default truncation/omission reasons | No call_limit, page_limit, resource_limit, scope_limit or inventory_not_requested |
+| Native network inventory | 26 VPC, 86 subnet, 101 security group, 1 instance, 23 NIC, 39 route table, 24 internet gateway: 300 total |
+| Collector structural relationships | 544; graph/evaluator acceptance not claimed |
+| Authorized metadata generation | One IAM credential-report generation; same-session account verified immediately before write |
+
+All 18 enabled regions were enumerated: ap-northeast-1/2/3, ap-south-1,
+ap-southeast-1/2, ca-central-1, eu-central-1, eu-north-1, eu-south-2,
+eu-west-1/2/3, sa-east-1, us-east-1/2, us-west-1/2.
+
+Remaining captured gaps are explicit:
+
+- Global cloudfront_distribution, route53_health_check and route53_zone returned
+  `unsupported_inventory`; these are adapter dispatch gaps routed to AWS owners.
+- Inspector organization configuration returned AccessDeniedException in all
+  18 regions; no organization/service configuration was changed to clear it.
+- MemoryDB in ap-northeast-3 returned EndpointConnectionError, and both SDK
+  endpoint metadata and the published AWS endpoint table omit Osaka. This is
+  classified as regional unavailability, not an empty security pass.
+  [AWS MemoryDB endpoints](https://docs.aws.amazon.com/general/latest/gr/memorydb-service.html).
+- Backup protected resources in us-east-2 returned read_failed in the capture;
+  one narrow pinned-session metadata retry returned HTTP 200 with zero items,
+  establishing recovery from the initial transient failure.
+
+Snapshot ID:
+`sha256:45708d7df61c6cfedf3c7d8d12a48ecc1b71957fd64390d303206f64f929c319`.
+Collector source-manifest SHA256:
+`93ec0be3835e5f45095e98b28a0a3e04ec3e4ee2b957411af137d434607fc43f`.
+The pinned measurement files stayed immutable; primary aws.py,
+aws_b_services.py, gcp.py and k8s.py changed during the read, recorded in a
+separate after-hash comparison. Original capture is not rewritten for later fixes.
+
+Private evidence directory:
+`.cache/peaso-qa/task_02a312b5ac1f/aws-default-collector/` contains snapshot,
+summary, source manifests, narrow diagnostics and metadata-write audit. The
+authorized IAM report has no deletion API and is account metadata, not a newly
+created fixture/configuration resource; no secret values or analyzer creation.
+All original 22 aggregate fixture ledger entries and 4 owned image tags remain
+deleted/verified; temporary credential files are absent.
+
 This report records actual execution evidence for the supervised QA dispatch
 `ctx_e2284cf3ad99` on 2026-10-10. Pending gates are not completion claims.
 No secret values are recorded in this report or the private resource ledger.
@@ -23,7 +190,7 @@ No secret values are recorded in this report or the private resource ledger.
 | --- | --- | --- |
 | Existing valid tests + integration suite | Passing checkpoint | After declared dependencies: `197 passed in 19.48s`; full native suite later `937 passed in 33.58s`; latest QA suite `34 passed in 3.84s`. Final full native suite awaits source freeze |
 | Fresh real CLI scan, JSON + Markdown, four providers | Partial | AWS and Azure real fresh CLI + exact offline roundtrip + Markdown pass; actual local Kubernetes CLI pass. Real GCP/GKE pending expired credentials |
-| Directive 6 DEFAULT full-scope release gate | Pending new requirement | Coordinator relayed new user requirement at 18:03 UTC: exact default CLI/API must enumerate all accessible regions/scopes, every supported inventory and complete pages; collection caps only explicit opt-in. Earlier bounded runs do not satisfy this gate. Exact default AWS command pending owner readiness |
+| Directive 6 default-full inventory / revised direct collector gate | Final collector-only gate passed | 18 regions/94 types/1439 resources, zero implicit caps/global dispatch gaps/unknown reads; Inspector organization denied and MemoryDB Osaka unsupported explicit. Exact chain-enabled default CLI/evaluator remains outside worker scope |
 | Immutable offline evaluation of identical snapshot | Passing checkpoint | Four provider tests deny socket connect and subprocess calls during offline evaluation, preserve input and compare exact repeated reports. Real AWS and Azure reports also matched exact reevaluation of saved snapshots |
 | Category/check/framework selection | Passing checkpoint | Four providers tested category + check + framework intersections; unknown selectors rejected. Confirmed public empty lists default to all (coordinator/core contract), including all three selectors empty together |
 | Native runtime removal | Passing Compose analyzer checkpoint | Actual container `shutil.which` found no steampipe/powerpipe/prowler/turbot binaries, installed distribution names contain none. Native deployment Python/build sources have no execution references; upstream source/catalog provenance remains data only |
@@ -181,3 +348,12 @@ Private actual outputs are in `.cache/peaso-qa/task_02a312b5ac1f/`:
 `*-summary.json`, `local-k8s.log`, `k8s-cli-report.json` and
 `k8s-cli-report.md`. Only count/status/timing evidence is reproduced here; private
 cloud configuration snapshots are not committed.
+
+Source builds retain the existing archive, expanded-size and member-size bounds.
+If the ordinary level-9 source ZIP exceeds its archive limit, the freezer tries
+standard-library raw DEFLATE profiles and retains the smallest stream for each
+member. It verifies every original file byte and CRC before replacing the ZIP,
+keeps ordinary unencrypted ZIP method 8, and records the before/after archive
+hashes in the generated `source-compression.json`. No external archiver or
+runtime dependency is required. A source ZIP that still exceeds the limit is
+rejected; compression never removes source, tests or historical catalog files.

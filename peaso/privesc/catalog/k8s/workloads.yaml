@@ -1,13 +1,19 @@
+# catalog_description: Only principal-to-principal or principal-to-additional-permission
+# escalation paths belong here. A source must control a credential or hold the
+# required verbs, perform the named action, and reach a known target identity
+# or new effective permission. Generic Secret reads and guardrail changes
+# without a proven identity or permission gain are excluded.
+# Canonical provider policy: peaso/privesc/catalog_policy.yaml.
 # Kubernetes workload-plane techniques: run code as a ServiceAccount by creating/modifying
 # pods or controllers, entering existing pods, or injecting into pods via admission.
-# Conventions: see header of rbac.yaml. Source: hacktricks-cloud rev a53b46392c.
+# Conventions: see header of rbac.yaml. Source: hacktricks-cloud rev a53b46392c, re-verified against 171e422.
 
 - id: k8s-workloads-pods-create
   provider: k8s
   service: workloads
   title: Create a pod that runs as any ServiceAccount of the namespace
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#pod-create---steal-token
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/workload-and-pod-access.md#pod-create---steal-token
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of every ServiceAccount in the namespace where it can create pods.
   requires:
     all_of:
@@ -23,7 +29,7 @@
   conditions:
     - id: admission_restricts_service_account
       description: A validating/mutating admission policy (VAP, webhook, Kyverno, Gatekeeper, OpenShift SCC) that restricts serviceAccountName, token automount or images could remove the edge. Pod Security Admission does not restrict the ServiceAccount.
-  blockers: []
+  blockers: [admission_policy, admission_webhook, kyverno_policy, gatekeeper_constraint]
   confidence: derived
   severity: high
   mitigation: Do not grant pods create in namespaces that host privileged ServiceAccounts (kube-system, operator namespaces); keep powerful ServiceAccounts in dedicated namespaces.
@@ -35,8 +41,8 @@
   provider: k8s
   service: workloads
   title: Create a workload controller whose pod template runs as any ServiceAccount
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#createpatch-deployment-daemonsets-statefulsets-replicationcontrollers-replicasets-jobs-and-cronjobs
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/workload-and-pod-access.md#createpatch-deployment-daemonsets-statefulsets-replicationcontrollers-replicasets-jobs-and-cronjobs
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of every ServiceAccount in the namespace where it can create a pod-creating controller.
   requires:
     all_of: []
@@ -57,7 +63,7 @@
   conditions:
     - id: admission_restricts_service_account
       description: Admission policies applied to the controller-created pods (or to the controller objects) may restrict serviceAccountName or images.
-  blockers: []
+  blockers: [admission_policy, admission_webhook, kyverno_policy, gatekeeper_constraint]
   confidence: derived
   severity: high
   mitigation: Treat controller create like pods create; do not grant it in namespaces holding privileged ServiceAccounts.
@@ -69,8 +75,8 @@
   provider: k8s
   service: workloads
   title: Modify an existing workload controller's pod template
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#createpatch-deployment-daemonsets-statefulsets-replicationcontrollers-replicasets-jobs-and-cronjobs
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/workload-and-pod-access.md#createpatch-deployment-daemonsets-statefulsets-replicationcontrollers-replicasets-jobs-and-cronjobs
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of every ServiceAccount in the namespace by rewriting the pod template of a controller it can update or patch.
   requires:
     all_of: []
@@ -98,7 +104,7 @@
       description: An existing controller object covered by the grant (resourceNames) must exist in the namespace.
     - id: admission_restricts_service_account
       description: Admission policies may restrict serviceAccountName or images of the resulting pods.
-  blockers: []
+  blockers: [admission_policy, admission_webhook, kyverno_policy, gatekeeper_constraint]
   confidence: derived
   severity: high
   mitigation: Limit controller update/patch to CI/CD identities and scope with resourceNames; protect controllers that run privileged ServiceAccounts.
@@ -110,8 +116,8 @@
   provider: k8s
   service: workloads
   title: Change the container image of an existing pod
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#high-permissions
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/README.md#high-permissions
+  source_revision: 171e422
   summary: The source can obtain the privileges of the ServiceAccounts used by existing pods in the namespace by replacing a container image of those pods.
   requires:
     all_of: []
@@ -128,7 +134,7 @@
   conditions:
     - id: admission_restricts_images
       description: Image policy admission may reject the image change.
-  blockers: []
+  blockers: [admission_policy, admission_webhook, kyverno_policy, gatekeeper_constraint]
   confidence: derived
   severity: high
   mitigation: Do not grant pods update/patch to non-controller identities.
@@ -140,8 +146,8 @@
   provider: k8s
   service: workloads
   title: Execute commands in existing pods
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#pods-exec
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/workload-and-pod-access.md#pods-exec
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of the ServiceAccounts mounted in pods it can exec into.
   requires:
     all_of:
@@ -171,8 +177,8 @@
   provider: k8s
   service: workloads
   title: Execute commands in pods with only get on pods/exec (WebSocket upgrade)
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#pod-interactive-subresources
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/workload-and-pod-access.md#pod-interactive-subresources
+  source_revision: 2415fadfbd
   summary: On clusters older than 1.35 the source can obtain the privileges of ServiceAccounts mounted in pods by exec over WebSocket with only get on pods/exec.
   requires:
     all_of:
@@ -204,8 +210,8 @@
   provider: k8s
   service: workloads
   title: Attach to the process streams of existing pods
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#pod-interactive-subresources
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/workload-and-pod-access.md#pod-interactive-subresources
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of ServiceAccounts mounted in pods whose main process accepts interactive input.
   requires:
     all_of:
@@ -235,8 +241,8 @@
   provider: k8s
   service: workloads
   title: Add an ephemeral container to existing pods
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#ephemeralcontainers
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/workload-and-pod-access.md#ephemeralcontainers
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of the ServiceAccounts used by existing pods in the namespace by adding an ephemeral container that shares their volumes.
   requires:
     all_of: []
@@ -253,7 +259,7 @@
   conditions:
     - id: admission_restricts_ephemeral
       description: Admission policies covering ephemeral containers may reject them; PSA also evaluates ephemeral containers.
-  blockers: []
+  blockers: [admission_policy, admission_webhook, kyverno_policy, gatekeeper_constraint]
   confidence: derived
   severity: high
   mitigation: Grant pods/ephemeralcontainers only to debugging break-glass roles.
@@ -265,8 +271,8 @@
   provider: k8s
   service: admission
   title: Register or modify a mutating admission webhook
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#validatingwebhookconfigurations-or-mutatingwebhookconfigurations
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/controllers-and-admission.md#validatingwebhookconfigurations-or-mutatingwebhookconfigurations
+  source_revision: 171e422
   summary: The source can obtain the privileges of ServiceAccounts in any namespace where pods are created after the webhook is in place, by mutating those pods.
   requires:
     all_of: []
@@ -297,20 +303,13 @@
   provider: k8s
   service: admission
   title: Create or modify a MutatingAdmissionPolicy and its binding
-  source: src/pentesting-cloud/kubernetes-security/kubernetes-validatingwebhookconfiguration.md#mutatingadmissionpolicy-code-injection
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/validating-admission-policies.md#mutatingadmissionpolicy-code-injection
+  source_revision: 171e422
   summary: The source can obtain the privileges of ServiceAccounts in any namespace where pods are created after the policy is in place, by mutating those pods in-process.
   requires:
-    all_of: []
-    any_of:
-      - - {verb: create, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
-        - {verb: create, resource: mutatingadmissionpolicybindings, api_group: admissionregistration.k8s.io, namespace: "*"}
-      - - {verb: patch, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
-      - - {verb: update, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
-      - - {verb: create, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
-        - {verb: patch, resource: mutatingadmissionpolicybindings, api_group: admissionregistration.k8s.io, namespace: "*"}
-      - - {verb: create, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
-        - {verb: update, resource: mutatingadmissionpolicybindings, api_group: admissionregistration.k8s.io, namespace: "*"}
+    all_of:
+      - {verb: create, resource: mutatingadmissionpolicies, api_group: admissionregistration.k8s.io, namespace: "*"}
+      - {verb: create, resource: mutatingadmissionpolicybindings, api_group: admissionregistration.k8s.io, namespace: "*"}
   target:
     kind: k8s_service_account
     selector:
@@ -320,14 +319,12 @@
   conditions:
     - id: mutating_admission_policy_served
       description: The MutatingAdmissionPolicy API must be enabled/served on the cluster version.
-    - id: existing_policy_bound
-      description: The patch/update-only policy groups require an existing policy that is already bound to pod creations; the create-policy plus patch/update-binding groups require an existing binding to repoint.
     - id: new_pod_creation_occurs
       description: Only pods created after the change are mutated.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict writes to mutatingadmissionpolicies and their bindings to cluster administrators.
   references:
     - https://kubernetes.io/docs/reference/access-authn-authz/mutating-admission-policy/
-  notes: No external backend is needed (CEL runs in the API server). HackTricks reproduced injection of an init container into later pods.
+  notes: No external backend is needed (CEL runs in the API server). HackTricks reproduced injection of an init container into later pods. Existing-policy or existing-binding modification paths are excluded until the policy-to-binding match is evaluated from inventoried objects.

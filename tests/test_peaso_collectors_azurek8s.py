@@ -1,6 +1,7 @@
 """Native collectors: permission boundaries, authentication, caps and scope identity."""
 import base64
 import copy
+from urllib.parse import urlparse
 import json
 import threading
 import time
@@ -61,19 +62,136 @@ def kube_list(items=(), continuation="", version="12"):
     return {"items": list(items), "metadata": {"continue": continuation, "resourceVersion": version}}
 
 
+def test_k8s_custom_network_policy_inventory_uses_api_discovery():
+    def absent(path, _params):
+        assert path == "/apis"
+        return {"groups": []}
+    kinds = ["cilium_networkpolicy", "cilium_clusterwide_networkpolicy", "calico_networkpolicy", "calico_global_networkpolicy",
+        "admin_networkpolicy", "baseline_admin_networkpolicy", "cluster_networkpolicy"]
+    snapshot = k8s.collect({"scopes": ["team-a"]}, kinds,
+        api=FakeKube(absent))
+    for kind in kinds:
+        row = collection(snapshot, kind, "team-a")
+        assert row["status"] == "empty"
+        assert row["applicability"]["source"] == "GET /apis"
+
+    def present(path, _params):
+        if path == "/apis":
+            return {"groups": [{"name": "cilium.io", "versions": [{"version": "v2"}]}]}
+        if path == "/apis/cilium.io/v2/namespaces/team-a/ciliumnetworkpolicies":
+            return kube_list([kube_item("restrict", apiVersion="cilium.io/v2", spec={"endpointSelector": {}})])
+        assert path == "/apis/cilium.io/v2/ciliumclusterwidenetworkpolicies"
+        return kube_list([{"apiVersion": "cilium.io/v2", "metadata": {"name": "global-restrict", "uid": "uid-global"},
+            "spec": {"endpointSelector": {}}}])
+    api = FakeKube(present)
+    snapshot = k8s.collect({"scopes": ["team-a"]}, kinds, api=api)
+    assert collection(snapshot, "cilium_networkpolicy", "team-a")["status"] == "collected"
+    assert len(collection(snapshot, "cilium_networkpolicy", "team-a")["items"]) == 1
+    assert collection(snapshot, "cilium_clusterwide_networkpolicy", "team-a")["status"] == "collected"
+    assert len(collection(snapshot, "cilium_clusterwide_networkpolicy", "team-a")["items"]) == 1
+    assert collection(snapshot, "calico_networkpolicy", "team-a")["status"] == "empty"
+    assert collection(snapshot, "calico_global_networkpolicy", "team-a")["status"] == "empty"
+    assert collection(snapshot, "admin_networkpolicy", "team-a")["status"] == "empty"
+    assert collection(snapshot, "baseline_admin_networkpolicy", "team-a")["status"] == "empty"
+    assert collection(snapshot, "cluster_networkpolicy", "team-a")["status"] == "empty"
+
+
+def test_k8s_admin_policy_inventory_distinguishes_served_versions():
+    def handler(path, _params):
+        if path == "/apis":
+            return {"groups": [{"name": "policy.networking.k8s.io", "versions": [{"version": "v1alpha1"}]}]}
+        assert path in {"/apis/policy.networking.k8s.io/v1alpha1/adminnetworkpolicies",
+            "/apis/policy.networking.k8s.io/v1alpha1/baselineadminnetworkpolicies"}
+        return kube_list([{"apiVersion": "policy.networking.k8s.io/v1alpha1", "metadata": {"name": "guard", "uid": "uid-guard"},
+            "spec": {"subject": {"namespaces": {}}}}])
+    snapshot = k8s.collect({"scopes": ["team-a"]},
+        ["admin_networkpolicy", "baseline_admin_networkpolicy", "cluster_networkpolicy"], api=FakeKube(handler))
+    assert collection(snapshot, "admin_networkpolicy")["status"] == "collected"
+    assert collection(snapshot, "baseline_admin_networkpolicy")["status"] == "collected"
+    assert collection(snapshot, "cluster_networkpolicy")["status"] not in {"collected", "empty"}
+
+
+def test_k8s_custom_policy_lists_each_namespace_and_cluster_policy_once():
+    def handler(path, _params):
+        if path == "/apis":
+            return {"groups": [{"name": "cilium.io", "versions": [{"version": "v2"}]}]}
+        if path == "/apis/cilium.io/v2/ciliumclusterwidenetworkpolicies":
+            return kube_list()
+        namespace = path.split("/namespaces/", 1)[1].split("/", 1)[0]
+        assert path == f"/apis/cilium.io/v2/namespaces/{namespace}/ciliumnetworkpolicies"
+        return kube_list([kube_item("restrict", namespace=namespace, apiVersion="cilium.io/v2")])
+    api = FakeKube(handler)
+    snapshot = k8s.collect({"scopes": ["team-a", "team-b"]},
+        ["cilium_networkpolicy", "cilium_clusterwide_networkpolicy"], api=api)
+    assert collection(snapshot, "cilium_networkpolicy", "team-a")["status"] == "collected"
+    assert collection(snapshot, "cilium_networkpolicy", "team-b")["status"] == "collected"
+    assert sum(c["type"] == "cilium_clusterwide_networkpolicy" for c in snapshot["collections"]) == 1
+    assert sum(path == "/apis/cilium.io/v2/ciliumclusterwidenetworkpolicies" for path, _ in api.calls) == 1
+
+
+@pytest.mark.parametrize("identifier", [
+    "/providers/Microsoft.Subscription/policies/default",
+    "providers/Microsoft.Subscription/policies/default",
+    "providers/Microsoft.Subscription/policies/unrelated",
+])
+def test_tenant_subscription_policy_normalizes_only_expected_identity(identifier):
+    policy = {"id": identifier, "properties": {"blockSubscriptionsLeavingTenant": True}}
+    transport = FakeAzure(lambda url, body, audience: policy)
+    transport.verified_tenant = True
+    snapshot = azure.collect({"scopes": ["sub-a"], "options": {"retries": 0}},
+                             ["subscription_tenant_policy"], transport=transport)
+    result = collection(snapshot, "subscription_tenant_policy")
+    if identifier.endswith("/unrelated"):
+        assert result["status"] == "malformed" and result["items"] == []
+    else:
+        assert result["status"] == "collected"
+        assert result["items"][0]["id"] == "/providers/Microsoft.Subscription/policies/default"
+        assert result["items"][0]["_provenance"]["tenant_verified"] is True
+
+
+def test_azure_vm_full_detail_requests_instance_view_power_state():
+    rid = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/server"
+    def handler(url, body, audience):
+        path = urlsplit(url).path
+        if path == rid:
+            assert "$expand=instanceView" in urlsplit(url).query
+            return {"id": rid, "properties": {"provisioningState": "Succeeded",
+                "instanceView": {"statuses": [{"code": "PowerState/running"}]}}}
+        if path == "/subscriptions/sub-a/providers/Microsoft.Compute/virtualMachines":
+            return {"value": [{"id": rid}]}
+        return {"value": []}
+    api = FakeAzure(handler)
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["vm"], transport=api)
+    vm = collection(snapshot, "vm")["items"][0]
+    assert vm["properties"]["instanceView"]["statuses"] == [{"code": "PowerState/running"}]
+    assert vm["_provenance"]["expand"] == "instanceView"
+
+
 def test_azure_graph_pagination_then_arm_details_cross_subscription():
     def handler(url, body, audience):
         if body is not None:
-            sub = body["subscriptions"][0]
+            # One batched Resource Graph query covers every subscription.
             if "$skipToken" not in body["options"]:
-                return {"data": [{"id": f"/subscriptions/{sub}/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/same", "type": "microsoft.network/virtualnetworks"}], "$skipToken": "page-2"}
+                return {"data": [{"id": f"/subscriptions/{sub}/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/same", "type": "microsoft.network/virtualnetworks"} for sub in body["subscriptions"]], "$skipToken": "page-2"}
             return {"data": [], "resultTruncated": "false"}
+        if "/providers/Microsoft.Insights/diagnosticSettings?" in url:
+            return {"value": []}
         sub = urlsplit(url).path.split("/")[2]
+        if urlsplit(url).path.endswith("/virtualNetworks/same"):
+            return {"id": f"/subscriptions/{sub}/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/same",
+                "properties": {"provisioningState": "Succeeded", "addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}
         return {"value": [{"id": f"/subscriptions/{sub}/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/same", "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}]}
     api = FakeAzure(handler)
     snapshot = azure.collect({"scopes": ["sub-a", "sub-b"], "options": {"concurrency": 2}}, ["vnet"], transport=api)
     assert validate(snapshot) == snapshot
-    assert len(api.calls) == 6
+    # Two graph pages, then one ARM inventory, VNet detail and diagnostic read per scope.
+    assert len(api.calls) == 8
+    graph = [body for _, body, _ in api.calls if body is not None]
+    assert len(graph) == 2 and all(sorted(body["subscriptions"]) == ["sub-a", "sub-b"] for body in graph)
+    assert len(collection(snapshot, "resource_graph", "/subscriptions/sub-a")["items"]) == 1
+    assert len(collection(snapshot, "resource_graph", "/subscriptions/sub-b")["items"]) == 1
+    assert sum("/providers/Microsoft.Insights/diagnosticSettings?" in url for url, _, _ in api.calls) == 2
+    assert len({(url, repr(body), audience) for url, body, audience in api.calls}) == len(api.calls)
     assert collection(snapshot, "vnet", "/subscriptions/sub-a")["status"] == "collected"
     assert collection(snapshot, "vnet", "/subscriptions/sub-b")["status"] == "collected"
     ids = [r["id"] for r in resources(snapshot) if r["type"] == "vnet"]
@@ -81,11 +199,205 @@ def test_azure_graph_pagination_then_arm_details_cross_subscription():
     assert not api.closed
 
 
+def test_azure_route_table_detail_captures_peering_barrier_and_provisioning():
+    route_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/routeTables/rt"
+    def handler(url, body, audience):
+        if body is not None:
+            return {"data": []}
+        if "/providers/Microsoft.Network/routeTables?" in url:
+            return {"value": [{"id": route_id, "properties": {"routes": []}}]}
+        if urlsplit(url).path == route_id:
+            return {"id": route_id, "properties": {"disablePeeringRoute": "All",
+                "provisioningState": "Succeeded", "routes": [{"name": "drop", "properties": {
+                    "addressPrefix": "10.1.0.0/16", "nextHopType": "None",
+                    "provisioningState": "Succeeded"}}]}}
+        return {"value": []}
+    api = FakeAzure(handler)
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["route_table"], transport=api)
+    table = collection(snapshot, "route_table")["items"][0]
+    assert collection(snapshot, "route_table")["status"] == "collected"
+    assert table["properties"]["disablePeeringRoute"] == "All"
+    assert table["properties"]["routes"][0]["properties"]["provisioningState"] == "Succeeded"
+    assert table["_provenance"]["representation"] == "full"
+    assert table["_provenance"]["api_version"] == "2025-07-01"
+    assert any(urlsplit(url).path == route_id and "api-version=2025-07-01" in url
+        for url, _, _ in api.calls)
+
+
+def test_azure_nsg_detail_captures_rule_provisioning():
+    nsg_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+    def handler(url, body, audience):
+        if body is not None:
+            return {"data": []}
+        if "/providers/Microsoft.Network/networkSecurityGroups?" in url:
+            return {"value": [{"id": nsg_id, "properties": {"securityRules": []}}]}
+        if urlsplit(url).path == nsg_id:
+            return {"id": nsg_id, "properties": {"provisioningState": "Succeeded",
+                "securityRules": [{"name": "allow", "properties": {"provisioningState": "Succeeded",
+                    "direction": "Ingress", "access": "Allow"}}]}}
+        return {"value": []}
+    api = FakeAzure(handler)
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["nsg"], transport=api)
+    nsg = collection(snapshot, "nsg")["items"][0]
+    assert collection(snapshot, "nsg")["status"] == "collected"
+    assert nsg["properties"]["securityRules"][0]["properties"]["provisioningState"] == "Succeeded"
+    assert nsg["_provenance"]["representation"] == "full"
+    assert any(urlsplit(url).path == nsg_id for url, _, _ in api.calls)
+
+
+def test_azure_subnet_and_peering_use_full_child_detail():
+    vnet_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/net"
+    subnet_id = vnet_id + "/subnets/app"
+    peering_id = vnet_id + "/virtualNetworkPeerings/peer"
+    def handler(url, body, audience):
+        if body is not None:
+            return {"data": []}
+        path = urlsplit(url).path
+        if "/providers/Microsoft.Network/virtualNetworks?" in url:
+            return {"value": [{"id": vnet_id, "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]},
+                "subnets": [{"id": subnet_id, "properties": {}}],
+                "virtualNetworkPeerings": [{"id": peering_id, "properties": {}}]}}]}
+        if path == vnet_id:
+            return {"id": vnet_id, "properties": {"provisioningState": "Succeeded",
+                "addressSpace": {"addressPrefixes": ["10.0.0.0/16"]},
+                "subnets": [{"id": subnet_id}], "virtualNetworkPeerings": [{"id": peering_id}]}}
+        if path == subnet_id:
+            return {"id": subnet_id, "properties": {"provisioningState": "Succeeded",
+                "addressPrefix": "10.0.1.0/24", "networkSecurityGroup": {"id": "nsg-a"},
+                "routeTable": {"id": "rt-a"}}}
+        if path == peering_id:
+            return {"id": peering_id, "properties": {"provisioningState": "Succeeded",
+                "peeringState": "Connected", "peeringSyncLevel": "FullyInSync"}}
+        return {"value": []}
+    api = FakeAzure(handler)
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["subnet", "vnet_peering"], transport=api)
+    subnet = collection(snapshot, "subnet", vnet_id)["items"][0]
+    peering = collection(snapshot, "vnet_peering", vnet_id)["items"][0]
+    assert subnet["_provenance"]["representation"] == "full"
+    assert peering["_provenance"]["representation"] == "full"
+    assert subnet["properties"]["routeTable"]["id"] == "rt-a"
+    assert subnet["properties"]["networkSecurityGroup"]["id"] == "nsg-a"
+    assert {subnet_id, peering_id} <= {urlsplit(url).path for url, _, _ in api.calls}
+
+
+def test_azure_nat_gateway_is_native_network_inventory():
+    nat_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/natGateways/nat-a"
+    def handler(url, body, _audience):
+        if body is not None:
+            return {"data": [], "resultTruncated": "false"}
+        if "/providers/Microsoft.Network/natGateways?" in url:
+            return {"value": [{"id": nat_id, "properties": {"subnets": [{"id": "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/s"}]}}]}
+        return {"value": []}
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["nat_gateway"], transport=FakeAzure(handler))
+    row = collection(snapshot, "nat_gateway", "/subscriptions/sub-a")
+    assert row["status"] == "collected"
+    assert row["items"][0]["id"] == nat_id
+
+
+def test_azure_effective_routes_are_bound_to_the_collected_nic(monkeypatch):
+    from peaso.collectors import azure_effective_routes_native
+    nic_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic-a"
+    class FakeQueries:
+        def __init__(self, _reader, _transport, scope):
+            assert scope == "/subscriptions/sub-a"
+            self.proofs = []
+        def pages(self, kind, parent):
+            assert kind == "routes" and parent == nic_id
+            self.proofs.append({"source_operation": "effectiveRouteTable", "resource_id": parent,
+                "response_sha256": "a" * 64})
+            yield [{"name": "local", "source": "Default", "state": "Active", "addressPrefix": ["10.0.0.0/16"], "nextHopType": "VnetLocal"}]
+    monkeypatch.setattr(azure_effective_routes_native, "NetworkQueries", FakeQueries)
+    def handler(url, body, _audience):
+        if body is not None:
+            return {"data": [], "resultTruncated": "false"}
+        if "/providers/Microsoft.Network/networkInterfaces?" in url:
+            return {"value": [{"id": nic_id, "properties": {"ipConfigurations": []}}]}
+        if urlsplit(url).path == nic_id:
+            return {"id": nic_id, "properties": {"provisioningState": "Succeeded", "ipConfigurations": []}}
+        return {"value": []}
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["effective_route"], transport=FakeAzure(handler))
+    row = collection(snapshot, "effective_route", "/subscriptions/sub-a")
+    assert row["status"] == "collected"
+    assert row["items"][0]["nic_id"] == nic_id
+    assert row["items"][0]["route"]["nextHopType"] == "VnetLocal"
+    assert row["items"][0]["_provenance"]["source_operation"] == "effectiveRouteTable"
+    assert row["source_evidence"][0]["resource_id"] == nic_id
+
+
+def test_azure_security_admin_absence_needs_complete_vnet_queries(monkeypatch):
+    from peaso.collectors import azure_effective_routes_native
+    vnet_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet-a"
+    class FakeQueries:
+        def __init__(self, _reader, _transport, scope):
+            assert scope == "/subscriptions/sub-a"
+            self.proofs = []
+        def pages(self, kind, parent):
+            assert kind == "admin" and parent == vnet_id
+            self.proofs.append({"source_operation": "listNetworkManagerEffectiveSecurityAdminRules",
+                "resource_id": parent, "response_sha256": "a" * 64})
+            yield []
+    monkeypatch.setattr(azure_effective_routes_native, "NetworkQueries", FakeQueries)
+    def handler(url, body, _audience):
+        if body is not None:
+            return {"data": [], "resultTruncated": "false"}
+        if "/providers/Microsoft.Network/virtualNetworks?" in url:
+            return {"value": [{"id": vnet_id, "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}]}
+        if urlsplit(url).path == vnet_id:
+            return {"id": vnet_id, "properties": {"provisioningState": "Succeeded",
+                "addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}
+        return {"value": []}
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["security_admin_rule"], transport=FakeAzure(handler))
+    assert collection(snapshot, "security_admin_rule")["status"] == "empty"
+    context = snapshot["metadata"]["network_context"]["azure"]["security_admin"]
+    assert context["status"] == "collected" and context["complete"] is True and context["policies"] == []
+    assert context["source_evidence"][0]["query_proofs"][0]["resource_id"] == vnet_id
+
+
+def test_azure_failed_admin_query_cannot_prove_empty_policy_context(monkeypatch):
+    from peaso.collectors import azure_effective_routes_native
+    vnet_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet-a"
+    class FailedQueries:
+        def __init__(self, *_args):
+            self.proofs = []
+        def pages(self, kind, parent):
+            assert kind == "admin" and parent == vnet_id
+            raise azure.AzureReadError("network_query_incomplete")
+            yield []
+    monkeypatch.setattr(azure_effective_routes_native, "NetworkQueries", FailedQueries)
+    def handler(url, body, _audience):
+        if body is not None:
+            return {"data": [], "resultTruncated": "false"}
+        if "/providers/Microsoft.Network/virtualNetworks?" in url:
+            return {"value": [{"id": vnet_id, "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}]}
+        return {"value": []}
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["security_admin_rule"], transport=FakeAzure(handler))
+    assert collection(snapshot, "security_admin_rule")["status"] not in {"collected", "empty"}
+    context = snapshot["metadata"]["network_context"]["azure"]["security_admin"]
+    assert context["status"] == "unknown" and context["complete"] is False
+
+
+def test_azure_service_tags_preserve_subscription_prefix_proof():
+    def handler(url, body, _audience):
+        assert body is None
+        assert url == ("https://management.azure.com/subscriptions/sub-a/providers/Microsoft.Network/locations/"
+            "westcentralus/serviceTags?api-version=2025-09-01")
+        return {"values": [{"name": "Storage.WestEurope", "properties": {"addressPrefixes": ["10.4.0.0/16"],
+            "changeNumber": "7"}}]}
+    snapshot = azure.collect({"scopes": ["sub-a"]}, ["service_tag"], transport=FakeAzure(handler))
+    row = collection(snapshot, "service_tag", "/subscriptions/sub-a")
+    assert row["status"] == "collected"
+    assert row["items"][0]["properties"]["addressPrefixes"] == ["10.4.0.0/16"]
+    assert row["items"][0]["_provenance"]["reference_location"] == "westcentralus"
+
+
 def test_azure_graph_denial_falls_back_arm_and_graph_denial_explicit():
     def handler(url, body, audience):
         if body is not None or audience == azure.GRAPH:
             raise ReadError(403)
-        return {"value": [{"id": "/subscriptions/sub-a/providers/Microsoft.Storage/storageAccounts/account", "properties": {"minimumTlsVersion": "TLS1_2"}}]}
+        account = {"id": "/subscriptions/sub-a/providers/Microsoft.Storage/storageAccounts/account", "properties": {"minimumTlsVersion": "TLS1_2"}}
+        if urlparse(url).path.casefold() == account["id"].casefold():  # mandatory full-resource GET
+            return account
+        return {"value": [account]}
     snapshot = azure.collect({"scopes": ["sub-a"]}, ["storage_account", "directory_user"], transport=FakeAzure(handler))
     assert collection(snapshot, "resource_graph")["status"] == "denied"
     assert collection(snapshot, "storage_account")["status"] == "collected"
@@ -245,6 +557,10 @@ def test_k8s_interfaces_observed_addresses_only():
 def test_concurrency_retry_and_global_call_budget(monkeypatch):
     reader = azure._Reader({"concurrency": 2, "max_calls": 5, "retries": 1})
     lock = threading.Lock()
+    # The first two calls meet at a barrier, so both are provably in flight at the same time
+    # (a timeout breaks the barrier and fails the test instead of hanging). While they are
+    # held, any worker beyond the limit would start a third call and raise the peak above 2.
+    both_in_flight = threading.Barrier(2, timeout=10)
     active = peak = calls = 0
     def operation():
         nonlocal active, peak, calls
@@ -253,7 +569,9 @@ def test_concurrency_retry_and_global_call_budget(monkeypatch):
             active += 1
             peak = max(peak, active)
             number = calls
-        time.sleep(0.01)
+        if number <= 2:
+            both_in_flight.wait()
+            time.sleep(0.05)
         with lock:
             active -= 1
         if number == 1:
@@ -262,6 +580,8 @@ def test_concurrency_retry_and_global_call_budget(monkeypatch):
     def fetch():
         yield [reader.call(operation)]
     reader.run([("kind-" + str(i), "scope", "test", fetch) for i in range(8)])
+    assert not both_in_flight.broken
+    assert peak <= reader.workers == 2
     assert peak == 2
     assert calls == reader.budget.calls == 5
     assert any(c["status"] == "partial" for c in reader.collections)
@@ -340,10 +660,19 @@ def test_azure_sdk_tokens_use_fixed_scopes_refresh_and_pin_tenant():
     assert transport.tenant == "tenant-a"
 
 
+def _offline_k8s_client(configuration):
+    """SDK-shaped inert client for auth selection tests; no request may leave this spy."""
+    def unexpected_request(*args, **kwargs):
+        pytest.fail("authentication test must not perform Kubernetes I/O")
+    return SimpleNamespace(configuration=configuration,
+                           rest_client=SimpleNamespace(pool_manager=SimpleNamespace(request=unexpected_request)),
+                           close=lambda: None)
+
+
 def test_k8s_direct_tls_token_file_and_certificate(monkeypatch, tmp_path):
     from kubernetes import client
     captured = []
-    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or SimpleNamespace(configuration=cfg))
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or _offline_k8s_client(cfg))
     token_file = tmp_path / "token"
     token_file.write_text("fake-token\n")
     k8s._new_api({"server": "https://cluster.example", "token_file": str(token_file), "ca_cert": "/fake/ca.pem"})
@@ -359,11 +688,11 @@ def test_k8s_direct_tls_token_file_and_certificate(monkeypatch, tmp_path):
 def test_k8s_context_exec_loader_and_incluster_reuse(monkeypatch):
     from kubernetes import client, config
     calls = []
-    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: calls.append(kwargs) or object())
+    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: calls.append(kwargs) or _offline_k8s_client(client.Configuration()))
     k8s._new_api({"kubeconfig": "/fake/config", "context": "eks-cluster"})
     assert calls == [{"config_file": "/fake/config", "context": "eks-cluster", "persist_config": False}]
     monkeypatch.setattr(config, "load_incluster_config", lambda **kwargs: calls.append(kwargs))
-    monkeypatch.setattr(client, "ApiClient", lambda cfg: object())
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: _offline_k8s_client(cfg))
     k8s._new_api({"in_cluster": True})
     assert "client_configuration" in calls[-1]
 
@@ -393,7 +722,7 @@ def test_inline_kubeconfig_rejects_helpers_paths_and_insecure_tls(field, value, 
 def test_inline_kubeconfig_selected_auth_and_private_material_cleanup(monkeypatch):
     from kubernetes import client
     captured = []
-    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or SimpleNamespace(configuration=cfg, close=lambda: None))
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or _offline_k8s_client(cfg))
     config = inline_config()
     pem = "-----BEGIN CERTIFICATE-----\nfake-test-data\n-----END CERTIFICATE-----"
     config["clusters"][0]["cluster"]["certificate-authority-data"] = base64.b64encode(pem.encode()).decode()
@@ -417,7 +746,7 @@ def test_hosted_public_server_pinned_and_tls_name_preserved(monkeypatch):
     monkeypatch.setattr(k8s.socket, "getaddrinfo", lambda *args, **kwargs: [(2, 1, 6, "", ("8.8.8.8", 443))])
     from kubernetes import client
     captured = []
-    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or SimpleNamespace(configuration=cfg))
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or _offline_k8s_client(cfg))
     api = k8s._new_api({"server": "https://cluster.example:6443", "token": "fake-token", "_hosted": True})
     cfg = captured[-1]
     assert cfg.host == "https://8.8.8.8:6443"
@@ -484,9 +813,9 @@ def test_k8s_selected_direct_mode_never_falls_back_to_kubeconfig(monkeypatch):
 
 
 def test_k8s_selected_context_ignores_stale_direct_server(monkeypatch):
-    from kubernetes import config
+    from kubernetes import client, config
     calls = []
-    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: calls.append(kwargs) or object())
+    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: calls.append(kwargs) or _offline_k8s_client(client.Configuration()))
     k8s._new_api({"method": "kubeconfig", "context": "selected", "server": "https://stale.example", "token": "stale-token"})
     assert calls[0]["context"] == "selected"
 
@@ -494,7 +823,7 @@ def test_k8s_selected_context_ignores_stale_direct_server(monkeypatch):
 def test_k8s_certificate_mode_ignores_stale_bearer(monkeypatch):
     from kubernetes import client
     configurations = []
-    monkeypatch.setattr(client, "ApiClient", lambda cfg: configurations.append(cfg) or SimpleNamespace(configuration=cfg))
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: configurations.append(cfg) or _offline_k8s_client(cfg))
     k8s._new_api({"method": "certificate", "server": "https://cluster.example", "client_cert": "/fake/cert", "client_key": "/fake/key", "token": "stale-token"})
     assert not configurations[-1].api_key
 
@@ -525,6 +854,9 @@ def test_azure_resource_graph_lag_cannot_hide_new_arm_resource():
     def handler(url, body, audience):
         if body:
             return {"data": [], "resultTruncated": "false"}
+        if urlsplit(url).path == rid:
+            return {"id": rid, "properties": {"provisioningState": "Succeeded",
+                "subnets": [], "virtualNetworkPeerings": []}}
         return {"value": [{"id": rid, "properties": {"subnets": [], "virtualNetworkPeerings": []}}]}
     snapshot = azure.collect({"scopes": ["sub-a"]}, ["vnet"], transport=FakeAzure(handler))
     assert collection(snapshot, "resource_graph")["status"] == "empty"
@@ -620,7 +952,7 @@ def test_hosted_dns_change_is_revalidated_and_private_second_address_never_conne
 def test_inline_alias_requires_safe_inline_credentials(monkeypatch):
     from kubernetes import client
     captured = []
-    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or SimpleNamespace(configuration=cfg))
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: captured.append(cfg) or _offline_k8s_client(cfg))
     k8s._new_api({"method": "inline", "kubeconfig_data": inline_config()})
     assert captured[-1].host == "https://cluster.example"
     with pytest.raises(ValueError, match="requires kubeconfig_data"):

@@ -1,7 +1,6 @@
 import { Component, lazy, Suspense, useEffect, useState } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import {
-  Activity,
   ArrowUpRight,
   ChevronDown,
   Cloud,
@@ -14,23 +13,22 @@ import {
   Shield,
   ShieldCheck,
   Target,
-  Waypoints,
   Route,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ApiError, items, useApi } from "./api";
+import { ApiError, authSessionChangedEvent, items, useApi, workspaceKey } from "./api";
 import { Connectors } from "./Connectors";
-import { Dashboard, CoverageView } from "./Dashboard";
+import { Dashboard } from "./Dashboard";
 import { Findings } from "./Findings";
-const GraphView = lazy(() =>
-  import("./GraphView").then((m) => ({ default: m.GraphView })),
+const NetworkMap = lazy(() =>
+  import("./NetworkMap").then((m) => ({ default: m.NetworkMap })),
 );
 const PrivescMap = lazy(() =>
   import("./PrivescMap").then((m) => ({ default: m.PrivescMap })),
 );
 import { Scans } from "./Scans";
 import { Settings } from "./Settings";
-import type { Connector, Report, Scan } from "./types";
+import type { Connector, Me, Report, Scan, Workspace } from "./types";
 import { Panel, State, date, sourceHref } from "./ui";
 const pages = [
   {
@@ -66,11 +64,6 @@ const pages = [
     description: "Review identity permissions and reduce unnecessary access.",
   },
   {
-    label: "IAM Risk Map",
-    icon: Waypoints,
-    description: "Defensive IAM risk map · observed access relationships.",
-  },
-  {
     label: "Privilege Escalation Map",
     icon: Route,
     description:
@@ -94,9 +87,18 @@ export function App() {
     const p = raw;
     return pages.some((x) => x.label === p) ? p : "Dashboard";
   });
-  const [demo, setDemo] = useState(false);
+  const [demoRequested, setDemoRequested] = useState(true);
   const [selected, setSelected] = useState("");
+  const [workspaceId, setWorkspaceId] = useState(() => sessionStorage.getItem(workspaceKey) || "personal");
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const client = useQueryClient();
+  const identity = useApi<Me>("/me", false);
+  const signedIn = identity.isSuccess;
+  const workspaces = useApi<{ items: Workspace[] }>("/workspaces", false, signedIn);
+  const workspaceList = items(workspaces.data);
+  const activeWorkspace = workspaceList.find((item) => item.id === workspaceId);
+  const canWriteWorkspace = !signedIn || workspaceId === "personal" || activeWorkspace?.role === "write" || activeWorkspace?.role === "admin";
+  const demo = !identity.isPending && !signedIn && demoRequested;
   const health = useApi<{ status: string; source_url?: string }>(
     "/health",
     demo,
@@ -117,20 +119,42 @@ export function App() {
     setPage(p);
     location.hash = encodeURIComponent(p);
   }
+  function selectWorkspace(id: string) {
+    sessionStorage.setItem(workspaceKey, id);
+    setWorkspaceId(id);
+    setWorkspaceMenuOpen(false);
+    setSelected("");
+    void client.resetQueries({ queryKey: ["live"] });
+  }
+  useEffect(() => {
+    if (signedIn && workspaces.data && !activeWorkspace && workspaceId !== "personal") selectWorkspace("personal");
+  }, [signedIn, workspaces.data, activeWorkspace, workspaceId]);
   useEffect(() => {
     const change = () => {
       const raw = decodeURIComponent(location.hash.slice(1));
       const p = raw;
-      if (pages.some((x) => x.label === p)) setPage(p);
+      setPage(pages.some((x) => x.label === p) ? p : "Dashboard");
     };
     window.addEventListener("hashchange", change);
     return () => window.removeEventListener("hashchange", change);
   }, []);
+  useEffect(() => {
+    const change = () => {
+      setSelected("");
+      setDemoRequested(true);
+      sessionStorage.removeItem(workspaceKey);
+      setWorkspaceId("personal");
+      void client.resetQueries({ queryKey: ["live"] });
+    };
+    window.addEventListener(authSessionChangedEvent, change);
+    return () => window.removeEventListener(authSessionChangedEvent, change);
+  }, [client]);
   const unauthorized = [connectors.error, scans.error].some(
     (e) => e instanceof ApiError && e.status === 401,
   );
   function switchDemo() {
-    setDemo(!demo);
+    if (signedIn || identity.isPending) return;
+    setDemoRequested(!demoRequested);
     setSelected("");
     client.removeQueries({ queryKey: [!demo ? "demo" : "live"] });
   }
@@ -138,7 +162,6 @@ export function App() {
     "Hardening Findings",
     "Exposure",
     "Least Privilege",
-    "IAM Risk Map",
     "Privilege Escalation Map",
     "Network Map",
   ].includes(page);
@@ -158,15 +181,21 @@ export function App() {
             PEASO<span>CLOUD SECURITY</span>
           </div>
         </a>
-        <div className="workspace-chip">
+        <div className="workspace-selector">
+        <button className="workspace-chip" type="button" onClick={() => signedIn ? setWorkspaceMenuOpen(!workspaceMenuOpen) : navigate("Settings")} aria-expanded={workspaceMenuOpen} aria-label="Select workspace">
           <div className="workspace-avatar">
             <Layers size={18} />
           </div>
           <div>
-            <strong>Security workspace</strong>
-            <span>{demo ? "Fixture demo" : "Native cloud assessments"}</span>
+            <strong>{demo ? "Fixture demo" : activeWorkspace?.name || "Personal Workspace"}</strong>
+            <span>{demo ? "Sample assessment" : activeWorkspace?.role ? `${activeWorkspace.role[0].toUpperCase()}${activeWorkspace.role.slice(1)} access` : "Your private workspace"}</span>
           </div>
           <ChevronDown size={14} />
+        </button>
+        {signedIn && workspaceMenuOpen && <div className="workspace-menu" role="menu" aria-label="Workspaces">
+          {workspaceList.map((workspace) => <button key={workspace.id} type="button" role="menuitemradio" aria-checked={workspace.id === workspaceId} onClick={() => selectWorkspace(workspace.id)}>{workspace.name}<small>{workspace.role}</small></button>)}
+          <button type="button" onClick={() => { setWorkspaceMenuOpen(false); navigate("Settings"); }}>Manage workspaces</button>
+        </div>}
         </div>
         <nav aria-label="Primary navigation">
           {pages.map((p) => (
@@ -200,11 +229,6 @@ export function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="engine-chip">
-            <span className="status-dot" />
-            <span>Native snapshot engine</span>
-            <Activity size={13} />
-          </div>
           <button className="nav-item" onClick={() => navigate("Settings")}>
             <HelpCircle size={18} />
             Help & documentation
@@ -216,16 +240,20 @@ export function App() {
         </div>
       </aside>
       <div className="workspace-main">
-        <header className="topbar">
+        <header className={`topbar ${!identity.isPending && !signedIn ? "logged-out" : ""}`}>
           <span className="breadcrumb">
             Workspace <span>/</span> {page}
           </span>
           <div className="topbar-actions">
             <label className="demo-switch">
-              <input type="checkbox" checked={demo} onChange={switchDemo} />
+              <input type="checkbox" checked={demo} disabled={signedIn || identity.isPending} onChange={switchDemo} />
               <span className="switch-track" />
               Fixture demo
             </label>
+            {!identity.isPending && !signedIn && <div className="topbar-auth-actions">
+              <a className="button" href="https://tools.hacktricks.wiki/login.html">Log in</a>
+              <a className="button primary" href="https://tools.hacktricks.wiki/register.html">Register</a>
+            </div>}
             <span className={`api-status ${health.error ? "offline" : ""}`}>
               <span className="status-dot" />
               {demo
@@ -236,13 +264,13 @@ export function App() {
                     ? "API unavailable"
                     : "Live API"}
             </span>
-            <button
+            {signedIn && <button
               className="account-button"
               aria-label="Account settings"
               onClick={() => navigate("Settings")}
             >
               HT
-            </button>
+            </button>}
           </div>
         </header>
         <main id="main-content">
@@ -334,10 +362,11 @@ export function App() {
               onNavigate={navigate}
             />
           )}
-          {page === "Connectors" && <Connectors demo={demo} />}
+          {page === "Connectors" && <Connectors demo={demo} canWrite={canWriteWorkspace} />}
           {page === "Scans" && (
             <Scans
               demo={demo}
+              canWrite={canWriteWorkspace}
               onSelect={(s) => {
                 setSelected(s.id);
                 navigate("Hardening Findings");
@@ -365,39 +394,35 @@ export function App() {
                   demo={demo}
                 />
               </State>
-              {report.data && (
-                <Panel title="Coverage & limitations">
-                  <CoverageView scanId={scanId} demo={demo} />
-                </Panel>
-              )}
             </>
           )}
-          {page === "IAM Risk Map" && (
-            <State
-              error={scans.error}
-              loading={scans.isPending}
-              onRetry={() => void scans.refetch()}
-            >
-              <Suspense fallback={<State loading />}>
-                <GraphView scanId={scanId} kind="iam" demo={demo} />
-              </Suspense>
-            </State>
-          )}
           {page === "Privilege Escalation Map" && (
-            <State
-              error={scans.error}
-              loading={scans.isPending}
-              onRetry={() => void scans.refetch()}
-            >
-              <Suspense fallback={<State loading />}>
-                <PrivescMap
-                  scanId={scanId}
-                  demo={demo}
-                  categories={current?.categories}
-                  onNavigate={navigate}
-                />
-              </Suspense>
-            </State>
+            scans.error instanceof ApiError && scans.error.status === 401 && !demo
+              ? <Panel>
+                  <div className="state" role="alert">
+                    <Shield />
+                    <h3>Authentication is required to view this map</h3>
+                    <p>Sign in to your workspace or add a valid API token in Settings, then retry.</p>
+                    <div className="button-row">
+                      <a className="button primary" href="https://tools.hacktricks.wiki/login.html">Sign in at Tools</a>
+                      <button className="button" onClick={() => navigate("Settings")}>Open authentication settings</button>
+                    </div>
+                  </div>
+                </Panel>
+              : <State
+                  error={scans.error}
+                  loading={scans.isPending}
+                  onRetry={() => void scans.refetch()}
+                >
+                  <Suspense fallback={<State loading />}>
+                    <PrivescMap
+                      scanId={scanId}
+                      demo={demo}
+                      categories={current?.categories}
+                      onNavigate={navigate}
+                    />
+                  </Suspense>
+                </State>
           )}
           {page === "Network Map" && (
             <State
@@ -406,11 +431,11 @@ export function App() {
               onRetry={() => void scans.refetch()}
             >
               <Suspense fallback={<State loading />}>
-                <GraphView scanId={scanId} kind="network" demo={demo} />
+                <NetworkMap key={`${scanId}:${demo}`} scanId={scanId} demo={demo} />
               </Suspense>
             </State>
           )}
-          {page === "Settings" && <Settings demo={demo} />}
+          {page === "Settings" && <Settings demo={false} workspaceId={workspaceId} onWorkspaceCreated={selectWorkspace} />}
           <footer className="footer">
             <span>
               <ShieldCheck size={13} />

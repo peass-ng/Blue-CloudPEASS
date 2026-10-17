@@ -1,9 +1,92 @@
-"""JSON snapshots are copied at boundaries and addressed by a verified content digest."""
+"""JSON snapshots are sealed at boundaries and addressed by a verified content digest.
+
+seal(), validate() and make_snapshot() return ordinary mutable copies (one structural copy, as before).
+Evaluation paths call validate(snapshot, read_only=True): native collection items are converted once
+into read-only views (FrozenDict / FrozenList), already-frozen items are shared, and every later
+consumer (checks, analysis, privesc, graphs, reports) shares those views instead of deep-copying native
+data. A view cannot be mutated in place; ``copy.deepcopy`` of a view returns an ordinary mutable copy.
+"""
 from __future__ import annotations
 import copy
 import hashlib
 import json
 from datetime import datetime, timezone
+
+
+def _read_only(self, *args, **kwargs):
+    raise TypeError("sealed snapshot data is read-only; copy.deepcopy() it to obtain a mutable copy")
+
+
+class FrozenDict(dict):
+    """A dict view of sealed native data. JSON-serialisable and isinstance(dict); mutation raises TypeError."""
+    __slots__ = ()
+    __setitem__ = __delitem__ = clear = pop = popitem = setdefault = update = __ior__ = _read_only
+
+    def __copy__(self):
+        return dict(self)
+
+    def __deepcopy__(self, memo):
+        return thaw(self)
+
+    def __reduce__(self):
+        return (FrozenDict, (dict(self),))
+
+
+class FrozenList(list):
+    """A list view of sealed native data. JSON-serialisable and isinstance(list); mutation raises TypeError."""
+    __slots__ = ()
+    __setitem__ = __delitem__ = __iadd__ = __imul__ = append = extend = insert = remove = pop = clear = sort = reverse = _read_only
+
+    def __copy__(self):
+        return list(self)
+
+    def __deepcopy__(self, memo):
+        return thaw(self)
+
+    def __reduce__(self):
+        return (FrozenList, (list(self),))
+
+
+def freeze(value):
+    """Read-only view of JSON-like data; already-frozen values are shared, never copied again."""
+    kind = type(value)
+    if kind is FrozenDict or kind is FrozenList:
+        return value
+    if isinstance(value, dict):
+        return FrozenDict({key: freeze(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple)):
+        return FrozenList([freeze(item) for item in value])
+    return value
+
+
+def thaw(value):
+    """Ordinary mutable deep copy of (possibly frozen) JSON-like data."""
+    if isinstance(value, dict):
+        return {key: thaw(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [thaw(item) for item in value]
+    return value
+
+
+def _sealed_structure(snapshot, read_only=False):
+    """New envelope (top level, metadata, collection dicts) around the native items.
+
+    Envelopes stay mutable plain dicts because callers annotate metadata after validation. With read_only
+    the items (the large native facts) are frozen exactly once and shared afterwards; otherwise they are
+    copied into ordinary mutable objects.
+    """
+    items_of = (lambda value: FrozenList([freeze(item) for item in value])) if read_only else thaw
+    result = {key: (thaw(value) if key != "collections" else value) for key, value in snapshot.items()}
+    collections = result.get("collections")
+    if isinstance(collections, list):
+        sealed = []
+        for collection in collections:
+            if isinstance(collection, dict):
+                collection = {key: (items_of(value) if key == "items" and isinstance(value, list)
+                                    else thaw(value)) for key, value in collection.items()}
+            sealed.append(collection)
+        result["collections"] = sealed
+    return result
 
 SCHEMA_VERSION = "1.0"
 PROVIDERS = ("aws", "gcp", "azure", "k8s")
@@ -19,16 +102,17 @@ def digest(value):
 
 
 def seal(snapshot):
-    result = copy.deepcopy(snapshot)
+    result = _sealed_structure(snapshot)
     result.pop("snapshot_id", None)
     result["snapshot_id"] = digest(result)
     return result
 
 
-def validate(snapshot):
+def validate(snapshot, *, read_only=False):
+    """Validated copy of a snapshot; read_only=True shares sealed read-only item views (evaluation paths)."""
     if not isinstance(snapshot, dict):
         raise ValueError("snapshot must be an object")
-    result = copy.deepcopy(snapshot)
+    result = _sealed_structure(snapshot, read_only)
     if result.get("schema_version") != SCHEMA_VERSION:
         raise ValueError("unsupported snapshot schema_version")
     if result.get("provider") not in PROVIDERS:
@@ -98,5 +182,11 @@ def resources(snapshot):
             rid = resource_id(snapshot["provider"], collection["type"], collection["scope"], item)
             key = (collection["scope"], collection["type"], rid)
             output[key] = {"id": digest([snapshot["provider"], collection["scope"], collection["type"], rid]), "native_id": rid, "type": collection["type"], "service": collection.get("service", collection["type"].split('_')[0]),
-                "scope": collection["scope"], "provider": snapshot["provider"], "data": copy.deepcopy(item)}
+                "scope": collection["scope"], "provider": snapshot["provider"], "data": freeze(item)}
     return [output[key] for key in sorted(output)]
+
+
+def nothing_readable(snapshot):
+    """True when a collection run read nothing at all (no collection collected, empty or partial),
+    e.g. every call failed on expired or wrong credentials."""
+    return not any(c.get("status") in ("collected", "empty", "partial") for c in snapshot.get("collections", []))

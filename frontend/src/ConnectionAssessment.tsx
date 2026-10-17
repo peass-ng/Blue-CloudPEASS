@@ -5,7 +5,7 @@ import { ArrowRight, Network } from "lucide-react";
 import { json, request } from "./api";
 import { Badge, Evidence, Inspector, State } from "./ui";
 import type { GraphNode } from "./types";
-type ConfigurationDecision = {
+export type ConfigurationDecision = {
   decision: "allowed" | "blocked" | "unknown";
   provider: string;
   snapshot_id: string;
@@ -20,18 +20,40 @@ type ConfigurationDecision = {
   application_listening: string;
   new_flow_only: boolean;
 };
+type AssessmentQuery = {
+  source_resource_id: string;
+  destination_resource_id: string;
+  protocol: string;
+  destination_port: number;
+  source_port?: number;
+  address_family: string;
+};
+function matchesAssessment(result: ConfigurationDecision, requested: AssessmentQuery): boolean {
+  if (!result || typeof result !== "object" || typeof result.snapshot_id !== "string" || !result.snapshot_id ||
+      typeof result.provider !== "string" || !result.provider || result.modeled_configuration !== true ||
+      result.new_flow_only !== true || !["allowed", "blocked", "unknown"].includes(result.decision) ||
+      !result.query || typeof result.query !== "object") return false;
+  const query = result.query as Record<string, unknown>;
+  return query.source_resource_id === requested.source_resource_id &&
+    query.destination_resource_id === requested.destination_resource_id &&
+    query.protocol === requested.protocol && query.destination_port === requested.destination_port &&
+    (query.source_port ?? undefined) === requested.source_port &&
+    query.address_family === requested.address_family;
+}
 export function ConnectionAssessment({
   scanId,
   nodes,
   source = "",
   destination = "",
   onClose,
+  onShowMap,
 }: {
   scanId: string;
   nodes: GraphNode[];
   source?: string;
   destination?: string;
   onClose: () => void;
+  onShowMap?: (result: ConfigurationDecision) => void;
 }) {
   const [from, setFrom] = useState(source),
     [to, setTo] = useState(destination),
@@ -41,12 +63,20 @@ export function ConnectionAssessment({
     [family, setFamily] = useState("ipv4"),
     [error, setError] = useState("");
   const evaluation = useMutation({
-    mutationFn: (body: unknown) =>
-      request<ConfigurationDecision>(
+    mutationFn: async (body: AssessmentQuery) => {
+      const result = await request<ConfigurationDecision>(
         `/scans/${encodeURIComponent(scanId)}/reachability`,
         json(body),
-      ),
+      );
+      if (!matchesAssessment(result, body)) throw new Error("Assessment response did not match the selected connection.");
+      return result;
+    },
   });
+  function edit(setter: (value: string) => void, value: string) {
+    setter(value);
+    setError("");
+    evaluation.reset();
+  }
   const endpoints = nodes.filter(
     (n) => typeof n.resource_id === "string" && !n.aggregate,
   );
@@ -90,7 +120,8 @@ export function ConnectionAssessment({
           <input
             list="configuration-endpoints"
             value={from}
-            onChange={(e) => setFrom(e.target.value)}
+            onChange={(e) => edit(setFrom, e.target.value)}
+            disabled={evaluation.isPending}
             required
             maxLength={2048}
             placeholder="Select a captured resource or enter its global report ID"
@@ -103,7 +134,8 @@ export function ConnectionAssessment({
           <input
             list="configuration-endpoints"
             value={to}
-            onChange={(e) => setTo(e.target.value)}
+            onChange={(e) => edit(setTo, e.target.value)}
+            disabled={evaluation.isPending}
             required
             maxLength={2048}
             autoComplete="off"
@@ -122,7 +154,8 @@ export function ConnectionAssessment({
             Protocol
             <select
               value={protocol}
-              onChange={(e) => setProtocol(e.target.value)}
+              onChange={(e) => edit(setProtocol, e.target.value)}
+              disabled={evaluation.isPending}
             >
               <option value="tcp">TCP</option>
               <option value="udp">UDP</option>
@@ -130,7 +163,7 @@ export function ConnectionAssessment({
           </label>
           <label>
             Address family
-            <select value={family} onChange={(e) => setFamily(e.target.value)}>
+            <select value={family} onChange={(e) => edit(setFamily, e.target.value)} disabled={evaluation.isPending}>
               <option value="ipv4">IPv4</option>
               <option value="ipv6">IPv6</option>
             </select>
@@ -145,7 +178,8 @@ export function ConnectionAssessment({
               max={65535}
               required
               value={destinationPort}
-              onChange={(e) => setDestinationPort(e.target.value)}
+              onChange={(e) => edit(setDestinationPort, e.target.value)}
+              disabled={evaluation.isPending}
             />
           </label>
           <label>
@@ -155,7 +189,8 @@ export function ConnectionAssessment({
               min={1}
               max={65535}
               value={sourcePort}
-              onChange={(e) => setSourcePort(e.target.value)}
+              onChange={(e) => edit(setSourcePort, e.target.value)}
+              disabled={evaluation.isPending}
               placeholder="Unknown"
             />
           </label>
@@ -185,6 +220,7 @@ export function ConnectionAssessment({
           <div className="configuration-result">
             <h3>Configuration decision</h3>
             <Badge value={evaluation.data.decision} />
+            {onShowMap && <button type="button" className="button primary" onClick={() => onShowMap(evaluation.data!)}>Show path on map</button>}
             <p className="muted small">
               Application listening:{" "}
               {evaluation.data.application_listening || "unknown"} · New flow

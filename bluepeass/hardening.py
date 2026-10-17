@@ -97,11 +97,12 @@ def run_hardening(args, adapter, target):
             report = evaluate_snapshot(snapshot)
             report["snapshot"] = snapshot
         else:
-            report = run_scan({"connector": connector})
+            report = run_scan({"connector": connector, "embed_snapshot": bool(getattr(args, "hardening_out_dir", None))})
         findings = [{**finding, "control_id": finding["check_id"], "resource": finding["resource_id"],
             "reason": json.dumps(finding["evidence"], sort_keys=True), "dimensions": {"scope": finding["scope"], "service": finding["service"]},
             "suites": ["peaso-native"], "reference_urls": [], "description": finding["remediation"]} for finding in report["findings"]]
-        controls = [{"control_id": row["check_id"], "title": row["check_id"], "suite": "peaso-native", "rows": sum(f["check_id"] == row["check_id"] for f in findings)}
+        finding_counts = Counter(f["check_id"] for f in findings)
+        controls = [{"control_id": row["check_id"], "title": row["check_id"], "suite": "peaso-native", "rows": finding_counts[row["check_id"]]}
             for row in report["coverage"] if row["level"] == "check"]
         errors = [{"control_id": row.get("check_id", row.get("type")), "error": row.get("reason") or row["status"]}
             for row in report["coverage"] if row["status"] in ("denied", "unknown", "partial", "timeout", "not_collected", "malformed")]

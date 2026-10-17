@@ -8,7 +8,7 @@ from decimal import Decimal, InvalidOperation
 import re
 
 from . import register, result, unknown
-from .facts import Unavailable, field_check, get, list_of_objects
+from .facts import Unavailable, field_check, get, list_of_objects, omitted
 from .fixtures import CASES
 
 PREFIX = "gcp.reviewed."
@@ -36,24 +36,80 @@ scalar("compute.maintenance_migrate", "instance", "scheduling.onHostMaintenance"
        "Compute VM selects live migration during host maintenance")
 scalar("compute.confidential_computing", "instance", "confidentialInstanceConfig.enableConfidentialCompute", True, False,
        "Compute VM explicitly enables confidential computing")
-scalar("storage.versioning", "bucket", "versioning.enabled", True, False,
-       "Bucket enables object versioning")
 scalar("loadbalancer.backend_logging", "backend_service", "logConfig.enable", True, False,
        "Backend service explicitly enables request logging")
 
 
+# Flow Logs apply to subnets carrying VM traffic. Compute documents that
+# logConfig is omitted from get/list when not explicitly set and then defaults
+# to disabled (an org policy requiring flow logs sets it at creation), and that
+# REGIONAL_MANAGED_PROXY and other proxy/PSC purposes do not support it.
+FLOW_LOG_PURPOSES = ("PRIVATE", "PRIVATE_RFC_1918")
+NON_FLOW_LOG_PURPOSES = ("REGIONAL_MANAGED_PROXY", "GLOBAL_MANAGED_PROXY", "INTERNAL_HTTPS_LOAD_BALANCER",
+    "PRIVATE_SERVICE_CONNECT", "PRIVATE_NAT", "PEER_MIGRATION")
+DEPENDENCIES = {PREFIX + "network.flow_logs": ["subnetwork", "vpc_flow_logs_config"]}
+
+
+def _relative(link):
+    """Compute selfLink/URL or relative name -> `projects/...` relative name."""
+    if isinstance(link, str) and "projects/" in link:
+        return "projects/" + link.split("projects/", 1)[1]
+    return link
+
+
+def network_management_flow_logs(item, index):
+    """Network Management VpcFlowLogsConfig coverage of this subnet, or None."""
+    envelopes = index.get("collections", {}).get("vpc_flow_logs_config", []) if isinstance(index, dict) else []
+    if not envelopes:
+        return None, {"network_management_configs": "not_collected"}
+    bad = [{"status": row.get("status"), "error": row.get("error", {}).get("reason") or row.get("error", {}).get("code")}
+           for row in envelopes if not isinstance(row, dict) or row.get("status") not in ("collected", "empty")]
+    subnet = _relative(item.get("selfLink"))
+    network = _relative(item.get("network"))
+    matched = []
+    for resource in index.get("vpc_flow_logs_config", []) if not bad else []:
+        config = get(resource, "data", dict)
+        targets = {field: _relative(config.get(field)) for field in ("subnet", "network", "vpnTunnel", "interconnectAttachment") if config.get(field)}
+        level = config.get("configLevel")
+        covers = targets.get("subnet") == subnet or targets.get("network") == network or (level == "organization" and not targets)
+        if covers and config.get("state", "ENABLED") in ("ENABLED", "STATE_UNSPECIFIED"):
+            matched.append({"name": config.get("name"), "level": level, "filtered": bool(config.get("filterExpr"))})
+    if bad:
+        return None, {"network_management_configs": "unverified", "network_management_status": bad}
+    return matched, {"network_management_configs": "collected"}
+
+
 @rule("network.flow_logs", "subnetwork", "Subnet explicitly enables VPC Flow Logs", control="AU-2")
 def flow_logs(item, index):
+    purpose = omitted(item, "purpose", "PRIVATE", str)
+    context = {"network": item.get("network"), "region": item.get("region"), "purpose": purpose}
+    if purpose in NON_FLOW_LOG_PURPOSES:
+        return "NOT_APPLICABLE", {**context, "reason": "Subnet purpose does not carry VM traffic or support Flow Logs"}
+    if purpose not in FLOW_LOG_PURPOSES:
+        return unknown("unrecognized subnet purpose", **context)
     legacy = get(item, "enableFlowLogs", bool) if "enableFlowLogs" in item else None
-    if "logConfig" in item:
+    if "logConfig" in item and "enable" in get(item, "logConfig", dict):
         enabled = get(item, "logConfig.enable", bool)
         if legacy is not None and legacy != enabled:
-            return unknown("conflicting explicit legacy and structured Flow Logs settings")
+            return unknown("conflicting explicit legacy and structured Flow Logs settings", **context)
+        source = "logConfig.enable"
     elif legacy is not None:
-        enabled = legacy
+        enabled, source = legacy, "enableFlowLogs"
     else:
-        return unknown("Flow Logs setting absent")
-    return result(not enabled, flow_logs_enabled=enabled)
+        # Absent only proves "unset => disabled" on a complete representation.
+        enabled = omitted(item, "logConfig.enable", False, bool)
+        source = "omitted (API default: disabled)"
+    if enabled:
+        return result(False, **context, flow_logs_enabled=True, source=source)
+    matched, coverage = network_management_flow_logs(item, index)
+    if matched:
+        if all(row["filtered"] for row in matched):
+            return "MANUAL", {**context, **coverage, "vpc_flow_logs_configs": matched,
+                "reason": "Only filtered Network Management Flow Logs configs cover this subnet"}
+        return result(False, **context, **coverage, flow_logs_enabled=True, source="networkmanagement.vpcFlowLogsConfigs",
+                      vpc_flow_logs_configs=matched)
+    return result(True, **context, **coverage, flow_logs_enabled=False, source=source,
+                  semantics="Subnet-level setting; Network Management configs are counted only when collected")
 
 
 @rule("compute.ip_forwarding", "instance", "Compute VM restricts IP forwarding", control="SC-7")
@@ -151,8 +207,27 @@ def serial_console(item, index):
 
 @rule("project.os_login_2fa", "project", "Project explicitly enables OS Login with two-factor authentication", control="IA-2")
 def project_os_login_2fa(item, index):
-    enabled = metadata_flag(item, "commonInstanceMetadata.items", "enable-oslogin-2fa")
-    return result(not enabled, enable_oslogin_2fa=enabled, semantics="Project declaration; individual instance overrides and principal eligibility need review")
+    # "For OS Login 2FA to be enforced, metadata for both OS Login (enable-oslogin)
+    # and OS Login 2FA (enable-oslogin-2fa) must be set to TRUE" (Set up OS Login).
+    # compute.requireOsLogin does not set enable-oslogin-2fa, so an unset project
+    # key on a successful projects.get read is "not enforced".
+    from . import ComputeDisabled, gcp_project_metadata_items
+    try:
+        rows = gcp_project_metadata_items(item)
+    except ComputeDisabled:
+        return "NOT_APPLICABLE", {"reason": "Compute Engine API is disabled in the project; no VM uses project metadata"}
+    values = []
+    for row in rows:
+        if get(row, "key", str) == "enable-oslogin-2fa":
+            value = get(row, "value", str).lower()
+            if value not in ("true", "false"):
+                raise Unavailable("malformed explicit metadata boolean")
+            values.append(value == "true")
+    if len(values) > 1:
+        raise Unavailable("duplicated enable-oslogin-2fa project metadata")
+    enabled = values[0] if values else False
+    return result(not enabled, enable_oslogin_2fa=values[0] if values else None,
+        semantics="Project declaration; unset means 2FA is not enforced. Instance overrides and principal eligibility need review")
 
 
 @rule("network.no_default_vpc", "network", "VPC network avoids the default network", control="SC-7")
@@ -171,15 +246,30 @@ def soft_delete(item, index):
     return result(int(value) == 0, retention_seconds=int(value))
 
 
+# Cloud Storage buckets read with projection=full include every property; an
+# unset logging/versioning/lifecycle configuration is omitted from the resource.
+@rule("storage.versioning", "bucket", "Bucket enables object versioning", control="CP-9")
+def bucket_versioning(item, index):
+    enabled = omitted(item, "versioning.enabled", False, bool)
+    return result(not enabled, field="versioning.enabled", configured=enabled,
+                  source="versioning.enabled" if isinstance(item.get("versioning"), dict) and "enabled" in item["versioning"] else "omitted (unset)")
+
+
 @rule("storage.access_logging", "bucket", "Bucket configures usage and storage log destination", control="AU-2")
 def bucket_logging(item, index):
-    target = get(item, "logging.logBucket", str)
+    logging = omitted(item, "logging", None, dict)
+    if logging is None:
+        return result(True, log_bucket=None, source="omitted (logging not configured)")
+    target = get(logging, "logBucket", str)
     return result(not bool(target.strip()), log_bucket=target, semantics="Destination configured; delivery and destination permissions are separate evidence")
 
 
 @rule("storage.lifecycle", "bucket", "Bucket declares a supported lifecycle rule and condition", control="CM-6")
 def lifecycle(item, index):
-    rows = list_of_objects(get(item, "lifecycle.rule", list))
+    configuration = omitted(item, "lifecycle", None, dict)
+    if configuration is None:
+        return result(True, valid_rule_count=0, source="omitted (no lifecycle configuration)")
+    rows = list_of_objects(omitted(item, "lifecycle.rule", [], list))
     valid = 0
     for row in rows:
         action = get(row, "action.type", str)
@@ -253,13 +343,38 @@ sql_flag("sql.postgres_log_error_verbosity", "POSTGRES", "log_error_verbosity", 
          values=("terse", "default", "verbose"))
 
 
-def rotation_seconds(item):
+INACTIVE_PRIMARY = ("DESTROYED", "DESTROY_SCHEDULED", "DISABLED")
+
+
+def rotation_applicability(item):
+    """NOT_APPLICABLE reason, or None when automatic rotation must be assessed.
+
+    Cloud KMS: only ENCRYPT_DECRYPT keys support automatic rotation; for other
+    purposes rotationPeriod must be omitted. Manually managed EXTERNAL keys do
+    not support automatic rotation. A key whose primary version is destroyed,
+    scheduled for destruction or disabled can no longer encrypt (aligned with
+    gcp.ports.kms_key_rotation)."""
     purpose = get(item, "purpose", str)
     if purpose != "ENCRYPT_DECRYPT":
-        if purpose in ("ASYMMETRIC_SIGN", "ASYMMETRIC_DECRYPT", "MAC", "RAW_ENCRYPT_DECRYPT"):
-            return None
+        if purpose in ("ASYMMETRIC_SIGN", "ASYMMETRIC_DECRYPT", "MAC", "RAW_ENCRYPT_DECRYPT", "KEY_ENCAPSULATION"):
+            return "Automatic rotation is supported only for symmetric ENCRYPT_DECRYPT keys"
         raise Unavailable("unrecognized KMS key purpose")
-    duration = get(item, "rotationPeriod", str)
+    if "primary" in item:
+        primary = get(item, "primary", dict)
+        if primary.get("state") in INACTIVE_PRIMARY:
+            return "Primary key version is " + primary["state"] + "; the key cannot encrypt new data"
+        if primary.get("protectionLevel") == "EXTERNAL":
+            return "Manually managed external (EKM) keys do not support automatic rotation"
+    elif omitted(item, "primary", None, dict) is None:
+        return "Key has no primary version; it cannot encrypt new data"
+    return None
+
+
+def rotation_seconds(item):
+    if rotation_applicability(item):
+        return None
+    # rotationPeriod is omitted when automatic rotation is not configured.
+    duration = omitted(item, "rotationPeriod", "0s", str)
     if not re.fullmatch(r"(?:0|[1-9][0-9]*)(?:\.[0-9]{1,9})?s", duration):
         raise Unavailable("invalid protobuf rotation duration")
     try:
@@ -272,15 +387,19 @@ def rotation_seconds(item):
 def kms_rotation(item, index):
     seconds = rotation_seconds(item)
     if seconds is None:
-        return "NOT_APPLICABLE", {"reason": "Automatic rotation is assessed only for symmetric encryption keys"}
-    return result(seconds <= 0, rotation_seconds=str(seconds))
+        return "NOT_APPLICABLE", {"reason": rotation_applicability(item)}
+    return result(seconds <= 0, rotation_seconds=str(seconds),
+                  source="rotationPeriod" if "rotationPeriod" in item else "omitted (automatic rotation not configured)")
 
 
 @rule("kms.rotation_90_days", "kms_key", "Symmetric KMS key schedules rotation within ninety days", control="SC-12")
 def kms_rotation_90(item, index):
     seconds = rotation_seconds(item)
     if seconds is None:
-        return "NOT_APPLICABLE", {"reason": "Not a symmetric encryption key"}
+        return "NOT_APPLICABLE", {"reason": rotation_applicability(item)}
+    if seconds <= 0:
+        return result(True, rotation_seconds="0", source="omitted (automatic rotation not configured)"
+                      if "rotationPeriod" not in item else "rotationPeriod")
     observed = datetime.fromisoformat(get(item, "_provenance.collected_at", str).replace("Z", "+00:00"))
     next_time = datetime.fromisoformat(get(item, "nextRotationTime", str).replace("Z", "+00:00"))
     if observed.tzinfo is None or next_time.tzinfo is None:
@@ -304,9 +423,22 @@ def kms_public(item, index):
     return result(bool(public), public_bindings=public, semantics="Declared public member, including conditional bindings; no effective-access claim")
 
 
+ANONYMOUS_DATASET = re.compile(r"_[0-9a-f]{40}")
+
+
+def dataset_id(item):
+    reference = item.get("datasetReference")
+    return reference.get("datasetId") if isinstance(reference, dict) else None
+
+
 @rule("bigquery.cmek", "bigquery_dataset", "BigQuery dataset declares default customer-managed encryption", control="SC-12")
 def bigquery_cmek(item, index):
-    configuration = get(item, "defaultEncryptionConfiguration", dict)
+    if isinstance(dataset_id(item), str) and ANONYMOUS_DATASET.fullmatch(dataset_id(item)):
+        return "NOT_APPLICABLE", {"dataset_id": dataset_id(item),
+            "reason": "Hidden anonymous dataset holding cached query results, managed by BigQuery"}
+    # datasets.get (datasetView=FULL) omits defaultEncryptionConfiguration when
+    # the dataset uses Google-managed encryption.
+    configuration = omitted(item, "defaultEncryptionConfiguration", {}, dict)
     if not configuration:
         return result(True, default_encryption_configuration={})
     key = get(configuration, "kmsKeyName", str)
@@ -317,7 +449,8 @@ def bigquery_cmek(item, index):
 
 @rule("bigquery.no_public_acl", "bigquery_dataset", "BigQuery dataset avoids declared public access principals", control="AC-3", category="exposure")
 def bigquery_public(item, index):
-    rows = list_of_objects(get(item, "access", list))
+    # A full datasets.get representation omits an empty ACL (hidden datasets).
+    rows = list_of_objects(omitted(item, "access", [], list))
     public = []
     for row in rows:
         for field in ("specialGroup", "iamMember"):
@@ -330,7 +463,10 @@ def bigquery_public(item, index):
 
 # Independent semantic fixtures for custom predicates. No evaluator uses CASES.
 CASES.update({
-    PREFIX + "network.flow_logs": {"pass": {"logConfig": {"enable": True}}, "fail": {"logConfig": {"enable": False}}},
+    PREFIX + "network.flow_logs": {"pass": {"logConfig": {"enable": True}, "purpose": "PRIVATE"},
+        "fail": {"logConfig": {"enable": False}, "purpose": "PRIVATE"}},
+    PREFIX + "storage.versioning": {"pass": {"versioning": {"enabled": True}}, "fail": {"versioning": {"enabled": False}},
+        "malformed": {"versioning": {"enabled": {"unexpected": True}}}},
     PREFIX + "bigquery.cmek": {"pass": {"defaultEncryptionConfiguration": {"kmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}},
         "fail": {"defaultEncryptionConfiguration": {}}},
     PREFIX + "bigquery.no_public_acl": {"pass": {"access": []}, "fail": {"access": [{"specialGroup": "allAuthenticatedUsers", "role": "READER"}]}},
@@ -346,8 +482,9 @@ CASES.update({
         "fail": {"metadata": {"items": [{"key": "block-project-ssh-keys", "value": "false"}]}}},
     PREFIX + "compute.no_serial_console": {"pass": {"metadata": {"items": [{"key": "serial-port-enable", "value": "false"}]}},
         "fail": {"metadata": {"items": [{"key": "serial-port-enable", "value": "true"}]}}},
-    PREFIX + "project.os_login_2fa": {"pass": {"commonInstanceMetadata": {"items": [{"key": "enable-oslogin-2fa", "value": "true"}]}},
-        "fail": {"commonInstanceMetadata": {"items": [{"key": "enable-oslogin-2fa", "value": "false"}]}}},
+    PREFIX + "project.os_login_2fa": {"pass": {"commonInstanceMetadata": {"fingerprint": "f", "items": [{"key": "enable-oslogin-2fa", "value": "true"}]}},
+        "fail": {"commonInstanceMetadata": {"fingerprint": "f", "items": [{"key": "enable-oslogin-2fa", "value": "false"}]}},
+        "unknown": {"commonInstanceMetadata": {"fingerprint": "f", "items": [{"key": "enable-oslogin-2fa", "value": "true"}, {"key": "enable-oslogin-2fa", "value": "false"}]}}},
     PREFIX + "network.no_default_vpc": {"pass": {"name": "production"}, "fail": {"name": "default"}},
     PREFIX + "storage.soft_delete": {"pass": {"softDeletePolicy": {"retentionDurationSeconds": "604800"}}, "fail": {"softDeletePolicy": {"retentionDurationSeconds": "0"}}},
     PREFIX + "storage.access_logging": {"pass": {"logging": {"logBucket": "logs"}}, "fail": {"logging": {"logBucket": ""}}},
@@ -357,10 +494,10 @@ CASES.update({
         "fail": {"instanceType": "CLOUD_SQL_INSTANCE", "settings": {"availabilityType": "ZONAL"}}},
     PREFIX + "sql.cmek": {"pass": {"instanceType": "CLOUD_SQL_INSTANCE", "diskEncryptionConfiguration": {"kmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}},
         "fail": {"instanceType": "CLOUD_SQL_INSTANCE", "diskEncryptionConfiguration": {"kmsKeyName": ""}}},
-    PREFIX + "kms.rotation_enabled": {"pass": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "7776000s"},
-        "fail": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "0s"}},
-    PREFIX + "kms.rotation_90_days": {"pass": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "7776000s", "nextRotationTime": "2026-10-11T00:00:00Z", "_provenance": {"collected_at": "2026-10-10T00:00:00Z"}},
-        "fail": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "7776001s", "nextRotationTime": "2026-10-11T00:00:00Z", "_provenance": {"collected_at": "2026-10-10T00:00:00Z"}}},
+    PREFIX + "kms.rotation_enabled": {"pass": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "7776000s", "primary": {"state": "ENABLED"}},
+        "fail": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "0s", "primary": {"state": "ENABLED"}}},
+    PREFIX + "kms.rotation_90_days": {"pass": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "7776000s", "primary": {"state": "ENABLED"}, "nextRotationTime": "2026-10-11T00:00:00Z", "_provenance": {"collected_at": "2026-10-10T00:00:00Z"}},
+        "fail": {"purpose": "ENCRYPT_DECRYPT", "rotationPeriod": "7776001s", "primary": {"state": "ENABLED"}, "nextRotationTime": "2026-10-11T00:00:00Z", "_provenance": {"collected_at": "2026-10-10T00:00:00Z"}}},
     PREFIX + "kms.no_public_iam": {"pass": {"iamPolicy": {"bindings": []}},
         "fail": {"iamPolicy": {"bindings": [{"role": "roles/cloudkms.cryptoKeyEncrypterDecrypter", "members": ["allUsers"]}]}}},
 })

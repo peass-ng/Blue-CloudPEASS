@@ -295,17 +295,20 @@ for cid, feature, title in [
 ]:
     def feature_check(cid=cid, feature=feature, title=title):
         @install(cid, "guardduty_detector", title,
-            {"Configuration": {"Features": [{"Name": feature, "Status": "ENABLED"}]}},
-            {"Configuration": {"Features": [{"Name": feature, "Status": "DISABLED"}]}}, control="SI-4")
+            {"Configuration": {"Status": "ENABLED", "Features": [{"Name": feature, "Status": "ENABLED"}]}},
+            {"Configuration": {"Status": "ENABLED", "Features": [{"Name": feature, "Status": "DISABLED"}]}}, control="SI-4")
         def evaluate(item, index):
+            detector = get(item, "Configuration.Status", str)
+            if detector not in {"ENABLED", "DISABLED"}:
+                return unknown("unrecognized detector status", feature=feature)
             rows = list_of_objects(get(item, "Configuration.Features", list))
             matching = [row for row in rows if get(row, "Name", str) == feature]
             if len(matching) > 1:
                 return unknown("duplicate detector feature", feature=feature)
             if not matching:
-                return result(True, feature=feature, configured="absent", semantics="Complete detector feature list; account-wide detector coverage remains separate")
+                return result(True, feature=feature, configured="absent", detector_status=detector)
             status = get(matching[0], "Status", str)
             if status not in {"ENABLED", "DISABLED"}:
                 return unknown("unrecognized detector feature status", feature=feature)
-            return result(status != "ENABLED", feature=feature, configured=status)
+            return result(detector != "ENABLED" or status != "ENABLED", feature=feature, configured=status, detector_status=detector)
     feature_check()

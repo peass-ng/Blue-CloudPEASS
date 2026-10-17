@@ -1,0 +1,638 @@
+{
+  "aws-compliance.control.cis_v120_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.joined_bucket_declared_public_grants"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketAcl.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicy.html"
+    ],
+    "reason": "Full source per-trail/destination LEFT JOIN and skip branch preserved. ACL URI suffix AllUsers/AuthenticatedUsers or policy Allow Principal.AWS=* alarms. Exact declared-grant lint, including conditioned statements; no effective-access/BPA/deny/resource-proof claims. Complete destination absence skips, missing/denied ACL/policy remains unknown unless independent positive grant already proves source OR failure. Broader SQL condition remains distinct from Prowler AllUsers-only ACL check.",
+    "review_notes": "Full pinned query and each alias separately inspected; pass/fail/unknown/denied/malformed/outsidejoin/purity and conditional-wildcard/authenticatedACL/independentpositive differential fixtures. Metadata-only offline checks; exact source/framework/control/version preserved; lead integration pending.",
+    "reviewed_query_id": "cloudtrail_bucket_not_public",
+    "reviewed_source": {
+      "evaluator_sha256": "c0c246ae50f24cfbe00f21421cda33256267cf214ef3715f565ba6b1ac088f6e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L55"
+    }
+  },
+  "aws-compliance.control.cis_v120_2_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.home_cloudwatch_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Only home-region trails, non-NULL declared CloudWatch log group and latest_delivery_time > captured UTC CURRENT_DATE minus1day required. Midnight boundary, not rolling24h, preserved. Missing proven delivery fails, denied/malformed remains unknown.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_integrated_with_logs",
+    "reviewed_source": {
+      "evaluator_sha256": "f136bb7f1f575ecd0ecdb9be49d89fc83e5b0363a1b5708a53b1af8fdfbcde87",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L69"
+    }
+  },
+  "aws-compliance.control.cis_v120_2_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L97"
+    }
+  },
+  "aws-compliance.control.cis_v120_2_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L111"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.joined_bucket_declared_public_grants"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketAcl.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicy.html"
+    ],
+    "reason": "Full source per-trail/destination LEFT JOIN and skip branch preserved. ACL URI suffix AllUsers/AuthenticatedUsers or policy Allow Principal.AWS=* alarms. Exact declared-grant lint, including conditioned statements; no effective-access/BPA/deny/resource-proof claims. Complete destination absence skips, missing/denied ACL/policy remains unknown unless independent positive grant already proves source OR failure. Broader SQL condition remains distinct from Prowler AllUsers-only ACL check.",
+    "review_notes": "Full pinned query and each alias separately inspected; pass/fail/unknown/denied/malformed/outsidejoin/purity and conditional-wildcard/authenticatedACL/independentpositive differential fixtures. Metadata-only offline checks; exact source/framework/control/version preserved; lead integration pending.",
+    "reviewed_query_id": "cloudtrail_bucket_not_public",
+    "reviewed_source": {
+      "evaluator_sha256": "c0c246ae50f24cfbe00f21421cda33256267cf214ef3715f565ba6b1ac088f6e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L57"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_cloudwatch_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Only home-region trails, non-NULL declared CloudWatch log group and latest_delivery_time > captured UTC CURRENT_DATE minus1day required. Midnight boundary, not rolling24h, preserved. Missing proven delivery fails, denied/malformed remains unknown.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_integrated_with_logs",
+    "reviewed_source": {
+      "evaluator_sha256": "f136bb7f1f575ecd0ecdb9be49d89fc83e5b0363a1b5708a53b1af8fdfbcde87",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L71"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L99"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L113"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.joined_bucket_declared_public_grants"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketAcl.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicy.html"
+    ],
+    "reason": "Full source per-trail/destination LEFT JOIN and skip branch preserved. ACL URI suffix AllUsers/AuthenticatedUsers or policy Allow Principal.AWS=* alarms. Exact declared-grant lint, including conditioned statements; no effective-access/BPA/deny/resource-proof claims. Complete destination absence skips, missing/denied ACL/policy remains unknown unless independent positive grant already proves source OR failure. Broader SQL condition remains distinct from Prowler AllUsers-only ACL check.",
+    "review_notes": "Full pinned query and each alias separately inspected; pass/fail/unknown/denied/malformed/outsidejoin/purity and conditional-wildcard/authenticatedACL/independentpositive differential fixtures. Metadata-only offline checks; exact source/framework/control/version preserved; lead integration pending.",
+    "reviewed_query_id": "cloudtrail_bucket_not_public",
+    "reviewed_source": {
+      "evaluator_sha256": "c0c246ae50f24cfbe00f21421cda33256267cf214ef3715f565ba6b1ac088f6e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L57"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_cloudwatch_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Only home-region trails, non-NULL declared CloudWatch log group and latest_delivery_time > captured UTC CURRENT_DATE minus1day required. Midnight boundary, not rolling24h, preserved. Missing proven delivery fails, denied/malformed remains unknown.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_integrated_with_logs",
+    "reviewed_source": {
+      "evaluator_sha256": "f136bb7f1f575ecd0ecdb9be49d89fc83e5b0363a1b5708a53b1af8fdfbcde87",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L71"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L99"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L113"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.joined_bucket_declared_public_grants"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketAcl.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicy.html"
+    ],
+    "reason": "Full source per-trail/destination LEFT JOIN and skip branch preserved. ACL URI suffix AllUsers/AuthenticatedUsers or policy Allow Principal.AWS=* alarms. Exact declared-grant lint, including conditioned statements; no effective-access/BPA/deny/resource-proof claims. Complete destination absence skips, missing/denied ACL/policy remains unknown unless independent positive grant already proves source OR failure. Broader SQL condition remains distinct from Prowler AllUsers-only ACL check.",
+    "review_notes": "Full pinned query and each alias separately inspected; pass/fail/unknown/denied/malformed/outsidejoin/purity and conditional-wildcard/authenticatedACL/independentpositive differential fixtures. Metadata-only offline checks; exact source/framework/control/version preserved; lead integration pending.",
+    "reviewed_query_id": "cloudtrail_bucket_not_public",
+    "reviewed_source": {
+      "evaluator_sha256": "c0c246ae50f24cfbe00f21421cda33256267cf214ef3715f565ba6b1ac088f6e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L57"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_cloudwatch_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Only home-region trails, non-NULL declared CloudWatch log group and latest_delivery_time > captured UTC CURRENT_DATE minus1day required. Midnight boundary, not rolling24h, preserved. Missing proven delivery fails, denied/malformed remains unknown.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_integrated_with_logs",
+    "reviewed_source": {
+      "evaluator_sha256": "f136bb7f1f575ecd0ecdb9be49d89fc83e5b0363a1b5708a53b1af8fdfbcde87",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L71"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L99"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L113"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.joined_bucket_declared_public_grants"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketAcl.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicy.html"
+    ],
+    "reason": "Full source per-trail/destination LEFT JOIN and skip branch preserved. ACL URI suffix AllUsers/AuthenticatedUsers or policy Allow Principal.AWS=* alarms. Exact declared-grant lint, including conditioned statements; no effective-access/BPA/deny/resource-proof claims. Complete destination absence skips, missing/denied ACL/policy remains unknown unless independent positive grant already proves source OR failure. Broader SQL condition remains distinct from Prowler AllUsers-only ACL check.",
+    "review_notes": "Full pinned query and each alias separately inspected; pass/fail/unknown/denied/malformed/outsidejoin/purity and conditional-wildcard/authenticatedACL/independentpositive differential fixtures. Metadata-only offline checks; exact source/framework/control/version preserved; lead integration pending.",
+    "reviewed_query_id": "cloudtrail_bucket_not_public",
+    "reviewed_source": {
+      "evaluator_sha256": "c0c246ae50f24cfbe00f21421cda33256267cf214ef3715f565ba6b1ac088f6e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L57"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_cloudwatch_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Only home-region trails, non-NULL declared CloudWatch log group and latest_delivery_time > captured UTC CURRENT_DATE minus1day required. Midnight boundary, not rolling24h, preserved. Missing proven delivery fails, denied/malformed remains unknown.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_integrated_with_logs",
+    "reviewed_source": {
+      "evaluator_sha256": "f136bb7f1f575ecd0ecdb9be49d89fc83e5b0363a1b5708a53b1af8fdfbcde87",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L71"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L99"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L113"
+    }
+  },
+  "aws-compliance.control.cis_v300_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L69"
+    }
+  },
+  "aws-compliance.control.cis_v300_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L83"
+    }
+  },
+  "aws-compliance.control.cis_v400_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L69"
+    }
+  },
+  "aws-compliance.control.cis_v400_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L83"
+    }
+  },
+  "aws-compliance.control.cis_v500_3_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L69"
+    }
+  },
+  "aws-compliance.control.cis_v500_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L83"
+    }
+  },
+  "aws-compliance.control.cis_v600_4_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L69"
+    }
+  },
+  "aws-compliance.control.cis_v600_4_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L83"
+    }
+  },
+  "aws-compliance.control.cloudtrail_bucket_not_public": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.joined_bucket_declared_public_grants"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketAcl.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicy.html"
+    ],
+    "reason": "Full source per-trail/destination LEFT JOIN and skip branch preserved. ACL URI suffix AllUsers/AuthenticatedUsers or policy Allow Principal.AWS=* alarms. Exact declared-grant lint, including conditioned statements; no effective-access/BPA/deny/resource-proof claims. Complete destination absence skips, missing/denied ACL/policy remains unknown unless independent positive grant already proves source OR failure. Broader SQL condition remains distinct from Prowler AllUsers-only ACL check.",
+    "review_notes": "Full pinned query and each alias separately inspected; pass/fail/unknown/denied/malformed/outsidejoin/purity and conditional-wildcard/authenticatedACL/independentpositive differential fixtures. Metadata-only offline checks; exact source/framework/control/version preserved; lead integration pending.",
+    "reviewed_query_id": "cloudtrail_bucket_not_public",
+    "reviewed_source": {
+      "evaluator_sha256": "c0c246ae50f24cfbe00f21421cda33256267cf214ef3715f565ba6b1ac088f6e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L231"
+    }
+  },
+  "aws-compliance.control.cloudtrail_multi_region_trail_integrated_with_logs": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.home_multiregion_cloudwatch_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Same exact previous-date CloudWatch integration CASE but separate home-region AND is_multi_region_trail applicability; single-region skips. Predicate not merged with broader trail source.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_multi_region_trail_integrated_with_logs",
+    "reviewed_source": {
+      "evaluator_sha256": "f83ebe05ce3485886ad43a943d5a1b1d2ece6e6ed927131df21d46f188c181bb",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L281"
+    }
+  },
+  "aws-compliance.control.cloudtrail_s3_logging_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_access_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
+    ],
+    "reason": "Only home-region trail INNER JOIN destination bucket name; joined native bucket LoggingEnabled non-NULL passes. Complete inventory lacking destination yields no source row (NOT_APPLICABLE); denied/incomplete dependency never establishes join absence. Separate from Prowler named-trail MANUAL out-of-scope variant.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_s3_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "50436358492028709e6a4fdf3312ec9f19e54066cd4791cff5a7f04580e62fd1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L218"
+    }
+  },
+  "aws-compliance.control.cloudtrail_trail_insight_selectors_and_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.home_logging_with_insights"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetInsightSelectors.html"
+    ],
+    "reason": "Only home-region trails; NOT is_logging alarms, logging with InsightSelectors present passes; no nonlogging skip as in Prowler insights source. Known InsightNotEnabled absence fails, unavailable detail unknown.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_insight_selectors_and_logging_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "958e7cea825abe65b68ec72f5ae8da1072abcae276058cabee81588904870359",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L257"
+    }
+  },
+  "aws-compliance.control.cloudtrail_trail_integrated_with_logs": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_cloudwatch_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Only home-region trails, non-NULL declared CloudWatch log group and latest_delivery_time > captured UTC CURRENT_DATE minus1day required. Midnight boundary, not rolling24h, preserved. Missing proven delivery fails, denied/malformed remains unknown.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_integrated_with_logs",
+    "reviewed_source": {
+      "evaluator_sha256": "f136bb7f1f575ecd0ecdb9be49d89fc83e5b0363a1b5708a53b1af8fdfbcde87",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L23"
+    }
+  },
+  "aws-compliance.control.cloudtrail_trail_logs_encrypted_with_kms_cmk": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudtrail.home_kms_encryption"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Only region=home_region; kms_key_id NULL fails. Successful documented DescribeTrails omission projected as configured absence; shadow trails skip. Distinct from prior unfiltered Prowler KMS metadata check.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "reviewed_source": {
+      "evaluator_sha256": "c1f53f2e13d6f89b485f9e2b033ac9b994919e004f2f3e6c1bfdaadfbe0442a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L83"
+    }
+  },
+  "aws-compliance.control.cloudwatch_log_group_retention_period_365": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.finite_retention_365"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeLogGroups.html"
+    ],
+    "reason": "Source NULL retention OR retention<365 alarms. Indefinite native omission is NULL and fails this explicit finite-retention requirement; source kept distinct from Prowler >=365 OR indefinite passes variant. Valid native365boundary retained.",
+    "review_notes": "Full pinned SQL CASE/WHERE/JOIN individually inspected and each alias direct query reference verified. Differential date/home-region/known-empty/denied/malformed/applicability/purity fixtures; no runtime upstream SQL or cloud evaluator calls. HackTricks mapping supplied by native registry lead.",
+    "reviewed_query_id": "cloudwatch_log_group_retention_period_365",
+    "reviewed_source": {
+      "evaluator_sha256": "8a6c4976eb8086c6533b908403e8bf844653fd37b6d2ba61f3487bfefcfb4e80",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L89"
+    }
+  }
+}

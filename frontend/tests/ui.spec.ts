@@ -1,10 +1,15 @@
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { authGuides, awsPolicyArns } from "../src/authGuides";
 async function emptyApi(page: Page) {
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     await route.fulfill({
-      json: path.endsWith("/health")
+      json: path.endsWith("/connectors/check-access")
+        ? { status: "pass", issues: [], principals: [{ scope: "fixture", principal: "fixture identity" }] }
+        : path.endsWith("/connectors/prepare")
+          ? { prepared_id: "fixture-prepared", external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/hacktricks-cspm-collector", template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json" }
+        : path.endsWith("/health")
         ? { status: "ok" }
         : path.endsWith("/me")
           ? {
@@ -19,10 +24,16 @@ async function emptyApi(page: Page) {
     });
   });
 }
+async function checkThenSave(page: Page) {
+  await page.getByRole("button", { name: "Check access", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Access verified" })).toBeVisible();
+  await page.getByRole("button", { name: "Save connector", exact: true }).click();
+}
 async function demo(page: Page) {
   await emptyApi(page);
+  await page.route("**/api/me", (route) => route.fulfill({ status: 401, json: { detail: "Bearer authentication required" } }));
   await page.goto("/");
-  await page.getByLabel("Fixture demo", { exact: true }).check();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
   await expect(
     page.getByRole("status").filter({ hasText: "Fixture demo" }),
   ).toBeVisible();
@@ -33,6 +44,98 @@ async function nav(page: Page, label: string) {
     .getByRole("button", { name: label, exact: true })
     .click();
 }
+test("every authentication option explains access and permission setup", async ({ page }) => {
+  await emptyApi(page);
+  await page.goto("/#Connectors");
+  await page.getByRole("button", { name: "Add connector", exact: true }).click();
+  for (const provider of ["aws", "gcp", "azure", "k8s"] as const) {
+    await page.getByLabel("Cloud provider").selectOption(provider);
+    const authentication = page.getByLabel("Authentication", { exact: true });
+    const methods = await authentication.locator("option").evaluateAll((options) =>
+      options.map((option) => (option as HTMLOptionElement).value));
+    expect(methods.sort()).toEqual(Object.keys(authGuides[provider]).sort());
+    for (const method of methods) {
+      await authentication.selectOption(method);
+      const guide = page.locator(".auth-setup-guide");
+      await guide.locator("summary").first().click();
+      await expect(guide).toContainText("Create access");
+      await expect(guide).toContainText("Grant permissions");
+      await expect(guide.locator("a")).toHaveAttribute("href", authGuides[provider][method].url);
+      expect(authGuides[provider][method].commands.length).toBeGreaterThan(0);
+      for (const [index, command] of authGuides[provider][method].commands.entries()) {
+        const step = guide.locator(".auth-guide-step").nth(index < authGuides[provider][method].accessCommandCount ? 0 : 1);
+        await expect(step.getByRole("button", { name: `Copy ${command.label}` })).toBeVisible();
+        await expect(step.locator("pre").filter({ hasText: command.value })).toBeVisible();
+      }
+    }
+  }
+  await page.getByLabel("Cloud provider").selectOption("gcp");
+  await page.getByLabel("Authentication", { exact: true }).selectOption("adc");
+  const gcpGuide = page.locator(".auth-setup-guide");
+  await gcpGuide.locator("summary").first().click();
+  await expect(gcpGuide).toContainText("roles/logging.privateLogViewer");
+  await expect(gcpGuide).not.toContainText("roles/logging.viewer");
+  await page.getByLabel("Cloud provider").selectOption("aws");
+  await page.getByLabel("Authentication", { exact: true }).selectOption("access_keys");
+  const accessKeyGuide = page.locator(".auth-setup-guide");
+  await accessKeyGuide.locator("summary").first().click();
+  await expect(accessKeyGuide.locator(".auth-guide-step").first()).toContainText("aws iam create-access-key");
+  await expect(accessKeyGuide.locator(".auth-guide-step").last()).toContainText("aws iam attach-user-policy");
+  await expect(accessKeyGuide).not.toContainText("Copy and run");
+  await page.getByLabel("Authentication", { exact: true }).selectOption("assume_role");
+  const awsGuide = page.locator(".auth-setup-guide");
+  await awsGuide.locator("summary").first().click();
+  for (const arn of awsPolicyArns) await expect(awsGuide).toContainText(arn);
+  await expect(awsGuide.locator(".auth-guide-step").nth(1).locator("pre").first()).toContainText("aws iam attach-role-policy");
+  await awsGuide.getByText("Optional: set up Access Analyzer findings").click();
+  await expect(awsGuide).toContainText("arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess");
+  await expect(awsGuide.locator("pre").last()).toContainText("aws accessanalyzer create-analyzer");
+});
+test("scan framework picker adds multiple relevant selections and clears on connector change", async ({ page }) => {
+  await emptyApi(page);
+  await page.route("**/api/connectors", (route) => route.fulfill({ json: { items: [
+    { id: "aws-1", name: "AWS customer", provider: "aws" },
+    { id: "gcp-1", name: "GCP customer", provider: "gcp" },
+  ] } }));
+  await page.route("**/api/catalog/frameworks", (route) => route.fulfill({ json: {
+    framework_versions: [
+      { id: "cis_aws", name: "CIS AWS v1", family: "CIS", provider: "aws", status: "partially_supported", supported_native_checks: 8 },
+      { id: "cis_gcp", name: "CIS GCP v2", family: "CIS", provider: "gcp", status: "partially_supported", supported_native_checks: 6 },
+    ],
+  } }));
+  let payload: Record<string, unknown> | undefined;
+  await page.route("**/api/scans", (route) => {
+    if (route.request().method() === "POST") {
+      payload = route.request().postDataJSON() as Record<string, unknown>;
+      return route.fulfill({ status: 503, json: { detail: "Test submission captured" } });
+    }
+    return route.fulfill({ json: { items: [] } });
+  });
+  await page.goto("/#Scans");
+  await page.getByRole("button", { name: "Launch scan", exact: true }).click();
+  const picker = page.getByText("Frameworks and checklist versions (optional)");
+  await picker.click();
+  const add = page.getByText("Add another framework");
+  await add.click();
+  const search = page.getByRole("searchbox", { name: "Search frameworks and checklist versions" });
+  await search.fill("CIS AWS");
+  await expect(page.getByRole("button", { name: /CIS AWS v1/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /CIS GCP v2/ })).toHaveCount(0);
+  await search.fill("");
+  await page.getByRole("button", { name: "CIS · all versions" }).click();
+  await expect(page.getByLabel("Framework 1", { exact: true })).toContainText("CIS");
+  await add.click();
+  await page.getByRole("button", { name: /CIS AWS v1/ }).click();
+  await expect(page.getByLabel("Framework 2", { exact: true })).toContainText("CIS AWS v1");
+  await page.getByRole("button", { name: "Start scan", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Test submission captured");
+  expect(payload?.frameworks).toEqual(["CIS", "cis_aws"]);
+  await page.getByLabel("Connector", { exact: true }).selectOption("gcp-1");
+  await expect(page.getByLabel("Framework 1", { exact: true })).toHaveCount(0);
+  await add.click();
+  await expect(page.getByRole("button", { name: /CIS GCP v2/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /CIS AWS v1/ })).toHaveCount(0);
+});
 test("live starts empty without invented scans and fixture is explicit", async ({
   page,
 }) => {
@@ -47,18 +150,53 @@ test("live starts empty without invented scans and fixture is explicit", async (
   await expect(
     page.getByLabel("Fixture demo", { exact: true }),
   ).not.toBeChecked();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeDisabled();
   await page.screenshot({
     path: "evidence/live-empty-desktop.png",
     fullPage: true,
   });
-  await page.getByLabel("Fixture demo", { exact: true }).check();
-  await expect(
-    page.getByText("Example workspace", { exact: true }),
-  ).toBeVisible();
   await nav(page, "Connectors");
   await expect(
     page.getByRole("button", { name: "Add connector", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
+});
+test("anonymous visitors start in fixture demo with prominent account actions", async ({ page }) => {
+  await emptyApi(page);
+  let signedIn = false;
+  await page.route("**/api/me", (route) => signedIn
+    ? route.fulfill({ json: { tenant_id: "signed-in", email: "user@example.test" } })
+    : route.fulfill({ status: 401, json: { detail: "Bearer authentication required" } }));
+  await page.goto("/");
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
+  await expect(page.getByRole("link", { name: "Log in", exact: true })).toHaveAttribute("href", "https://tools.hacktricks.wiki/login.html");
+  await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveAttribute("href", "https://tools.hacktricks.wiki/register.html");
+  await expect(page.getByRole("status").filter({ hasText: "Fixture demo" })).toBeVisible();
+  await page.getByLabel("Fixture demo", { exact: true }).uncheck();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();
+  signedIn = true;
+  await page.evaluate(() => window.dispatchEvent(new Event("peaso-auth-session-changed")));
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeDisabled();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();
+  await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveCount(0);
+});
+test("failed scan shows its curated role refusal in history and details", async ({ page }) => {
+  await emptyApi(page);
+  const role = "arn:aws:iam::222222222222:role/CustomerAudit";
+  const reason = `Role ${role} was refused: trust policy does not require External ID; add the sts:ExternalId condition shown in onboarding.`;
+  await page.route("**/api/scans", (route) => route.fulfill({ json: { items: [{
+    id: "refused-scan", connector_id: "aws-connector", status: "failed",
+    created_at: "2026-10-11T00:00:00Z", categories: [], error: reason,
+    error_code: "credential_access_denied",
+    failure_reasons: [{ code: "external_id_not_required_by_trust", role_arn: role, message: reason }],
+  }] } }));
+  await page.goto("/");
+  await nav(page, "Scans");
+  await expect(page.getByRole("alert").filter({ hasText: reason })).toBeVisible();
+  await page.getByRole("button", { name: "refused-scan" }).click();
+  await expect(page.getByRole("dialog").getByRole("alert").filter({ hasText: reason })).toBeVisible();
+  await expect(page.getByRole("dialog")).toContainText("credential_access_denied");
+  await page.getByRole("dialog").getByRole("button", { name: "Show 3 supplied fields" }).click();
+  await expect(page.getByRole("dialog")).toContainText("external_id_not_required_by_trust");
 });
 test("filter and inspect escaped evidence with compliance", async ({
   page,
@@ -93,15 +231,14 @@ test("filter and inspect escaped evidence with compliance", async ({
     fullPage: true,
   });
 });
-test("map grouping, routed edges, table search and relationship inspector", async ({
+test("network map grouping, routed edges, table search and relationship inspector", async ({
   page,
 }) => {
   await demo(page);
   await nav(page, "Network Map");
-  await page.getByText("demo-account", { exact: true }).first().click();
-  await page.getByRole("button", { name: "Explore group" }).click();
-  await page.getByRole("button", { name: "Show assets", exact: true }).click();
-  await expect(page.locator(".react-flow__node")).toHaveCount(4);
+  await expect(page.locator('.react-flow__node[data-id^="network:"]').first()).toBeVisible();
+  await page.locator('.react-flow__node[data-id^="network:"] .network-node-heading').first().click();
+  await expect(page.locator(".react-flow__node").first()).toBeVisible();
   await expect(page.locator(".react-flow__edge-path").first()).toHaveAttribute(
     "d",
     /^M /,
@@ -111,18 +248,10 @@ test("map grouping, routed edges, table search and relationship inspector", asyn
     fullPage: true,
   });
   await page.getByRole("button", { name: "Table", exact: true }).click();
-  await page.getByLabel("Search graph").fill("Web workload");
-  await page.getByRole("button", { name: /Web workload/ }).click();
+  await page.getByLabel("Search loaded network resources").fill("Web workload");
+  await page.locator(".network-table-main", { hasText: "Web workload" }).click();
   await expect(page.getByRole("dialog")).toContainText("n3");
   await page.getByRole("button", { name: "Close inspector" }).click();
-  await nav(page, "IAM Risk Map");
-  await expect(page.getByText(/effective access/).first()).toBeVisible();
-  await page.getByRole("button", { name: "Show assets", exact: true }).click();
-  await expect(page.locator(".react-flow__node")).toHaveCount(3);
-  await page.screenshot({
-    path: "evidence/iam-map-desktop.png",
-    fullPage: true,
-  });
 });
 test("connector validation native payload and discarded credentials", async ({
   page,
@@ -154,7 +283,7 @@ test("connector validation native payload and discarded credentials", async ({
   await page
     .getByLabel("Secret access key", { exact: true })
     .fill("synthetic-validation-secret");
-  await page.getByRole("button", { name: "Save connector" }).click();
+  await checkThenSave(page);
   await expect(page.getByRole("alert")).toContainText("Collector unavailable");
   expect(payload.auth.method).toBe("access_keys");
   expect(payload.auth.aws_secret_access_key).toBe(
@@ -176,32 +305,34 @@ test("connector validation native payload and discarded credentials", async ({
   await page
     .getByLabel("Connector name", { exact: true })
     .fill("Validation GCP");
-  await page.getByRole("button", { name: "Save connector" }).click();
+  await page.getByRole("button", { name: "Check access" }).click();
   await expect(page.getByRole("alert")).toContainText("Enter project IDs");
 });
-test("error retry and local session authentication", async ({ page }) => {
+test("anonymous fixture demo still offers local session authentication", async ({ page }) => {
   await page.route("**/api/**", (route) =>
-    route.fulfill({
-      status: 401,
-      json: { detail: "Bearer authentication required" },
-    }),
+    new URL(route.request().url()).pathname.endsWith("/health")
+      ? route.fulfill({ json: { status: "ok", auth_mode: "local" } })
+      : route.fulfill({
+          status: 401,
+          json: { detail: "Bearer authentication required" },
+        }),
   );
   await page.goto("/");
-  await expect(
-    page.getByRole("heading", { name: "Data could not be loaded" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Set up authentication" }).click();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
+  await nav(page, "Settings");
   await page
     .getByLabel("API bearer token", { exact: true })
     .fill("synthetic-local-validation-token");
   await page.getByRole("button", { name: "Use token" }).click();
+  // The fixture still returns 401 after token use, so the local dialog reopens.
+  await expect(page.getByRole("dialog")).toBeVisible();
   await expect(
-    page.getByLabel("API bearer token", { exact: true }),
+    page.getByRole("dialog").getByLabel("API bearer token", { exact: true }),
   ).toHaveValue("");
   expect(
     await page.evaluate(() => sessionStorage.getItem("peaso.api-token")),
   ).toBe("synthetic-local-validation-token");
-  await page.getByRole("button", { name: "Clear token" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Clear token" }).click();
   expect(
     await page.evaluate(() => sessionStorage.getItem("peaso.api-token")),
   ).toBeNull();
@@ -287,14 +418,12 @@ test("large map bounded and complete table searchable", async ({ page }) => {
     }),
   );
   await page.goto("/#Network%20Map");
-  await page.getByRole("button", { name: "Show assets", exact: true }).click();
-  await expect(page.locator(".react-flow__node")).toHaveCount(120);
-  await expect(page.getByText(/Visible view limited/)).toBeVisible();
-  await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page.getByText("Page 2 of 3")).toBeVisible();
+  await expect(page.locator(".react-flow__node").first()).toBeVisible();
+  expect(await page.locator(".react-flow__node").count()).toBeLessThanOrEqual(300);
+  await expect(page.getByText(/resources folded or off page/)).toBeVisible();
   await page.getByRole("button", { name: "Table", exact: true }).click();
-  await page.getByLabel("Search graph").fill("Asset 249");
-  await expect(page.getByRole("button", { name: /Asset 249/ })).toBeVisible();
+  await page.getByLabel("Search loaded network resources").fill("Asset 249");
+  await expect(page.locator(".network-table-main", { hasText:"Asset 249" })).toBeVisible();
 });
 test("hosted auth respects server runtime capabilities", async ({ page }) => {
   await emptyApi(page);
@@ -329,8 +458,9 @@ test("hosted auth respects server runtime capabilities", async ({ page }) => {
   await page
     .getByLabel("Authentication", { exact: true })
     .selectOption("assume_role");
+  await page.locator(".auth-setup-guide > summary").click();
   await expect(
-    page.getByText(/server generates your ExternalID/),
+    page.locator(".auth-setup-guide").getByText(/External ID/),
   ).toBeVisible();
   await expect(page.getByLabel("External ID", { exact: true })).toHaveCount(0);
   await page.getByLabel("Cloud provider").selectOption("k8s");
@@ -348,6 +478,122 @@ test("hosted auth respects server runtime capabilities", async ({ page }) => {
       .getByLabel("Authentication", { exact: true })
       .locator('option[value="adc"]'),
   ).toHaveCount(0);
+});
+test("AWS key form validates, deduplicates, and sends independent role targets", async ({ page }) => {
+  await emptyApi(page);
+  let payload: Record<string, any> | undefined;
+  await page.route("**/api/connectors", async (route) => {
+    if (route.request().method() === "POST") {
+      payload = route.request().postDataJSON();
+      await route.fulfill({ status: 503, json: { detail: "fixture endpoint" } });
+    } else await route.fulfill({ json: { items: [] } });
+  });
+  await page.goto("/#Connectors");
+  await page.getByRole("button", { name: "Add connector", exact: true }).click();
+  await page.getByLabel("Connector name").fill("Key fanout");
+  await page.getByLabel("Authentication").selectOption("access_keys");
+  await page.getByLabel("Access key ID").fill("synthetic-key");
+  await page.getByLabel("Secret access key").fill("synthetic-secret");
+  const roles = page.getByLabel(/Optional target roles/);
+  await roles.fill("arn:aws:iam::123456789012:role/ReadOnly | external-1\narn:aws:iam::123456789012:role/ReadOnly | external-1\ninvalid");
+  await page.getByRole("button", { name: "Check access" }).click();
+  await expect(page.getByRole("alert")).toContainText("one valid AWS role ARN");
+  expect(payload).toBeUndefined();
+  await roles.fill("arn:aws:iam::123456789012:role/ReadOnly | external-1\narn:aws:iam::123456789012:role/ReadOnly | external-1");
+  await page.getByLabel("Include source account in scan").uncheck();
+  await checkThenSave(page);
+  await expect(page.getByRole("alert")).toContainText("fixture endpoint");
+  expect(payload?.auth.assume_roles).toEqual([{ role_arn: "arn:aws:iam::123456789012:role/ReadOnly", external_id: "external-1" }]);
+  expect(payload?.auth.role_chain).toBeUndefined();
+  expect(payload?.options.include_source_account).toBe(false);
+});
+test("hosted role form and onboarding show trust, copy, and CloudFormation", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await emptyApi(page);
+  await page.route("**/api/health", (route) => route.fulfill({ json: { status: "ok", auth_mode: "cognito" } }));
+  await page.route("**/api/me", (route) => route.fulfill({ json: { runtime_mode: "hosted", connector_auth_methods: { aws: ["access_keys", "assume_role"] } } }));
+  const role = "arn:aws:iam::123456789012:role/ReadOnly";
+  let payload: Record<string, any> | undefined;
+  let created = false;
+  let publicReady = true;
+  await page.route("**/api/connectors", async (route) => {
+    if (route.request().method() === "POST") {
+      payload = route.request().postDataJSON();
+      created = true;
+      await route.fulfill({ status: 201, json: { id: "c1" } });
+    } else await route.fulfill({ json: { items: created ? [{ id: "c1", name: "Hosted role", provider: "aws", scopes: [], auth_mode: "assume_role", onboarding: { external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/hacktricks-cspm-collector", target_role_arns: [role], template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json", quick_create_template_url: publicReady ? "https://hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com/customer-role.json" : null } }] : [] } });
+  });
+  await page.goto("/#Connectors");
+  await page.getByRole("button", { name: "Add connector", exact: true }).click();
+  await page.getByLabel("Connector name").fill("Hosted role");
+  await page.getByLabel("Authentication").selectOption("assume_role");
+  await expect(page.getByLabel("Authentication").locator('option[value="assume_role"]')).toHaveText("HackTricks CSPM IAM role");
+  await page.locator(".auth-setup-guide > summary").click();
+  await expect(page.locator(".auth-setup-guide")).toContainText("aws iam create-role");
+  await expect(page.locator(".auth-setup-guide")).toContainText("aws iam attach-role-policy");
+  await expect(page.locator(".auth-setup-guide")).toContainText("peaso-fixture-external-id");
+  await expect(page.locator(".auth-setup-guide").getByText("arn:aws:iam::aws:policy/ReadOnlyAccess")).toHaveCount(0);
+  await page.locator(".auth-setup-guide > summary").click();
+  await page.getByLabel(/Target role ARNs/).fill(role);
+  await checkThenSave(page);
+  await expect(page.getByRole("button", { name: "Onboarding" })).toBeVisible();
+  expect(payload?.auth.assume_roles).toEqual([{ role_arn: role }]);
+  expect(payload?.auth.external_id).toBeUndefined();
+  await page.getByRole("button", { name: "Onboarding" }).click();
+  await page.getByRole("button", { name: "Copy ExternalID" }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("peaso-fixture-external-id");
+  await expect(page.getByText("Required condition")).toBeVisible();
+  await expect(page.getByText("External ID must equal the value shown above.")).toBeVisible();
+  await page.getByRole("button", { name: "Copy or download trust policy" }).click();
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('"sts:ExternalId"');
+  const trust = JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
+  expect(trust.Statement).toEqual([{
+    Effect: "Allow", Principal: { AWS: "arn:aws:iam::202533532952:role/hacktricks-cspm-collector" },
+    Action: "sts:AssumeRole",
+    Condition: { StringEquals: { "sts:ExternalId": "peaso-fixture-external-id" } },
+  }]);
+  await expect(page.getByRole("link", { name: "Create role with CloudFormation" })).toHaveAttribute("href", /#\/stacks\/create\/review\?templateURL=https%3A%2F%2Fhacktricks-cspm-templates-202533532952\.s3\.us-east-1\.amazonaws\.com%2Fcustomer-role\.json.*param_ExternalId=peaso-fixture-external-id/);
+  await expect(page.getByRole("link", { name: "Download CloudFormation template" })).toHaveAttribute("href", "https://cspm.hacktricks.wiki/aws/customer-role.json");
+  await expect(page.getByRole("button", { name: "Copy AWS CLI fallback" })).toBeVisible();
+  publicReady = false;
+  await page.reload();
+  await page.getByRole("button", { name: "Onboarding" }).click();
+  await expect(page.getByRole("link", { name: "Create role with CloudFormation" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Download CloudFormation template" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy AWS CLI fallback" })).toBeVisible();
+});
+test("access check blocks critical gaps, permits advisories, and rechecks after ten seconds", async ({ page }) => {
+  await page.clock.install();
+  await emptyApi(page);
+  let checks = 0;
+  let saved = false;
+  await page.route("**/api/connectors/check-access", (route) => {
+    checks += 1;
+    return route.fulfill({ json: checks === 1
+      ? { status: "blocked", principals: [], issues: [{ severity: "critical", scope: "account", message: "iam:ListRoles denied" }] }
+      : { status: "warning", principals: [{ scope: "account", principal: "arn:aws:iam::123456789012:user/scan" }], issues: [{ severity: "advisory", scope: "account", message: "Access Analyzer unavailable" }] } });
+  });
+  await page.route("**/api/connectors", (route) => {
+    if (route.request().method() === "POST") {
+      saved = true;
+      return route.fulfill({ status: 201, json: { id: "saved" } });
+    }
+    return route.fulfill({ json: { items: [] } });
+  });
+  await page.goto("/#Connectors");
+  await page.getByRole("button", { name: "Add connector", exact: true }).click();
+  await page.getByLabel("Connector name").fill("Checked");
+  await page.getByLabel("Authentication").selectOption("access_keys");
+  await page.getByLabel("Access key ID").fill("key");
+  await page.getByLabel("Secret access key").fill("secret");
+  await page.getByRole("button", { name: "Check access", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Access check blocked saving" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save connector" })).toHaveCount(0);
+  await page.clock.fastForward(10_000);
+  await page.getByRole("button", { name: "Check access", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Access works with recommendations" })).toBeVisible();
+  await page.getByRole("button", { name: "Save connector" }).click();
+  expect(saved).toBe(true);
 });
 test("collapsed relationships retain every supplied evidence record", async ({
   page,
@@ -418,25 +664,11 @@ test("collapsed relationships retain every supplied evidence record", async ({
     }),
   );
   await page.goto("/#Network%20Map");
-  await expect(
-    page.getByText("2 internal relationships retained", { exact: false }),
-  ).toBeVisible();
-  await page.locator(".react-flow__node").first().click();
-  await expect(page.getByRole("dialog")).toContainText("e1");
-  await expect(page.getByRole("dialog")).toContainText("e2");
-  await page.getByRole("dialog").locator(".relationship-row").first().click();
-  await expect(page.getByRole("dialog")).toContainText("first");
-  await page.getByRole("button", { name: "Close inspector" }).click();
-  await page.locator(".react-flow__node").first().click();
-  await page.getByRole("button", { name: "Explore group" }).click();
-  await expect(page.locator(".react-flow__node").first()).toContainText(
-    "VPC native",
-  );
-  await page.locator(".react-flow__node").first().click();
-  await page.getByRole("button", { name: "Explore group" }).click();
-  await expect(page.locator(".react-flow__node").first()).toContainText(
-    "Shared / unassigned",
-  );
+  await expect(page.getByText(/relationships internal, off page or omitted/)).toBeVisible();
+  await page.locator('.react-flow__node[data-id="network:v"] .network-node-heading').click();
+  await expect(page.locator('.react-flow__node[data-id="area:s"]')).toBeVisible();
+  await page.locator('.react-flow__node[data-id="area:s"] .network-node-heading').click();
+  await expect(page.locator('.react-flow__node[data-id="asset:a"]')).toBeVisible();
   await page.screenshot({
     path: "evidence/network-hierarchy.png",
     fullPage: true,
@@ -590,9 +822,9 @@ test("signed artifact requests omit API bearer token and cookies", async ({
     });
   });
   await page.goto("/#Network%20Map");
-  await page.getByRole("button", { name: "Show assets" }).click();
+  await page.getByRole("button", { name: "Table", exact: true }).click();
   await expect(
-    page.getByText("Signed artifact node", { exact: true }),
+    page.getByRole("region", { name: "Network resource table" }).getByText("Signed artifact node", { exact: true }),
   ).toBeVisible();
   expect(headers.authorization).toBeUndefined();
   expect(headers.cookie).toBeUndefined();
@@ -659,7 +891,9 @@ test("selected configuration query is explicit and unknown remains visible", asy
     return r.fulfill({
       json: {
         decision: "unknown",
+        provider: "aws",
         snapshot_id: "owned-snapshot",
+        query: body,
         application_listening: "unknown",
         routes: [],
         policy_decisions: [],
@@ -707,6 +941,7 @@ test("clearing API authentication removes cached private connector data", async 
     ),
   );
   await emptyApi(page);
+  await page.route("**/api/health", (route) => route.fulfill({ json: { status: "ok", auth_mode: "local" } }));
   await page.route("**/api/connectors", (r) =>
     r.request().headers().authorization
       ? r.fulfill({
@@ -736,7 +971,9 @@ test("clearing API authentication removes cached private connector data", async 
     .getByRole("navigation")
     .getByRole("button", { name: "Settings", exact: true })
     .click();
+  await page.getByRole("button", { name: "Manage local API token" }).click();
   await page.getByRole("button", { name: "Clear token", exact: true }).click();
+  expect(await page.evaluate(() => sessionStorage.getItem("peaso.api-token"))).toBeNull();
   await page
     .getByRole("navigation")
     .getByRole("button", { name: "Connectors", exact: true })
@@ -773,7 +1010,7 @@ test("human asset labels preserve routing IDs and exact checklist filtering", as
       json: { provider: "aws", stats: { resource_count: 1, finding_count: 1 } },
     }),
   );
-  await page.route("**/api/catalog", (r) =>
+  await page.route("**/api/catalog**", (r) =>
     r.fulfill({
       json: {
         checks: [],
@@ -830,10 +1067,15 @@ test("human asset labels preserve routing IDs and exact checklist filtering", as
   await page.goto("/#Hardening%20Findings");
   await expect(page.locator(".asset-cell")).toContainText("Production <web>");
   await page
-    .getByLabel("Exact finding checklist version")
+    .getByLabel("Compliance framework")
     .selectOption("cis_aws_1.5");
   await expect.poll(() => selected).toBe("cis_aws_1.5");
-  await expect(page.getByText(/12 pending source checks/)).toBeVisible();
+  await expect(
+    page.getByText(
+      "Selected checklist: CIS AWS Foundations v1.5. Findings are filtered across the complete assessment.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText(/pending source checks/)).toHaveCount(0);
   await page
     .getByRole("button", { name: "Review production asset native.check" })
     .click();

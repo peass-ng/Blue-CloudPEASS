@@ -131,6 +131,16 @@ const techniques: Record<string, Technique> = {
       { action: "codebuild:CreateProject", resource: "*" },
     ],
   },
+  "aws-batch-submitjob-existing-definition": {
+    title: "Submit a job using an existing job definition with a job role",
+    service: "batch",
+    severity: "high",
+    source: `${HT}/aws-security/aws-privilege-escalation/aws-batch-privesc/README.md`,
+    summary: "The source can submit a Batch job whose definition runs as a job role, gaining that role's credentials.",
+    mitigation: "Scope batch:SubmitJob to specific job definitions and queues; keep job roles least-privileged.",
+    requires: [{ action: "batch:SubmitJob", resource: "*" }],
+    conditions: [{ id: "batch_attachment_not_collected", description: "Batch job definitions and their job roles were not collected." }],
+  },
   "gcp-iam-sa-token-creator": {
     title: "Mint access tokens for a service account",
     service: "iam",
@@ -486,6 +496,23 @@ const nodes: PrivescNode[] = [
     subset: false,
   },
   node("k8s_cluster_admin:prod-eks", "prod-eks cluster-admin", "k8s_cluster_admin", "k8s", "prod-eks", "entity", { admin: true }),
+  {
+    id: `unresolved:aws_role:298a174944:${AWS}`,
+    kind: "aggregate",
+    type: "aws_role",
+    provider: "aws",
+    scope: AWS,
+    label: `Unresolved: Job roles of Batch job definitions covered by batch:SubmitJob in ${AWS}`,
+    underlying_count: 0,
+    members: [],
+    member_sample: [],
+    confidence: "unknown",
+    candidate_set: "aws_role:298a174944",
+    subset: false,
+    unresolved: true,
+    unresolved_reason: "batch_attachment_not_collected",
+    facts_needed: "facts not in snapshot: batch_attachment_not_collected",
+  },
 ];
 
 const ref = {
@@ -543,6 +570,8 @@ const edgeSpecs: [string, string, string[], PrivescConfidence, PrivescEvidenceRe
   ["k8s:prod-eks:sa:ci:deployer", "agg:k8s_service_account:4f1e2d9b07:prod-eks/kube-system:derived", ["k8s-pods-create", "k8s-pods-exec"], "derived", [ref.k8s("deployer-kube-system", "ClusterRole/workload-admin", "kube-system")]],
   ["k8s:prod-eks:sa:kube-system:clusterrole-aggregation-controller", K8S_ADMIN, ["k8s-escalate-bind"], "derived", [ref.k8s("system:controller:clusterrole-aggregation-controller", "ClusterRole/system:controller:clusterrole-aggregation-controller", null)]],
   ["k8s:prod-eks:sa:ci:deployer", aws("role/data-pipeline-role"), ["k8s-cloud-identity"], "unknown", [ref.k8s("irsa-annotation", "ServiceAccount/deployer", "ci")]],
+  [aws("user/dave-intern"), `unresolved:aws_role:298a174944:${AWS}`, ["aws-batch-submitjob-existing-definition"], "unknown", [ref.aws(aws("user/dave-intern"), "intern-sandbox", 1)]],
+  [aws("user/bob-ci"), `unresolved:aws_role:298a174944:${AWS}`, ["aws-batch-submitjob-existing-definition"], "unknown", [ref.aws(aws("user/bob-ci"), "ci-deploy", 2)]],
   ["k8s:prod-eks:user:oncall", "k8s:prod-eks:sa:monitoring:prometheus", ["k8s-pods-exec"], "derived", [ref.k8s("monitoring/oncall-debug", "Role/debugger", "monitoring")]],
   ["k8s:prod-eks:sa:monitoring:prometheus", "k8s:prod-eks:sa:default:default", ["k8s-secrets-get"], "conditional", [ref.k8s("prometheus-read", "ClusterRole/prometheus", null)]],
 ];
@@ -569,6 +598,24 @@ const edges: PrivescEdge[] = edgeSpecs.map(([source, target, techs, confidence, 
       status: confidence === "unknown" ? "UNKNOWN" : "FAIL",
       frameworks: ["HackTricks Cloud Best Practices"],
       remediation: tech.mitigation,
+      ...(t === "aws-ec2-passrole-runinstances" ? { remediation_details: {
+        summary: "Remove the unnecessary iam:PassRole grant or constrain it to approved execution roles and a supported service condition.",
+        steps: [
+          "Inspect the supplied granting_statements reference and the inline policy attached to its user; identify legitimate launch operations.",
+          "Review a replacement document that removes unused iam:PassRole or limits its Resource to approved role ARNs and, where supported, iam:PassedToService.",
+          "Update only the granting inline policy through its owner, then test ordinary launches and rerun the finding.",
+        ],
+        cli: [
+          { label: "Inspect the referenced inline user policy", shell: "bash", code: "aws iam get-user-policy --user-name <USER_NAME> --policy-name <POLICY_NAME>" },
+          { label: "Apply a separately reviewed policy document", shell: "bash", code: "aws iam put-user-policy --user-name <USER_NAME> --policy-name <POLICY_NAME> --policy-document file://reviewed-policy.json" },
+        ],
+        iac: { label: "Update the owned policy declaration", language: "text", code: "Edit the granting inline user policy in its Terraform or CloudFormation owner; review the plan before applying it." },
+        caveats: ["This demo finding has conditional confidence and does not prove an executable path.", "The fixture reference is illustrative; it does not supply a safe replacement policy or real AWS target."],
+        references: [
+          { title: "AWS PassRole guidance", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html" },
+          { title: "AWS CLI inline user policy update", url: "https://docs.aws.amazon.com/cli/latest/reference/iam/put-user-policy.html" },
+        ],
+      }} : {}),
       evidence: {
         technique: {
           id: t,
@@ -631,7 +678,7 @@ export function privescDemoRequest(raw: string): unknown {
   if (path.endsWith("/privesc/paths")) {
     const from = params.get("from") || params.get("source") || "";
     const to = params.get("to") || params.get("target") || undefined;
-    return shortestPaths(index, from, to, depth, Number(params.get("limit") || 10));
+    return shortestPaths(index, from, to, depth, Number(params.get("limit") || 10), params.get("include_unknown") !== "false");
   }
   if (path.endsWith("/privesc/broad"))
     return broadReach(index, Number(params.get("min_targets") || 10));

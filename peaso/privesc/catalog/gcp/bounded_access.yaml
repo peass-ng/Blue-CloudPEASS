@@ -1,0 +1,189 @@
+# Indirect object access is a new bounded effective permission only when the
+# source can perform every declared action on exact resources and reviewed
+# before/after evidence proves the same protected action became allowed.
+# Wildcard prefilter requirements are narrowed to exact ActionResources by
+# gcp_bounded_access_gain; they never authorize an edge on their own.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
+- id: gcp-biglake-connection-table-bounded-storage-read
+  provider: gcp
+  service: biglake
+  title: Read one protected storage object through a connection-backed BigLake table
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-biglake-privesc.md#bigquerytablescreate--bigqueryconnectionsdelegate--create-a-table-that-reads-as-the-connection-service-account
+  source_revision: 8701f4bb42
+  summary: The source creates and later queries an exact BigLake table backed by a connection whose service account can read one protected storage object that the source could not previously access.
+  requires:
+    all_of:
+    - action: bigquery.tables.create
+      resource: '*'
+    - action: bigquery.connections.delegate
+      resource: '*'
+    - action: bigquery.jobs.create
+      resource: '*'
+    - action: bigquery.tables.get
+      resource: '*'
+    - action: bigquery.tables.getData
+      resource: '*'
+  target:
+    kind: gcp_verified_authority
+    selector:
+      gcp_bounded_access_gain: true
+      gcp_bounded_mechanism: biglake_connection_table
+    scope: any
+    outcome: bounded_authority
+    grants:
+    - storage.objects.get
+    aggregate_as: Indirect read of one storage object through one BigLake table
+  conditions:
+  - id: exact_connection_table_and_storage_proof
+    description: Complete reviewed evidence must bind the created table, exact delegated connection and service account, one readable storage object, prior source denial, and a later allowed read through that table.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict connection delegation and table creation near sensitive storage paths.
+  notes: The storage.objects.get grant labels bounded indirect authority on ProtectedResource, never a direct Storage IAM binding or a reusable service-account token. ActionResources must list exactly every YAML action on its actual dataset, connection, table, or project.
+
+- id: gcp-bigquery-remote-function-bounded-cloudrun-invoke
+  provider: gcp
+  service: bigquery
+  title: Invoke one protected Cloud Run endpoint through an exact remote function
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryroutinescreate--bigqueryconnectionsdelegateuse--invoke-cloud-run-through-a-remote-function
+  source_revision: 8701f4bb42
+  summary: The source creates and invokes a remote function backed by a connection service account, gaining one previously denied Cloud Run application invocation on the configured endpoint.
+  requires:
+    all_of:
+    - action: bigquery.routines.create
+      resource: '*'
+    - action: bigquery.connections.delegate
+      resource: '*'
+    - action: bigquery.jobs.create
+      resource: '*'
+    - action: bigquery.routines.get
+      resource: '*'
+    - action: bigquery.connections.use
+      resource: '*'
+  target:
+    kind: gcp_verified_authority
+    selector:
+      gcp_bounded_access_gain: true
+      gcp_bounded_mechanism: bigquery_remote_function
+    scope: any
+    outcome: bounded_authority
+    grants:
+    - run.routes.invoke
+    aggregate_as: Indirect invocation of one Cloud Run endpoint through one routine
+  conditions:
+  - id: exact_remote_function_and_endpoint_proof
+    description: Complete reviewed evidence must bind the created routine, exact delegated connection and service account, supported endpoint and audience, prior source denial, and a later allowed invocation through that routine.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict connection delegation and remote routine creation; review invoker bindings on connected endpoints.
+  notes: The run.routes.invoke label is bounded indirect authority on ProtectedResource, not a direct Cloud Run IAM grant or general connection-SA impersonation.
+
+- id: gcp-bigquery-authorized-routine-bounded-table-access
+  provider: gcp
+  service: bigquery
+  title: Gain bounded protected-table access through one authorized routine
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#dataset-acl-write--authorize-a-routine-as-an-indirect-access-path
+  source_revision: 8701f4bb42
+  summary: The source authorizes an existing callable routine on a protected dataset and later invokes that exact routine to access one table it could not previously read.
+  requires:
+    all_of:
+    - action: bigquery.datasets.getIamPolicy
+      resource: '*'
+    - action: bigquery.datasets.setIamPolicy
+      resource: '*'
+    - action: bigquery.routines.get
+      resource: '*'
+    - action: bigquery.jobs.create
+      resource: '*'
+  target:
+    kind: gcp_verified_authority
+    selector:
+      gcp_bounded_access_gain: true
+      gcp_bounded_mechanism: bigquery_authorized_routine
+    scope: any
+    outcome: bounded_authority
+    grants:
+    - bigquery.tables.getData
+    aggregate_as: Indirect protected-table access through one authorized routine
+  conditions:
+  - id: exact_existing_routine_and_acl_proof
+    description: Complete reviewed evidence must bind a pre-existing callable routine, accepted source-dataset ACL entry naming it, exact protected table, prior source denial, and later allowed result through that routine.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict dataset ACL writes and review authorized routines with protected source tables.
+  notes: This narrow row covers the REST patch ACL route with getIamPolicy/setIamPolicy and an existing routine. It does not infer general source-table read permission from routine invocation.
+
+- id: gcp-bigquery-authorized-view-bounded-table-access
+  provider: gcp
+  service: bigquery
+  title: Gain bounded protected-table access through one authorized view
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#dataset-acl-write--authorized-view-or-dataset-as-an-indirect-read-path
+  source_revision: 8701f4bb42
+  summary: The source authorizes an existing view on a protected dataset and later queries that exact view to access one table it could not previously read.
+  requires:
+    all_of:
+    - action: bigquery.datasets.getIamPolicy
+      resource: '*'
+    - action: bigquery.datasets.setIamPolicy
+      resource: '*'
+    - action: bigquery.tables.getData
+      resource: '*'
+    - action: bigquery.jobs.create
+      resource: '*'
+  target:
+    kind: gcp_verified_authority
+    selector:
+      gcp_bounded_access_gain: true
+      gcp_bounded_mechanism: bigquery_authorized_view
+    scope: any
+    outcome: bounded_authority
+    grants:
+    - bigquery.tables.getData
+    aggregate_as: Indirect protected-table access through one authorized view
+  conditions:
+  - id: exact_existing_view_and_acl_proof
+    description: Complete reviewed evidence must bind a pre-existing view, accepted source-dataset ACL entry naming it, exact protected table, prior source denial, and later allowed query through that view.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict dataset ACL writes and review authorized views that reach protected source tables.
+  notes: This narrow row covers the REST patch ACL route with getIamPolicy/setIamPolicy and one existing view directly named by the access entry. The separate authorized-dataset row binds a dataset entry to one existing view.
+
+- id: gcp-bigquery-authorized-dataset-existing-view-bounded-table-access
+  provider: gcp
+  service: bigquery
+  title: Gain bounded protected-table access through one existing view in an authorized dataset
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#dataset-acl-write--authorized-view-or-dataset-as-an-indirect-read-path
+  source_revision: 9867ed370e
+  summary: The source adds an exact dataset access entry with targetTypes VIEWS to a protected source dataset, then queries one already existing view in the authorized dataset that reaches a protected table the source could not previously read.
+  requires:
+    all_of:
+    - action: bigquery.datasets.getIamPolicy
+      resource: '*'
+    - action: bigquery.datasets.setIamPolicy
+      resource: '*'
+    - action: bigquery.tables.getData
+      resource: '*'
+    - action: bigquery.jobs.create
+      resource: '*'
+  target:
+    kind: gcp_verified_authority
+    selector:
+      gcp_bounded_access_gain: true
+      gcp_bounded_mechanism: bigquery_authorized_dataset
+    scope: any
+    outcome: bounded_authority
+    grants:
+    - bigquery.tables.getData
+    aggregate_as: Indirect protected-table access through one existing authorized-dataset view
+  conditions:
+  - id: exact_existing_view_and_authorized_dataset_proof
+    description: Complete reviewed evidence must bind the protected dataset ACL entry naming the exact view dataset with targetTypes VIEWS, a preexisting accessible view inside it, one referenced protected table, prior source denial, and a later allowed query through that same view.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict protected-dataset ACL writes and review dataset authorization entries and the existing views they cover.
+  notes: This covers one preexisting view only. It does not infer the ability to create or edit views in the authorized dataset, which requires separate source-table permissions. The grant labels indirect bounded access, never direct table IAM.

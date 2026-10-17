@@ -1,6 +1,11 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Azure App Service (Microsoft.Web/sites) privilege escalation techniques.
 # Applies to Web Apps AND Function Apps (both are Microsoft.Web/sites); Function-only techniques live in functions.yaml.
-# Source: hacktricks-cloud az-app-services-privesc.md and az-functions-app-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud az-app-services-privesc.md and az-functions-app-privesc.md (rev 171e422, re-verified).
 # Placeholder conventions: see catalog/azure/authorization.yaml header.
 # Deployment slots (Microsoft.Web/sites/slots) have their own managed identity configuration and their own
 # RBAC actions; they are modelled separately in azure-appservice-slot-code-execution.
@@ -10,7 +15,7 @@
   service: app_services
   title: Use the Kudu/SCM API with Entra credentials to run commands in the app
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitespublishaction-and-microsoftwebsitesslotspublishaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Microsoft.Web/sites/publish/action authorizes the SCM site (command API, SSH, zip deploy, WebJobs), giving code execution as the app and its managed identities.
   requires:
     all_of:
@@ -39,7 +44,7 @@
   service: app_services
   title: Obtain SCM/FTP publishing credentials and enable basic auth to deploy code
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#obtaining-scm-credentials--enabling-basic-authentication
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Publishing credentials (publishing profile or publishing-credentials list) plus the ability to allow SCM/FTP basic auth let the source deploy code that runs as the app's managed identities.
   requires:
     all_of:
@@ -74,7 +79,7 @@
   service: app_services
   title: Obtain SCM/FTP publishing credentials when basic auth is already enabled
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#publish-code-using-scm-credentials
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: With basic auth already allowed, disclosed publishing credentials alone allow deploying code that runs as the app's managed identities.
   requires:
     all_of: []
@@ -106,7 +111,7 @@
   service: app_services
   title: Redirect App Service deployment to an attacker repository
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitessourcecontrolswrite-and-microsoftwebsitesslotssourcecontrolswrite
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Pointing the app's source control at an attacker repository deploys attacker code that runs with the app's managed identities.
   requires:
     all_of:
@@ -135,7 +140,7 @@
   service: app_services
   title: Replace an App Service sidecar/main SiteContainer image
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitessitecontainerswrite-and-microsoftwebsitesslotssitecontainerswrite
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Setting the main SiteContainer image/startup command executes attacker code with the app's managed identities.
   requires:
     all_of:
@@ -164,7 +169,7 @@
   service: app_services
   title: Change app configuration to load attacker code
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitesconfigwrite
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Writing site config (container image, startup command, WEBSITE_RUN_FROM_PACKAGE, interpreter environment variables, remote debugging) makes the app run attacker code with its managed identities.
   requires:
     all_of:
@@ -192,7 +197,7 @@
   service: app_services
   title: Install an attacker NuGet site extension
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitessiteextensionswrite--attacker-nuget-site-extension
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A site extension's install script runs on the app and can deploy code executing as the app's managed identities.
   requires:
     all_of:
@@ -220,7 +225,7 @@
   service: app_services
   title: Replace app content through the OneDeploy extension route
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitesextensionswrite--onedeploy-zip-replacement
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Microsoft.Web/sites/extensions/write (onedeploy) deploys an attacker package that runs as the app's managed identities.
   requires:
     all_of:
@@ -246,7 +251,7 @@
   service: app_services
   title: Restore the app from an attacker-supplied backup
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitesrestorefrombackupblobaction--restore-an-attacker-backup
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Restoring an attacker backup overwrites the app content with code that runs as the app's managed identities.
   requires:
     all_of:
@@ -272,7 +277,7 @@
   service: app_services
   title: Attach a user-assigned identity to an App Service the source can execute code in
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsiteswrite-microsoftwebsitesread-microsoftmanagedidentityuserassignedidentitiesassignaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Adding a user-assigned identity to an app where the source can run code exposes that identity's tokens.
   requires:
     all_of:
@@ -320,7 +325,7 @@
   service: app_services
   title: Run code in a deployment slot
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitesslotsconfigwrite--recycle-a-deployment-slot-into-attacker-code
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: Slot-scoped publish, source control, SiteContainer, config or key permissions give code execution in the slot, exposing the slot's managed identities.
   requires:
     all_of: []
@@ -358,12 +363,15 @@
   service: app_services
   title: Obtain slot publishing credentials and deploy into the slot
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-functions-app-privesc.md#microsoftwebsitesslotspublishxmlaction
-  source_revision: a53b46392c
-  summary: The slot publishing profile with secrets allows Kudu zip deployment into the slot when SCM basic auth is allowed.
+  source_revision: a66f094ede
+  summary: The slot publishing profile with secrets (or the slot publishing credentials returned by slot config listing) allows Kudu zip deployment into the slot when SCM basic auth is allowed.
   requires:
-    all_of:
-      - action: Microsoft.Web/sites/slots/publishxml/action
-        scope: "{target.host_resource}"
+    all_of: []
+    any_of:
+      - - action: Microsoft.Web/sites/slots/publishxml/action
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slots/config/list/action
+          scope: "{target.host_resource}"
   target:
     kind: azure_managed_identity
     selector:
@@ -380,4 +388,66 @@
   mitigation: Disable basic auth on slots and restrict slots/publishxml/action.
   references:
     - https://learn.microsoft.com/en-us/azure/app-service/configure-basic-auth-disable
-  notes: ""
+  notes: slots/config/list/action is the slot counterpart of config/list/action (the Function App page documents it as the same capability for a slot); it authorizes listing the slot's security-sensitive settings, including its publishing credentials.
+
+- id: azure-appservice-slot-swap-promote-code
+  provider: azure
+  service: app_services
+  title: Plant code in a deployment slot and swap it into production
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-app-services-privesc.md#microsoftwebsitesslotsswapaction-promote-staged-code--steal-production-sticky-secrets
+  source_revision: 171e422
+  summary: Code planted in a slot runs under the production site's managed identities after a swap, because identities stay with the site and are not swapped.
+  requires:
+    all_of: []
+    any_of:
+      - - action: Microsoft.Web/sites/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/publish/action
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/sourcecontrols/write
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/sitecontainers/write
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/config/write
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slots/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/publish/action
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slots/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/sourcecontrols/write
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slots/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/sitecontainers/write
+          scope: "{target.host_resource}"
+      - - action: Microsoft.Web/sites/slots/slotsswap/action
+          scope: "{target.host_resource}"
+        - action: Microsoft.Web/sites/slots/config/write
+          scope: "{target.host_resource}"
+  target:
+    kind: azure_managed_identity
+    selector:
+      attached_to_service: Microsoft.Web/sites
+    scope: inherited_scope
+    aggregate_as: "Managed identities of production site {target.host_resource}"
+  conditions:
+    - id: slot_exists
+      description: The site must have a deployment slot (creating one needs Microsoft.Web/sites/slots/write and a Standard or higher plan).
+    - id: swap_not_gated
+      description: Swap with preview or deployment pipelines gating swaps can delay or surface the promotion.
+  blockers:
+    - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict slotsswap/action to release automation and treat slot write permissions like production permissions.
+  references:
+    - https://learn.microsoft.com/en-us/azure/app-service/deploy-staging-slots#which-settings-are-swapped
+  notes: Microsoft documents that managed identities are not swapped, so promoted code authenticates as the production site's identities. Grants scoped only to the slot resource (not the site) are not matched by this entry.

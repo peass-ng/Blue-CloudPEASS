@@ -1,0 +1,722 @@
+{
+ "aws-compliance.control.cis_compute_service_v100_2_13": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "intrusive_unsuitable",
+  "reason": "Evaluating requires reading and pattern-matching instance user data (DescribeInstanceAttribute userData), i.e. collecting potential secrets into the snapshot; the regex alone also matches any mixed-case alphanumeric script line. PEASO does not collect secret-bearing content.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstanceAttribute.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "3295b13ecee8ecd067a5acc07d728ac95d4ef5b168b639643f7192ad3cede1a5",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L342",
+   "query_id": "ec2_instance_user_data_no_secrets"
+  }
+ },
+ "aws-compliance.control.cis_compute_service_v100_2_14": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.c2b.autoscaling.tags_propagate"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Any tag with PropagateAtLaunch false alarms; no tags is ok.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "83fef4fbdcfad3e307951afc5ec2e72b4e3550bd9828390c596886eff2357433",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L356",
+   "query_id": "autoscaling_group_propagate_tags_to_ec2_instance_enabled"
+  }
+ },
+ "aws-compliance.control.cis_compute_service_v100_2_9": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_ssm_managed"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance is an SSM managed instance.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "29ca6d368e16604ff193694e19b9a620dfce0c7987de02c6b7ccc17671de9d08",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L286",
+   "query_id": "ec2_instance_ssm_managed"
+  }
+ },
+ "aws-compliance.control.cis_v120_1_19": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L292",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v130_1_18": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L278",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v130_2_1_2": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_2.pp#L70",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v140_1_18": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L277",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v140_2_1_2": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L64",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v140_2_1_4": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Source expands only s3JobDefinition.bucketDefinitions. Macie jobs use either bucketCriteria or bucketDefinitions, never both: a RUNNING criteria job including S3_BUCKET_NAME EQ the bucket protects it yet alarms (false FAIL), and a CANCELLED job retaining the bucket definition passes with no analysis (false PASS).",
+  "official_docs": [
+   "https://docs.aws.amazon.com/macie/latest/APIReference/jobs-jobid.html",
+   "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+  ],
+  "replacement_checks": [
+   "aws.cb.macie.automated_discovery",
+   "aws.cb.macie.enabled_where_buckets"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L92",
+   "query_id": "s3_bucket_protected_by_macie"
+  }
+ },
+ "aws-compliance.control.cis_v150_1_18": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L277",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v150_2_1_2": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L68",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v150_2_1_4": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Source expands only s3JobDefinition.bucketDefinitions. Macie jobs use either bucketCriteria or bucketDefinitions, never both: a RUNNING criteria job including S3_BUCKET_NAME EQ the bucket protects it yet alarms (false FAIL), and a CANCELLED job retaining the bucket definition passes with no analysis (false PASS).",
+  "official_docs": [
+   "https://docs.aws.amazon.com/macie/latest/APIReference/jobs-jobid.html",
+   "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+  ],
+  "replacement_checks": [
+   "aws.cb.macie.automated_discovery",
+   "aws.cb.macie.enabled_where_buckets"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L96",
+   "query_id": "s3_bucket_protected_by_macie"
+  }
+ },
+ "aws-compliance.control.cis_v200_1_18": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L278",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v200_2_1_1": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L53",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v200_2_1_3": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Source expands only s3JobDefinition.bucketDefinitions. Macie jobs use either bucketCriteria or bucketDefinitions, never both: a RUNNING criteria job including S3_BUCKET_NAME EQ the bucket protects it yet alarms (false FAIL), and a CANCELLED job retaining the bucket definition passes with no analysis (false PASS).",
+  "official_docs": [
+   "https://docs.aws.amazon.com/macie/latest/APIReference/jobs-jobid.html",
+   "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+  ],
+  "replacement_checks": [
+   "aws.cb.macie.automated_discovery",
+   "aws.cb.macie.enabled_where_buckets"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L81",
+   "query_id": "s3_bucket_protected_by_macie"
+  }
+ },
+ "aws-compliance.control.cis_v300_1_18": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L278",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v300_2_1_1": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L53",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v300_2_1_3": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Source expands only s3JobDefinition.bucketDefinitions. Macie jobs use either bucketCriteria or bucketDefinitions, never both: a RUNNING criteria job including S3_BUCKET_NAME EQ the bucket protects it yet alarms (false FAIL), and a CANCELLED job retaining the bucket definition passes with no analysis (false PASS).",
+  "official_docs": [
+   "https://docs.aws.amazon.com/macie/latest/APIReference/jobs-jobid.html",
+   "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+  ],
+  "replacement_checks": [
+   "aws.cb.macie.automated_discovery",
+   "aws.cb.macie.enabled_where_buckets"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L81",
+   "query_id": "s3_bucket_protected_by_macie"
+  }
+ },
+ "aws-compliance.control.cis_v400_1_18": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L278",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v400_2_1_1": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L49",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v400_2_1_3": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Source expands only s3JobDefinition.bucketDefinitions. Macie jobs use either bucketCriteria or bucketDefinitions, never both: a RUNNING criteria job including S3_BUCKET_NAME EQ the bucket protects it yet alarms (false FAIL), and a CANCELLED job retaining the bucket definition passes with no analysis (false PASS).",
+  "official_docs": [
+   "https://docs.aws.amazon.com/macie/latest/APIReference/jobs-jobid.html",
+   "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+  ],
+  "replacement_checks": [
+   "aws.cb.macie.automated_discovery",
+   "aws.cb.macie.enabled_where_buckets"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L77",
+   "query_id": "s3_bucket_protected_by_macie"
+  }
+ },
+ "aws-compliance.control.cis_v500_1_17": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L263",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v500_2_1_1": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L49",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v500_2_1_3": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Source expands only s3JobDefinition.bucketDefinitions. Macie jobs use either bucketCriteria or bucketDefinitions, never both: a RUNNING criteria job including S3_BUCKET_NAME EQ the bucket protects it yet alarms (false FAIL), and a CANCELLED job retaining the bucket definition passes with no analysis (false PASS).",
+  "official_docs": [
+   "https://docs.aws.amazon.com/macie/latest/APIReference/jobs-jobid.html",
+   "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+  ],
+  "replacement_checks": [
+   "aws.cb.macie.automated_discovery",
+   "aws.cb.macie.enabled_where_buckets"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L77",
+   "query_id": "s3_bucket_protected_by_macie"
+  }
+ },
+ "aws-compliance.control.cis_v600_2_17": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.ec2.instance_profile_attached"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Instance has an IAM instance profile.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L263",
+   "query_id": "ec2_instance_using_iam_instance_role"
+  }
+ },
+ "aws-compliance.control.cis_v600_3_1_1": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Pinned ssl_ok CTE requires a Deny statement with wildcard principal and Bool aws:SecureTransport false (or NumericLessThan s3:TlsVersion 1.2) but never constrains Action or Resource. A policy that denies only s3:DeleteBucket on the bucket ARN over HTTP leaves s3:GetObject on object ARNs reachable over HTTP yet passes: concrete false PASS. Same rejection as the claude_aws_a and Codex reviews of this evaluator.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+   "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L78",
+   "query_id": "s3_bucket_enforces_ssl"
+  }
+ },
+ "aws-compliance.control.cis_v600_3_1_3": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "Source expands only s3JobDefinition.bucketDefinitions. Macie jobs use either bucketCriteria or bucketDefinitions, never both: a RUNNING criteria job including S3_BUCKET_NAME EQ the bucket protects it yet alarms (false FAIL), and a CANCELLED job retaining the bucket definition passes with no analysis (false PASS).",
+  "official_docs": [
+   "https://docs.aws.amazon.com/macie/latest/APIReference/jobs-jobid.html",
+   "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+  ],
+  "replacement_checks": [
+   "aws.cb.macie.automated_discovery",
+   "aws.cb.macie.enabled_where_buckets"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L106",
+   "query_id": "s3_bucket_protected_by_macie"
+  }
+ },
+ "aws-compliance.control.cloudtrail_multi_region_trail_enabled": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.claude_a.cloudtrail.account_has_logging_multi_region_trail"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Account has a logging multi-Region trail.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "e9098f008910dba164ec98cabd937fb2f5e5a76a89efb58518b9c31635d975a9",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L112",
+   "query_id": "cloudtrail_multi_region_trail_enabled"
+  }
+ },
+ "aws-compliance.control.cloudtrail_security_trail_enabled": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "For a trail using only advanced event selectors, event_selectors is NULL so both NOT(jsonb_array_length(NULL)=1 AND ...) and NOT(NULL @> IncludeManagementEvents true) evaluate to SQL NULL and never alarm; an advanced Data-only selector trail with logging, global events, multi-region, validation and KMS reaches 'ok' without management event coverage: concrete false PASS.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html",
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+  ],
+  "replacement_checks": [
+   "aws.cloudtrail.management_events"
+  ],
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "755495c5acd393b947320068851ba43054a120a8dd4840f3fc857372b6b46a0e",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L199",
+   "query_id": "cloudtrail_security_trail_enabled"
+  }
+ },
+ "aws-compliance.control.cloudtrail_trail_bucket_mfa_enabled": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.cloudtrail.trail_bucket_mfa_delete"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/MultiFactorAuthenticationDelete.html"
+  ],
+  "review_notes": "Home-region trail rows, logging or not. Deviation: a bucket outside the audited account is MANUAL (upstream left join alarms on an unknown bucket).",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "7260837842ff85b710d98120d676c448f59a64498360be34854e11e4a76af687",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L265",
+   "query_id": "cloudtrail_trail_bucket_mfa_enabled"
+  }
+ },
+ "aws-compliance.control.cloudtrail_trail_enabled": {
+  "disposition": "merged",
+  "native_checks": [
+   "aws.cloudtrail.logging"
+  ],
+  "reason": "Same question, threshold and applicability as the existing native predicate (Trail IsLogging true.) Missing/denied facts stay UNKNOWN in that predicate.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "d828556d733348aad0d8a1a7bdc75b069d3ffc728917a367e89687dbede44216",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L169",
+   "query_id": "cloudtrail_trail_enabled"
+  }
+ },
+ "aws-compliance.control.cloudtrail_trail_enabled_account": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.cloudtrail.account_has_logging_trail"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html",
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+  ],
+  "review_notes": "Account-wide trail inventory across all enabled regions (not collected with explicit region lists, so UNKNOWN). Counts trails whose home-region copy is logging, as home_region = region and is_logging.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "14e64d67445d29c9dd8ea55fc863bf45a61a4aefa2c23d424bb3108c3f836cd9",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L273",
+   "query_id": "cloudtrail_trail_enabled_account"
+  }
+ },
+ "aws-compliance.control.cloudwatch_cross_account_sharing": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.cloudwatch.cross_account_sharing_role_absent"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Cross-Account-Cross-Region.html"
+  ],
+  "review_notes": "Upstream emits info (not alarm) when the role exists, so presence is MANUAL with the trusted principals as evidence.",
+  "reviewed_source": {
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "sha256": "6819225775469cf67c1385765b2516edb43c38576f64a1343808451e69354624",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L52",
+   "query_id": "cloudwatch_cross_account_sharing"
+  }
+ },
+ "aws-perimeter.control.cloudwatch_log_resource_policy_prohibit_public_access": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.logs.resource_policy_not_public"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeResourcePolicies.html"
+  ],
+  "review_notes": "aws-perimeter resource_policy_public_sql over the collected policyDocument (logs:DescribeResourcePolicies).",
+  "reviewed_source": {
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "sha256": "daf4f7af9bce29218830a1e72201150f07a8cb2e08fc076a6989d817511dfaf1",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/public_access.pp#L610"
+  }
+ },
+ "aws-perimeter.control.config_aggregator_shared_with_trusted_accounts": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.config.aggregation_authorization_trusted"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/config/latest/APIReference/API_DescribeAggregationAuthorizations.html"
+  ],
+  "review_notes": "Upstream emits info for accounts outside the operator's trusted_accounts list; without that list only the audited account is trusted, so other accounts are MANUAL. Reads the collected config_aggregate_authorization inventory.",
+  "reviewed_source": {
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "sha256": "9f4cc32c7f063691f63e1d86540f5a9485a46e7c92196b12c358ce6645f1630e",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L272"
+  }
+ },
+ "aws-perimeter.control.dlm_ebs_snapshot_policy_shared_with_trusted_accounts": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.dlm.snapshot_sharing_trusted_accounts"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/dlm/latest/APIReference/API_ShareRule.html"
+  ],
+  "review_notes": "EBS_SNAPSHOT_MANAGEMENT policies only; DISABLED is NOT_APPLICABLE. Schedules 0..3, ShareRules[0].TargetAccounts minus trusted accounts (the audited account; upstream info) are MANUAL. Reads the collected dlm_policy summary (PolicyType, State) and its GetLifecyclePolicy Details; a denied or missing detail is UNKNOWN.",
+  "reviewed_source": {
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "sha256": "c568211f73b699aa6c92d18c0bb0e2469e49a460facb8b1c2b6ceff911aa92f9",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L392"
+  }
+ },
+ "prowler.aws.cloudtrail_bedrock_logging_enabled": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "The pinned advanced-selector branch accepts eventCategory Data plus a recognised Bedrock resources.type and ignores the other field selectors, which AND together. A selector Data + AWS::Bedrock::Model + eventName Equals PutObject records no Bedrock model events yet passes: concrete false PASS.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html",
+   "https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "4b866c41ac4f090ce37e8d9a6a8125acb504651f05f39bea0a30bb6a5f65296e",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_bedrock_logging_enabled/cloudtrail_bedrock_logging_enabled.metadata.json"
+  }
+ },
+ "prowler.aws.cloudtrail_logs_s3_bucket_is_not_publicly_accessible": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "invalid_predicate",
+  "reason": "For an in-account bucket the pinned check only tests ACL grants to the AllUsers URI; it ignores bucket policies and AuthenticatedUsers grants. An owner-only ACL with a wildcard-principal s3:GetObject policy (PolicyStatus IsPublic true, no Block Public Access) passes: concrete false PASS for the claimed 'log bucket not publicly accessible' condition.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicyStatus.html",
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-overview.html"
+  ],
+  "replacement_checks": [
+   "aws.a.cloudtrail.joined_bucket_declared_public_grants"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "80e45f828d2a63a2421919e1fdf93540954ff0b70cb95ba0a501697cf1a190ee",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_logs_s3_bucket_is_not_publicly_accessible/cloudtrail_logs_s3_bucket_is_not_publicly_accessible.metadata.json"
+  }
+ },
+ "prowler.aws.cloudtrail_multi_region_enabled": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.cloudtrail.region_has_logging_trail"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html",
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+  ],
+  "review_notes": "Per audited region: trails homed in the region or multi-Region trails (shadow copies) are considered; PASS when any is logging.",
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "995a27c7534d42ea9ed46350bf6b75ed3287ac6ccf8b1444726d3cbd61a0bc75",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_multi_region_enabled/cloudtrail_multi_region_enabled.metadata.json"
+  },
+  "supersedes": "prowler.aws.cloudtrail_multi_region_enabled"
+ },
+ "prowler.aws.cloudtrail_threat_detection_enumeration": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.cloudtrail.threat_detection_enumeration"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_LookupEvents.html"
+  ],
+  "review_notes": "Per (actor ARN, actor type), distinct pinned event names seen / len(pinned list, duplicates included) > 0.3, over the collector's activity window (default 1440 minutes, as upstream). Events without an actor ARN are ignored as upstream. Evaluated per audited region with full pagination (prowler reads the first page per name in one trail region).",
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "a2c563567bf66a17e83c2207c00b25a90e95973ecf01d7ef0f26901b6e6a255b",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_threat_detection_enumeration/cloudtrail_threat_detection_enumeration.metadata.json"
+  }
+ },
+ "prowler.aws.cloudtrail_threat_detection_llm_jacking": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.cloudtrail.threat_detection_llm_jacking"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_LookupEvents.html"
+  ],
+  "review_notes": "Per (actor ARN, actor type), distinct pinned event names seen / len(pinned list, duplicates included) > 0.4, over the collector's activity window (default 1440 minutes, as upstream). Events without an actor ARN are ignored as upstream. Evaluated per audited region with full pagination (prowler reads the first page per name in one trail region).",
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "910609fbaa45348f07ebdb42ab3acae361368e683a6d80df49365f6198f8f528",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_threat_detection_llm_jacking/cloudtrail_threat_detection_llm_jacking.metadata.json"
+  }
+ },
+ "prowler.aws.cloudtrail_threat_detection_privilege_escalation": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.cloudtrail.threat_detection_privilege_escalation"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_LookupEvents.html"
+  ],
+  "review_notes": "Per (actor ARN, actor type), distinct pinned event names seen / len(pinned list, duplicates included) > 0.2, over the collector's activity window (default 1440 minutes, as upstream). Events without an actor ARN are ignored as upstream. Evaluated per audited region with full pagination (prowler reads the first page per name in one trail region).",
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "6736e8df1a6dde16a21dfaa27cee461a78e427ea6e5165bea1769f2cd7778813",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_threat_detection_privilege_escalation/cloudtrail_threat_detection_privilege_escalation.metadata.json"
+  }
+ },
+ "prowler.aws.cloudwatch_log_group_not_publicly_accessible": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.logs.log_group_not_public_via_resource_policy"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeResourcePolicies.html"
+  ],
+  "review_notes": "Joins the collected log_resource_policy inventory (logs:DescribeResourcePolicies); missing or denied is UNKNOWN. As upstream: for every resource policy that is_policy_public, any statement Resource containing the log-group ARN, or '*', exposes the group.",
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "54fe80a5da209dc8cfcd762cc65685c10796bbe449265ef596ec5c95c724687f",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_group_not_publicly_accessible/cloudwatch_log_group_not_publicly_accessible.metadata.json"
+  }
+ },
+ "prowler.aws.config_delegated_admin_and_org_aggregator_all_regions": {
+  "disposition": "ported",
+  "native_checks": [
+   "aws.claude2_a.config.org_aggregator_all_regions_with_delegated_admin"
+  ],
+  "reason": "Individually reviewed the pinned upstream evaluator (branches, applicability, defaults and thresholds) and ported it to a native predicate over read-only snapshot facts. Missing, denied or malformed facts are UNKNOWN; non-applicable resources are NOT_APPLICABLE; no merge across different thresholds or semantics.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/config/latest/APIReference/API_DescribeConfigurationAggregators.html",
+   "https://docs.aws.amazon.com/organizations/latest/APIReference/API_ListDelegatedAdministrators.html"
+  ],
+  "review_notes": "Per aggregator, as upstream: not an organization aggregator or not AllAwsRegions is FAIL; no delegated admin is FAIL; an unavailable or denied delegated-admin lookup is UNKNOWN (FAIL still wins when the aggregator itself fails). The synthetic 'no aggregator in any region' FAIL is not evaluated (account-wide absence). Needs config:DescribeConfigurationAggregators (kind config_aggregator) and organizations:ListDelegatedAdministrators (kind config_delegated_administrator); not yet collected, so UNKNOWN.",
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "3d13d43903614c541636f3f8aaccd74bb4f03015d6daa3aaf92d38fc3c52b1fb",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/config/config_delegated_admin_and_org_aggregator_all_regions/config_delegated_admin_and_org_aggregator_all_regions.metadata.json"
+  }
+ }
+}

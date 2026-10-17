@@ -1,4 +1,40 @@
 {
+  "aws-compliance.control.cloudwatch_alarm_action_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.any_state_actions"
+    ],
+    "reason": "Complete predicate: FAIL only when ALARM, OK and INSUFFICIENT_DATA action arrays all have length zero; any nonempty state-action array passes. This is distinct from ALARM-only action presence and ActionsEnabled. Missing/denied/malformed evidence stays unavailable; this is not a narrower substitute.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudwatch/client/describe_alarms.html"
+    ],
+    "review_notes": "Complete pinned query CASE branches and exact source identities reviewed, no upstream execution.",
+    "reviewed_query_id": "cloudwatch_alarm_action_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e2af1f48db2eca1cbc57d364c99900eeb89211845499b705ff3db8ca8a88e626",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L15"
+    }
+  },
+  "aws-compliance.control.cloudwatch_alarm_action_enabled_check": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudwatch.alarm_actions_enabled"
+    ],
+    "reason": "Exact native ActionsEnabled boolean predicate; directly verified same truth cases and applicability as reviewed Prowler cloudwatch_alarm_actions_enabled, not merged with action-list existence. Missing/denied/malformed evidence stays unavailable; this is not a narrower substitute.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudwatch/client/describe_alarms.html"
+    ],
+    "review_notes": "Complete pinned query CASE branches and exact source identities reviewed, no upstream execution.",
+    "reviewed_query_id": "cloudwatch_alarm_action_enabled_check",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "a5806cfd0161188b8a567e6cfedca13feb06a870a5f0148985ff32e5172988b0",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L38"
+    }
+  },
   "prowler.aws.cloudwatch_alarm_actions_alarm_state_configured": {
     "disposition": "ported",
     "native_checks": [

@@ -1,0 +1,600 @@
+{
+  "azure-compliance.control.cis_v130_5_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v130/section_5.pp",
+      "control_line": 82,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v130_5_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_operational_logs_not_public_accessible"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_operational_logs_not_public_accessible",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1224,
+      "query_sha256": "3263cda7a7990ead54f683e626130aa0c867b894ebde483c18d4269bb89cab52",
+      "control_path": "cis_v130/section_5.pp",
+      "control_line": 96,
+      "arguments": [],
+      "pinned_sql": "select\n      sc.id as resource,\n      case\n        when public_access != 'None' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when public_access != 'None'\n          then account_name || ' container insights-operational-logs storing activity logs publicly accessible.'\n        else account_name || ' container insights-operational-logs storing activity logs not publicly accessible.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container sc\n      left join azure_subscription sub on sub.subscription_id = sc.subscription_id\n    where\n      name = 'insights-operational-logs';"
+    }
+  },
+  "azure-compliance.control.cis_v130_5_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_operational_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_operational_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1170,
+      "query_sha256": "b46f5e3f5ede15b702b82849680bbc93e3da81dec10fa167fe96f1e000a40acd",
+      "control_path": "cis_v130/section_5.pp",
+      "control_line": 110,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-operational-logs encrypted with BYOK.'\n        else a.name || ' container insights-operational-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-operational-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_5_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v140/section_5.pp",
+      "control_line": 82,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_5_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_operational_logs_not_public_accessible"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_operational_logs_not_public_accessible",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1224,
+      "query_sha256": "3263cda7a7990ead54f683e626130aa0c867b894ebde483c18d4269bb89cab52",
+      "control_path": "cis_v140/section_5.pp",
+      "control_line": 96,
+      "arguments": [],
+      "pinned_sql": "select\n      sc.id as resource,\n      case\n        when public_access != 'None' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when public_access != 'None'\n          then account_name || ' container insights-operational-logs storing activity logs publicly accessible.'\n        else account_name || ' container insights-operational-logs storing activity logs not publicly accessible.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container sc\n      left join azure_subscription sub on sub.subscription_id = sc.subscription_id\n    where\n      name = 'insights-operational-logs';"
+    }
+  },
+  "azure-compliance.control.cis_v140_5_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_operational_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_operational_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1170,
+      "query_sha256": "b46f5e3f5ede15b702b82849680bbc93e3da81dec10fa167fe96f1e000a40acd",
+      "control_path": "cis_v140/section_5.pp",
+      "control_line": 110,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-operational-logs encrypted with BYOK.'\n        else a.name || ' container insights-operational-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-operational-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_5_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v150/section_5.pp",
+      "control_line": 84,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_5_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_operational_logs_not_public_accessible"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_operational_logs_not_public_accessible",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1224,
+      "query_sha256": "3263cda7a7990ead54f683e626130aa0c867b894ebde483c18d4269bb89cab52",
+      "control_path": "cis_v150/section_5.pp",
+      "control_line": 98,
+      "arguments": [],
+      "pinned_sql": "select\n      sc.id as resource,\n      case\n        when public_access != 'None' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when public_access != 'None'\n          then account_name || ' container insights-operational-logs storing activity logs publicly accessible.'\n        else account_name || ' container insights-operational-logs storing activity logs not publicly accessible.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container sc\n      left join azure_subscription sub on sub.subscription_id = sc.subscription_id\n    where\n      name = 'insights-operational-logs';"
+    }
+  },
+  "azure-compliance.control.cis_v150_5_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_operational_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_operational_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1170,
+      "query_sha256": "b46f5e3f5ede15b702b82849680bbc93e3da81dec10fa167fe96f1e000a40acd",
+      "control_path": "cis_v150/section_5.pp",
+      "control_line": 112,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-operational-logs encrypted with BYOK.'\n        else a.name || ' container insights-operational-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-operational-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_5_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v200/section_5.pp",
+      "control_line": 67,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_5_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_activity_logs_not_public_accessible"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_activity_logs_not_public_accessible",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1247,
+      "query_sha256": "253fa7fec8fd2e68a3f5d8172f889f8424bf7e8ca439cf3f25dd34c756d1ea6e",
+      "control_path": "cis_v200/section_5.pp",
+      "control_line": 81,
+      "arguments": [],
+      "pinned_sql": "select\n      sc.id as resource,\n      case\n        when public_access != 'None' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when public_access != 'None'\n          then account_name || ' container insights-activity-logs storing activity logs publicly accessible.'\n        else account_name || ' container insights-activity-logs storing activity logs not publicly accessible.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container sc\n      left join azure_subscription sub on sub.subscription_id = sc.subscription_id\n    where\n      name = 'insights-activity-logs';"
+    }
+  },
+  "azure-compliance.control.cis_v200_5_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1197,
+      "query_sha256": "b526cc11448e44b865d355d61e6c837910925e5c1382a777c979cd1d64489ed7",
+      "control_path": "cis_v200/section_5.pp",
+      "control_line": 95,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-activity-logs encrypted with BYOK.'\n        else a.name || ' container insights-activity-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-activity-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_5_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_application_insights_configured"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_application_insights_configured",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 419,
+      "query_sha256": "0aa16ee78f446bf5f1fdec20f35b70a30b664294172a0a07644e3bc8f64972a3",
+      "control_path": "cis_v200/section_5.pp",
+      "control_line": 326,
+      "arguments": [],
+      "pinned_sql": "with application_insights as (\n      select\n        subscription_id,\n        count(*) as no_application_insight\n      from\n        azure_application_insight\n      group by\n        subscription_id\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have application insights configured.'\n        else sub.display_name || ' has ' || no_application_insight || ' application insights configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join application_insights as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_5_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v210/section_5.pp",
+      "control_line": 66,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_5_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1197,
+      "query_sha256": "b526cc11448e44b865d355d61e6c837910925e5c1382a777c979cd1d64489ed7",
+      "control_path": "cis_v210/section_5.pp",
+      "control_line": 80,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-activity-logs encrypted with BYOK.'\n        else a.name || ' container insights-activity-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-activity-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_5_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_application_insights_configured"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_application_insights_configured",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 419,
+      "query_sha256": "0aa16ee78f446bf5f1fdec20f35b70a30b664294172a0a07644e3bc8f64972a3",
+      "control_path": "cis_v210/section_5.pp",
+      "control_line": 311,
+      "arguments": [],
+      "pinned_sql": "with application_insights as (\n      select\n        subscription_id,\n        count(*) as no_application_insight\n      from\n        azure_application_insight\n      group by\n        subscription_id\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have application insights configured.'\n        else sub.display_name || ' has ' || no_application_insight || ' application insights configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join application_insights as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_6_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v300/section_6.pp",
+      "control_line": 66,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_6_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1197,
+      "query_sha256": "b526cc11448e44b865d355d61e6c837910925e5c1382a777c979cd1d64489ed7",
+      "control_path": "cis_v300/section_6.pp",
+      "control_line": 80,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-activity-logs encrypted with BYOK.'\n        else a.name || ' container insights-activity-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-activity-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_6_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_application_insights_configured"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_application_insights_configured",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 419,
+      "query_sha256": "0aa16ee78f446bf5f1fdec20f35b70a30b664294172a0a07644e3bc8f64972a3",
+      "control_path": "cis_v300/section_6.pp",
+      "control_line": 311,
+      "arguments": [],
+      "pinned_sql": "with application_insights as (\n      select\n        subscription_id,\n        count(*) as no_application_insight\n      from\n        azure_application_insight\n      group by\n        subscription_id\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have application insights configured.'\n        else sub.display_name || ' has ' || no_application_insight || ' application insights configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join application_insights as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_7_1_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v400/section_7.pp",
+      "control_line": 87,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_7_1_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1197,
+      "query_sha256": "b526cc11448e44b865d355d61e6c837910925e5c1382a777c979cd1d64489ed7",
+      "control_path": "cis_v400/section_7.pp",
+      "control_line": 101,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-activity-logs encrypted with BYOK.'\n        else a.name || ' container insights-activity-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-activity-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_7_1_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_application_insights_configured"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_application_insights_configured",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 419,
+      "query_sha256": "0aa16ee78f446bf5f1fdec20f35b70a30b664294172a0a07644e3bc8f64972a3",
+      "control_path": "cis_v400/section_7.pp",
+      "control_line": 403,
+      "arguments": [],
+      "pinned_sql": "with application_insights as (\n      select\n        subscription_id,\n        count(*) as no_application_insight\n      from\n        azure_application_insight\n      group by\n        subscription_id\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have application insights configured.'\n        else sub.display_name || ' has ' || no_application_insight || ' application insights configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join application_insights as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_1_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_exists_for_subscription"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_exists_for_subscription",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 448,
+      "query_sha256": "f15620b1f12b3d9769e0a688837db04537ce070962d1cd3f266952d27beb72d0",
+      "control_path": "cis_v500/section_6.pp",
+      "control_line": 76,
+      "arguments": [],
+      "pinned_sql": "with subscription_diagnostic_settings as (\n      select\n        distinct subscription_id\n      from\n        azure_diagnostic_setting\n    )\n    select\n      sub.id as resource,\n      case\n        when d.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when d.subscription_id is null then sub.display_name || ' does not have a diagnostic setting for subscription activity logs.'\n        else sub.display_name || ' has a diagnostic setting for subscription activity logs.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join subscription_diagnostic_settings as d on d.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_diagnostic_settings_captures_proper_categories"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_diagnostic_settings_captures_proper_categories",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 474,
+      "query_sha256": "608006d2698ca8949940f1850c9352ae4094de67a553d818a34be81537fb97a7",
+      "control_path": "cis_v500/section_6.pp",
+      "control_line": 90,
+      "arguments": [],
+      "pinned_sql": "with enabled_settings as (\n      select\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id,\n        count(*) filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_category_count,\n        string_agg(l ->> 'category', ', ') filter (where l ->> 'enabled' = 'true'\n          and l ->> 'category' in ('Administrative', 'Security', 'Alert', 'Policy')\n        ) as valid_categories\n      from\n        azure_diagnostic_setting,\n        jsonb_array_elements(logs) as l\n      group by\n        name,\n        id,\n        _ctx,\n        resource_group,\n        subscription_id\n    )\n    select\n      sett.id as resource,\n      case\n        when valid_category_count = 4 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when valid_category_count = 4\n          then name || ' logs enabled for required categories administrative, security, alert and policy.'\n        when valid_category_count > 0\n          then sett.name || ' logs enabled for ' || valid_categories || ' categories.'\n          else sett.name || ' logs not enabled for categories administrative, security, alert and policy.'\n      end as reason\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"sett.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      enabled_settings sett\n      left join azure_subscription as sub on sub.subscription_id = sett.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_logs_storage_container_insights_activity_logs_encrypted_with_byok",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1197,
+      "query_sha256": "b526cc11448e44b865d355d61e6c837910925e5c1382a777c979cd1d64489ed7",
+      "control_path": "cis_v500/section_6.pp",
+      "control_line": 104,
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.encryption_key_source = 'Microsoft.Keyvault'\n          then a.name || ' container insights-activity-logs encrypted with BYOK.'\n        else a.name || ' container insights-activity-logs not encrypted with BYOK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container c,\n      azure_storage_account a,\n      azure_subscription sub\n    where\n      c.name = 'insights-activity-logs'\n      and c.account_name = a.name\n      and sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.monitor_application_insights_configured"
+    ],
+    "reason": "Inspected full query/scopes: subscriptionpresence, perdiagnosticsetting fourliteralcategories, namedactivity/operationalcontainer selector andmatchingaccountCMKscope. ActualfullARM containerIDs preventcrossaccount collision; globaluniquestorageaccountname maps exactproviderparent. No mergewith allLogs-aware/whole-subscription categoryunion/anycontainer predicates. RequiredabsenceFAIL or explicitWHERE-inapplicability; incomplete/malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/subscription-diagnostic-settings/list?view=rest-monitor-2021-05-01-preview",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Exact declarations only; no actuallogs/keys/blobcontent read andnoendtoenddelivery/effectivepublicreachability claim. Invalidduplicate categorymetadataUNKNOWN insteadunsafeCount4pass. Knowncomplete namedcontainerabsence NOT_APPLICABLE matchesWHERE exclusion.",
+    "source_review": {
+      "query_id": "monitor_application_insights_configured",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 419,
+      "query_sha256": "0aa16ee78f446bf5f1fdec20f35b70a30b664294172a0a07644e3bc8f64972a3",
+      "control_path": "cis_v500/section_6.pp",
+      "control_line": 405,
+      "arguments": [],
+      "pinned_sql": "with application_insights as (\n      select\n        subscription_id,\n        count(*) as no_application_insight\n      from\n        azure_application_insight\n      group by\n        subscription_id\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have application insights configured.'\n        else sub.display_name || ' has ' || no_application_insight || ' application insights configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join application_insights as i on i.subscription_id = sub.subscription_id;"
+    }
+  }
+}

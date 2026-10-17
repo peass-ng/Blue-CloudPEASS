@@ -88,9 +88,22 @@ def test_shared_new_paas_collection_is_authoritative_and_read_only(kind):
             if body:
                 return {"data": []}
             rid = "/subscriptions/sub/resourceGroups/g/providers/" + ENDPOINTS[kind][0] + "/resource"
-            return {"value": [{"id": rid, "properties": {"publicNetworkAccess": "Disabled"}}]}
+            if "/providers/Microsoft.Insights/diagnosticSettings?" in url:
+                return {"value": []}
+            item = {"id": rid, "type": ENDPOINTS[kind][0],
+                    "properties": {"publicNetworkAccess": "Disabled"}}
+            if url.split("?", 1)[0].endswith(rid):
+                return item
+            return {"value": [item]}
     snapshot = collect({"scopes": ["sub"]}, [kind], transport=Metadata())
     record = next(row for row in snapshot["collections"] if row["type"] == kind)
     assert record["status"] == "collected"
-    assert len(calls) == 2
+    # Discovery/list, per-resource diagnostics, registry child metadata and
+    # registry network-rule metadata are distinct reads.
+    assert len(calls) == (7 if kind == "container_registry" else 3)
+    if kind == "container_registry":
+        assert {url.split("?", 1)[0].rsplit("/", 1)[-1] for url, _ in calls if "/resource/" in url and "diagnosticSettings" not in url} == {"tokens", "scopeMaps", "cacheRules"}
+        assert sum("/resource?api-version=2023-11-01-preview" in url for url, _ in calls) == 1
+    assert sum("/providers/Microsoft.Insights/diagnosticSettings?" in url for url, _ in calls) == 1
+    assert len({(url, repr(body)) for url, body in calls}) == len(calls)
     assert all(not any(operation in url.lower() for operation in ("listkeys", "getpassword", "regenerate", "create")) for url, _ in calls)

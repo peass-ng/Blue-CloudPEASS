@@ -17,7 +17,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.allow_only_private_cluster",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L7"
     }
   },
   "gcp-compliance.control.app_engine_application_iap_enabled": {
@@ -38,7 +40,9 @@
       "dependencies": [
         "gcp_app_engine_application"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.app_engine_application_iap_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/appengine.pp#L17"
     }
   },
   "gcp-compliance.control.cis_v120_3_8": {
@@ -59,7 +63,9 @@
       "dependencies": [
         "gcp_compute_subnetwork"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L126"
     }
   },
   "gcp-compliance.control.cis_v120_6_1_2": {
@@ -81,7 +87,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L73"
     }
   },
   "gcp-compliance.control.cis_v120_6_1_3": {
@@ -103,7 +111,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L87"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_1": {
@@ -125,7 +135,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L129"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_10": {
@@ -147,7 +159,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L255"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_11": {
@@ -169,7 +183,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L269"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_12": {
@@ -191,7 +207,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L283"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_14": {
@@ -213,7 +231,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L310"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_15": {
@@ -235,7 +255,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L323"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_16": {
@@ -257,7 +279,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_16",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L337"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_3": {
@@ -279,7 +303,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L157"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_4": {
@@ -301,7 +327,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L171"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_5": {
@@ -323,7 +351,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L185"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_6": {
@@ -345,7 +375,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L199"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_8": {
@@ -367,7 +399,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L227"
     }
   },
   "gcp-compliance.control.cis_v120_6_2_9": {
@@ -389,7 +423,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L241"
     }
   },
   "gcp-compliance.control.cis_v120_6_3_1": {
@@ -411,7 +447,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L370"
     }
   },
   "gcp-compliance.control.cis_v120_6_3_2": {
@@ -433,7 +471,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L383"
     }
   },
   "gcp-compliance.control.cis_v120_6_3_3": {
@@ -455,7 +495,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L396"
     }
   },
   "gcp-compliance.control.cis_v120_6_3_4": {
@@ -477,7 +519,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L409"
     }
   },
   "gcp-compliance.control.cis_v120_6_3_5": {
@@ -499,13 +543,17 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L422"
     }
   },
   "gcp-compliance.control.cis_v120_6_3_6": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "The source requires trace flag3625off, which reverses its security effect: Microsoft documents that enabling3625 limits error-message detail for non-sysadmin users, and Cloud SQL supports the flag. Reject the anti-hardening condition while preserving source/framework lineage and the corrected3625on configuration check.",
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.gap.sql_3625_trace_flag_off_cis_v1"
+    ],
+    "reason": "Benchmark-version-faithful mapping (2026-10-11): CIS GCP v1.2.0 6.3.6 literally requires database flag 3625 'off'; the source query (sql_instance_sql_3625_trace_database_flag_off: ok iff an explicit 3625=off flag on SQLSERVER engines) implements that literal requirement, and gcp.gap.sql_3625_trace_flag_off_cis_v1 evaluates the same predicate. CIS v2.0+ reversed the recommendation to 'on' (security-preferred; masks error-message parameters), which stays on gcp.ports.sql_instance_sql_3625_trace_database_flag_on.",
     "official_docs": [
       "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
       "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
@@ -520,12 +568,32 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L435"
     },
-    "review_classification": "invalid_predicate",
-    "replacement_checks": [
+    "former_native_checks": [
       "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_sql_3625_trace_database_flag_off",
+      "target_native_checks": [
+        "gcp.gap.sql_3625_trace_flag_off_cis_v1"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "databaseVersion, settings.databaseFlags[name=3625].value",
+      "pass_condition": "For SQLSERVER engines PASS iff flag 3625 is explicitly 'off' (unset FAILs, as in the source); other engines NOT_APPLICABLE",
+      "upstream_defect_only": "none (source implements the literal benchmark-version requirement)",
+      "native_deviations": "Unrecognized engines and duplicate flag declarations are UNKNOWN. Severity low: CIS v2.0+ reversed this requirement and 'on' is the security-preferred setting.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.sql_instance_sql_3625_trace_database_flag_on",
+          "reason": "Requires 'on' (CIS v2.0+); opposite of the literal CIS v1.2.0/v1.3.0 requirement."
+        }
+      ]
+    }
   },
   "gcp-compliance.control.cis_v120_6_3_7": {
     "disposition": "ported",
@@ -546,7 +614,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L448"
     }
   },
   "gcp-compliance.control.cis_v130_3_8": {
@@ -567,7 +637,9 @@
       "dependencies": [
         "gcp_compute_subnetwork"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L126"
     }
   },
   "gcp-compliance.control.cis_v130_6_1_2": {
@@ -589,7 +661,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L73"
     }
   },
   "gcp-compliance.control.cis_v130_6_1_3": {
@@ -611,7 +685,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L87"
     }
   },
   "gcp-compliance.control.cis_v130_6_2_2": {
@@ -633,7 +709,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L136"
     }
   },
   "gcp-compliance.control.cis_v130_6_2_3": {
@@ -655,7 +733,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L150"
     }
   },
   "gcp-compliance.control.cis_v130_6_2_5": {
@@ -677,7 +757,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L178"
     }
   },
   "gcp-compliance.control.cis_v130_6_2_7": {
@@ -699,7 +781,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L205"
     }
   },
   "gcp-compliance.control.cis_v130_6_2_8": {
@@ -721,7 +805,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L218"
     }
   },
   "gcp-compliance.control.cis_v130_6_2_9": {
@@ -743,7 +829,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L231"
     }
   },
   "gcp-compliance.control.cis_v130_6_3_1": {
@@ -765,7 +853,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L265"
     }
   },
   "gcp-compliance.control.cis_v130_6_3_2": {
@@ -787,7 +877,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L278"
     }
   },
   "gcp-compliance.control.cis_v130_6_3_3": {
@@ -809,7 +901,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L291"
     }
   },
   "gcp-compliance.control.cis_v130_6_3_4": {
@@ -831,7 +925,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L304"
     }
   },
   "gcp-compliance.control.cis_v130_6_3_5": {
@@ -853,13 +949,17 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L317"
     }
   },
   "gcp-compliance.control.cis_v130_6_3_6": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "The source requires trace flag3625off, which reverses its security effect: Microsoft documents that enabling3625 limits error-message detail for non-sysadmin users, and Cloud SQL supports the flag. Reject the anti-hardening condition while preserving source/framework lineage and the corrected3625on configuration check.",
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.gap.sql_3625_trace_flag_off_cis_v1"
+    ],
+    "reason": "Benchmark-version-faithful mapping (2026-10-11): CIS GCP v1.3.0 6.3.6 literally requires database flag 3625 'off'; the source query (sql_instance_sql_3625_trace_database_flag_off: ok iff an explicit 3625=off flag on SQLSERVER engines) implements that literal requirement, and gcp.gap.sql_3625_trace_flag_off_cis_v1 evaluates the same predicate. CIS v2.0+ reversed the recommendation to 'on' (security-preferred; masks error-message parameters), which stays on gcp.ports.sql_instance_sql_3625_trace_database_flag_on.",
     "official_docs": [
       "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
       "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
@@ -874,12 +974,32 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L330"
     },
-    "review_classification": "invalid_predicate",
-    "replacement_checks": [
+    "former_native_checks": [
       "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_sql_3625_trace_database_flag_off",
+      "target_native_checks": [
+        "gcp.gap.sql_3625_trace_flag_off_cis_v1"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "databaseVersion, settings.databaseFlags[name=3625].value",
+      "pass_condition": "For SQLSERVER engines PASS iff flag 3625 is explicitly 'off' (unset FAILs, as in the source); other engines NOT_APPLICABLE",
+      "upstream_defect_only": "none (source implements the literal benchmark-version requirement)",
+      "native_deviations": "Unrecognized engines and duplicate flag declarations are UNKNOWN. Severity low: CIS v2.0+ reversed this requirement and 'on' is the security-preferred setting.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.sql_instance_sql_3625_trace_database_flag_on",
+          "reason": "Requires 'on' (CIS v2.0+); opposite of the literal CIS v1.2.0/v1.3.0 requirement."
+        }
+      ]
+    }
   },
   "gcp-compliance.control.cis_v130_6_3_7": {
     "disposition": "ported",
@@ -900,7 +1020,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L343"
     }
   },
   "gcp-compliance.control.cis_v200_3_8": {
@@ -921,7 +1043,9 @@
       "dependencies": [
         "gcp_compute_subnetwork"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L126"
     }
   },
   "gcp-compliance.control.cis_v200_6_1_2": {
@@ -943,7 +1067,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L73"
     }
   },
   "gcp-compliance.control.cis_v200_6_1_3": {
@@ -965,7 +1091,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L87"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_1": {
@@ -987,7 +1115,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L122"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_2": {
@@ -1009,7 +1139,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L136"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_3": {
@@ -1031,7 +1163,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L150"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_4": {
@@ -1053,7 +1187,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L164"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_5": {
@@ -1075,7 +1211,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L177"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_6": {
@@ -1097,7 +1235,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L189"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_7": {
@@ -1119,7 +1259,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L202"
     }
   },
   "gcp-compliance.control.cis_v200_6_2_8": {
@@ -1141,7 +1283,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L215"
     }
   },
   "gcp-compliance.control.cis_v200_6_3_1": {
@@ -1163,7 +1307,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L262"
     }
   },
   "gcp-compliance.control.cis_v200_6_3_2": {
@@ -1185,7 +1331,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L275"
     }
   },
   "gcp-compliance.control.cis_v200_6_3_3": {
@@ -1207,7 +1355,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L288"
     }
   },
   "gcp-compliance.control.cis_v200_6_3_4": {
@@ -1229,7 +1379,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L301"
     }
   },
   "gcp-compliance.control.cis_v200_6_3_5": {
@@ -1251,7 +1403,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L314"
     }
   },
   "gcp-compliance.control.cis_v200_6_3_6": {
@@ -1273,7 +1427,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L327"
     }
   },
   "gcp-compliance.control.cis_v200_6_3_7": {
@@ -1295,7 +1451,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L340"
     }
   },
   "gcp-compliance.control.cis_v300_3_8": {
@@ -1316,7 +1474,9 @@
       "dependencies": [
         "gcp_compute_subnetwork"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L126"
     }
   },
   "gcp-compliance.control.cis_v300_6_1_2": {
@@ -1338,7 +1498,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L73"
     }
   },
   "gcp-compliance.control.cis_v300_6_1_3": {
@@ -1360,7 +1522,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L87"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_1": {
@@ -1382,7 +1546,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L121"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_2": {
@@ -1404,7 +1570,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L135"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_3": {
@@ -1426,7 +1594,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L149"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_4": {
@@ -1448,7 +1618,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L163"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_5": {
@@ -1470,7 +1642,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L176"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_6": {
@@ -1492,7 +1666,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L188"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_7": {
@@ -1514,7 +1690,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L201"
     }
   },
   "gcp-compliance.control.cis_v300_6_2_8": {
@@ -1536,7 +1714,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L214"
     }
   },
   "gcp-compliance.control.cis_v300_6_3_1": {
@@ -1558,7 +1738,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L246"
     }
   },
   "gcp-compliance.control.cis_v300_6_3_2": {
@@ -1580,7 +1762,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L259"
     }
   },
   "gcp-compliance.control.cis_v300_6_3_3": {
@@ -1602,7 +1786,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L272"
     }
   },
   "gcp-compliance.control.cis_v300_6_3_4": {
@@ -1624,7 +1810,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L285"
     }
   },
   "gcp-compliance.control.cis_v300_6_3_5": {
@@ -1646,7 +1834,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L298"
     }
   },
   "gcp-compliance.control.cis_v300_6_3_6": {
@@ -1668,7 +1858,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L311"
     }
   },
   "gcp-compliance.control.cis_v300_6_3_7": {
@@ -1690,7 +1882,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L324"
     }
   },
   "gcp-compliance.control.cis_v400_3_8": {
@@ -1711,7 +1905,9 @@
       "dependencies": [
         "gcp_compute_subnetwork"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L126"
     }
   },
   "gcp-compliance.control.cis_v400_6_1_2": {
@@ -1733,7 +1929,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L73"
     }
   },
   "gcp-compliance.control.cis_v400_6_1_3": {
@@ -1755,7 +1953,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L87"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_1": {
@@ -1777,7 +1977,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L121"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_2": {
@@ -1799,7 +2001,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L135"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_3": {
@@ -1821,7 +2025,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L149"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_4": {
@@ -1843,7 +2049,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L163"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_5": {
@@ -1865,7 +2073,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L176"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_6": {
@@ -1887,7 +2097,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L188"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_7": {
@@ -1909,7 +2121,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L201"
     }
   },
   "gcp-compliance.control.cis_v400_6_2_8": {
@@ -1931,7 +2145,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L214"
     }
   },
   "gcp-compliance.control.cis_v400_6_3_1": {
@@ -1953,7 +2169,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L246"
     }
   },
   "gcp-compliance.control.cis_v400_6_3_2": {
@@ -1975,7 +2193,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L259"
     }
   },
   "gcp-compliance.control.cis_v400_6_3_3": {
@@ -1997,7 +2217,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L272"
     }
   },
   "gcp-compliance.control.cis_v400_6_3_4": {
@@ -2019,7 +2241,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L285"
     }
   },
   "gcp-compliance.control.cis_v400_6_3_5": {
@@ -2041,7 +2265,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L298"
     }
   },
   "gcp-compliance.control.cis_v400_6_3_6": {
@@ -2063,7 +2289,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L311"
     }
   },
   "gcp-compliance.control.cis_v400_6_3_7": {
@@ -2085,7 +2313,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L324"
     }
   },
   "gcp-compliance.control.disable_gke_legacy_endpoints": {
@@ -2106,7 +2336,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.disable_gke_legacy_endpoints",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L50"
     }
   },
   "gcp-compliance.control.enable_alias_ip_ranges": {
@@ -2127,7 +2359,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.enable_alias_ip_ranges",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L60"
     }
   },
   "gcp-compliance.control.enable_auto_repair": {
@@ -2148,7 +2382,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.enable_auto_repair",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L71"
     }
   },
   "gcp-compliance.control.enable_auto_upgrade": {
@@ -2169,7 +2405,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.enable_auto_upgrade",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L82"
     }
   },
   "gcp-compliance.control.enable_gke_master_authorized_networks": {
@@ -2190,7 +2428,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.enable_gke_master_authorized_networks",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L94"
     }
   },
   "gcp-compliance.control.enable_network_flow_logs": {
@@ -2211,7 +2451,9 @@
       "dependencies": [
         "gcp_compute_subnetwork"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.enable_network_flow_logs",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/compute.pp#L20"
     }
   },
   "gcp-compliance.control.enable_network_private_google_access": {
@@ -2232,7 +2474,9 @@
       "dependencies": [
         "gcp_compute_subnetwork"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.enable_network_private_google_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/compute.pp#L35"
     }
   },
   "gcp-compliance.control.gke_container_optimized_os": {
@@ -2253,7 +2497,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.gke_container_optimized_os",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L106"
     }
   },
   "gcp-compliance.control.gke_restrict_pod_traffic": {
@@ -2274,7 +2520,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.gke_restrict_pod_traffic",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L117"
     }
   },
   "gcp-compliance.control.kubernetes_cluster_database_encryption_enabled": {
@@ -2295,7 +2543,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.kubernetes_cluster_database_encryption_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L174"
     }
   },
   "gcp-compliance.control.kubernetes_cluster_intra_node_visibility_enabled": {
@@ -2316,7 +2566,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.kubernetes_cluster_intra_node_visibility_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L295"
     }
   },
   "gcp-compliance.control.kubernetes_cluster_shielded_instance_integrity_monitoring_enabled": {
@@ -2337,7 +2589,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.kubernetes_cluster_shielded_instance_integrity_monitoring_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L192"
     }
   },
   "gcp-compliance.control.kubernetes_cluster_shielded_node_secure_boot_enabled": {
@@ -2358,7 +2612,9 @@
       "dependencies": [
         "gcp_kubernetes_cluster"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.kubernetes_cluster_shielded_node_secure_boot_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/kubernetes.pp#L303"
     }
   },
   "gcp-compliance.control.sql_instance_mysql_binary_log_enabled": {
@@ -2380,7 +2636,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_mysql_binary_log_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L367"
     }
   },
   "gcp-compliance.control.sql_instance_mysql_local_infile_database_flag_off": {
@@ -2402,7 +2660,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_mysql_local_infile_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L57"
     }
   },
   "gcp-compliance.control.sql_instance_mysql_skip_show_database_flag_on": {
@@ -2424,7 +2684,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_mysql_skip_show_database_flag_on",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L68"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled": {
@@ -2446,7 +2708,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_cloudsql_pgaudit_database_flag_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L94"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_checkpoints_database_flag_on": {
@@ -2468,7 +2732,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_checkpoints_database_flag_on",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L105"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_connections_database_flag_on": {
@@ -2490,7 +2756,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_connections_database_flag_on",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L115"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_disconnections_database_flag_on": {
@@ -2512,7 +2780,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_disconnections_database_flag_on",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L128"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_duration_database_flag_on": {
@@ -2534,7 +2804,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_duration_database_flag_on",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L140"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter": {
@@ -2556,7 +2828,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L148"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_executor_stats_database_flag_off": {
@@ -2578,7 +2852,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_executor_stats_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L160"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_hostname_database_flag_configured": {
@@ -2600,7 +2876,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_hostname_database_flag_configured",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L168"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_lock_waits_database_flag_on": {
@@ -2622,7 +2900,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_lock_waits_database_flag_on",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L176"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled": {
@@ -2644,7 +2924,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L184"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_min_error_statement_database_flag_configured": {
@@ -2666,7 +2948,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_min_error_statement_database_flag_configured",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L196"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_min_messages_database_flag_error": {
@@ -2688,7 +2972,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_min_messages_database_flag_error",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L208"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_parser_stats_database_flag_off": {
@@ -2710,7 +2996,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_parser_stats_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L220"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_planner_stats_database_flag_off": {
@@ -2732,7 +3020,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_planner_stats_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L228"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_statement_database_flag_ddl": {
@@ -2754,7 +3044,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_statement_database_flag_ddl",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L236"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_statement_stats_database_flag_off": {
@@ -2776,7 +3068,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_statement_stats_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L248"
     }
   },
   "gcp-compliance.control.sql_instance_postgresql_log_temp_files_database_flag_0": {
@@ -2798,13 +3092,22 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_postgresql_log_temp_files_database_flag_0",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L256"
     }
   },
   "gcp-compliance.control.sql_instance_sql_3625_trace_database_flag_off": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "reason": "The source requires trace flag3625off, which reverses its security effect: Microsoft documents that enabling3625 limits error-message detail for non-sysadmin users, and Cloud SQL supports the flag. Reject the anti-hardening condition while preserving source/framework lineage and the corrected3625on configuration check.",
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.ports.sql_instance_sql_3625_trace_database_flag_on (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The source requires trace flag3625off, which reverses its security effect: Microsoft documents that enabling3625 limits error-message detail for non-sysadmin users, and Cloud SQL supports the flag. Reject the anti-hardening condition while preserving source/framework lineage and the corrected3625on configuration check. Upstream title defect: the recommendation text says 'off' but its own rationale is that 3625 masks error-message parameters to 'help prevent disclosure of sensitive information' (the effect of the flag being on, per Microsoft); CIS GCP v2.0+ (6.3.6 / its query) corrected the requirement to 'on', which the native enforces."
+    },
     "official_docs": [
       "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
       "https://docs.cloud.google.com/sql/docs/sqlserver/flags",
@@ -2819,12 +3122,27 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_3625_trace_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L264"
     },
-    "review_classification": "invalid_predicate",
     "replacement_checks": [
       "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
-    ]
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_sql_3625_trace_database_flag_off",
+      "target_native_checks": [
+        "gcp.ports.sql_instance_sql_3625_trace_database_flag_on"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "settings.databaseFlags[name=3625].value",
+      "pass_condition": "For SQLSERVER engines PASS iff flag 3625 is explicitly 'on'; other engines NOT_APPLICABLE",
+      "upstream_defect_only": "Source requires 'off', which removes the masking of error-message parameters for non-sysadmin users. Upstream title defect: the recommendation text says 'off' but its own rationale is that 3625 masks error-message parameters to 'help prevent disclosure of sensitive information' (the effect of the flag being on, per Microsoft); CIS GCP v2.0+ (6.3.6 / its query) corrected the requirement to 'on', which the native enforces.",
+      "native_deviations": "Unset flag FAILs (no version default inferred). NOTE: the literal CIS GCP v1.2.0/v1.3.0 6.3.6 recommendation and audit text say 'off'; an auditor applying that literal text disagrees with this native.",
+      "upstream_title_defect": "the recommendation text says 'off' but its own rationale is that 3625 masks error-message parameters to 'help prevent disclosure of sensitive information' (the effect of the flag being on, per Microsoft); CIS GCP v2.0+ (6.3.6 / its query) corrected the requirement to 'on', which the native enforces."
+    }
   },
   "gcp-compliance.control.sql_instance_sql_3625_trace_database_flag_on": {
     "disposition": "ported",
@@ -2845,7 +3163,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_3625_trace_database_flag_on",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L274"
     }
   },
   "gcp-compliance.control.sql_instance_sql_contained_database_authentication_database_flag_off": {
@@ -2867,7 +3187,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_contained_database_authentication_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L285"
     }
   },
   "gcp-compliance.control.sql_instance_sql_cross_db_ownership_chaining_database_flag_off": {
@@ -2889,7 +3211,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_cross_db_ownership_chaining_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L299"
     }
   },
   "gcp-compliance.control.sql_instance_sql_external_scripts_enabled_database_flag_off": {
@@ -2911,7 +3235,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_external_scripts_enabled_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L312"
     }
   },
   "gcp-compliance.control.sql_instance_sql_remote_access_database_flag_off": {
@@ -2933,7 +3259,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_remote_access_database_flag_off",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L324"
     }
   },
   "gcp-compliance.control.sql_instance_sql_user_connections_database_flag_configured": {
@@ -2955,7 +3283,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_user_connections_database_flag_configured",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L335"
     }
   },
   "gcp-compliance.control.sql_instance_sql_user_options_database_flag_not_configured": {
@@ -2977,7 +3307,9 @@
       "dependencies": [
         "gcp_sql_database_instance"
       ],
-      "scope": "native service configuration declarations, not effective access or runtime enforcement"
+      "scope": "native service configuration declarations, not effective access or runtime enforcement",
+      "source_row_id": "gcp-compliance.control.sql_instance_sql_user_options_database_flag_not_configured",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/sql.pp#L347"
     }
   }
 }

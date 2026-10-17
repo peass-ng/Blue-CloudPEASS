@@ -55,3 +55,11 @@ def scanning(item, index):
             if fnmatchcase(name, pattern) and frequency in {"SCAN_ON_PUSH", "CONTINUOUS_SCAN"}:
                 matched.append({"filter": pattern, "scan_frequency": frequency})
     return result(not matched, repository=name, matching_scanning_rules=matched, semantics="Corrected repository-specific configuration; enhanced filters override legacy scanOnPush, and unmatched repositories are Off. No scan execution was requested.")
+
+
+@install("aws.b.ecr.source_some_immutability", "ecr_repository", "ECR repository is not wholly MUTABLE under the pinned Prowler policy", {"imageTagMutability": "IMMUTABLE_WITH_EXCLUSION"}, {"imageTagMutability": "MUTABLE"}, query="_prowler:ecr_repositories_tag_immutability")
+def some_immutability(item, index):
+    mode = get(item, "imageTagMutability", str)
+    if mode not in {"MUTABLE", "IMMUTABLE", "MUTABLE_WITH_EXCLUSION", "IMMUTABLE_WITH_EXCLUSION"}:
+        return unknown("unknown mutability mode")
+    return result(mode == "MUTABLE", image_tag_mutability=mode, semantics="Exact weaker source criterion; passing does not mean every tag is immutable, and the full-immutability control remains separate.")

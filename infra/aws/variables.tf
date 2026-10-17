@@ -27,13 +27,54 @@ variable "worker_image" {
     error_message = "Use the dedicated wiki-account ECR repository and an immutable digest."
   }
 }
-variable "customer_role_arns" {
-  type        = list(string)
-  default     = []
-  description = "Explicitly onboarded customer read-only role ARNs. Empty disables cross-account collection."
+variable "enable_public_customer_role_template" {
+  type        = bool
+  default     = false
+  description = "Opt in only after checking account-level S3 Block Public Access. A private CloudFront download remains available by default."
+}
+variable "gcp_platform_sa_secret_arn" {
+  type        = string
+  default     = ""
+  description = "Existing Secrets Manager secret ARN containing the HackTricks CSPM GCP service account JSON. The value never enters Terraform state."
   validation {
-    condition     = alltrue([for arn in var.customer_role_arns : can(regex("^arn:aws:iam::[0-9]{12}:role/.+", arn))])
-    error_message = "Each approved customer role must be an IAM role ARN."
+    condition     = var.gcp_platform_sa_secret_arn == "" || can(regex("^arn:aws:secretsmanager:us-east-1:202533532952:secret:[A-Za-z0-9/_+=.@-]+$", var.gcp_platform_sa_secret_arn))
+    error_message = "Use a secret in the dedicated CSPM AWS account and region."
+  }
+}
+variable "worker_resources" {
+  type = map(object({ cpu = number, memory = number }))
+  default = {
+    collector = { cpu = 1024, memory = 6144 }
+    analyzer  = { cpu = 512, memory = 4096 }
+  }
+  description = "Prospective Linux/x86 Fargate CPU units and MiB: collector 1 vCPU/6 GiB, analyzer 0.5 vCPU/4 GiB. Reported split peaks support these starting sizes, not an all-estates capacity guarantee."
+  validation {
+    condition = toset(keys(var.worker_resources)) == toset(["collector", "analyzer"]) && alltrue([
+      for resource in values(var.worker_resources) :
+      (resource.cpu == 512 && contains([1024, 2048, 3072, 4096], resource.memory)) ||
+      (resource.cpu == 1024 && contains([2048, 3072, 4096, 5120, 6144, 7168, 8192], resource.memory))
+    ]) && try(var.worker_resources.collector.memory >= 6144 && var.worker_resources.analyzer.memory >= 4096, false)
+    error_message = "Specify collector and analyzer only, with supported 0.5/1 vCPU Fargate sizes; prospective collection needs at least 6 GiB and analysis at least 4 GiB."
+  }
+}
+variable "scan_runtime_limits" {
+  type = object({ workflow_seconds = number, stage_seconds = number, lease_seconds = number })
+  default = {
+    workflow_seconds = 3600
+    stage_seconds    = 1800
+    lease_seconds    = 3900
+  }
+  description = "Bounded whole-job/workflow, per-ECS-stage and owned global lease durations; defaults accommodate the reported 1127-second full scan."
+  validation {
+    condition = (
+      var.scan_runtime_limits.workflow_seconds >= 900 && var.scan_runtime_limits.workflow_seconds <= 3600 &&
+      var.scan_runtime_limits.stage_seconds >= 300 && var.scan_runtime_limits.stage_seconds <= 1800 &&
+      var.scan_runtime_limits.stage_seconds <= var.scan_runtime_limits.workflow_seconds &&
+      var.scan_runtime_limits.lease_seconds >= var.scan_runtime_limits.workflow_seconds + 300 &&
+      var.scan_runtime_limits.lease_seconds <= 3900 &&
+      alltrue([for value in values(var.scan_runtime_limits) : value == floor(value)])
+    )
+    error_message = "Use integer bounded job/workflow 900–3600s, stages 300–1800s within workflow, and an owned lease at least 300s longer (at most3900s)."
   }
 }
 variable "budget_email" {

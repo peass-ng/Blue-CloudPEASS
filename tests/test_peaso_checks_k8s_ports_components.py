@@ -6,6 +6,28 @@ import pytest
 from peaso.checks import CHECKS
 from peaso.checks import k8s_ports_components as ports
 from peaso.checks.fixtures import CASES
+
+
+@pytest.mark.parametrize("value", ["0", "0s", "0.0s", "+0s", "-0s", "0h0m0s", "0ms", "0.000us"])
+def test_zero_duration_spellings_cannot_pass_numeric_timeout_policy(value):
+    assert not ports.compare({"streaming-connection-idle-timeout": value}, ["streaming-connection-idle-timeout"], "nonzero_duration", None)
+    if value != "0":
+        assert "--streaming-connection-idle-timeout=" + value != "--streaming-connection-idle-timeout=0"  # Pinned SQL misses it.
+
+
+def test_nonzero_subsecond_and_compound_durations_are_real_declarations():
+    for value in ("1ms", "0.5s", "0h0m1s", "4h0m0s"):
+        assert ports.compare({"streaming-connection-idle-timeout": value}, ["streaming-connection-idle-timeout"], "nonzero_duration", None)
+
+
+def test_ordinary_workload_is_not_component_configuration_and_ambiguous_component_unknown():
+    spec = ports.SPECS["container_argument_api_server_anonymous_auth_disabled"]
+    ordinary = {"metadata": {"namespace": "apps", "labels": {"app": "api"}}, "spec": {"containers": [{"name": "app", "image": "nginx:1.27"}]}}
+    assert ports.evaluate_component(ordinary, "pod", spec)[0] == "NOT_APPLICABLE"
+    ordinary["metadata"] = {"namespace": "kube-system", "labels": {"component": "kube-apiserver"}}
+    assert ports.evaluate_component(ordinary, "pod", spec)[0] == "UNKNOWN"
+    ordinary["metadata"]["labels"]["component"] = "kube-scheduler"
+    assert ports.evaluate_component(ordinary, "pod", spec)[0] == "NOT_APPLICABLE"
 from peaso.collectors.k8s import _sanitize
 
 REGISTRY = {check.id: check for check in CHECKS if check.id in ports.IDS}
@@ -24,6 +46,15 @@ def test_modeled_available_settings_and_actual_gaps_are_distinct(cid, case, want
 def sample_config(component="kube-apiserver", flags=None, **extra):
     return {"spec": {"containers": [{"name": "component", "_component_config": {
         "component": component, "flags_complete": True, "flags": flags or {}, **extra}}]}}
+
+
+def source_case_config(check, flags, version="v1.24.0"):
+    item = copy.deepcopy(CASES[check.id]["pass"])
+    _, containers = ports.pod_spec(item, check.kind)
+    assert len(containers) == 1
+    containers[0]["_component_config"]["flags"] = flags
+    containers[0]["_component_config"]["version"] = version
+    return item
 
 
 def test_only_approved_configuration_fields_survive_projection():
@@ -87,6 +118,59 @@ def test_numeric_threshold_boundaries_match_reviewed_case_conditions():
     check = REGISTRY["k8s.ports.pod.container_argument_audit_log_maxage_greater_than_30"]
     for value, expected in [("29", "FAIL"), ("30", "PASS"), ("31", "PASS"), ("thirty", "UNKNOWN")]:
         assert check.evaluate(sample_config(flags={"audit-log-maxage": value}), {})[0] == expected
+
+
+@pytest.mark.parametrize("suffix,flag,boundary,below,above,title", [
+    ("container_argument_audit_log_maxage_greater_than_30", "audit-log-maxage", 30, 29, 31, "at least 30 days"),
+    ("container_argument_audit_log_maxbackup_greater_than_10", "audit-log-maxbackup", 10, 9, 11, "at least 10 files"),
+    ("container_argument_audit_log_maxsize_greater_than_100", "audit-log-maxsize", 100, 99, 101, "at least 100 MB"),
+    ("container_argument_event_qps_less_than_5", "event-qps", 5, 4, 6, "at most 5"),
+])
+def test_pinned_inclusive_boundaries_and_titles_for_all_nine_variants(suffix, flag, boundary, below, above, title):
+    checks = [check for cid, check in REGISTRY.items() if cid.endswith("." + suffix)]
+    assert len(checks) == 9
+    for check in checks:
+        assert title in check.title
+        assert check.evaluate(source_case_config(check, {flag: str(boundary)}), {})[0] == "PASS"
+        assert check.evaluate(source_case_config(check, {flag: str(below)}), {})[0] == ("PASS" if flag == "event-qps" else "FAIL")
+        assert check.evaluate(source_case_config(check, {flag: str(above)}), {})[0] == ("FAIL" if flag == "event-qps" else "PASS")
+
+
+def test_security_context_deny_legacy_version_bands_for_all_nine_variants():
+    suffix = "container_argument_security_context_deny_enabled"
+    checks = [check for cid, check in REGISTRY.items() if cid.endswith("." + suffix)]
+    assert len(checks) == 9
+    for check in checks:
+        assert "legacy PSP or SecurityContextDeny" in check.title
+        for version, plugins, expected in (
+            ("v1.24.0", "PodSecurityPolicy", "PASS"),
+            ("v1.24.0", "SecurityContextDeny", "PASS"),
+            ("v1.24.0", "NamespaceLifecycle", "FAIL"),
+            ("v1.25.0", "SecurityContextDeny", "PASS"),
+            ("v1.25.0", "PodSecurityPolicy", "FAIL"),
+            ("v1.29.1+k3s1", "SecurityContextDeny", "PASS"),
+            ("v1.29.1", "PodSecurityPolicy", "FAIL"),
+            ("v1.30.0", "SecurityContextDeny", "NOT_APPLICABLE"),
+            ("v1.37.0", "PodSecurityPolicy", "NOT_APPLICABLE"),
+            ("v1.25.0-alpha.1", "SecurityContextDeny", "UNKNOWN"),
+            ("garbled", "SecurityContextDeny", "UNKNOWN"),
+        ):
+            assert check.evaluate(source_case_config(check, {"enable-admission-plugins": plugins}, version), {})[0] == expected
+        item = source_case_config(check, {"enable-admission-plugins": "SecurityContextDeny"})
+        _, containers = ports.pod_spec(item, check.kind)
+        containers[0]["_component_config"].pop("version")
+        assert check.evaluate(item, {})[0] == "UNKNOWN"
+
+
+def test_security_context_deny_each_container_keeps_its_own_version_band():
+    check = REGISTRY["k8s.ports.pod.container_argument_security_context_deny_enabled"]
+    item = sample_config(flags={"enable-admission-plugins": "SecurityContextDeny"}, version="v1.25.0")
+    item["spec"]["containers"].append({"name": "older", "_component_config": {
+        "component": "kube-apiserver", "flags_complete": True,
+        "flags": {"enable-admission-plugins": "PodSecurityPolicy"}, "version": "v1.24.0"}})
+    status, evidence = check.evaluate(item, {})
+    assert status == "PASS"
+    assert {row["observed_version"] for row in evidence["observations"]} == {"v1.24.0", "v1.25.0"}
 
 
 def test_component_shard_does_not_overlap_workload_partition():

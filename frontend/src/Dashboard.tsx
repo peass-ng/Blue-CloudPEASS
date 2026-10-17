@@ -7,7 +7,9 @@ import {
   ArrowRight,
   CircleDot,
 } from "lucide-react";
+import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { BoundedPager } from "./BoundedPager";
 import { request } from "./api";
 import type { Connector, Report, Scan } from "./types";
 import { Badge, date, Evidence, Panel, ProviderIcon, State } from "./ui";
@@ -369,23 +371,40 @@ export function Coverage({ data }: { data: unknown }) {
   if (Array.isArray(data))
     return (
       <div className="coverage-list">
-        {data.map((row, i) => (
-          <div className="coverage-row" key={i}>
-            <strong>
-              {String(
-                row.check_id ||
-                  row.type ||
-                  row.service ||
-                  row.scope ||
-                  `Collection ${i + 1}`,
+        {data.map((row, i) => {
+          const code = row.error_code || row.code || row.error?.code;
+          const account = row.account || row.scope;
+          const knownReason =
+            code === "duplicate_account_target"
+              ? `Skipped: another role already audits account ${String(account)}.`
+              : code === "external_id_not_required_by_trust"
+                ? "Role refused: its trust policy does not require an ExternalID. Add the sts:ExternalId condition shown in onboarding."
+                : code === "platform_owned_account"
+                  ? "Role refused: this account belongs to the CSPM platform."
+                  : code === "role_target_limit"
+                    ? "Skipped: the scan reached its role-target limit."
+                    : null;
+          const reason =
+            row.reason ||
+            (typeof row.error === "string" ? row.error : null) ||
+            knownReason ||
+            (row.error && typeof row.error === "object" ? row.error : code || row.error);
+          const heading = [row.check_id, row.type, row.level, row.service, row.scope]
+            .find((value) => typeof value === "string" || typeof value === "number");
+          const resource = row.resource_ref || row.role_arn;
+          return (
+            <div className="coverage-row" key={i}>
+              <strong>{String(heading || `Collection ${i + 1}`)}</strong>
+              <Badge value={typeof row.status === "string" ? row.status : "unknown"} />
+              {resource && (typeof resource === "object" ? <Evidence data={resource} /> : <p>{String(resource)}</p>)}
+              {reason && (
+                typeof reason === "object"
+                  ? <Evidence data={reason} />
+                  : <p>{String(reason)}{typeof code === "string" && reason !== code && <> <code>{code}</code></>}</p>
               )}
-            </strong>
-            <Badge value={String(row.status || "unknown")} />
-            {(row.reason || row.error) && (
-              <p>{String(row.reason || row.error)}</p>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     );
   return <Evidence data={data} />;
@@ -398,26 +417,40 @@ export function CoverageView({
   scanId: string;
   demo: boolean;
 }) {
+  return <CoverageWindow key={`${demo ? "demo" : "live"}:${scanId}`} scanId={scanId} demo={demo} />;
+}
+
+function CoverageWindow({ scanId, demo }: { scanId: string; demo: boolean }) {
   type CoveragePage = {
     items: unknown[];
+    offset?: number;
     total?: number;
     next_offset?: number | null;
   };
+  const pageSize = 200;
+  const [anchorOffset, setAnchorOffset] = useState(0);
   const query = useInfiniteQuery({
-    queryKey: [demo ? "demo" : "live", "coverage", scanId],
-    initialPageParam: 0,
-    queryFn: ({ pageParam }) =>
+    queryKey: [demo ? "demo" : "live", "coverage", scanId, anchorOffset],
+    initialPageParam: anchorOffset,
+    queryFn: ({ pageParam, signal }) =>
       request<CoveragePage>(
-        `/scans/${encodeURIComponent(scanId)}/coverage?limit=200&offset=${pageParam}`,
-        {},
+        `/scans/${encodeURIComponent(scanId)}/coverage?limit=${pageSize}&offset=${pageParam}`,
+        { signal },
         demo,
       ),
     getNextPageParam: (page) => page.next_offset ?? undefined,
+    getPreviousPageParam: (first, _pages, firstParam) => {
+      const offset = Number(first.offset ?? firstParam);
+      return offset > 0 ? Math.max(0, offset - pageSize) : undefined;
+    },
+    maxPages: 2,
     enabled: !!scanId,
-    retry: 1,
+    retry: 0,
   });
   const rows = query.data?.pages.flatMap((p) => p.items) || [];
   const total = query.data?.pages[0]?.total ?? rows.length;
+  const first = Number(query.data?.pages[0]?.offset ?? query.data?.pageParams[0] ?? anchorOffset);
+  const last = first + rows.length;
   return (
     <State
       loading={query.isPending}
@@ -425,25 +458,15 @@ export function CoverageView({
       onRetry={() => void query.refetch()}
     >
       <Coverage data={rows} />
-      {total > rows.length && (
-        <div className="pagination-footer">
-          <span>
-            {rows.length} of {total} coverage records loaded
-          </span>
-          <button
-            className="button"
-            disabled={query.isFetchingNextPage}
-            onClick={() => void query.fetchNextPage()}
-          >
-            {query.isFetchingNextPage ? "Loading…" : "Load more coverage"}
-          </button>
-        </div>
-      )}
-      {query.error && query.data && (
-        <p role="alert" className="form-error">
-          More coverage could not be loaded. Retry before drawing a conclusion.
-        </p>
-      )}
+      <BoundedPager first={rows.length ? first + 1 : 0} last={last} total={total} unit="Coverage records" pageSize={pageSize}
+        loading={query.isFetchingNextPage || query.isFetchingPreviousPage || query.isPending}
+        canPrevious={!!query.hasPreviousPage} canNext={!!query.hasNextPage}
+        error={query.error && query.data ? "Coverage page could not be loaded." : undefined}
+        statusText={first === 0 && rows.length < total ? `${rows.length} of ${total} coverage records loaded` : undefined}
+        onPrevious={() => void query.fetchPreviousPage({ cancelRefetch: false })}
+        onNext={() => void query.fetchNextPage({ cancelRefetch: false })}
+        onRetry={() => void (query.isFetchPreviousPageError ? query.fetchPreviousPage({ cancelRefetch: false }) : query.fetchNextPage({ cancelRefetch: false }))}
+        onJump={setAnchorOffset} nextLabel="Load more coverage" />
     </State>
   );
 }

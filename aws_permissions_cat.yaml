@@ -60,6 +60,7 @@ low:
 - acm:GetCertificate
 - acm:ListCertificates
 - acm:ListTagsForCertificate
+- acm:SearchCertificates
 - aco-automation:GetAutomationEvent
 - aco-automation:GetAutomationRule
 - aco-automation:GetEnrollmentConfiguration
@@ -2094,6 +2095,7 @@ low:
 - datazone:ListTagsForResource
 - datazone:ListTimeSeriesDataPoints
 - datazone:ListWarehouseMetadata
+- datazone:QueryGraph
 - dax:DescribeClusters
 - dax:DescribeDefaultParameters
 - dax:DescribeEvents
@@ -10750,6 +10752,7 @@ medium:
 - datazone:BatchDeleteLinkedTypes
 - datazone:BatchPutAttributesMetadata
 - datazone:BatchPutLinkedTypes
+- datazone:BatchUpdateNotifications
 - datazone:CancelMetadataGenerationRun
 - datazone:CancelSubscription
 - datazone:CreateAccountPool
@@ -12845,6 +12848,7 @@ medium:
 - glue:GlueNotebookAuthorize
 - glue:GlueNotebookRefreshCredentials
 - glue:ImportCatalogToGlue
+- glue:ManagedConnector
 - glue:ModifyIntegration
 - glue:NotifyEvent
 - glue:PublishDataQuality
@@ -19471,6 +19475,7 @@ high:
 - ecs:UpdateService
 - ecs:UpdateServicePrimaryTaskSet
 - eks:AccessKubernetesApi
+- eks:ActivateCertificateAuthority
 - eks:CreateFargateProfile
 - eks:CreateNodegroup
 - eks:CreatePodIdentityAssociation
@@ -20002,6 +20007,7 @@ high:
 - sqs:PurgeQueue
 - sqs:ReceiveMessage
 - sqs:SendMessage
+- sqs:SendMessageBatch
 - sqs:StartMessageMoveTask
 - sqs:TagQueue
 - sqs:UntagQueue

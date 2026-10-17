@@ -1,0 +1,2130 @@
+{
+  "aws-amplify-artifact-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact",
+      "verified_evidence"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md#amplifygetartifacturl--download-end-to-end-test-artifacts",
+    "requires": {
+      "all_of": [
+        {
+          "action": "amplify:GetArtifactUrl",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-amplify-config-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact",
+      "verified_evidence"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md#amplifygetapp-amplifygetbranch-amplifylistapps-amplifylistbranches-amplifygetjob--read-deployment-variables-and-build-logs",
+    "requires": {
+      "all_of": [
+        {
+          "action": "amplify:GetApp",
+          "resource": "*"
+        },
+        {
+          "action": "amplify:GetBranch",
+          "resource": "*"
+        },
+        {
+          "action": "amplify:GetJob",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-create-association-targeting-hybrid-managed-node": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md#privileged-execution-through-a-state-manager-association",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ssm:CreateAssociation",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-exfiltrate-eventbridge-connection-credential-via-teststate-http-task": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-stepfunctions-privesc/README.md#eventbridge-connection-credentials-without-statesrevealsecrets",
+    "requires": {
+      "all_of": [
+        {
+          "action": "states:TestState",
+          "resource": "*"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-gameliftstreams-bearer-url": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "active_bearer",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-gamelift-streams-enum.md#enumerate-bearer-stream-urls",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "gameliftstreams:ListStreamUrls",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "gameliftstreams:GetStreamUrl",
+            "resource": "arn:aws:gameliftstreams:*:{account}:streamgroup/*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-ivs-recover-publishing-and-playback-capabilit-7128f3c7": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-ivs-post-exploitation/README.md#recover-publishing-and-playback-capabilities",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ivs:GetIngestConfiguration",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-ivs-recover-publishing-and-playback-capabilit-997dd8c9": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-ivs-post-exploitation/README.md#recover-publishing-and-playback-capabilities",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ivs:GetStreamKey",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-ivs-recover-publishing-and-playback-capabilit-fd578249": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-ivs-post-exploitation/README.md#recover-publishing-and-playback-capabilities",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ivs:GetChannel",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-jit-shell-to-hybrid-managed-instance": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md#ssmstartaccessrequest--ssmgetaccesstoken--vend-jit-credentials-for-a-session-manager-shell",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ssm:StartAccessRequest",
+          "resource": "*"
+        },
+        {
+          "action": "ssm:GetAccessToken",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-promote-controlled-workdocs-user-to-administrator": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-workdocs-privesc/README.md#workdocsupdateuser",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workdocs:UpdateUser",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-redirect-connector-to-steal-partner-sftp-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-transfer-family-privesc/README.md#transferupdateconnector--redirect-an-sftp-connector-and-capture-its-stored-credential",
+    "requires": {
+      "all_of": [
+        {
+          "action": "transfer:UpdateConnector",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-reset-wickr-retention-bot-challenge-and-operate-bot": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-wickr-privesc/README.md#wickrcreatedataretentionbotchallenge--take-over-the-data-retention-bot",
+    "requires": {
+      "all_of": [
+        {
+          "action": "wickr:CreateDataRetentionBotChallenge",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-resume-disconnected-hybrid-node-session": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md#ssmresumesession",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ssm:ResumeSession",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit-trigger-stored-query-that-delivers-restricted-secrets": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-timestream-privesc/README.md#timestreamexecutescheduledquery--trigger-an-already-stored-role-workflow",
+    "requires": {
+      "all_of": [
+        {
+          "action": "timestream:ExecuteScheduledQuery",
+          "resource": "*"
+        },
+        {
+          "action": "timestream:DescribeEndpoints",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit2-appsync-2": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-appsync-post-exploitation/README.md#read-environment-secrets-and-export-the-schema",
+    "requires": {
+      "all_of": [
+        {
+          "action": "appsync:GetGraphqlApiEnvironmentVariables",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit2-athena-query-disclosure-1": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-athena-query-disclosure-post-exploitation/README.md#query-history-and-result-disclosure",
+    "requires": {
+      "all_of": [
+        {
+          "action": "athena:GetQueryExecution",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-audit2-athena-query-disclosure-2": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-athena-query-disclosure-post-exploitation/README.md#query-history-and-result-disclosure",
+    "requires": {
+      "all_of": [
+        {
+          "action": "athena:GetQueryResults",
+          "resource": "*"
+        },
+        {
+          "action": "s3:GetObject",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-chime-attendee-jointoken-read": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-chime-sdk-enum.md#meetings",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "chime:GetAttendee",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "chime:ListAttendees",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-codebuild-read-plaintext-aws-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_credential_binding",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-codebuild-enum.md#enumeration",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "codebuild:BatchGetProjects",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "codebuild:BatchGetBuilds",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-codepipeline-getjobdetails-artifact-session": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-job-credentials-privesc/README.md#codepipelinegetjobdetails--known-job-artifact-credentials",
+    "requires": {
+      "all_of": [
+        {
+          "action": "codepipeline:GetJobDetails",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-codepipeline-pollforjobs-artifact-session": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-job-credentials-privesc/README.md#codepipelinepollforjobs--custom-action-artifact-credentials",
+    "requires": {
+      "all_of": [
+        {
+          "action": "codepipeline:PollForJobs",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-cognito-describeidentityprovider-upstream-client-secret": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_upstream_client",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-cognito-enum/cognito-user-pools.md#directory-and-client-secret-disclosure",
+    "requires": {
+      "all_of": [
+        {
+          "action": "cognito-idp:DescribeIdentityProvider",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-cognito-upstream-idp-client-secret": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "ProviderDetails must contain a cleartext client_secret; the external provider must accept it with the matching client ID and configured flow.",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-cognito-directory-secret-disclosure-post-exploitation/README.md#iam-reads-that-expose-directory-data-and-idp-client-secrets",
+    "requires": {
+      "all_of": [
+        {
+          "action": "cognito-idp:DescribeIdentityProvider",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-connect-contact-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "The page describes possible credential capture; IAM permission alone does not prove content, owner, validity or usable downstream scope.",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-connect-post-exploitation/README.md#collect-contact-metadata-attributes-references-and-files",
+    "requires": {
+      "all_of": [
+        {
+          "action": "connect:GetContactAttributes",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-connect-conversation-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "The page describes possible credential capture; IAM permission alone does not prove content, owner, validity or usable downstream scope.",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-connect-post-exploitation/README.md#read-or-monitor-live-conversations",
+    "requires": {
+      "all_of": [
+        {
+          "action": "connect:ListRealtimeContactAnalysisSegments",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-connect-createparticipant-bearer": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_active_contact",
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "short_token_lifetime"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-connect-enum.md#authorization-and-unauthenticated-boundary",
+    "requires": {
+      "all_of": [
+        {
+          "action": "connect:CreateParticipant",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-connect-flow-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "The page describes possible credential capture; IAM permission alone does not prove content, owner, validity or usable downstream scope.",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-connect-post-exploitation/README.md#recover-flow-source-and-integration-targets",
+    "requires": {
+      "all_of": [
+        {
+          "action": "connect:DescribeContactFlow",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-connect-processor-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "The page describes possible credential capture; IAM permission alone does not prove content, owner, validity or usable downstream scope.",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-connect-post-exploitation/README.md#intercept-and-alter-an-active-chat-with-a-custom-message-processor",
+    "requires": {
+      "all_of": [
+        {
+          "action": "connect:StartContactMediaProcessing",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-connect-stream-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "The page describes possible credential capture; IAM permission alone does not prove content, owner, validity or usable downstream scope.",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-connect-post-exploitation/README.md#stream-an-active-chat-to-a-cross-account-sns-topic",
+    "requires": {
+      "all_of": [
+        {
+          "action": "connect:StartContactStreaming",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-datazone-createprojectmembership-owner": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "controlled_profile",
+      "datazone_authorization",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-datazone-persistence/README.md#add-an-attacker-profile-as-a-project-owner",
+    "requires": {
+      "all_of": [
+        {
+          "action": "datazone:CreateProjectMembership",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-ec2-launchtemplate-embedded-iam-key": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "condition_1",
+      "condition_2",
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#ec2describelaunchtemplateversions-ec2describelaunchtemplates-optional",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ec2:DescribeLaunchTemplateVersions",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-ecr-image-embedded-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "condition_1",
+      "condition_2",
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecr-privesc/README.md#ecrgetauthorizationtoken-ecrbatchgetimage-ecrgetdownloadurlforlayer",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ecr:BatchGetImage",
+          "resource": "*"
+        },
+        {
+          "action": "ecr:GetDownloadUrlForLayer",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-eks-updatepodidentityassociation-targetrole": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "condition_1",
+      "condition_2",
+      "condition_3",
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eks-privesc/README.md#eksupdatepodidentityassociation-iampassrole--repoint-an-existing-association-role-swap-cross-account-chaining-tag-guardrail-bypass",
+    "requires": {
+      "all_of": [
+        {
+          "action": "eks:UpdatePodIdentityAssociation",
+          "resource": "*"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "*"
+        },
+        {
+          "action": "iam:GetRole",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-events-listtargets-static-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/eventbridgescheduler-enum.md#eventbridge-rule-targets",
+    "requires": {
+      "all_of": [
+        {
+          "action": "events:ListTargetsByRule",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-healthomics-cloudtrail-workflow-zip-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-healthomics-enum.md#cloudtrail-and-stealth",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "cloudtrail:LookupEvents",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "s3:GetObject",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-keyspaces-cdc-credential-record": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-keyspaces-enum.md#enumerate-and-read-cdc-streams",
+    "requires": {
+      "all_of": [
+        {
+          "action": "cassandra:GetStream",
+          "resource": "*"
+        },
+        {
+          "action": "cassandra:GetShardIterator",
+          "resource": "*"
+        },
+        {
+          "action": "cassandra:GetRecords",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-keyspaces-select-credential-row": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-keyspaces-enum.md#connect-to-cql-with-sigv4",
+    "requires": {
+      "all_of": [
+        {
+          "action": "cassandra:Select",
+          "resource": "*"
+        },
+        {
+          "action": "cassandra:Select",
+          "resource": "arn:aws:cassandra:*:*:/keyspace/system*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-lambda-durablehistory-secret-identity": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-lambda-enum.md#lambda-durable-executions",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:GetDurableExecutionHistory",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-lambda-getfunction-package-secret-identity": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-lambda-enum.md#enumeration",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:GetFunction",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-lambda-listfunctions-secret-identity": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-lambda-enum.md#enumeration",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:ListFunctions",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-lambda-listversions-secret-identity": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-lambda-enum.md#enumeration",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:ListVersionsByFunction",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-lex-getsession-other-application-session": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-lex-v2-enum.md#runtime-sessions-and-stored-utterances",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lex:GetSession",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-pa-persist-s01-01": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_prerequisites",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-acm-persistence/README.md#register-an-attacker-controlled-acme-certificate-account",
+    "requires": {
+      "all_of": [
+        {
+          "action": "acm:CreateAcmeExternalAccountBinding",
+          "resource": "*"
+        },
+        {
+          "action": "acm:GetAcmeExternalAccountBindingCredentials",
+          "resource": "*"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-pa-s03-4-rds-proxy-auth-secret": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "kms_and_route",
+      "proxy_secret_match"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-rds-post-exploitation/README.md#harvest-db-credentials-via-rds-proxy-auth-secrets-rdsdescribedbproxies--secretsmanagergetsecretvalue",
+    "requires": {
+      "all_of": [
+        {
+          "action": "rds:DescribeDBProxies",
+          "resource": "*"
+        },
+        {
+          "action": "secretsmanager:GetSecretValue",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-peaso-establish-an-attacker-owned-consortium-member": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-managed-blockchain-persistence/README.md#establish-an-attacker-owned-consortium-member",
+    "requires": {
+      "all_of": [
+        {
+          "action": "managedblockchain:CreateProposal",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-peaso-mint-an-accessor-bearer-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-persistence/aws-managed-blockchain-persistence/README.md#mint-an-accessor-bearer-credential",
+    "requires": {
+      "all_of": [
+        {
+          "action": "managedblockchain:CreateAccessor",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-rds-dbconnect-aurora-role": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "condition_1",
+      "condition_2",
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-rds-privesc/README.md#postgresql-aurora",
+    "requires": {
+      "all_of": [
+        {
+          "action": "rds-db:connect",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-01-token-for-an-existing-admin-grafana-service-account": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-grafana-privesc/README.md#createworkspaceserviceaccounttoken--existing-or-attacker-created-service-account",
+    "requires": {
+      "all_of": [
+        {
+          "action": "grafana:CreateWorkspaceServiceAccountToken",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-04-read-public-msk-sasl-scram-secret": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-msk-privesc/README.md#kafkaupdatesecurity-to-expose-private-topics-without-credentials",
+    "requires": {
+      "all_of": [
+        {
+          "action": "secretsmanager:GetSecretValue",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-10-lambda-getfunction-download-a-function-deployment-packa": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdagetfunction--download-a-function-deployment-package",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:GetFunction",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-11-lambda-getfunctionconfiguration-read-environment-variab": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdagetfunctionconfiguration--read-environment-variables",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:GetFunctionConfiguration",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-12-lambda-getlayerversion-download-layer-code": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdagetlayerversion--download-layer-code",
+    "requires": {
+      "all_of": [
+        {
+          "action": "lambda:GetLayerVersion",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-28-studio-presigned-url-to-zeppelin-execution": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential",
+      "verified_collector_fact"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md#studio-presigned-url-to-zeppelin-execution",
+    "requires": {
+      "all_of": [
+        {
+          "action": "kinesisanalytics:CreateApplicationPresignedUrl",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-abusing-workmail-to-bypass-ses-sandbox": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-workmail-post-exploitation/README.md#abusing-workmail-to-bypass-ses-sandbox",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workmail:RegisterMailDomain",
+          "resource": "*"
+        },
+        {
+          "action": "workmail:CreateUser",
+          "resource": "*"
+        },
+        {
+          "action": "workmail:RegisterToWorkMail",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-disable-inline-redaction": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-workspaces-web-post-exploitation/README.md#disable-inline-redaction",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workspaces-web:UpdateDataProtectionSettings",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-ec2getvpnconnectiondevicesampleconfiguration-disclose-site-to-site-vpn": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2getvpnconnectiondevicesampleconfiguration--disclose-site-to-site-vpn-pre-shared-keys",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ec2:GetVpnConnectionDeviceSampleConfiguration",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-ec2modifyclientvpnendpoint-hijack-client-dnsrouting-and-suppress-conne": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2modifyclientvpnendpoint--hijack-client-dnsrouting-and-suppress-connection-logs",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ec2:ModifyClientVpnEndpoint",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-ec2modifyvpnconnection-ec2modifyvpntunneloptions-take-over-an-existing": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2modifyvpnconnection--ec2modifyvpntunneloptions--take-over-an-existing-site-to-site-vpn-peer",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "ec2:ModifyVpnConnection",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "ec2:ModifyVpnConnection",
+            "resource": "*"
+          },
+          {
+            "action": "ec2:ModifyVpnTunnelOptions",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-liveanalytics-export-query-results-to-s3-with-timestreamunload": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-timestream-post-exploitation/README.md#liveanalytics-export-query-results-to-s3-with-timestreamunload",
+    "requires": {
+      "all_of": [
+        {
+          "action": "timestream:Select",
+          "resource": "*"
+        },
+        {
+          "action": "timestream:Unload",
+          "resource": "*"
+        },
+        {
+          "action": "s3:GetBucketAcl",
+          "resource": "*"
+        },
+        {
+          "action": "s3:PutObject",
+          "resource": "*"
+        },
+        {
+          "action": "s3:GetObject",
+          "resource": "*"
+        },
+        {
+          "action": "s3:AbortMultipartUpload",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-liveanalytics-query-a-table-with-timestreamselect": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-timestream-post-exploitation/README.md#liveanalytics-query-a-table-with-timestreamselect",
+    "requires": {
+      "all_of": [
+        {
+          "action": "timestream:Select",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-logsfilterlogevents-logsgetlogevents-recover-custom-idp-passwords-from": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-transfer-family-post-exploitation/README.md#logsfilterlogevents--logsgetlogevents--recover-custom-idp-passwords-from-logs",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "logs:FilterLogEvents",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "logs:GetLogEvents",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-recover-configured-sap-hana-administrator-credentials": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-systems-manager-for-sap-post-exploitation/README.md#recover-configured-sap-hana-administrator-credentials",
+    "requires": {
+      "all_of": [
+        {
+          "action": "ssm-sap:GetDatabase",
+          "resource": "*"
+        },
+        {
+          "action": "secretsmanager:GetSecretValue",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-thinclientupdateenvironment-redirect-devices-to-another-desktop-provid": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-workspaces-thin-client-post-exploitation/README.md#thinclientupdateenvironment---redirect-devices-to-another-desktop-provider-or-idp-endpoint",
+    "requires": {
+      "all_of": [
+        {
+          "action": "thinclient:UpdateEnvironment",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-wickrgetoidcinfo-disclose-the-sso-client-secret": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-wickr-post-exploitation/README.md#wickrgetoidcinfo--disclose-the-sso-client-secret",
+    "requires": {
+      "all_of": [
+        {
+          "action": "wickr:GetOidcInfo",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-wickrgetopentdfconfig-disclose-the-opentdf-client-secret": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-wickr-post-exploitation/README.md#wickrgetopentdfconfig--disclose-the-opentdf-client-secret",
+    "requires": {
+      "all_of": [
+        {
+          "action": "wickr:GetOpentdfConfig",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-wickrlistusers-recover-an-invited-users-enrollment-code": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-wickr-post-exploitation/README.md#wickrlistusers--recover-an-invited-users-enrollment-code",
+    "requires": {
+      "all_of": [
+        {
+          "action": "wickr:ListUsers",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-workmailmessageflowgetrawmessagecontent-putrawmessagecontent-steal-or": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-workmail-post-exploitation/README.md#workmailmessageflowgetrawmessagecontent--putrawmessagecontent--steal-or-rewrite-in-transit-email",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workmailmessageflow:GetRawMessageContent",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-workspacesmodifysamlproperties-modifycertificatebasedauthproperties-we": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-workspaces-post-exploitation/README.md#workspacesmodifysamlproperties--modifycertificatebasedauthproperties--weaken-desktop-authentication",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "workspaces:ModifySamlProperties",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "workspaces:ModifyCertificateBasedAuthProperties",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-s05-workspacesupdateworkspaceimagepermission-share-a-custom-image-with-an": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-workspaces-post-exploitation/README.md#workspacesupdateworkspaceimagepermission--share-a-custom-image-with-an-attacker-account",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workspaces:UpdateWorkspaceImagePermission",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-scheduler-getschedule-static-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/eventbridgescheduler-enum.md#schedulergetschedule--target-input-disclosure",
+    "requires": {
+      "all_of": [
+        {
+          "action": "scheduler:GetSchedule",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-ssm-sap-hana-admin-secret": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-systems-manager-for-sap-enum.md#applications-components-and-databases",
+    "requires": {
+      "all_of": [
+        {
+          "action": "secretsmanager:GetSecretValue",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-transfer-connector-remote-credential": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-transfer-family-enum.md#main-resource-relationships",
+    "requires": {
+      "all_of": [
+        {
+          "action": "secretsmanager:GetSecretValue",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-verifiedpermissions-identity-source-impersonation": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-services/aws-verified-permissions-enum.md#identity-source-and-cross-account-boundaries",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "verifiedpermissions:UpdateIdentitySource",
+            "resource": "*"
+          }
+        ],
+        [
+          {
+            "action": "verifiedpermissions:CreateIdentitySource",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "aws-waf-sampled-request-session-replay": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/aws-security/aws-post-exploitation/aws-waf-post-exploitation/README.md#aws-waf-log-credential-harvesting-and-request-replay",
+    "requires": {
+      "all_of": [
+        {
+          "action": "wafv2:GetSampledRequests",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-appengine-log-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-app-engine-post-exploitation.md#read-application-logs-with-logginglogentrieslist",
+    "requires": {
+      "all_of": [
+        {
+          "action": "logging.logEntries.list",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-appengine-memcache-session": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-app-engine-post-exploitation.md#read-or-poison-app-engine-memcache-data",
+    "requires": {
+      "all_of": [
+        {
+          "action": "appengine.memcache.get",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-appengine-source-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-app-engine-post-exploitation.md#read-source-code",
+    "requires": {
+      "all_of": [
+        {
+          "action": "appengine.versions.get",
+          "resource": "*"
+        },
+        {
+          "action": "storage.objects.get",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-appengine-version-env-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-app-engine-post-exploitation.md#read-secrets-and-deployment-locations-from-version-configuration",
+    "requires": {
+      "all_of": [
+        {
+          "action": "appengine.versions.get",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-artifactregistry-download-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-artifact-registry-post-exploitation.md#artifactregistryrepositoriesdownloadartifacts--inspect-stored-artifacts-for-sensitive-data",
+    "requires": {
+      "all_of": [
+        {
+          "action": "artifactregistry.repositories.downloadArtifacts",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-artifactregistry-export-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-artifact-registry-post-exploitation.md#artifactregistryrepositoriesexportartifacts--copy-an-artifact-to-cloud-storage",
+    "requires": {
+      "all_of": [
+        {
+          "action": "artifactregistry.repositories.exportArtifacts",
+          "resource": "*"
+        },
+        {
+          "action": "storage.objects.get",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-audit-s01-09-redirect-bound-mcp-service-a": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_target_evidence",
+      "full_native_principal_credential",
+      "runtime_delivery"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-registry-privesc.md#agentregistryservicesupdate--redirect-a-bound-target-and-capture-its-agent-identity-credential",
+    "requires": {
+      "all_of": [
+        {
+          "action": "agentregistry.services.update",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-audit-s01-10-replace-default-executable-s": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_target_evidence",
+      "full_native_principal_credential",
+      "runtime_mount"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-agent-registry-privesc.md#agentregistryskillrevisionscreate--agentregistryskillsupdate--replace-an-executable-skills-default-revision",
+    "requires": {
+      "all_of": [
+        {
+          "action": "agentregistry.skillRevisions.create",
+          "resource": "*"
+        },
+        {
+          "action": "agentregistry.skills.update",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-backupdr-autoprotection-disk-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-backup-and-dr-post-exploitation.md#continuously-capture-labelled-compute-resources-with-auto-protection",
+    "requires": {
+      "all_of": [
+        {
+          "action": "backupdr.autoProtectionPolicies.create",
+          "resource": "*"
+        },
+        {
+          "action": "backupdr.backupPlans.useForComputeDisk",
+          "resource": "*"
+        },
+        {
+          "action": "backupdr.autoProtectionBindings.create",
+          "resource": "*"
+        },
+        {
+          "action": "backupdr.appliedAutoProtectionPolicies.authorize",
+          "resource": "*"
+        },
+        {
+          "action": "backupdr.bvbackups.restore",
+          "resource": "*"
+        },
+        {
+          "action": "backupdr.compute.restoreFromBackupVault",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-backupdr-restored-disk-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-backup-and-dr-post-exploitation.md#restore-a-vaulted-compute-engine-backup-into-a-controlled-project",
+    "requires": {
+      "all_of": [
+        {
+          "action": "backupdr.bvbackups.restore",
+          "resource": "*"
+        },
+        {
+          "action": "backupdr.compute.restoreFromBackupVault",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-bigquery-job-sql-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-bigquery-post-exploitation.md#bigqueryjobslistall--jobslist-jobsget--read-every-principals-sql-silently",
+    "requires": {
+      "all_of": [
+        {
+          "action": "bigquery.jobs.listAll",
+          "resource": "*"
+        },
+        {
+          "action": "bigquery.jobs.list",
+          "resource": "*"
+        },
+        {
+          "action": "bigquery.jobs.get",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-cloudbuild-log-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-cloud-build-post-exploitation.md#read-stored-build-output",
+    "requires": {
+      "all_of": [
+        {
+          "action": "logging.logEntries.list",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-create-attacker-upstream-remote-repository-consumed-directly": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_evidence",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-persistence/gcp-artifact-registry-persistence.md#remote-repository-pointing-at-an-attacker-controlled-upstream-url",
+    "requires": {
+      "all_of": [
+        {
+          "action": "artifactregistry.repositories.create",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-dataform-existing-compilation-result-actas": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "saved_actions",
+      "service_agent"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataform-privesc.md#dataformworkflowinvocationscreate--invoke-an-existing-compilation-result-or-user-credential-workflow",
+    "requires": {
+      "all_of": [
+        {
+          "action": "dataform.workflowInvocations.create",
+          "resource": "{target.host_resource}"
+        },
+        {
+          "action": "iam.serviceAccounts.actAs",
+          "resource": "{target.email}"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-deploymentmanager-manifest-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "credential_evidence",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-services/gcp-deployment-manager-enum.md#what-to-review",
+    "requires": {
+      "all_of": [
+        {
+          "action": "deploymentmanager.manifests.get",
+          "resource": "{target.host_resource}"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-designcenter-bucket-credential": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-application-design-center-post-exploitation.md#rolesdesigncenterviewer--read-objects-from-known-cloud-storage-buckets",
+    "requires": {
+      "all_of": [
+        {
+          "action": "storage.objects.get",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-integration-invoke-input-effect-13": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-to-workspace-pivoting/gcp-application-integration-privesc.md#http-connector-credential-forwarding",
+    "requires": {
+      "all_of": [
+        {
+          "action": "integrations.integrations.invoke",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-pa-s03-1-deploymentmanager": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-deployment-manager-post-exploitation.md#deploymentmanagermanifestsget--discovery-permissions--recover-configuration-and-unredacted-credentials",
+    "requires": {
+      "all_of": [
+        {
+          "action": "deploymentmanager.manifests.get",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-pa-s03-4-dialogflow": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-dialogflow-post-exploitation.md#dialogflowwebhooksupdate--redirect-retained-external-authentication-material",
+    "requires": {
+      "all_of": [
+        {
+          "action": "dialogflow.webhooks.update",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-pubsub-push-oidc-endpoint": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-cross-project-attacks/resource-sharing-and-confused-deputy-attacks.md#notable-subtleties",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "pubsub.subscriptions.create",
+            "resource": "*"
+          },
+          {
+            "action": "iam.serviceAccounts.actAs",
+            "resource": "{target.host_resource}"
+          }
+        ],
+        [
+          {
+            "action": "pubsub.subscriptions.update",
+            "resource": "*"
+          },
+          {
+            "action": "iam.serviceAccounts.actAs",
+            "resource": "{target.host_resource}"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-s08-10-receive-monitoring-service-agent-oidc-tokens": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "exact_verified_prerequisites",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-persistence/gcp-monitoring-persistence.md#scheduled-service-agent-oidc-token-harvesting---monitoringuptimecheckconfigscreate--an-endpoint-you-control",
+    "requires": {
+      "all_of": [],
+      "any_of": [
+        [
+          {
+            "action": "monitoring.uptimeCheckConfigs.create",
+            "resource": "*"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-securesourcemanager-hook-oidc-token": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "Repository SA association, service-agent Token Creator, hook event, reachable endpoint and matching downstream audience.",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-services/gcp-secure-source-manager-enum.md#relevant-permissions",
+    "requires": {
+      "any_of": [
+        [
+          {
+            "action": "securesourcemanager.hooks.create",
+            "resource": "*"
+          },
+          {
+            "action": "iam.serviceAccounts.actAs",
+            "resource": "{target.email}"
+          }
+        ],
+        [
+          {
+            "action": "securesourcemanager.hooks.update",
+            "resource": "*"
+          },
+          {
+            "action": "iam.serviceAccounts.actAs",
+            "resource": "{target.email}"
+          }
+        ]
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-workflows-existing-parameterized-invoke": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "argument_to_oauth_request",
+      "exact_source_operation_resources",
+      "full_native_principal_credential"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-persistence/gcp-workflows-persistence.md#backdoor-workflow-bound-to-a-privileged-service-account",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workflows.executions.create",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  },
+  "gcp-workflows-parameterized-callback": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_source_operation_resources",
+      "full_native_principal_credential",
+      "live_callback_and_oauth_flow"
+    ],
+    "source": "src/pentesting-cloud/gcp-security/gcp-persistence/gcp-workflows-persistence.md#long-lived-callback-endpoint---a-waiting-execution-as-a-trigger",
+    "requires": {
+      "all_of": [
+        {
+          "action": "workflows.callbacks.send",
+          "resource": "*"
+        }
+      ]
+    },
+    "allow_global_source_bindings": true
+  }
+}

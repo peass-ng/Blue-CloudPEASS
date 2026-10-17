@@ -36,6 +36,7 @@ def _error_status(exc):
 
 class Budget:
     def __init__(self, options):
+        self.progress_callback = options.get("_progress_callback")
         def optional_limit(name):
             value = options.get(name)
             if value is None:
@@ -78,10 +79,14 @@ class Collector:
         self.wanted = set(inventories)
         self.collections = []
         self.total_items = 0
+        self.progress_callback = options.get("_progress_callback")
 
     def collect(self, kind, scope, service, fetch):
         if kind not in self.wanted:
             return
+        from peaso.progress import emit_progress
+        emit_progress(self.progress_callback, phase="collecting", provider=self.provider, scope=scope,
+                      completed=len(self.collections), total=None, resources=self.total_items, dynamic_total=True)
         items = {}
         status, error = "collected", None
         try:
@@ -113,6 +118,8 @@ class Collector:
         if error:
             envelope["error"] = error
         self.collections.append(envelope)
+        emit_progress(self.progress_callback, phase="collecting", provider=self.provider, scope=scope,
+                      completed=len(self.collections), total=None, resources=self.total_items, dynamic_total=True)
 
     def fail_remaining(self, exc):
         status, error = _error_status(exc)

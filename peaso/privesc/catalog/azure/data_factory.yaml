@@ -1,68 +1,37 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Azure Data Factory techniques (declarative only).
-# Source: hacktricks-cloud az-data-factory-privesc.md (rev a53b46392c; working-tree copy read).
+# Source: hacktricks-cloud az-data-factory-privesc.md (rev 171e422).
 
-- id: azure-datafactory-pipeline-write-and-run
+- id: azure-datafactory-dataplane-access-token
   provider: azure
   service: data_factory
-  title: Replace and run a Data Factory pipeline that authenticates with the factory identity
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#pipelineswrite--pipelinescreaterunaction--steal-the-factory-managed-identity-token
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the Data Factory's managed identities.
+  title: Use a factory data-plane token to execute as one exact managed identity
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#mint-a-factory-data-plane-access-token-with-factoriesgetdataplaneaccessaction
+  source_revision: 171e422
+  summary: A scoped factory data-plane token reaches a particular factory managed identity only after a verified runnable activity executes and returns that identity's token.
   requires:
     all_of:
-      - action: Microsoft.DataFactory/factories/pipelines/write
-        scope: '{target.host_resource}'
-      - action: Microsoft.DataFactory/factories/pipelines/createRun/action
-        scope: '{target.host_resource}'
+      - action: Microsoft.DataFactory/factories/getDataPlaneAccess/action
+        scope: '{target.scope}'
   target:
     kind: azure_managed_identity
     selector:
-      attached_to_service: Microsoft.DataFactory/factories
+      azure_challenge_fact: azure-datafactory-dataplane-access-token
     scope: inherited_scope
-    aggregate_as: Identities of Data Factory {target.host_resource}
+    outcome: credentials
+    aggregate_as: Exact Data Factory identity reached by a verified token and pipeline run
   conditions:
-    - id: user_assigned_needs_credential
-      description: User-assigned factory identities are usable by activities only through an existing factory credential object referencing them (or credentials/write to create one); the system-assigned identity needs nothing extra.
+    - id: exact_token_pipeline_identity_join
+      description: Reviewed evidence must bind the scoped usable data-plane token, executable pipeline or debug activity, successful run, exact system-assigned identity or user-assigned factory credential, and obtained managed-identity token.
   blockers:
     - azure_deny_assignment
-  confidence: derived
-  severity: critical
-  mitigation: Restrict pipelines/write and createRun/action; keep the factory identity least-privileged.
-  references:
-    - https://learn.microsoft.com/en-us/azure/data-factory/data-factory-service-identity
-  notes: Validated for the system-assigned identity; user-assigned identities require a factory credential object referencing them.
-
-- id: azure-datafactory-parameter-redirection
-  provider: azure
-  service: data_factory
-  title: Redirect an existing pipeline's identity-authenticated call through parameters
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#redirect-factory-output-through-microsoftdatafactoryfactoriesglobalparameterswrite
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the Data Factory's managed identities.
-  requires:
-    all_of: []
-    any_of:
-      - - action: Microsoft.DataFactory/factories/globalParameters/write
-          scope: '{target.host_resource}'
-      - - action: Microsoft.DataFactory/factories/triggers/write
-          scope: '{target.host_resource}'
-        - action: Microsoft.DataFactory/factories/triggers/stop/action
-          scope: '{target.host_resource}'
-        - action: Microsoft.DataFactory/factories/triggers/start/action
-          scope: '{target.host_resource}'
-  target:
-    kind: azure_managed_identity
-    selector:
-      attached_to_service: Microsoft.DataFactory/factories
-    scope: inherited_scope
-    aggregate_as: Identities of Data Factory {target.host_resource}
-  conditions:
-    - id: pipeline_trusts_parameter
-      description: An existing pipeline must send a managed-identity-authenticated request to a URL taken from the parameter, and must run later.
-  blockers: []
   confidence: conditional
   severity: high
-  mitigation: Restrict globalParameters/write and trigger write/stop/start; do not parameterize destinations of identity-authenticated activities.
+  mitigation: Restrict getDataPlaneAccess/action and review data-plane token scopes and pipeline execution.
   references:
-    - https://learn.microsoft.com/en-us/azure/data-factory/author-global-parameters
-  notes: Trigger variant is the 'redirect-a-schedule-trigger-with-triggerswrite--stopstart' section.
+    - https://learn.microsoft.com/en-us/rest/api/datafactory/factories/get-data-plane-access
+  notes: Generic token issuance, even with an attached identity, cannot create an edge. The typed azure_datafactory_identity evidence contract must validate every step.

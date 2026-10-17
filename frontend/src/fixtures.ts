@@ -1,5 +1,6 @@
 import type { Connector, Finding, Graph, Report, Scan } from "./types";
 import { privescDemoRequest } from "./privescFixtures";
+import frameworkCatalog from "./frameworkCatalog.json";
 const findings: Finding[] = [
   {
     id: "demo-f1",
@@ -19,12 +20,24 @@ const findings: Finding[] = [
     },
     remediation:
       "Confirm storage encryption is enforced and review the collected configuration.",
+    remediation_details: {
+      summary: "Configure default encryption for the affected storage bucket after choosing the approved key owner.",
+      steps: ["Inspect the bucket encryption declaration and dependent readers or writers.", "Choose the approved managed key and update the bucket through its infrastructure owner.", "Verify new objects and access paths, then rerun the storage check."],
+      cli: [],
+      caveats: ["This is an illustrative fixture; it does not identify a real bucket or key."],
+      references: [{ title: "Amazon S3 default bucket encryption", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-encryption.html" }],
+    },
   },
   {
     id: "demo-f2",
     category: "exposure",
     check_id: "fixture.network.ingress",
     title: "Broad network ingress observed",
+    description: "This illustrative check reads an ingress rule that declares a world-open IPv4 source; it does not determine whether the workload is reachable from the internet.",
+    evaluated: ["Security group ingress source CIDR", "Allowed protocol and port", "Attached workload context"],
+    pass_when: "No reviewed ingress rule declares a world-open source for the flagged port.",
+    fail_when: "A reviewed ingress rule declares 0.0.0.0/0 for the flagged port.",
+    not_applicable_when: "The relevant ingress rule or security group is absent from the collected inventory.",
     provider: "aws",
     service: "ec2",
     resource_id: "demo-security-group",
@@ -35,6 +48,13 @@ const findings: Finding[] = [
     evidence: { cidr: "0.0.0.0/0", source: "Explicit demo fixture" },
     remediation:
       "Limit ingress to required trusted networks and approved services.",
+    remediation_details: {
+      summary: "Replace the illustrative world-open ingress source with the client range approved for the application.",
+      steps: ["Identify the real security group rule, port, attached workload and clients.", "Add and test a narrower approved source before removing the broad rule.", "Verify intended traffic and the resulting ingress declaration."],
+      cli: [],
+      caveats: ["The demo does not contain a real rule ID or approved CIDR, so it cannot supply a safe mutation command."],
+      references: [{ title: "AWS security group rules", url: "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html" }],
+    },
   },
   {
     id: "demo-f3",
@@ -55,6 +75,13 @@ const findings: Finding[] = [
     },
     remediation:
       "Review the role policy against documented workload requirements.",
+    remediation_details: {
+      summary: "Narrow the illustrative role grant to the actions and resources verified for its workload.",
+      steps: ["Inventory attached policies and the legitimate workload operations.", "Prepare and review a least-privilege replacement policy with the owner.", "Test the role after the policy change and inspect remaining broad grants."],
+      cli: [],
+      caveats: ["The fixture lacks a granting statement and a reviewed replacement policy; no policy mutation can be derived from it."],
+      references: [{ title: "AWS IAM policy editing", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_manage-edit-cli.html" }],
+    },
   },
   {
     id: "demo-f4",
@@ -70,6 +97,12 @@ const findings: Finding[] = [
     frameworks: ["HackTricks Cloud Best Practices"],
     evidence: { logging: true, source: "Explicit demo fixture" },
     remediation: "Continue monitoring audit delivery.",
+    remediation_details: {
+      summary: "Keep the configured storage audit delivery under observation.",
+      steps: ["Confirm the audit destination and its retention policy with the owner.", "Check that fresh audit records arrive and alerting remains active."],
+      cli: [],
+      references: [{ title: "Amazon S3 server access logging", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerLogs.html" }],
+    },
   },
 ];
 const network: Graph = {
@@ -207,7 +240,8 @@ export function demoRequest(path: string, init: RequestInit): unknown {
     const privesc = privescDemoRequest(path);
     if (privesc !== undefined) return privesc;
   }
-  path = path.split("?")[0];
+  const [pathname, query = ""] = path.split("?", 2);
+  path = pathname;
   if (init.method && init.method !== "GET")
     throw new Error(
       "Fixture demo is read-only. Switch to live API to make changes.",
@@ -222,20 +256,10 @@ export function demoRequest(path: string, init: RequestInit): unknown {
   if (path === "/connectors") return { items: connectors };
   if (path === "/scans") return { items: scans };
   if (path === "/schedules") return { items: [] };
-  if (path === "/catalog")
-    return {
-      checks: [
-        {
-          id: "fixture.storage.encryption",
-          provider: "aws",
-          service: "s3",
-          title: "Example encryption check",
-          status: "fixture",
-          frameworks: ["HackTricks Cloud Best Practices"],
-        },
-      ],
-      note: "Fixture catalog. Consult live catalog for supported native checks.",
-    };
+  if (path === "/catalog/frameworks") {
+    return { ...frameworkCatalog, view: "frameworks" };
+  }
+  if (path === "/catalog") return frameworkCatalog;
   if (path.includes("/coverage"))
     return {
       items: report.coverage,
@@ -243,7 +267,39 @@ export function demoRequest(path: string, init: RequestInit): unknown {
       next_offset: null,
     };
   if (path.endsWith("/summary")) return report;
-  if (path.includes("/findings")) return { items: findings };
+  if (path.includes("/findings")) {
+    const params = new URLSearchParams(query);
+    const selected = findings.filter((finding) =>
+      (["categories", "severity", "service", "status"] as const).every((key) => {
+        const expected = params.get(key);
+        if (!expected) return true;
+        const field = key === "categories" ? finding.category : finding[key];
+        return expected.toLowerCase().split(",").includes(field.toLowerCase());
+      }) &&
+      (!params.get("search") || JSON.stringify(finding).toLowerCase().includes(params.get("search")!.toLowerCase())) &&
+      (!params.get("framework") || finding.frameworks.includes(params.get("framework")!)),
+    ).map((finding) => ({ ...finding, account: finding.scope.split("/", 1)[0] }));
+    const sortBy = params.get("sort_by");
+    const order = params.get("sort_order") === "desc" ? -1 : 1;
+    const rank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+    selected.sort((a, b) => {
+      const key = sortBy || params.get("group_by") || "service";
+      const value = (row: typeof selected[number]) => key === "resource_id"
+        ? row.resource_name || row.native_resource_id || row.resource_id
+        : String(row[key as keyof typeof row] || "");
+      const left = key === "severity" ? rank[a.severity] ?? 5 : value(a).toLowerCase();
+      const right = key === "severity" ? rank[b.severity] ?? 5 : value(b).toLowerCase();
+      return (left < right ? -1 : left > right ? 1 : 0) * (sortBy ? order : 1) || a.id.localeCompare(b.id);
+    });
+    const offset = Number(params.get("offset") || 0);
+    const limit = Number(params.get("limit") || 500);
+    const items = selected.slice(offset, offset + limit);
+    return { items, offset, limit, total: selected.length,
+      next_offset: offset + items.length < selected.length ? offset + items.length : null,
+      facets: { services: [...new Set(findings.map((f) => f.service))],
+        statuses: [...new Set(findings.map((f) => f.status))],
+        frameworks: [...new Set(findings.flatMap((f) => f.frameworks))] } };
+  }
   if (path.endsWith("/graphs/network")) return network;
   if (path.endsWith("/graphs/iam")) return iam;
   if (path.includes("/report")) return report;

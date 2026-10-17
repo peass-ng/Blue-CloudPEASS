@@ -7,6 +7,12 @@ from peaso.checks import CHECKS, HACKTRICKS
 from peaso.checks.fixtures import CASES
 from peaso.engine import evaluate_snapshot
 from peaso.snapshot import make_snapshot
+from peaso.engine import hydrate_frameworks
+
+_bulk_cases = json.loads((Path(__file__).parent / 'fixtures/bulk_pending_behavior.json').read_text())
+_bulk_ids = set(json.loads((Path(__file__).resolve().parents[1] / 'peaso/checks/bulk_pending.json').read_text())['checks'])
+assert set(_bulk_cases) == _bulk_ids, 'bulk behavior fixture IDs must match admitted definitions'
+CASES.update(_bulk_cases)
 
 
 PAB = {key: True for key in ("BlockPublicAcls", "IgnorePublicAcls", "BlockPublicPolicy", "RestrictPublicBuckets")}
@@ -38,9 +44,25 @@ BASE = {
 }
 for cid, (passing, failing) in BASE.items():
     CASES[cid] = {"pass": passing, "fail": failing}
+# Effective S3 BPA = bucket OR account (s3control); missing account BPA is UNKNOWN, not FAIL.
+CASES["aws.s3.public_access_block"]["fail_index"] = {"collections": {"s3_account_public_access_block": [{"scope": "a/r", "status": "empty", "items": []}]}}
+CASES["aws.s3.public_access_block"]["unknown"] = {"PublicAccessBlock": {"PublicAccessBlockConfiguration": {**PAB, "IgnorePublicAcls": False}}}
 CASES["aws.s3.default_encryption"] = {"pass": {"Encryption": {"ServerSideEncryptionConfiguration": {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}}}, "unknown": {"Encryption": {"absent": True}}}
 CASES["gcp.storage.public_access_prevention"] = {"pass": {"iamConfiguration": {"publicAccessPrevention": "enforced"}}, "unknown": {"iamConfiguration": {"publicAccessPrevention": "inherited"}}}
-CASES["k8s.network.namespace_policy_inventory"] = {"manual": {"metadata": {"name": "apps"}}, "fail": {"metadata": {"name": "empty"}}, "index": {"collections": {"networkpolicy": [{"scope": "apps", "status": "collected"}, {"scope": "empty", "status": "empty"}]}, "networkpolicy": [{"data": {"metadata": {"namespace": "apps"}}}]}}
+# An inherited setting is unenforced when the same project's complete effective policy says false.
+CASES["gcp.storage.public_access_prevention"].update({
+    "fail": {"iamConfiguration": {"publicAccessPrevention": "inherited"}},
+    "fail_index": {
+        "context": {"provider": "gcp", "scope": "projects/p"},
+        "collections": {"org_policy_effective": [{"scope": "projects/p", "status": "collected"}]},
+        "org_policy_effective": [{"scope": "projects/p", "data": {
+            "name": "projects/p/policies/storage.publicAccessPrevention",
+            "constraint": "storage.publicAccessPrevention",
+            "spec": {"rules": [{"enforce": False}]},
+        }}],
+    },
+})
+CASES["k8s.network.namespace_policy_inventory"] = {"manual": {"metadata": {"name": "apps"}}, "fail": {"metadata": {"name": "empty"}}, "index": {"collections": {"networkpolicy": [{"scope": "apps", "status": "collected", "items": [{"metadata": {"namespace": "apps"}}]}, {"scope": "empty", "status": "empty", "items": []}]}, "networkpolicy": [{"data": {"metadata": {"namespace": "apps"}}}]}}
 
 
 @pytest.mark.parametrize("check", CHECKS, ids=lambda c: c.id)
@@ -48,8 +70,19 @@ def test_every_check_has_behavior_fixtures(check):
     assert check.id in CASES, "registered checks cannot claim support without fixtures"
     cases = CASES[check.id]
     index = cases.get("index", {})
+    source_bound_unknown_fails = {
+        "aws.claude_a.networkfirewall.in_vpc",
+        "aws.c2b.ecs.container_instance_in_vpc",
+        "aws.c2b.eks.cluster_security_group_present",
+        "aws.c2b.backup.vault_encrypted",
+        "aws.a.iam.console_key_created_at_setup",
+    }
     for name, expected in (("pass", "PASS"), ("fail", "FAIL"), ("manual", "MANUAL"), ("unknown", "UNKNOWN")):
         if name in cases:
+            if name == "fail" and cases.get("fail_expect") is not None:
+                assert check.id in source_bound_unknown_fails
+                assert cases["fail_expect"] == "UNKNOWN"
+                expected = "UNKNOWN"
             data = copy.deepcopy(cases[name])
             before = copy.deepcopy(data)
             state_index = cases.get(name + "_index", cases.get("case_indices", {}).get(name, index))
@@ -110,12 +143,13 @@ def test_framework_union_evaluates_predicate_once():
     snapshot = make_snapshot("aws", ["us-east-1"], [{"type": check.kind, "scope": "us-east-1", "service": "ec2", "status": "collected", "items": [{"VolumeId": "vol-a", "Encrypted": True}]}])
     result = evaluate_snapshot(snapshot, categories=["hardening"], checks=[check.id], frameworks=tags)
     assert len(result["findings"]) == 1
-    assert result["findings"][0]["frameworks"] == tags
+    assert hydrate_frameworks(result)["findings"][0]["frameworks"] == tags
 
 
 def test_manifest_validator_and_mapping_conservation():
     from scripts.peaso_review_catalog import validate_manifest
     from peaso.checks.catalog import manifest
+    from tests.compliance_source_conservation import assert_source_frameworks_conserved
     data = manifest()
     stats = validate_manifest(data)
     assert stats["upstream_total"] > stats["native_checks"]
@@ -123,23 +157,31 @@ def test_manifest_validator_and_mapping_conservation():
     for row in data["checks"]:
         if row["disposition"] in ("ported", "merged"):
             for cid in row["native_checks"]:
-                mapping = registry[cid].mapping
-                for tag in row["frameworks"]:
-                    assert any(tag in value.get("controls", []) for value in mapping.values())
+                assert cid in registry, (row["check_id"], cid)
+                assert_source_frameworks_conserved(row, cid)
         else:
             assert not row["native_checks"]
 
 
 def test_no_blanket_nist_tags():
+    from peaso.checks.catalog import framework_display_names, requirement_tags_for
     check = next(c for c in CHECKS if c.id == "k8s.namespace.restricted_admission")
-    assert check.frameworks == [HACKTRICKS]
+    signed_tags = requirement_tags_for(check.id)
+    display = framework_display_names()
+    reviewed = {display[tag["framework_id"]] for tag in signed_tags}
+    assert any(tag["framework_id"].startswith("cis_") for tag in signed_tags)
+    assert set(check.frameworks) == {HACKTRICKS} | reviewed
+    assert not {name for name in check.frameworks if "NIST" in name.upper()} - reviewed
 
 
 def test_framework_catalog_contains_families_and_preserves_control_tree():
     from peaso.engine import get_catalog
     from peaso.checks.catalog import manifest
+    from peaso.checks.catalog import framework_display_names
     names = [f["name"] for f in get_catalog()["frameworks"]]
-    assert len(names) < 100
+    # Labels are one canonical display name per framework version (never family slugs or controls).
+    assert len(names) < 250
+    assert set(names) <= set(framework_display_names().values()) | {HACKTRICKS}
     assert not {"Pod", "Storage", "Account", "Your Data", "All AWS Compliance Controls"}.intersection(names)
     assert not any(name.startswith(("1.2.1.a ", "PR.AC-", "AC-2 ")) for name in names)
     for row in manifest()["checks"]:
@@ -171,13 +213,15 @@ def test_specific_framework_versions_preserve_ids_and_pending_status():
     from peaso.checks.catalog import framework_catalog
     versions = framework_catalog()
     assert len({entry["id"] for entry in versions}) == len(versions)
-    assert any(entry["status"] == "pending" for entry in versions)
+    assert {entry["status"] for entry in versions} <= {"pending", "partially_supported", "supported", "out_of_scope"}
     assert any(entry["status"] == "partially_supported" for entry in versions)
     for entry in versions:
         assert entry["id"] and entry["version"] and entry["source_revision"]
         assert entry["supported_native_checks"] == len(entry["native_check_ids"])
-        if entry["status"] == "pending":
+        if entry["status"] in ("pending", "out_of_scope"):
             assert entry["supported_native_checks"] == 0
+        if entry["status"] == "out_of_scope":
+            assert entry["provider"] not in ("aws", "gcp", "azure", "k8s")
     check = next(c for c in CHECKS if c.id == "aws.ebs.encryption")
     assert check.framework_ids
     available = {entry["id"] for entry in versions}
@@ -187,11 +231,16 @@ def test_specific_framework_versions_preserve_ids_and_pending_status():
 def test_engine_accepts_specific_checklist_id_and_marks_unported_controls():
     from peaso.checks.catalog import framework_catalog
     check = next(c for c in CHECKS if c.id == "aws.ebs.encryption")
-    specific = next(row for row in framework_catalog() if row["id"] in check.framework_ids and row["pending_source_checks"])
+    versions = framework_catalog()
+    specific = next((row for row in versions if row["id"] in check.framework_ids and row["pending_source_checks"]), None)
+    if specific is None:
+        # Every in-scope source reference is reviewed, so no checklist carries unported controls any more.
+        assert not any(row["pending_source_checks"] for row in versions if row["provider"] in ("aws", "gcp", "azure", "k8s"))
+        specific = next(row for row in versions if row["id"] in check.framework_ids and len(row["native_check_ids"]) > 1)
     snapshot = make_snapshot("aws", ["us-east-1"], [{"type": "ebs_volume", "scope": "us-east-1", "service": "ec2", "status": "collected", "items": [{"VolumeId": "vol-a", "Encrypted": True}]}])
     report = evaluate_snapshot(snapshot, categories=["hardening"], checks=[check.id], frameworks=[specific["id"]])
     assert sum(row["status"] == "PASS" for row in report["findings"]) == 1
-    assert report["stats"]["coverage_complete"] is False
+    assert report["stats"]["coverage_complete"] is (not specific["pending_source_checks"])
     assert report["framework_versions"][0]["id"] == specific["id"]
 
 

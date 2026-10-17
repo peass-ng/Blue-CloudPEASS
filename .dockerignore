@@ -21,6 +21,7 @@ frontend/evidence
 .azure
 .kube
 infra
+!infra/aws/sdk-constraints.txt
 tests
 docs
 examples

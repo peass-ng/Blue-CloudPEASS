@@ -6,6 +6,7 @@ signal handlers, and its normal execution may create Access Analyzers.
 from __future__ import annotations
 
 import copy
+import base64
 import csv
 import hashlib
 import io
@@ -16,7 +17,8 @@ import time
 import math
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from urllib.parse import unquote
 
 
@@ -40,6 +42,44 @@ class ReadFailure(Exception):
         self.status, self.code = status, code
 
 
+# Provider-documented service/region state replies, matched on the exact
+# operation, error code and full message. They are facts about the account or
+# region (service not enabled, no/not the administrator, operation not offered
+# in the region), not IAM denials, so they become a structured empty read with
+# the state as its code. Anything that does not match exactly is unchanged.
+_EMPTY_MESSAGE = r"(?:None)?"
+_SERVICE_STATES = (
+    ({"GetMacieSession", "ListClassificationJobs"}, "AccessDeniedException", r"Macie is not enabled\.?", "service_not_enabled"),
+    ({"ListPolicies"}, "AccessDeniedException", r"No default admin could be found for account [0-9]{12} in Region [a-z]{2}(?:-[a-z]+)+-[0-9]\.?", "no_service_administrator"),
+    ({"DescribeOrganizationConfiguration"}, "AccessDeniedException", r"Invoking account does not have access to describe the organization configuration\.?", "not_delegated_administrator"),
+    ({"GetDelegatedAdminAccount"}, "ResourceNotFoundException", r"No delegated admin found for caller account\.?", "no_delegated_administrator"),
+    ({"GetDevEndpoints"}, "AccessDeniedException", r"GetDevEndpoints operation is currently disabled\.?", "operation_disabled_for_account"),
+    ({"GetDevEndpoints"}, "InvalidInputException", r"Operation is not supported in <[a-z]{2}(?:-[a-z]+)+-[0-9]> region\.?", "region_operation_unsupported"),
+    ({"ListCustomModels"}, "ValidationException", r"Unknown operation\.?", "region_operation_unsupported"),
+    (None, "UnknownOperationException", r"Unknown Operation\.?|Operation is disabled in this region\.?|" + _EMPTY_MESSAGE, "region_operation_unsupported"),
+    ({"GetInstances", "GetRelationalDatabases", "GetStaticIps"}, "RegionSetupInProgressException",
+     r"Lightsail is setting up this region for your account, please try again later\.?", "region_setup_in_progress"),
+)
+# Transient documented states: an exact code, never completeness. Lightsail
+# "setting up this region" says nothing about whether resources exist.
+TRANSIENT_SERVICE_STATES = frozenset({"region_setup_in_progress"})
+SERVICE_STATE_CODES = frozenset(state for *_, state in _SERVICE_STATES) - TRANSIENT_SERVICE_STATES
+
+
+def _service_state(exc, code):
+    response = getattr(exc, "response", None)
+    error = response.get("Error", {}) if isinstance(response, dict) else {}
+    message = error.get("Message") if isinstance(error, dict) else None
+    message = "" if message is None else message
+    operation = getattr(exc, "operation_name", None)
+    if not isinstance(message, str) or len(message) > 300:
+        return None
+    for operations, expected_code, pattern, state in _SERVICE_STATES:
+        if code == expected_code and (operations is None or operation in operations) and re.fullmatch(pattern, message.strip()):
+            return state
+    return None
+
+
 def _failure(exc):
     if isinstance(exc, ReadFailure):
         return exc
@@ -48,6 +88,9 @@ def _failure(exc):
     code = error.get("Code", "") if isinstance(error, dict) else ""
     # Never serialize exception messages: providers sometimes echo request data.
     code = code if isinstance(code, str) and re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", code) else "read_failed"
+    state = _service_state(exc, code)
+    if state is not None:
+        return ReadFailure("unknown" if state in TRANSIENT_SERVICE_STATES else "empty", state)
     if code in {"AccessDenied", "AccessDeniedException", "UnauthorizedOperation", "ForbiddenException", "UnrecognizedClientException", "InvalidClientTokenId", "ExpiredToken", "ExpiredTokenException"}:
         status = "denied"
     elif "timeout" in type(exc).__name__.lower() or isinstance(exc, TimeoutError):
@@ -57,6 +100,29 @@ def _failure(exc):
     else:
         status = "unknown"
     return ReadFailure(status, code)
+
+
+def _retry_after_minimum(exc):
+    """Return a valid provider minimum in seconds, without retaining headers."""
+    response = getattr(exc, "response", None)
+    metadata = response.get("ResponseMetadata", {}) if isinstance(response, dict) else {}
+    headers = metadata.get("HTTPHeaders", {}) if isinstance(metadata, dict) else {}
+    for source in (headers, getattr(exc, "headers", None)):
+        if not hasattr(source, "items"):
+            continue
+        for name, value in source.items():
+            if str(name).lower() != "retry-after" or not isinstance(value, str):
+                continue
+            value = value.strip()
+            try:
+                if re.fullmatch(r"[0-9]+", value):
+                    return float(value)
+                stamp = parsedate_to_datetime(value)
+                if stamp.tzinfo is not None:
+                    return max(0.0, stamp.timestamp() - time.time())
+            except (TypeError, ValueError, OverflowError):
+                pass
+    return None
 
 
 _SECRET_FIELDS = {"SecretAccessKey", "SessionToken", "Token", "WebIdentityToken", "SecretString", "SecretBinary", "Password", "MasterUserPassword", "PreSharedKey", "CustomerGatewayConfiguration", "ClientSecret", "clientSecret", "PrivateKey", "Base32StringSeed", "QRCodePNG", "aws_secret_access_key", "aws_session_token", "aws_access_key_id", "Credentials", "Environment", "UserData", "Code", "ResponseMetadata", "NextToken", "Marker", "ContinuationToken", "NextContinuationToken"}
@@ -73,14 +139,23 @@ def _credential_label(label):
     return normalized in {"token", "secret", "credential"} or normalized.endswith("secret") or any(fragment in normalized for fragment in fragments)
 
 
-def _safe(value, *, _labels=False, _environment=False):
+def _variable_count_only(value):
+    return isinstance(value, dict) and set(value) <= {"VariableCount"} and all(
+        isinstance(v, int) and not isinstance(v, bool) and v >= 0 for v in value.values())
+
+
+def _safe(value, *, _labels=False, _environment=False, _status=False):
     if isinstance(value, dict):
         result = {}
         label = next((value[k] for k in ("Key", "key", "Name", "name", "HeaderName", "headerName") if isinstance(value.get(k), str)), None)
         sensitive_record = _environment or _credential_label(label)
         redacted_fields = []
         for key, val in value.items():
-            if key in _SECRET_FIELDS:
+            if key == "Environment" and _variable_count_only(val):
+                # Count-only projection (no names/values); its absence would read as "no variables".
+                result[key] = dict(val)
+                continue
+            if key in _SECRET_FIELDS and not (key == "Code" and _status and isinstance(val, str)):
                 continue
             typed_value = key in {"Value", "value", "HeaderValue", "headerValue"} and sensitive_record
             sensitive_map_value = _labels and _credential_label(key)
@@ -92,7 +167,7 @@ def _safe(value, *, _labels=False, _environment=False):
                 result["AccessKeyFingerprint"] = hashlib.sha256(str(val).encode()).hexdigest()
             else:
                 result[key] = _safe(val, _labels=key in _LABEL_CONTAINERS or _labels,
-                    _environment=key in _ENVIRONMENT_CONTAINERS or _environment)
+                    _environment=key in _ENVIRONMENT_CONTAINERS or _environment, _status=key == "Status")
         if redacted_fields:
             coverage = result.setdefault("_coverage", {})
             if not isinstance(coverage, dict):
@@ -109,6 +184,69 @@ def _safe(value, *, _labels=False, _environment=False):
     return value
 
 
+def _project_activity_response(response):
+    if not isinstance(response, dict) or not isinstance(response.get("Events"), list):
+        raise ReadFailure("malformed", "malformed_activity_response")
+    events = []
+    for event in response["Events"]:
+        if not isinstance(event, dict) or not isinstance(event.get("CloudTrailEvent"), str):
+            raise ReadFailure("malformed", "missing_activity_projection_payload")
+        try:
+            payload = json.loads(event["CloudTrailEvent"])
+        except (ValueError, TypeError):
+            raise ReadFailure("malformed", "malformed_activity_projection_payload") from None
+        identity = payload.get("userIdentity") if isinstance(payload, dict) else None
+        if not isinstance(identity, dict):
+            raise ReadFailure("malformed", "missing_activity_identity")
+        actor = identity.get("arn")
+        if actor is None:
+            # Pinned source ignores AWS service events without an actor ARN.
+            continue
+        actor_type = identity.get("type")
+        name, when, event_id = event.get("EventName"), event.get("EventTime"), event.get("EventId")
+        if not all(isinstance(v, str) and v for v in (actor, actor_type, name, event_id)) or not isinstance(when, datetime):
+            raise ReadFailure("malformed", "malformed_activity_metadata")
+        events.append({"ActorArn": actor, "ActorType": actor_type, "EventName": name,
+            "EventTime": when.isoformat(), "EventId": event_id})
+    projected = {"Events": events}
+    if "NextToken" in response:
+        if not isinstance(response["NextToken"], str):
+            raise ReadFailure("malformed", "malformed_activity_next_token")
+        projected["NextToken"] = response["NextToken"]
+    return projected
+
+
+def _project_user_data_indicators(response, instance_id):
+    """Ephemeral source-pattern review, never retain script/value bytes."""
+    if not isinstance(response, dict) or response.get("InstanceId") != instance_id:
+        raise ReadFailure("malformed", "malformed_user_data_response")
+    block = response.get("UserData")
+    if block is None or (isinstance(block, dict) and block.get("Value") is None):
+        return {"InstanceId": instance_id, "UserDataIndicators": {"KeywordMatch": False, "PasswordShapeMatch": False, "Present": False}}
+    if not isinstance(block, dict) or not isinstance(block.get("Value"), str):
+        raise ReadFailure("malformed", "malformed_user_data_encoding")
+    try:
+        encoded = block["Value"].replace("\r", "").replace("\n", "")
+        if len(encoded) > 32768:
+            raise ReadFailure("malformed", "user_data_size_exceeds_documented_limit")
+        raw = base64.b64decode(encoded, validate=True)
+        if len(raw) > 16384:
+            raise ReadFailure("malformed", "user_data_size_exceeds_documented_limit")
+        value = raw.decode("utf-8")
+    except (ValueError, UnicodeError):
+        raise ReadFailure("malformed", "malformed_user_data_encoding") from None
+    keyword = any(word in value for word in ("pass", "secret", "token", "key"))
+    # The source's four dot-star lookaheads plus its one-character final class
+    # are exactly existence of lower/upper/digit/special somewhere in the text:
+    # choose the earliest such character as the matching start. This linear
+    # test avoids quadratic lookahead retries over a 16KiB configuration.
+    shape = bool(re.search("[a-z]", value) and re.search("[A-Z]", value) and re.search(r"\d", value) and re.search(r"[@$!%*?&]", value))
+    return {"InstanceId": instance_id, "UserDataIndicators": {"KeywordMatch": keyword, "PasswordShapeMatch": shape, "Present": bool(value)}}
+
+
+_CONTINUATION_KEYS = ("NextToken", "nextToken", "NextPageToken", "nextPageToken", "NextMarker", "nextMarker", "Marker", "PaginationToken")
+
+
 @dataclass
 class ReadResult:
     items: list = field(default_factory=list)
@@ -119,16 +257,21 @@ class ReadResult:
 class Requests:
     """Scan-local, single-flight request cache with one global attempt budget."""
     def __init__(self, options, *, sleep=time.sleep):
+        self.collect_all = options.get('collect_all') is True
         self.max_calls = _optional_limit(options, "max_calls")
         self.max_pages = _optional_limit(options, "max_pages")
         self.max_items = _optional_limit(options, "max_resources")
-        self.workers = _bound(options, "service_concurrency", 4, maximum=16)
+        # Reads are latency-bound across ~90 services x every enabled Region;
+        # 4 workers could not finish a full-account scan in bounded time.
+        self.workers = _bound(options, "service_concurrency", 12, maximum=16)
         self.attempts = _bound(options, "retry_attempts", 3, maximum=5)
         self.timeout = _bound(options, "read_timeout", 15, maximum=120)
         self.connect_timeout = _bound(options, "connect_timeout", 5, maximum=30)
         self.calls = 0
         self.cache_hits = 0
         self._cache, self._clients, self._sessions = {}, {}, {}
+        # One later recovery read per key after a transient failure.
+        self._transient_refreshes = set()
         self._lock = threading.RLock()
         self._sleep = sleep
         deadline = options.get("deadline_seconds")
@@ -140,6 +283,16 @@ class Requests:
             raise ValueError("cancel_event must expose is_set()")
         self.evidence_generation_wait = _bound(options, "credential_report_wait_seconds", 60, maximum=300)
         self.evidence_generations = 0
+        self.service_last_accessed_wait = _bound(options, "service_last_accessed_wait_seconds", 120, maximum=600)
+        self.service_last_accessed_workers = _bound(options, "service_last_accessed_concurrency", 4, maximum=8)
+        self.service_last_accessed_generations = 0
+        # IAM access-report APIs throttle aggressively; one adaptive pacing
+        # interval per session (doubles on throttling, decays on success).
+        self._report_interval, self._report_next = {}, {}
+        self.activity_lookup_calls = 0
+        self._activity_next_read = {}
+        self.observed_at = datetime.now(timezone.utc)
+        self.activity_minutes = _bound(options, "activity_minutes", 1440, maximum=129600)
 
     def check_deadline(self):
         if self.cancel_event is not None and self.cancel_event.is_set():
@@ -159,24 +312,79 @@ class Requests:
                     max_pool_connections=self.workers))
             return self._clients[key]
 
-    def call(self, session, service, region, operation, *, _cache_refresh=False, **arguments):
+    def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, **arguments):
         credential_exchange = service == "sts" and operation == "assume_role"
-        evidence_generation = service == "iam" and operation == "generate_credential_report"
-        readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_"))
-        if operation in _PROHIBITED_VALUE_OPERATIONS or (service, operation) not in READ_ACTIONS or not (readonly_name or credential_exchange or evidence_generation):
+        if _uncached_credential_exchange and not credential_exchange:
+            raise ReadFailure("not_collected", "uncached_exchange_requires_assume_role")
+        metadata_lookup = service == "cloudtrail" and operation == "lookup_events"
+        metadata_simulation = (service, operation) == ("iam", "simulate_principal_policy")
+        # Report-job generation only: it creates an IAM access-report job and
+        # changes no IAM configuration, principal, credential or policy.
+        readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) or (service, operation) == ("ec2", "search_transit_gateway_routes")
+        if operation in _PROHIBITED_VALUE_OPERATIONS or (service, operation) not in READ_ACTIONS or not (readonly_name or credential_exchange or metadata_lookup or metadata_simulation):
             raise ReadFailure("not_collected", "non_read_operation")
-        key = (id(session), service, region, operation, json.dumps(arguments, sort_keys=True))
-        with self._lock:
-            if _cache_refresh and key in self._cache and self._cache[key].done():
-                self._cache.pop(key)
-            future = self._cache.get(key)
-            owner = future is None
-            if owner:
-                future = self._cache[key] = Future()
+        if (service, operation) == ('securityhub', 'get_finding_history') and _metadata_profile != 'securityhub-workflow-history-metadata-v1':
+            raise ReadFailure('not_collected', 'securityhub_history_requires_safe_projection')
+        profile_projector = None
+        if _metadata_profile is not None:
+            if _metadata_profile == 'bedrock-agent-reasoning-metadata-v1':
+                from . import aws_bedrock_reasoning_native as projection_contract
+            elif _metadata_profile == 'fms-managed-web-acl-metadata-v1':
+                from . import aws_fms_rule_metadata_native as projection_contract
+            elif _metadata_profile == 'securityhub-workflow-history-metadata-v1':
+                from . import aws_wave_semantics_native as projection_contract
+            elif _metadata_profile == 'securityhub-findings-metadata-v1':
+                from . import aws_securityhub_finding_metadata_native as projection_contract
             else:
-                self.cache_hits += 1
+                raise ReadFailure('not_collected', 'undeclared_metadata_profile')
+            if (service, operation) not in projection_contract.PROJECTION_OPERATIONS:
+                raise ReadFailure('not_collected', 'metadata_profile_operation_not_allowed')
+            profile_projector = projection_contract.project_response
+        if metadata_simulation:
+            from .aws_cloudtrail_delivery_native import validate_simulation_query
+            if not validate_simulation_query(arguments):
+                raise ReadFailure("not_collected", "undeclared_cloudtrail_delivery_simulation")
+        if service == "ec2" and operation == "describe_instance_attribute":
+            if arguments.get("Attribute") not in {"userData", "disableApiTermination"} or not isinstance(arguments.get("InstanceId"), str) or arguments.get("DryRun"):
+                raise ReadFailure("not_collected", "undeclared_instance_attribute_query")
+        if service == "cloudtrail" and operation == "lookup_events":
+            attributes = arguments.get("LookupAttributes")
+            names = {name for values in ACTIVITY_ACTIONS.values() for name in values}
+            from .aws_kms_enclave_native import is_enclave_query
+            from .aws_ssm_inventory_events_native import is_inventory_query
+            activity_query = (isinstance(attributes, list) and len(attributes) == 1 and isinstance(attributes[0], dict)
+                and attributes[0].get("AttributeKey") == "EventName" and attributes[0].get("AttributeValue") in names)
+            if not activity_query and not is_enclave_query(attributes) and not is_inventory_query(attributes):
+                raise ReadFailure("not_collected", "undeclared_activity_event_query")
+            if not isinstance(arguments.get("StartTime"), datetime) or not isinstance(arguments.get("EndTime"), datetime) or arguments["StartTime"].tzinfo is None or arguments["EndTime"].tzinfo is None or arguments["StartTime"] > arguments["EndTime"]:
+                raise ReadFailure("not_collected", "invalid_activity_window")
+        key = (id(session), service, region, operation, json.dumps(arguments, sort_keys=True, default=lambda v: v.isoformat() if isinstance(v, (date, datetime)) else str(v)))
+        if _metadata_profile is not None:
+            # Keep the existing cache schema for legacy callers. Profiles share
+            # Futures only with callers using the same reviewed projection.
+            key += (_metadata_profile,)
+        if _uncached_credential_exchange:
+            # Trust probes must neither retain a successful STS response in a
+            # Future nor consume a cached response from another call.
+            future, owner = None, True
+        else:
+            with self._lock:
+                if _cache_refresh and key in self._cache and self._cache[key].done():
+                    self._cache.pop(key)
+                future = self._cache.get(key)
+                owner = future is None
+                if owner:
+                    future = self._cache[key] = Future()
+                else:
+                    self.cache_hits += 1
         if not owner:
+            # Inspect without raising the stored exception: Future.result()
+            # would attach each consumer traceback to the shared failure.
+            failure = future.exception()
+            if isinstance(failure, ReadFailure):
+                raise ReadFailure(failure.status, failure.code) from None
             return copy.deepcopy(future.result())
+        evict_retryable_failure = False
         try:
             self.check_deadline()
             with self._lock:
@@ -184,30 +392,169 @@ class Requests:
                     raise ReadFailure("not_collected", "call_limit")
             client = self.client(session, service, region)
             for attempt in range(self.attempts):
+                if service == "cloudtrail" and operation == "lookup_events":
+                    rate_key = (id(session), region)
+                    with self._lock:
+                        now = time.monotonic()
+                        ready = max(now, self._activity_next_read.get(rate_key, now))
+                        self._activity_next_read[rate_key] = ready + 0.5
+                    if ready > now:
+                        self._sleep(ready - now)
+                report_key = (id(session), "iam-access-report") if service == "iam" and operation in {"generate_service_last_accessed_details", "get_service_last_accessed_details"} else None
+                if report_key:
+                    with self._lock:
+                        now = time.monotonic()
+                        ready = max(now, self._report_next.get(report_key, now))
+                        self._report_next[report_key] = ready + self._report_interval.get(report_key, 0.1)
+                    if ready > now:
+                        self._sleep(ready - now)
+                self.check_deadline()
                 with self._lock:
-                    self.check_deadline()
                     if self.max_calls is not None and self.calls >= self.max_calls:
                         raise ReadFailure("not_collected", "call_limit")
                     self.calls += 1
-                    if service == "iam" and operation == "generate_credential_report":
-                        self.evidence_generations += 1
+                    if service == "cloudtrail" and operation == "lookup_events":
+                        self.activity_lookup_calls += 1
                 try:
                     response = getattr(client, operation)(**arguments)
+                    if profile_projector is not None:
+                        response = profile_projector(response, service, operation, dict(arguments))
+                    if (service, operation) in {("ec2", "describe_tags"), ("lambda", "list_tags")}:
+                        from .aws_priority_tags_native import project_tag_response
+                        response = project_tag_response(response, service=service)
+                    if service == 'autoscaling' and operation == 'describe_launch_configurations':
+                        from .aws_launch_configuration_redaction import project_response
+                        response = project_response(response)
+                    if service == "cloudtrail" and operation == "lookup_events":
+                        # Payload is projected before any cache, future, copy or
+                        # snapshot sees request/response/token/content fields.
+                        from .aws_kms_enclave_native import is_enclave_query, project
+                        from .aws_ssm_inventory_events_native import is_inventory_query, project as project_inventory
+                        if is_inventory_query(arguments.get("LookupAttributes")):
+                            response = project_inventory(response, arguments["LookupAttributes"][0]["AttributeValue"])
+                        else:
+                            response = project(response, arguments["LookupAttributes"][0]["AttributeValue"]) if is_enclave_query(arguments.get("LookupAttributes")) else _project_activity_response(response)
+                    if service == 'controltower' or (service == 'organizations'
+                            and operation == 'describe_organization'
+                            and getattr(self, 'controltower_policy', None) is not None):
+                        from .aws_controltower_native import project_response
+                        response = project_response(response, operation)
+                    if service == "codecommit":
+                        from .aws_codecommit_review_native import project_response
+                        response = project_response(response, operation)
+                    if service == "codepipeline" and operation == "get_pipeline":
+                        # Project allowlisted action metadata before a Future/cache
+                        # can retain configuration literals such as secret tokens.
+                        from .aws_facts_v4_holds import project_pipeline_response
+                        response = project_pipeline_response(response)
+                    if service == "codebuild" and operation == "batch_get_projects":
+                        # Project executable/credential literals before the shared Future.
+                        from .aws_codebuild_redaction import project_batch_get_projects
+                        response = project_batch_get_projects(response)
+                    if service == 'lambda' and operation in {'list_functions', 'get_function_configuration'}:
+                        from .aws_lambda_environment_metadata import project_response
+                        response = project_response(response, operation)
+                    if (service == 'organizations' and operation == 'describe_policy'
+                            and isinstance(response, dict)
+                            and isinstance(response.get('Policy'), dict)
+                            and isinstance(response['Policy'].get('PolicySummary'), dict)
+                            and response['Policy']['PolicySummary'].get('Type') == 'TAG_POLICY'):
+                        from .aws_attached_tag_policy_native import project_response
+                        response = project_response(response)
+                    if (service == 'organizations' and operation == 'describe_effective_policy'
+                            and arguments.get('PolicyType') == 'TAG_POLICY'):
+                        from .aws_effective_tag_policy_native import project_response
+                        response = project_response(response)
+                    if (service == 'resourcegroupstaggingapi' and operation == 'get_resources'
+                            and arguments.get('IncludeComplianceDetails') is True):
+                        from .aws_resource_tag_compliance_native import project_response
+                        response = project_response(response, exclude_compliant_resources=arguments.get('ExcludeCompliantResources', False))
+                    if service == "ec2" and operation == "describe_instance_attribute":
+                        if arguments["Attribute"] == "userData":
+                            response = _project_user_data_indicators(response, arguments["InstanceId"])
+                        else:
+                            flag = response.get("DisableApiTermination") if isinstance(response, dict) else None
+                            if not isinstance(flag, dict) or not isinstance(flag.get("Value"), bool):
+                                raise ReadFailure("malformed", "malformed_instance_termination_protection")
+                            response = {"InstanceId": arguments["InstanceId"], "DisableApiTermination": {"Value": flag["Value"]}}
+                    if service == "cognito-idp" and operation == "describe_user_pool_client" and isinstance(response, dict):
+                        client_metadata = response.get("UserPoolClient")
+                        if isinstance(client_metadata, dict):
+                            client_metadata["ClientSecretPresent"] = bool(client_metadata.pop("ClientSecret", None))
+                    if service == "lightsail" and operation == "get_bucket_access_keys":
+                        from .aws_facts_swc import project_access_keys
+                        response = project_access_keys(response)
+                    if service == 'macie2' and operation == 'get_findings':
+                        # Retain only classification metadata before shared
+                        # caching; finding samples and object paths are omitted.
+                        from .aws_macie_findings_native import project_response
+                        response = project_response(response)
                     if not isinstance(response, dict):
                         raise ReadFailure("malformed", "malformed_response")
-                    future.set_result(response)
+                    if report_key:
+                        with self._lock:
+                            self._report_interval[report_key] = max(0.1, self._report_interval.get(report_key, 0.1) * 0.9)
+                    if future is not None:
+                        future.set_result(response)
                     return copy.deepcopy(response)
                 except Exception as exc:
                     failure = _failure(exc)
-                    if failure.code not in {"Throttling", "ThrottlingException", "TooManyRequestsException", "RequestLimitExceeded", "SlowDown", "ServiceUnavailable", "InternalError"} or attempt + 1 == self.attempts:
+                    if report_key and failure.code in {"Throttling", "ThrottlingException"}:
+                        with self._lock:
+                            self._report_interval[report_key] = min(1.0, self._report_interval.get(report_key, 0.1) + 0.25)
+                    # Amazon Connect answers ListInstances with a message-less
+                    # InvalidRequestException in Regions where the service is
+                    # not offered (the endpoint resolves); with the SDK support
+                    # list excluding the Region it is the same unsupported state.
+                    connect_unsupported = (service, operation, failure.code) == ("connect", "list_instances", "InvalidRequestException") and \
+                        not ((getattr(exc, "response", None) or {}).get("Error") or {}).get("Message")
+                    if type(exc).__name__ == "EndpointConnectionError" or connect_unsupported:
+                        # A failed synthesized endpoint plus an explicit SDK
+                        # support list that excludes this region is unsupported
+                        # endpoint evidence, not a successful empty inventory.
+                        try:
+                            partition = session.get_partition_for_region(region)
+                            supported = session.get_available_regions(service, partition_name=partition)
+                            if supported and region not in supported:
+                                failure = ReadFailure("not_collected", "unsupported_region_service")
+                        except Exception:
+                            pass
+                    transient_transport = type(exc).__name__ in {"ReadTimeoutError", "ConnectTimeoutError", "EndpointConnectionError", "ConnectionClosedError", "HTTPClientError"}
+                    response_meta = getattr(exc, "response", None)
+                    response_meta = response_meta.get("ResponseMetadata", {}) if isinstance(response_meta, dict) else {}
+                    http_status = response_meta.get("HTTPStatusCode") if isinstance(response_meta, dict) else None
+                    retryable = transient_transport or http_status == 429 or failure.code in {"Throttling", "ThrottlingException", "TooManyRequestsException", "RequestLimitExceeded", "SlowDown", "ServiceUnavailable", "ServiceUnavailableException", "InternalError", "InternalServerError", "InternalServerException"}
+                    if failure.code == "unsupported_region_service" or not retryable or attempt + 1 == self.attempts:
+                        evict_retryable_failure = retryable and failure.code != "unsupported_region_service"
                         raise failure from None
-                    self._sleep(min(0.2 * (2 ** attempt), 2))
+                    fallback = min(0.2 * (2 ** attempt), 2)
+                    provider_minimum = _retry_after_minimum(exc)
+                    delay = max(fallback, provider_minimum or 0.0)
+                    if self.deadline is not None and time.monotonic() + delay >= self.deadline:
+                        raise ReadFailure("timeout", "retry_wait_exceeds_deadline")
+                    if self.cancel_event is not None and self._sleep is time.sleep and callable(getattr(self.cancel_event, "wait", None)):
+                        self.cancel_event.wait(delay)
+                    else:
+                        self._sleep(delay)
+                    self.check_deadline()
         except Exception as exc:
             failure = _failure(exc)
-            future.set_exception(failure)
-            raise failure from None
+            # A failed projection's traceback can retain raw provider payload
+            # in frame locals. Cache a fresh code/status-only exception that
+            # has never been raised, and raise a separate sanitized instance.
+            if future is not None:
+                future.set_exception(ReadFailure(failure.status, failure.code))
+                if evict_retryable_failure:
+                    with self._lock:
+                        if key not in self._transient_refreshes and self._cache.get(key) is future:
+                            self._transient_refreshes.add(key)
+                            self._cache.pop(key)
+            raise ReadFailure(failure.status, failure.code) from None
 
-    def pages(self, session, service, region, operation, expression, **arguments):
+    def pages(self, session, service, region, operation, expression, _tokens=None, _page_limit=None, **arguments):
+        """Complete list read. `_tokens=(input_name, output_name)` paginates an
+        operation that botocore declares without a paginator; an unpaginated
+        response carrying a continuation token is never reported complete."""
         import jmespath
         items, seen = [], set()
         try:
@@ -218,13 +565,16 @@ class Requests:
             # SDK pagination metadata handles IAM Marker, S3 continuation,
             # CloudWatch nextToken, ELB NextMarker and multi-token APIs correctly.
             cfg = client.get_paginator(operation)._pagination_cfg if client.can_paginate(operation) else {}
+            if not cfg and _tokens:
+                cfg = {"input_token": _tokens[0], "output_token": _tokens[1]}
+            unpaginated = not cfg
             input_tokens = cfg.get("input_token", [])
             output_tokens = cfg.get("output_token", [])
             input_tokens = [input_tokens] if isinstance(input_tokens, str) else input_tokens
             output_tokens = [output_tokens] if isinstance(output_tokens, str) else output_tokens
             params = dict(arguments)
             page_number = 0
-            while self.max_pages is None or page_number < self.max_pages:
+            while (self.max_pages is None or page_number < self.max_pages) and (_page_limit is None or page_number < _page_limit):
                 page_number += 1
                 response = self.call(session, service, region, operation, **params)
                 if operation == "describe_instances":
@@ -234,6 +584,9 @@ class Requests:
                 batch = jmespath.search(expression, response)
                 if not isinstance(batch, list):
                     raise ReadFailure("malformed", "malformed_response")
+                if unpaginated and any(response.get(key) for key in _CONTINUATION_KEYS):
+                    items.extend(batch)
+                    raise ReadFailure("not_collected", "unhandled_pagination_token")
                 remaining = self.max_items - len(items) if self.max_items is not None else None
                 items.extend(batch[:remaining])
                 more = cfg.get("more_results")
@@ -264,7 +617,7 @@ class Requests:
             return response
         except Exception as exc:
             failure = _failure(exc)
-            if failure.code in absent:
+            if failure.code in absent or (failure.status == "empty" and failure.code in SERVICE_STATE_CODES):
                 return {"collection_status": "empty", "absent": True, "error": {"code": failure.code}}
             return {"collection_status": failure.status, "error": {"code": failure.code}}
 
@@ -321,7 +674,7 @@ def _assume(requests, session, region, target, defaults):
     import boto3
     target = {"role_arn": target} if isinstance(target, str) else dict(target)
     arn = target.get("role_arn")
-    if not isinstance(arn, str) or not re.fullmatch(r"arn:(aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/.+", arn):
+    if not isinstance(arn, str) or not re.fullmatch(r"arn:(aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}", arn):
         raise ValueError("role_arn must be an IAM role ARN")
     name = target.get("role_session_name", defaults.get("role_session_name", "peaso-read-only"))
     if not isinstance(name, str) or not re.fullmatch(r"[\w+=,.@-]{2,64}", name):
@@ -339,9 +692,52 @@ def _assume(requests, session, region, target, defaults):
         aws_session_token=credentials["SessionToken"], region_name=region)
 
 
+def _reject_unprotected_hosted_role(requests, session, region, target, defaults):
+    """Require the target trust to deny this collector without ExternalID."""
+    arn = target if isinstance(target, str) else target["role_arn"]
+    name = (target.get("role_session_name") if isinstance(target, dict) else None) or defaults.get("role_session_name", "peaso-read-only")
+    if not isinstance(name, str) or not re.fullmatch(r"[\w+=,.@-]{2,64}", name):
+        raise ValueError("invalid role_session_name")
+    try:
+        # A successful response contains disposable STS credentials. Never
+        # construct a session or perform a read with them.
+        requests.call(session, "sts", region, "assume_role", _uncached_credential_exchange=True,
+            RoleArn=arn, RoleSessionName=name, DurationSeconds=900)
+    except ReadFailure as failure:
+        if failure.code in {"AccessDenied", "AccessDeniedException"}:
+            return
+        raise
+    raise ReadFailure("denied", "external_id_not_required_by_trust")
+
+
 # type -> (service, list operation, native result path). No resource contents,
 # database records, secret values, log events or function code are read.
+ACTIVITY_ACTIONS = {'enumeration': ['CreateIndex', 'DescribeAccessEntry', 'DescribeAccountAttributes', 'DescribeAvailabilityZones', 'DescribeBundleTasks', 'DescribeCarrierGateways', 'DescribeClientVpnRoutes', 'DescribeCluster', 'DescribeDhcpOptions', 'DescribeFlowLogs', 'DescribeImages', 'DescribeInstanceAttribute', 'DescribeInstanceInformation', 'DescribeInstanceTypes', 'DescribeInstances', 'DescribeInstances', 'DescribeKeyPairs', 'DescribeLogGroups', 'DescribeLogStreams', 'DescribeOrganization', 'DescribeRegions', 'DescribeSecurityGroups', 'DescribeSnapshotAttribute', 'DescribeSnapshotTierStatus', 'DescribeSubscriptionFilters', 'DescribeTransitGatewayMulticastDomains', 'DescribeVolumes', 'DescribeVolumesModifications', 'DescribeVpcEndpointConnectionNotifications', 'DescribeVpcs', 'GetAccount', 'GetAccountAuthorizationDetails', 'GetAccountSendingEnabled', 'GetBucketAcl', 'GetBucketLogging', 'GetBucketPolicy', 'GetBucketReplication', 'GetBucketVersioning', 'GetCallerIdentity', 'GetCertificate', 'GetConsoleScreenshot', 'GetCostAndUsage', 'GetDetector', 'GetEbsDefaultKmsKeyId', 'GetEbsEncryptionByDefault', 'GetFindings', 'GetFlowLogsIntegrationTemplate', 'GetIdentityVerificationAttributes', 'GetInstances', 'GetIntrospectionSchema', 'GetLaunchTemplateData', 'GetLaunchTemplateData', 'GetLogRecord', 'GetParameters', 'GetPolicyVersion', 'GetPublicAccessBlock', 'GetQueryResults', 'GetRegions', 'GetSMSAttributes', 'GetSMSSandboxAccountStatus', 'GetSendQuota', 'GetTransitGatewayRouteTableAssociations', 'GetUserPolicy', 'HeadObject', 'ListAccessKeys', 'ListAccounts', 'ListAllMyBuckets', 'ListAssociatedAccessPolicies', 'ListAttachedUserPolicies', 'ListClusters', 'ListDetectors', 'ListDomains', 'ListFindings', 'ListHostedZones', 'ListIPSets', 'ListIdentities', 'ListInstanceProfiles', 'ListObjects', 'ListOrganizationalUnitsForParent', 'ListOriginationNumbers', 'ListPolicyVersions', 'ListResources', 'ListRoles', 'ListRoles', 'ListRules', 'ListServiceQuotas', 'ListSubscriptions', 'ListTargetsByRule', 'ListTopics', 'ListUsers', 'LookupEvents', 'Search'], 'llm_jacking': ['PutUseCaseForModelAccess', 'PutFoundationModelEntitlement', 'PutModelInvocationLoggingConfiguration', 'CreateFoundationModelAgreement', 'InvokeModel', 'InvokeModelWithResponseStream', 'GetUseCaseForModelAccess', 'GetModelInvocationLoggingConfiguration', 'GetFoundationModelAvailability', 'ListFoundationModelAgreementOffers', 'ListFoundationModels', 'ListProvisionedModelThroughputs', 'SearchAgreements', 'AcceptAgreementRequest'], 'privilege_escalation': ['AddPermission', 'AddRoleToInstanceProfile', 'AddUserToGroup', 'AssociateAccessPolicy', 'AssumeRole', 'AttachGroupPolicy', 'AttachRolePolicy', 'AttachUserPolicy', 'ChangePassword', 'CreateAccessEntry', 'CreateAccessKey', 'CreateDevEndpoint', 'CreateEventSourceMapping', 'CreateFunction', 'CreateGroup', 'CreateJob', 'CreateKeyPair', 'CreateLoginProfile', 'CreatePipeline', 'CreatePolicyVersion', 'CreateRole', 'CreateStack', 'DeleteRolePermissionsBoundary', 'DeleteRolePolicy', 'DeleteUserPermissionsBoundary', 'DeleteUserPolicy', 'DetachRolePolicy', 'DetachUserPolicy', 'GetCredentialsForIdentity', 'GetId', 'GetPolicyVersion', 'GetUserPolicy', 'Invoke', 'ModifyInstanceAttribute', 'PassRole', 'PutGroupPolicy', 'PutPipelineDefinition', 'PutRolePermissionsBoundary', 'PutRolePolicy', 'PutUserPermissionsBoundary', 'PutUserPolicy', 'ReplaceIamInstanceProfileAssociation', 'RunInstances', 'SetDefaultPolicyVersion', 'UpdateAccessKey', 'UpdateAssumeRolePolicy', 'UpdateDevEndpoint', 'UpdateEventSourceMapping', 'UpdateFunctionCode', 'UpdateJob', 'UpdateLoginProfile']}
+
 SPECS = {
+    "vpc_account_inventory": ("ec2", "describe_vpcs", "Vpcs"),
+    "ssm_managed_instance": ("ssm", "describe_instance_information", "InstanceInformationList"),
+    "autoscaling_group": ("autoscaling", "describe_auto_scaling_groups", "AutoScalingGroups"),
+    "config_aggregator": ("config", "describe_configuration_aggregators", "ConfigurationAggregators"),
+    "config_account_aggregator_inventory": ("config", "describe_configuration_aggregators", "ConfigurationAggregators"),
+    "config_delegated_administrator": ("organizations", "list_delegated_administrators", "DelegatedAdministrators"),
+    "log_resource_policy": ("logs", "describe_resource_policies", "resourcePolicies"),
+    "config_aggregate_authorization": ("config", "describe_aggregation_authorizations", "AggregationAuthorizations"),
+    "dlm_policy": ("dlm", "get_lifecycle_policies", "Policies"),
+    "cloudtrail_account_inventory": ("cloudtrail", "describe_trails", "trailList"),
+    # One row per enabled Region (Macie jobs are regional, buckets account-global).
+    "macie2_account_classification_job_inventory": ("macie2", "list_classification_jobs", "items"),
+    "ec2_image": ("ec2", "describe_images", "Images"),
+    "ebs_snapshot": ("ec2", "describe_snapshots", "Snapshots"),
+    "flow_log": ("ec2", "describe_flow_logs", "FlowLogs"),
+    "aws_account_configuration": ("account", "get_alternate_contact", None),
+    "access_analyzer": ("accessanalyzer", "list_analyzers", "analyzers"),
+    "ec2_regional_settings": ("ec2", "get_ebs_encryption_by_default", None),
+    "iam_virtual_mfa_device": ("iam", "list_virtual_mfa_devices", "VirtualMFADevices"),
+    "iam_server_certificate": ("iam", "list_server_certificates", "ServerCertificateMetadataList"),
+    "aws_cloudtrail_activity": ("cloudtrail", "lookup_events", "Events"),
+    "aws_identity_center_user": ("identitystore", "list_users", "Users"),
+    "aws_identity_center_permission_set": ("sso-admin", "list_permission_sets", "PermissionSets"),
     "vpc": ("ec2", "describe_vpcs", "Vpcs"),
     "subnet": ("ec2", "describe_subnets", "Subnets"),
     "route_table": ("ec2", "describe_route_tables", "RouteTables"),
@@ -356,6 +752,7 @@ SPECS = {
     "vpc_peering": ("ec2", "describe_vpc_peering_connections", "VpcPeeringConnections"),
     "transit_gateway": ("ec2", "describe_transit_gateways", "TransitGateways"),
     "transit_gateway_attachment": ("ec2", "describe_transit_gateway_attachments", "TransitGatewayAttachments"),
+    "transit_gateway_vpc_attachment": ("ec2", "describe_transit_gateway_vpc_attachments", "TransitGatewayVpcAttachments"),
     "transit_gateway_route_table": ("ec2", "describe_transit_gateway_route_tables", "TransitGatewayRouteTables"),
     "vpn_connection": ("ec2", "describe_vpn_connections", "VpnConnections"),
     "vpn_gateway": ("ec2", "describe_vpn_gateways", "VpnGateways"),
@@ -383,32 +780,38 @@ SPECS = {
     "opensearch_domain": ("opensearch", "list_domain_names", "DomainNames"),
     "dynamodb_table": ("dynamodb", "list_tables", "TableNames"),
 }
-GLOBAL_TYPES = {"aws_account", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "bucket", "s3_account_public_access_block", "organization_account", "organization_parent", "scp_policy"}
+GLOBAL_TYPES = {"iam_managed_policy", "aws_account", "aws_account_configuration", "cloudtrail_account_inventory", "config_account_aggregator_inventory", "config_delegated_administrator", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "iam_access_key", "iam_virtual_mfa_device", "iam_server_certificate", "bucket", "s3_account_public_access_block", "organization_account", "organization_parent", "scp_policy"}
 AWS_TYPES = sorted(set(SPECS) | GLOBAL_TYPES)
+GLOBAL_SCOPE = "global"
 FETCHERS = {}
+GLOBAL_TYPES.add("vpc_account_inventory")
+GLOBAL_TYPES.add("macie2_account_classification_job_inventory")
 ENRICHERS = {}
 
 # Auditable operation allowlist. In particular, GetSecretValue, logs/objects,
-# credential report generation and Access Analyzer creation are absent.
+# secret/content reads and Access Analyzer creation are absent.
 _DETAIL_ACTIONS = {
     "sts": "get_caller_identity assume_role",
-    "iam": "get_account_authorization_details get_account_summary get_account_password_policy get_credential_report generate_credential_report list_users list_access_keys get_access_key_last_used get_login_profile list_mfa_devices",
-    "ec2": "describe_regions",
+    "iam": "list_policies get_policy_version get_account_authorization_details get_account_summary get_account_password_policy get_credential_report get_service_last_accessed_details list_users list_access_keys get_access_key_last_used get_login_profile list_mfa_devices",
+    "sso-admin": "list_instances list_permission_sets describe_permission_set get_inline_policy_for_permission_set list_managed_policies_in_permission_set get_permissions_boundary_for_permission_set",
+    "identitystore": "list_users",
+    "ec2": "describe_regions get_snapshot_block_public_access_state get_image_block_public_access_state get_instance_metadata_defaults describe_snapshot_attribute describe_instance_attribute search_transit_gateway_routes get_transit_gateway_route_table_associations",
     "s3": "list_buckets get_bucket_location get_public_access_block get_bucket_policy_status get_bucket_policy get_bucket_encryption get_bucket_versioning get_bucket_acl get_bucket_ownership_controls get_bucket_logging get_bucket_lifecycle_configuration get_bucket_notification_configuration get_bucket_replication get_object_lock_configuration get_bucket_tagging",
     "s3control": "get_public_access_block",
-    "organizations": "list_accounts list_policies_for_target describe_policy list_parents",
+    "organizations": "list_accounts list_policies_for_target describe_policy list_parents describe_organization describe_organizational_unit",
     "kms": "describe_key get_key_rotation_status get_key_policy",
-    "cloudtrail": "get_trail_status get_event_selectors",
+    "cloudtrail": "get_trail_status get_event_selectors get_insight_selectors lookup_events",
     "config": "describe_configuration_recorder_status",
+    "dlm": "get_lifecycle_policy",
     "guardduty": "get_detector",
     "eks": "describe_cluster",
     "lambda": "get_policy get_function_url_config",
     "ecr": "get_repository_policy get_lifecycle_policy",
-    "secretsmanager": "get_resource_policy",
+    "secretsmanager": "describe_secret get_resource_policy",
     "sns": "get_topic_attributes",
     "sqs": "get_queue_attributes",
     "elbv2": "describe_load_balancer_attributes describe_listeners describe_target_health",
-    "elb": "describe_load_balancer_attributes",
+    "elb": "describe_load_balancer_attributes describe_load_balancer_policies",
     "rds": "describe_db_snapshot_attributes",
     "opensearch": "describe_domain",
     "dynamodb": "describe_table",
@@ -417,13 +820,25 @@ READ_ACTIONS = {(service, operation) for service, operations in _DETAIL_ACTIONS.
 READ_ACTIONS.update((service, operation) for service, operation, expression in SPECS.values())
 
 _NATIVE_IDS = {
+    "vpc_account_inventory": "id",
+    "ssm_managed_instance": "InstanceId", "autoscaling_group": "AutoScalingGroupARN", "config_delegated_administrator": "Id", "config_aggregator": "ConfigurationAggregatorArn", "config_account_aggregator_inventory": "ConfigurationAggregatorArn",
+    "log_resource_policy": "policyName", "config_aggregate_authorization": "AggregationAuthorizationArn", "dlm_policy": "PolicyId",
+    "cloudtrail_account_inventory": "TrailARN",
+    "macie2_account_classification_job_inventory": "id",
+    "ec2_image": "ImageId", "ebs_snapshot": "SnapshotId",
+    "flow_log": "FlowLogId",
+    "access_analyzer": "arn",
     "aws_account": "Account", "iam_credential_report": "arn",
-    "iam_user": "Arn", "iam_group": "Arn", "iam_role": "Arn", "iam_policy": "Arn",
+    "iam_access_key": "AccessKeyFingerprint", "iam_virtual_mfa_device": "SerialNumber", "iam_server_certificate": "Arn",
+    "aws_cloudtrail_activity": "EventId",
+    "aws_identity_center_user": "id", "aws_identity_center_permission_set": "id",
+    "iam_user": "Arn", "iam_group": "Arn", "iam_role": "Arn", "iam_policy": "Arn", "iam_managed_policy": "Arn",
     "bucket": "Name", "vpc": "VpcId", "subnet": "SubnetId", "route_table": "RouteTableId",
     "security_group": "GroupId", "network_acl": "NetworkAclId", "network_interface": "NetworkInterfaceId",
     "instance": "InstanceId", "ebs_volume": "VolumeId", "internet_gateway": "InternetGatewayId",
     "nat_gateway": "NatGatewayId", "vpc_endpoint": "VpcEndpointId", "vpc_peering": "VpcPeeringConnectionId",
     "transit_gateway": "TransitGatewayId", "transit_gateway_attachment": "TransitGatewayAttachmentId",
+    "transit_gateway_vpc_attachment": "TransitGatewayAttachmentId",
     "transit_gateway_route_table": "TransitGatewayRouteTableId", "vpn_connection": "VpnConnectionId",
     "vpn_gateway": "VpnGatewayId", "load_balancer": "LoadBalancerArn", "classic_load_balancer": "LoadBalancerName",
     "target_group": "TargetGroupArn", "kms_key": "KeyArn", "cloudtrail": "TrailARN",
@@ -456,7 +871,14 @@ def _policy(value):
     return value
 
 
-def _enrich(requests, session, region, kind, items):
+def _documented_omission(item, key, value, operation):
+    """Project only a documented native API omission from a successful read."""
+    if key not in item:
+        item[key] = copy.deepcopy(value)
+        item.setdefault("_coverage", {})[key] = {"status": "empty", "reason": "documented_optional_api_omission", "source_operation": operation}
+
+
+def _enrich(requests, session, region, kind, items, *, account=None, partition=None):
     def detail(service, operation, **arguments):
         return requests.detail(session, service, region, operation, **arguments)
 
@@ -469,7 +891,34 @@ def _enrich(requests, session, region, kind, items):
             item = copy.deepcopy(original)
         else:
             raise ReadFailure("malformed", "malformed_resource")
-        if kind == "kms_key":
+        if kind == "instance":
+            projected = detail("ec2", "describe_instance_attribute", InstanceId=item["InstanceId"], Attribute="userData")
+            if projected.get("collection_status") == "collected" and isinstance(projected.get("UserDataIndicators"), dict):
+                item["UserDataIndicators"] = {**projected["UserDataIndicators"], "collection_status": "collected"}
+            else:
+                item["UserDataIndicators"] = projected
+            protection = detail("ec2", "describe_instance_attribute", InstanceId=item["InstanceId"], Attribute="disableApiTermination")
+            item.setdefault("Attributes", {})["DisableApiTermination"] = (
+                protection["DisableApiTermination"]["Value"] if protection.get("collection_status") == "collected" else protection)
+        elif kind == "log_resource_policy":
+            if "policyDocument" in item:
+                item["policyDocument"] = _policy(item["policyDocument"])
+        elif kind == "dlm_policy":
+            item["Details"] = detail("dlm", "get_lifecycle_policy", PolicyId=item["PolicyId"])
+        elif kind == "ebs_snapshot":
+            snapshot_id = item["SnapshotId"]
+            attributes = detail("ec2", "describe_snapshot_attribute", SnapshotId=snapshot_id, Attribute="createVolumePermission")
+            state = attributes.get("collection_status", "not_collected")
+            if state == "collected" and attributes.get("SnapshotId") == snapshot_id:
+                values = attributes.get("CreateVolumePermissions", [])
+                if isinstance(values, list) and all(isinstance(value, dict) for value in values):
+                    item["CreateVolumePermissions"] = values
+                    item.setdefault("_coverage", {})["CreateVolumePermissions"] = {"status": "collected" if values else "empty", "source_operation": "ec2:DescribeSnapshotAttribute"}
+                else:
+                    item.setdefault("_coverage", {})["CreateVolumePermissions"] = {"status": "malformed", "reason": "malformed_snapshot_permissions"}
+            else:
+                item.setdefault("_coverage", {})["CreateVolumePermissions"] = {"status": "malformed" if state == "collected" else state, "source_operation": "ec2:DescribeSnapshotAttribute"}
+        elif kind == "kms_key":
             key = item["KeyId"]
             item["Metadata"] = detail("kms", "describe_key", KeyId=key)
             item["Rotation"] = detail("kms", "get_key_rotation_status", KeyId=key)
@@ -477,10 +926,12 @@ def _enrich(requests, session, region, kind, items):
             if "Policy" in item["Policy"]:
                 item["Policy"]["Policy"] = _policy(item["Policy"]["Policy"])
         elif kind == "cloudtrail":
+            _documented_omission(item, "KmsKeyId", "", "cloudtrail:DescribeTrails")
             arn = item.get("TrailARN") or item["Name"]
             home = item.get("HomeRegion", region)
             item["Status"] = requests.detail(session, "cloudtrail", home, "get_trail_status", Name=arn)
             item["EventSelectors"] = requests.detail(session, "cloudtrail", home, "get_event_selectors", TrailName=arn)
+            item["InsightSelectors"] = requests.detail(session, "cloudtrail", home, "get_insight_selectors", TrailName=arn, absent=("InsightNotEnabledException",))
         elif kind == "config_recorder":
             item["Status"] = detail("config", "describe_configuration_recorder_status", ConfigurationRecorderNames=[item["name"]])
         elif kind == "guardduty_detector":
@@ -500,17 +951,72 @@ def _enrich(requests, session, region, kind, items):
             if "policyText" in item["Policy"]:
                 item["Policy"]["policyText"] = _policy(item["Policy"]["policyText"])
         elif kind == "secret":
-            item["Policy"] = detail("secretsmanager", "get_resource_policy", SecretId=item["ARN"])
+            # ListSecrets can lag changes by five minutes. DescribeSecret gives
+            # more recent per-secret metadata, though both reads are eventual.
+            arn = item.get("ARN")
+            for field in ("RotationEnabled", "RotationRules", "RotationLambdaARN", "KmsKeyId"):
+                item.pop(field, None)
+                item.setdefault("_coverage", {}).pop(field, None)
+            valid_arn = (isinstance(account, str) and re.fullmatch(r"[0-9]{12}", account) is not None
+                and partition in {"aws", "aws-us-gov", "aws-cn"} and isinstance(arn, str)
+                and re.fullmatch(r"arn:" + re.escape(partition) + r":secretsmanager:" + re.escape(region)
+                    + r":" + account + r":secret:[^:]+", arn) is not None)
+            if not valid_arn:
+                rotation = {"collection_status": "malformed", "error": {"code": "malformed_secret_arn"}}
+            else:
+                rotation = detail("secretsmanager", "describe_secret", SecretId=arn)
+                if rotation.get("collection_status") == "collected" and (
+                        rotation.get("ARN") != arn or
+                        ("Name" in item and rotation.get("Name") != item["Name"])):
+                    rotation = {"collection_status": "malformed", "error": {"code": "secret_identity_mismatch"}}
+            state = rotation.get("collection_status", "malformed")
+            if state == "collected":
+                # The already-required DescribeSecret response supersedes stale
+                # ListSecrets KmsKeyId. Omission is an unresolved AWS default,
+                # never a safe or unsafe inferred key identity.
+                key_id = rotation.get("KmsKeyId")
+                if isinstance(key_id, str) and key_id:
+                    item["KmsKeyId"] = key_id
+                    item["_coverage"]["KmsKeyId"] = {"status": "collected", "source_operation": "secretsmanager:DescribeSecret"}
+                else:
+                    item["_coverage"]["KmsKeyId"] = {"status": "empty" if key_id is None or key_id == "" else "malformed",
+                        "source_operation": "secretsmanager:DescribeSecret"}
+                flag = rotation.get("RotationEnabled")
+                if type(flag) is bool:
+                    item["RotationEnabled"] = flag
+                    item["_coverage"]["RotationEnabled"] = {"status": "collected", "source_operation": "secretsmanager:DescribeSecret"}
+                else:
+                    # AWS documents null for never-configured rotation. An
+                    # omitted or malformed flag is also not proof of disabled.
+                    item["_coverage"]["RotationEnabled"] = {"status": "empty" if flag is None else "malformed", "source_operation": "secretsmanager:DescribeSecret"}
+                for field, typ in (("RotationRules", dict), ("RotationLambdaARN", str)):
+                    if field in rotation:
+                        if isinstance(rotation[field], typ):
+                            item[field] = rotation[field]
+                            item["_coverage"][field] = {"status": "collected", "source_operation": "secretsmanager:DescribeSecret"}
+                        else:
+                            item["_coverage"][field] = {"status": "malformed", "source_operation": "secretsmanager:DescribeSecret"}
+            else:
+                status = state if state in {"denied", "timeout", "not_collected", "partial", "malformed", "unknown"} else "unknown"
+                code = rotation.get("error", {}).get("code") if isinstance(rotation.get("error"), dict) else None
+                code = code if isinstance(code, str) and re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", code) else "detail_unavailable"
+                for field in ("RotationEnabled", "RotationRules", "RotationLambdaARN", "KmsKeyId"):
+                    item["_coverage"][field] = {"status": status, "reason": code, "source_operation": "secretsmanager:DescribeSecret"}
+            item["Policy"] = detail("secretsmanager", "get_resource_policy", SecretId=arn) if valid_arn else {"collection_status": "malformed"}
             if "ResourcePolicy" in item["Policy"]:
                 item["Policy"]["ResourcePolicy"] = _policy(item["Policy"]["ResourcePolicy"])
         elif kind == "sns_topic":
             item["Attributes"] = detail("sns", "get_topic_attributes", TopicArn=item["TopicArn"])
             attrs = item["Attributes"].get("Attributes", {})
+            if item["Attributes"].get("collection_status") == "collected" and isinstance(item["Attributes"].get("Attributes"), dict):
+                _documented_omission(attrs, "KmsMasterKeyId", "", "sns:GetTopicAttributes")
             if "Policy" in attrs:
                 attrs["Policy"] = _policy(attrs["Policy"])
         elif kind == "sqs_queue":
             item["Attributes"] = detail("sqs", "get_queue_attributes", QueueUrl=item["QueueUrl"], AttributeNames=["All"])
             attrs = item["Attributes"].get("Attributes", {})
+            if item["Attributes"].get("collection_status") == "collected" and isinstance(item["Attributes"].get("Attributes"), dict):
+                _documented_omission(attrs, "KmsMasterKeyId", "", "sqs:GetQueueAttributes(All)")
             if "Policy" in attrs:
                 attrs["Policy"] = _policy(attrs["Policy"])
         elif kind == "load_balancer":
@@ -522,6 +1028,8 @@ def _enrich(requests, session, region, kind, items):
                 item["Listeners"]["error"] = listeners.error
         elif kind == "classic_load_balancer":
             item["Attributes"] = detail("elb", "describe_load_balancer_attributes", LoadBalancerName=item["LoadBalancerName"])
+            from .aws_classic_elb_policies_native import enrich as enrich_ssl_policies
+            enrich_ssl_policies(requests, session, region, item, account)
         elif kind == "target_group":
             item["TargetHealth"] = detail("elbv2", "describe_target_health", TargetGroupArn=item["TargetGroupArn"])
         elif kind == "rds_snapshot":
@@ -536,6 +1044,29 @@ def _enrich(requests, session, region, kind, items):
     return output
 
 
+def _access_keys(requests, session, region):
+    """Read-only metadata, with no raw key identifier serialized in inventory."""
+    users = requests.pages(session, "iam", region, "list_users", "Users")
+    items, failure = [], None
+    if users.status not in {"collected", "empty"}:
+        return ReadResult([], users.status, users.error)
+    for user in users.items:
+        if not isinstance(user.get("UserName"), str) or not isinstance(user.get("Arn"), str):
+            failure = ReadFailure("malformed", "malformed_access_key_user")
+            continue
+        keys = requests.pages(session, "iam", region, "list_access_keys", "AccessKeyMetadata", UserName=user["UserName"])
+        for key in keys.items:
+            if not isinstance(key.get("AccessKeyId"), str):
+                failure = ReadFailure("malformed", "malformed_access_key_metadata")
+                continue
+            items.append(_safe({**key, "UserArn": user["Arn"]}))
+        if keys.status not in {"collected", "empty"}:
+            failure = ReadFailure((keys.error or {}).get("cause_status", keys.status), (keys.error or {}).get("code", "access_key_inventory_incomplete"))
+    if failure:
+        return ReadResult(items, "partial" if items else failure.status, {"code": failure.code, "cause_status": failure.status})
+    return ReadResult(items, "collected" if items else "empty")
+
+
 def _iam(requests, session, region, wanted):
     keys = {"iam_user": "UserDetailList", "iam_group": "GroupDetailList", "iam_role": "RoleDetailList", "iam_policy": "Policies"}
     result = {}
@@ -545,6 +1076,12 @@ def _iam(requests, session, region, wanted):
         read = requests.pages(session, "iam", region, "get_account_authorization_details", key)
         # Identical calls for four IAM projections are single-flight cached.
         for item in read.items:
+            item["_provenance"] = {"operation": "iam:GetAccountAuthorizationDetails", "native_response_complete": True}
+            if kind in {"iam_user", "iam_group", "iam_role"}:
+                _documented_omission(item, "AttachedManagedPolicies", [], "iam:GetAccountAuthorizationDetails")
+            if kind == "iam_user":
+                for field in ("UserPolicyList", "AttachedManagedPolicies"):
+                    _documented_omission(item, field, [], "iam:GetAccountAuthorizationDetails")
             if "AssumeRolePolicyDocument" in item:
                 item["AssumeRolePolicyDocument"] = _policy(item["AssumeRolePolicyDocument"])
             for field_name in ("UserPolicyList", "GroupPolicyList", "RolePolicyList"):
@@ -574,8 +1111,105 @@ def _iam(requests, session, region, wanted):
                 item["LoginProfile"] = requests.detail(session, "iam", region, "get_login_profile", UserName=name, absent=("NoSuchEntity",))
                 mfa = requests.pages(session, "iam", region, "list_mfa_devices", "MFADevices", UserName=name)
                 item["MFADevices"] = {"collection_status": mfa.status, "items": mfa.items}
+        if kind == "iam_user":
+            _services_last_accessed(requests, session, region, read.items)
+        if kind == "iam_role":
+            needed, excluded = _role_report_scope(requests, session, region, read.items)
+            for role in excluded:
+                role["ServicesLastAccessedStatus"] = {"collection_status": "not_collected", "reason": "identity_policies_cannot_allow_namespaces",
+                    "namespaces": list(ROLE_REPORT_NAMESPACES), "source": "iam:GetAccountAuthorizationDetails"}
+            _services_last_accessed(requests, session, region, needed)
         result[kind] = read
     return result
+
+
+_LAST_ACCESSED_FIELDS = ("ServiceNamespace", "ServiceName", "LastAuthenticated", "LastAuthenticatedRegion", "TotalAuthenticatedEntities")
+
+
+def _services_last_accessed(requests, session, region, principals):
+    """Attach bounded SERVICE_LEVEL access reports to IAM users and roles.
+
+    Each principal gets ServicesLastAccessed only from a COMPLETED, fully
+    paginated job; any failure, FAILED job or deadline leaves that principal
+    without the list (UNKNOWN downstream) and records why in
+    ServicesLastAccessedStatus. Other principals are unaffected."""
+    pending = {item["Arn"]: item for item in principals if isinstance(item.get("Arn"), str)}
+    if not pending:
+        return
+    results = _sla_reports(requests, session, region, sorted(pending))
+    for arn, item in pending.items():
+        rows, state = results[arn]
+        if rows is not None:
+            item["ServicesLastAccessed"] = rows
+        item["ServicesLastAccessedStatus"] = state
+
+
+# Namespaces whose role-level access reports a check consumes. A role whose
+# identity policies provably cannot allow any of them needs no report: AWS
+# lists only services the principal's identity policies allow.
+ROLE_REPORT_NAMESPACES = ("bedrock",)
+
+
+def _may_allow_namespace(document, namespace):
+    """Conservative: True unless every statement provably cannot allow `namespace`."""
+    statements = document.get("Statement") if isinstance(document, dict) else None
+    if isinstance(statements, dict):
+        statements = [statements]
+    if not isinstance(statements, list):
+        return True
+    for statement in statements:
+        if not isinstance(statement, dict) or statement.get("Effect") not in {"Allow", "Deny"}:
+            return True
+        if statement["Effect"] == "Deny":
+            continue
+        if "NotAction" in statement:
+            return True
+        actions = statement.get("Action")
+        actions = [actions] if isinstance(actions, str) else actions
+        if not isinstance(actions, list):
+            return True
+        for action in actions:
+            if not isinstance(action, str) or "[" in action:
+                return True
+            prefix = action.split(":", 1)[0].lower()
+            pattern = "^" + re.escape(prefix).replace(r"\*", ".*").replace(r"\?", ".") + "$"
+            if re.match(pattern, namespace):
+                return True
+    return False
+
+
+def _role_report_scope(requests, session, region, roles):
+    """Split roles into those needing an access report and those whose inline
+    and attached managed policy documents cannot allow ROLE_REPORT_NAMESPACES."""
+    policies = requests.pages(session, "iam", region, "get_account_authorization_details", "Policies")
+    documents = {}
+    if policies.status in {"collected", "empty"}:
+        for policy in policies.items:
+            versions = [v for v in policy.get("PolicyVersionList", []) if isinstance(v, dict) and v.get("IsDefaultVersion") is True]
+            if isinstance(policy.get("Arn"), str) and len(versions) == 1:
+                documents[policy["Arn"]] = _policy(versions[0].get("Document"))
+    needed, excluded = [], []
+    for role in roles:
+        sources = [inline.get("PolicyDocument") for inline in role.get("RolePolicyList", []) if isinstance(inline, dict)]
+        attached = role.get("AttachedManagedPolicies", [])
+        known = isinstance(attached, list) and isinstance(role.get("RolePolicyList", []), list) and all(
+            isinstance(p, dict) and p.get("PolicyArn") in documents for p in attached)
+        if known:
+            sources += [documents[p["PolicyArn"]] for p in attached]
+        if not known or any(_may_allow_namespace(document, namespace) for document in sources for namespace in ROLE_REPORT_NAMESPACES):
+            needed.append(role)
+        else:
+            excluded.append(role)
+    return needed, excluded
+
+
+def _sla_reports(requests, session, region, arns):
+    # IAM has no list API for existing service-access report job identifiers.
+    # Never generate a provider-side job just to obtain read evidence.
+    return {arn: (None, {"collection_status": "not_collected",
+        "operation": "iam:GetServiceLastAccessedDetails", "granularity": "SERVICE_LEVEL",
+        "error": {"code": "service_last_accessed_generation_disabled"}})
+        for arn in sorted(arns)}
 
 
 def _buckets(requests, session, region):
@@ -655,29 +1289,8 @@ def _credentials_report(requests, session, region):
     read = _single(requests, session, region, "iam", "get_credential_report",
         absent=unavailable_report_codes)
     if read.status == "empty" and read.error and read.error.get("code") in unavailable_report_codes:
-        # Explicitly authorized evidence generation only. This does not change
-        # IAM configuration, credentials, roles or resources.
-        try:
-            response = requests.call(session, "iam", region, "generate_credential_report")
-            if response.get("State") not in {"STARTED", "INPROGRESS", "COMPLETE"}:
-                raise ReadFailure("malformed", "malformed_report_generation_state")
-            deadline = time.monotonic() + requests.evidence_generation_wait
-            while True:
-                try:
-                    response = requests.call(session, "iam", region, "get_credential_report", _cache_refresh=True)
-                    read = ReadResult([response])
-                    break
-                except Exception as exc:
-                    failure = _failure(exc)
-                    if failure.code not in unavailable_report_codes:
-                        raise failure from None
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise ReadFailure("timeout", "credential_report_generation_timeout")
-                    requests._sleep(min(1, remaining))
-        except Exception as exc:
-            failure = _failure(exc)
-            return ReadResult([], failure.status, {"code": failure.code})
+        return ReadResult([], "not_collected", {"code": "credential_report_generation_disabled",
+            "source_code": read.error["code"]})
     if read.items:
         response = read.items[0]
         content = response.get("Content")
@@ -751,10 +1364,19 @@ def _scp_policies(requests, session, region, account):
         target = {"Id": parent_id, "Type": parent_type}
         path.append(target)
     complete = failure is None and target["Type"] == "ROOT"
+    # Every OU/root (policy, target) attachment observed on the account's path,
+    # so an SCP attached only above the account is evaluated at its own level.
+    inherited_items = [{"TargetId": attachment["TargetId"], "TargetType": attachment["TargetType"], "Id": item.get("Id"),
+        "Name": item.get("Name"), "Content": ((item.get("Detail") or {}).get("Policy") or {}).get("Content")}
+        for item in policies.values() for attachment in item["Attachments"] if attachment["Inherited"]]
     for item in policies.values():
+        direct = [a for a in item["Attachments"] if not a["Inherited"]]
+        item["TargetId"] = account if direct else item["Attachments"][0]["TargetId"]
+        item["TargetType"] = "ACCOUNT" if direct else item["Attachments"][0]["TargetType"]
+        item["AttachedToAccount"] = bool(direct)
         item["InheritanceComplete"] = complete
         item["InheritedPolicies"] = {"collection_status": "collected" if complete else (failure.status if failure else "unknown"),
-            "ParentPath": copy.deepcopy(path), "complete": complete}
+            "ParentPath": copy.deepcopy(path), "complete": complete, "items": copy.deepcopy(inherited_items)}
         if failure:
             item["InheritedPolicies"]["error"] = {"code": failure.code}
     items = list(policies.values())
@@ -807,6 +1429,137 @@ def _organization_parents(requests, session, region, account):
     return ReadResult(items, "collected" if items else "empty")
 
 
+def _identity_center(requests, session, region, kind):
+    """Accessible regional instances and ordinary directory/permission metadata."""
+    instances = requests.pages(session, "sso-admin", region, "list_instances", "Instances")
+    if instances.status not in {"collected", "empty"}:
+        return ReadResult([], instances.status, instances.error)
+    items, failure = [], None
+    for instance in instances.items:
+        if not isinstance(instance, dict) or not isinstance(instance.get("InstanceArn"), str):
+            failure = ReadFailure("malformed", "malformed_identity_center_instance")
+            continue
+        arn = instance["InstanceArn"]
+        if kind == "aws_identity_center_user":
+            store = instance.get("IdentityStoreId")
+            if not isinstance(store, str) or not store:
+                failure = ReadFailure("malformed", "missing_identity_store_id")
+                continue
+            read = requests.pages(session, "identitystore", region, "list_users", "Users", IdentityStoreId=store)
+            for user in read.items:
+                if not isinstance(user, dict) or not isinstance(user.get("UserId"), str):
+                    failure = ReadFailure("malformed", "malformed_identity_center_user")
+                    continue
+                items.append({**user, "InstanceArn": arn, "InstanceOwnerAccountId": instance.get("OwnerAccountId"),
+                    "IdentityStoreId": store, "id": f"{arn}/identitystore/{store}/user/{user['UserId']}"})
+        else:
+            read = requests.pages(session, "sso-admin", region, "list_permission_sets", "PermissionSets", InstanceArn=arn)
+            for permission in read.items:
+                if not isinstance(permission, str):
+                    failure = ReadFailure("malformed", "malformed_permission_set_arn")
+                    continue
+                detail = requests.detail(session, "sso-admin", region, "describe_permission_set", InstanceArn=arn, PermissionSetArn=permission)
+                inline = requests.detail(session, "sso-admin", region, "get_inline_policy_for_permission_set", InstanceArn=arn, PermissionSetArn=permission)
+                if isinstance(inline.get("InlinePolicy"), str) and inline["InlinePolicy"]:
+                    inline["InlinePolicy"] = _policy(inline["InlinePolicy"])
+                managed = requests.pages(session, "sso-admin", region, "list_managed_policies_in_permission_set", "AttachedManagedPolicies", InstanceArn=arn, PermissionSetArn=permission)
+                boundary = requests.detail(session, "sso-admin", region, "get_permissions_boundary_for_permission_set", InstanceArn=arn, PermissionSetArn=permission)
+                items.append({"id": f"{arn}/permission-set/{permission}", "InstanceArn": arn,
+                    "InstanceOwnerAccountId": instance.get("OwnerAccountId"), "PermissionSetArn": permission,
+                    "PermissionSet": detail, "InlinePolicy": inline,
+                    "AttachedManagedPolicies": {"collection_status": managed.status, "items": managed.items,
+                        **({"error": managed.error} if managed.error else {})}, "PermissionsBoundary": boundary})
+        if read.status not in {"collected", "empty"}:
+            failure = ReadFailure((read.error or {}).get("cause_status", read.status), (read.error or {}).get("code", "identity_center_inventory_incomplete"))
+    if failure:
+        return ReadResult(items, "partial" if items else failure.status, {"code": failure.code, "cause_status": failure.status})
+    return ReadResult(items, "collected" if items else "empty")
+
+
+# Event names defined only by the IAM API (checked against every botocore
+# service model). IAM is a global service whose CloudTrail events are recorded
+# only in us-east-1 for the aws partition:
+# https://docs.aws.amazon.com/IAM/latest/UserGuide/cloudtrail-integration.html
+# https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html#cloudtrail-concepts-global-service-events
+IAM_ONLY_ACTIVITY_NAMES = frozenset({"AddRoleToInstanceProfile", "AddUserToGroup", "AttachGroupPolicy", "AttachRolePolicy",
+    "AttachUserPolicy", "CreateAccessKey", "CreateLoginProfile", "CreateRole", "DeleteRolePermissionsBoundary", "DeleteRolePolicy",
+    "DeleteUserPermissionsBoundary", "DeleteUserPolicy", "DetachRolePolicy", "DetachUserPolicy", "GetAccountAuthorizationDetails",
+    "GetUserPolicy", "ListAccessKeys", "ListAttachedUserPolicies", "ListRoles", "PutGroupPolicy", "PutRolePermissionsBoundary",
+    "PutRolePolicy", "PutUserPermissionsBoundary", "PutUserPolicy", "UpdateAccessKey", "UpdateAssumeRolePolicy", "UpdateLoginProfile"})
+IAM_EVENT_REGION = "us-east-1"
+
+
+def activity_event_names(region):
+    names = sorted({name for values in ACTIVITY_ACTIONS.values() for name in values})
+    # Only standard aws-partition commercial Regions skip IAM-only names;
+    # every other partition and us-east-1 itself query the full list.
+    if region != IAM_EVENT_REGION and re.fullmatch(r"(?:af|ap|ca|eu|il|me|mx|sa|us)-[a-z]+-[0-9]", region) and not region.startswith("us-gov-"):
+        names = [name for name in names if name not in IAM_ONLY_ACTIVITY_NAMES]
+    return names
+
+
+def _cloudtrail_activity(requests, session, region):
+    end = requests.observed_at
+    start = end - timedelta(minutes=requests.activity_minutes)
+    names = activity_event_names(region)
+    items, failures = {}, []
+    for name in names:
+        read = requests.pages(session, "cloudtrail", region, "lookup_events", "Events",
+            LookupAttributes=[{"AttributeKey": "EventName", "AttributeValue": name}], StartTime=start, EndTime=end)
+        for event in read.items:
+            if event.get("EventName") != name:
+                failures.append(ReadFailure("malformed", "activity_query_name_mismatch"))
+                continue
+            items[event["EventId"]] = {**event, "WindowStart": start.isoformat(), "WindowEnd": end.isoformat(),
+                "ObservationSource": "cloudtrail:LookupEvents", "Projection": "actor_arn_type_event_name_time_id_only"}
+        if read.status not in {"collected", "empty"}:
+            failures.append(ReadFailure((read.error or {}).get("cause_status", read.status), (read.error or {}).get("code", "activity_window_incomplete")))
+    if failures:
+        failure = failures[0]
+        return ReadResult(list(items.values()), "partial" if items else failure.status, {"code": failure.code, "cause_status": failure.status})
+    return ReadResult(list(items.values()), "collected" if items else "empty")
+
+
+def _ec2_regional_settings(requests, session, region):
+    """Independent account/region settings, preserving field-level read status."""
+    operations = [("get_ebs_encryption_by_default", "EbsEncryptionByDefault", "EbsEncryptionByDefault"),
+        ("get_snapshot_block_public_access_state", "State", "SnapshotBlockPublicAccessState"),
+        ("get_image_block_public_access_state", "ImageBlockPublicAccessState", "ImageBlockPublicAccessState"),
+        ("get_instance_metadata_defaults", "AccountLevel", "InstanceMetadataDefaults")]
+    item = {"id": "ec2-regional-settings", "_coverage": {}}
+    for operation, native_field, field in operations:
+        detail = requests.detail(session, "ec2", region, operation)
+        state = detail.get("collection_status", "not_collected")
+        if state == "collected" and native_field in detail:
+            item[field] = detail[native_field]
+            item["_coverage"][field] = {"status": "collected", "source_operation": operation, "source_member": native_field}
+        else:
+            item["_coverage"][field] = {"status": "malformed" if state == "collected" else state,
+                "source_operation": operation, "reason": "setting_unavailable", **({"error": detail["error"]} if "error" in detail else {})}
+    return ReadResult([item], "collected")
+
+
+def _account_configuration(requests, session, region, identity):
+    """Only presence metadata; contact names/email/phone are not serialized."""
+    contact = requests.detail(session, "account", region, "get_alternate_contact", AlternateContactType="SECURITY", absent=("ResourceNotFoundException",))
+    if contact.get("collection_status") == "collected":
+        value = contact.get("AlternateContact")
+        if isinstance(value, dict) and isinstance(value.get("Name"), str) and value["Name"] and value.get("AlternateContactType") == "SECURITY":
+            contact = {"collection_status": "collected", "NamePresent": True, "AlternateContactType": "SECURITY"}
+        else:
+            contact = {"collection_status": "malformed", "error": {"code": "malformed_security_contact"}}
+    organization = requests.detail(session, "organizations", region, "describe_organization", absent=("AWSOrganizationsNotInUseException",))
+    if organization.get("collection_status") == "collected":
+        value = organization.get("Organization")
+        if (isinstance(value, dict) and isinstance(value.get("Id"), str) and value["Id"].startswith("o-")
+                and isinstance(value.get("MasterAccountId"), str) and re.fullmatch(r"[0-9]{12}", value["MasterAccountId"])):
+            organization = {"collection_status": "collected", "OrganizationId": value["Id"], "MasterAccountId": value["MasterAccountId"]}
+        else:
+            organization = {"collection_status": "malformed", "error": {"code": "malformed_organization_metadata"}}
+    return ReadResult([{"id": "account-configuration", "Partition": identity["Arn"].split(":")[1],
+        "SecurityContact": contact, "Organization": organization}], "collected")
+
+
 def _identity(requests, session, region, expected=None):
     identity = requests.call(session, "sts", region, "get_caller_identity")
     account, arn = identity.get("Account"), identity.get("Arn")
@@ -852,10 +1605,38 @@ def collect(connector, requirements=None):
     is never an attempt to guess role names or to fall back after auth failure.
     """
     from peaso.snapshot import make_snapshot
+    from peaso.progress import emit_progress
+    from .aws_policy import backup_plan_policy, bind_backup_plan_policy
+    from .aws_ssm_inventory_events_native import approved_readers
 
     options, auth = connector.get("options", {}), connector.get("auth", {})
     if not isinstance(options, dict) or not isinstance(auth, dict):
         raise ValueError("auth and options must be objects")
+    from .aws_codecommit_review_native import review_policy
+    review_policy(options, connector.get("scopes") or [])
+    from .aws_controltower_native import normalize as normalize_controltower
+    controltower_policy = normalize_controltower(options, connector.get('scopes') or [])
+    from .aws_region_data_native import normalize as normalize_data_regions
+    data_regions_policy = normalize_data_regions(options)
+    inventory_readers = approved_readers(options)
+    from peaso.aws_lightsail_owner_policy import normalize as normalize_lightsail, bind_scopes as bind_lightsail, owner_metadata as lightsail_metadata, merge_metadata as merge_lightsail
+    lightsail_owner = normalize_lightsail(options)
+    bind_lightsail(lightsail_owner, connector.get('scopes') or [])
+    from .aws_environment_boundaries_native import normalize as normalize_environment_boundaries
+    environment_boundaries_owner = normalize_environment_boundaries(options, connector.get('scopes') or [])
+    from .aws_eks_admission_native import normalize as normalize_eks_admission
+    eks_admission_owner = normalize_eks_admission(options, connector.get('scopes') or [])
+    # Operator-declared thresholds are validated before any AWS request; none is ever defaulted.
+    backup_policy = backup_plan_policy(options)
+    from .aws_cost_policy import normalize as normalize_cost_policy
+    cost_policy = normalize_cost_policy(options)
+    from peaso.aws_budget_policy import normalize as normalize_budget_stop_policy
+    normalize_budget_stop_policy(options)
+    if "_ecr_latest_scan_requested" in options and type(options["_ecr_latest_scan_requested"]) is not bool:
+        raise ValueError("internal ECR scan fact selection must be boolean")
+    progress_callback = options.get("_progress_callback")
+    progress_total = None
+    emit_progress(progress_callback, phase="discovering", provider="aws", scope="", completed=0, total=None, resources=0, dynamic_total=True)
     selected_accounts, regions = _selection(connector)
     explicit_regions = bool(options.get("regions") or auth.get("region_name")) or any(not re.fullmatch(r"[0-9]{12}", scope) for scope in connector.get("scopes") or [])
     discovered_regions = {}
@@ -875,6 +1656,20 @@ def collect(connector, requirements=None):
         return discovered_regions.get(account, regions)
 
     requests = Requests(options)
+    requests.lightsail_iam_policy = lightsail_metadata(lightsail_owner, requests.observed_at)
+    requests.environment_boundaries_policy = environment_boundaries_owner
+    requests.eks_admission_policy = eks_admission_owner
+    requests.controltower_policy = controltower_policy
+    requests.data_regions_policy = data_regions_policy
+    from .aws_ecr_artifacts_native import normalize as normalize_ecr_artifacts
+    requests.ecr_artifacts_policy = normalize_ecr_artifacts(options)
+    requests.backup_region_discovery = {}
+    from .aws_operational_groups_native import normalize as normalize_operational_groups
+    requests.operational_groups_policy = normalize_operational_groups(options)
+    from .aws_resolver_firewall_native import normalize as normalize_resolver_firewall
+    requests.resolver_firewall_policy = normalize_resolver_firewall(options)
+    # Selection is derived by collect_snapshot, not supplied as a resource kind.
+    requests.ecr_latest_scan_requested = (requirements is None or options.get("_ecr_latest_scan_requested") is True)
     scope_workers = _bound(options, "scope_concurrency", 2, maximum=8)
     region_workers = _bound(options, "region_concurrency", 2, maximum=8)
     inventories = options.get("inventories", AWS_TYPES)
@@ -883,6 +1678,14 @@ def collect(connector, requirements=None):
     if requirements is not None and (not isinstance(requirements, list) or any(not isinstance(x, str) for x in requirements)):
         raise ValueError("requirements must be a list of resource types")
     wanted = set(inventories) & (set(requirements) if requirements is not None else set(AWS_TYPES))
+    if 'lightsail_iam_policy_attachment' in wanted:
+        wanted.add('lightsail_bucket')
+    lightsail_iam_only = ('lightsail_iam_policy_attachment' in wanted
+                         and wanted <= {'lightsail_bucket', 'lightsail_iam_policy_attachment'})
+    requests.sagemaker_clarify_requested = "sagemaker_endpoint" in wanted
+    derive_account_vpcs = "vpc_account_inventory" in wanted
+    if derive_account_vpcs:
+        wanted.add("vpc")
     # Caller identity is mandatory even when no resource inventories are chosen.
     wanted.add("aws_account")
     unsupported = set(requirements or []) - set(AWS_TYPES)
@@ -913,6 +1716,31 @@ def collect(connector, requirements=None):
                 status, error = ("partial" if unique else "malformed"), {"code": "malformed_resource"}
                 break
             item = _safe(original)
+            # This reviewed classification is an enum, not an environment
+            # variable payload. Keep generic credential redaction unchanged.
+            if (kind == 'environment_workload_resource'
+                    and type(original.get('Environment')) is str
+                    and original['Environment'] in {'production', 'development', 'test'}):
+                item['Environment'] = original['Environment']
+            if kind == 'organization_tag_policy' and isinstance(original.get('Ec2Tags'), dict):
+                # Governance enums are not Lambda environment-variable values.
+                # Restore only known environment labels after generic redaction;
+                # any other omitted policy metadata makes the policy incomplete.
+                environments = {'production', 'prod', 'development', 'dev', 'test', 'testing',
+                                'stage', 'staging', 'qa', 'uat', 'sandbox', 'preprod',
+                                'preproduction', 'nonprod', 'nonproduction', 'demo', 'shared', 'management'}
+                tags = item.setdefault('Ec2Tags', {})
+                for key, values in original['Ec2Tags'].items():
+                    if key in tags and tags[key] == values:
+                        continue
+                    if (isinstance(key, str) and key.casefold() == 'environment'
+                            and isinstance(values, list)
+                            and all(isinstance(value, str) and value.casefold() in environments for value in values)):
+                        tags[key] = copy.deepcopy(values)
+                    else:
+                        item['Complete'] = False
+                        item.setdefault('_coverage', {})['Ec2Tags'] = {
+                            'status': 'not_collected', 'reason': 'tag_policy_metadata_redacted'}
             singleton = kind in {"iam_account_summary", "iam_password_policy", "s3_account_public_access_block"}
             item.setdefault("id", account if singleton and account else _native_id(kind, item))
             if account:
@@ -931,22 +1759,28 @@ def collect(connector, requirements=None):
         if account:
             envelope["account_id"] = account
             envelope["global"] = kind in GLOBAL_TYPES
+        if kind == "aws_tagged_resource" and status in ("collected", "empty"):
+            from .aws_priority_tags_native import SOURCE_KINDS
+            envelope["covered_source_kinds"] = list(SOURCE_KINDS)
         if error:
             envelope["error"] = error
         collections.append(envelope)
+        emit_progress(progress_callback, phase="collecting", provider="aws", scope=scope, completed=len(collections),
+            total=progress_total, resources=total_items, dynamic_total=progress_total is None)
 
     def failed_scope(scope, failure):
         account = scope.split("/")[0]
         account_regions = regions_for(account)
-        for region in account_regions:
+        for region in [GLOBAL_SCOPE, *account_regions]:
             current_scope = f"{account}/{region}"
-            kinds = AWS_TYPES if region == account_regions[0] else sorted(set(SPECS) - GLOBAL_TYPES)
-            for kind in kinds + sorted(unsupported):
+            kinds = sorted(GLOBAL_TYPES) if region == GLOBAL_SCOPE else sorted(set(SPECS) - GLOBAL_TYPES)
+            for kind in kinds + ([] if region == GLOBAL_SCOPE else sorted(unsupported)):
                 if any(c["scope"] == current_scope and c["type"] == kind for c in collections):
                     continue
                 append(kind, current_scope, SPECS.get(kind, ("iam" if kind.startswith("iam_") else "aws",))[0],
                     ReadResult([], failure.status if kind in wanted or kind in unsupported else "not_collected",
-                        {"code": failure.code if kind in wanted or kind in unsupported else "inventory_not_requested"}))
+                        {"code": failure.code if kind in wanted or kind in unsupported else "inventory_not_requested"}),
+                    account if region == GLOBAL_SCOPE and re.fullmatch(r"[0-9]{12}", account) else None)
 
     try:
         session, credential_method = _session(auth, regions[0] if explicit_regions else None)
@@ -956,25 +1790,32 @@ def collect(connector, requirements=None):
         chain = auth.get("role_chain", [])
         if not isinstance(chain, list) or len(chain) > 10:
             raise ValueError("role_chain must contain at most 10 role targets")
-        if auth.get("role_arn"):
+        hosted = bool(options.get("hosted"))
+        hosted_platform = bool(hosted and auth.get("external_id") and not auth.get("aws_access_key_id"))
+        if auth.get("role_arn") and not hosted_platform:
             chain = chain + [{"role_arn": auth["role_arn"]}]
         for target in chain:
             session = _assume(requests, session, regions[0], target, auth)
         identity = _identity(requests, session, regions[0])
         base_account = identity["Account"]
-        if not selected_accounts or base_account in selected_accounts:
+        if not hosted_platform and options.get("include_source_account", True) and (not selected_accounts or base_account in selected_accounts):
             contexts.append((session, identity))
             identities.append(identity)
         targets = auth.get("assume_roles", [])
         if not isinstance(targets, list):
             raise ValueError("assume_roles must be a list of role targets")
         targets = list(targets)
+        if hosted_platform and auth.get("role_arn"):
+            targets.append({"role_arn": auth["role_arn"]})
         organization_role = options.get("organization_role_name")
         org_inventory = None
         if organization_role:
             if not isinstance(organization_role, str) or not re.fullmatch(r"[\w+=,.@/-]{1,512}", organization_role):
                 raise ValueError("invalid organization_role_name")
-            org_inventory = requests.pages(session, "organizations", regions[0], "list_accounts", "Accounts")
+            # Hosted discovery is bounded independently of the role scan cap.
+            # Local scans paginate fully unless the caller opts into max_pages.
+            org_inventory = requests.pages(session, "organizations", regions[0], "list_accounts", "Accounts",
+                _page_limit=10 if hosted else None)
             metadata["organization_discovery"] = {"status": org_inventory.status,
                 "accounts_seen": len(org_inventory.items), "error": org_inventory.error}
             partition = identity["Arn"].split(":")[1]
@@ -985,7 +1826,7 @@ def collect(connector, requirements=None):
                 if account != base_account and (not selected_accounts or account in selected_accounts):
                     targets.append({"role_arn": f"arn:{partition}:iam::{account}:role/{organization_role}"})
         seen_targets = set()
-        metadata["role_target_selection"] = {"requested": len(targets), "scheduled_limit": None, "status": "collected"}
+        selected_targets = []
         for target in targets:
             target_info = {"role_arn": target} if isinstance(target, str) else target
             if not isinstance(target_info, dict):
@@ -997,15 +1838,44 @@ def collect(connector, requirements=None):
             if arn in seen_targets:
                 continue
             seen_targets.add(arn)
+            selected_targets.append((target_info, expected))
+        scheduled = selected_targets[:50] if hosted else selected_targets
+        omitted = selected_targets[50:] if hosted else []
+        metadata["role_target_selection"] = {"requested": len(selected_targets), "scheduled_limit": 50 if hosted else None,
+            "scheduled": len(scheduled), "omitted": len(omitted),
+            "omitted_role_arns": [target["role_arn"] for target, _ in omitted],
+            "status": "partial" if omitted or (org_inventory and org_inventory.status not in {"collected", "empty"}) else "collected"}
+        for target_info, expected in omitted:
+            auth_errors.append({"account": expected or "unresolved", "role_arn": target_info["role_arn"],
+                                "error": {"code": "role_target_limit"}, "status": "not_collected"})
+        selected_context_accounts = {identity["Account"] for _, identity in contexts}
+        duplicate_targets = []
+        for target_info, expected in scheduled:
+            if expected in selected_context_accounts:
+                skipped = {"account": expected, "role_arn": target_info["role_arn"],
+                    "status": "not_collected", "code": "duplicate_account_target"}
+                duplicate_targets.append(skipped)
+                continue
             try:
+                if hosted_platform:
+                    if expected in {"202533532952", "418720621023"}:
+                        raise ReadFailure("denied", "platform_owned_account")
+                    _reject_unprotected_hosted_role(requests, session, regions[0], target_info, auth)
                 role_session = _assume(requests, session, regions[0], target_info, auth)
                 role_identity = _identity(requests, role_session, regions[0], expected)
-                if role_identity["Account"] not in {x[1]["Account"] for x in contexts}:
-                    contexts.append((role_session, role_identity))
-                    identities.append(role_identity)
+                contexts.append((role_session, role_identity))
+                identities.append(role_identity)
+                selected_context_accounts.add(role_identity["Account"])
             except Exception as exc:
                 failure = _failure(exc)
-                auth_errors.append({"account": expected or "unresolved", "error": {"code": failure.code}, "status": failure.status})
+                auth_errors.append({"account": expected or "unresolved", "role_arn": target_info["role_arn"],
+                                    "error": {"code": failure.code}, "status": failure.status})
+        metadata["role_target_selection"]["duplicate_account_targets"] = duplicate_targets
+        if duplicate_targets:
+            metadata["role_target_selection"]["status"] = "partial"
+            metadata["scan_coverage"] = [{"level": "credential_target", "scope": row["account"],
+                "account": row["account"], "role_arn": row["role_arn"],
+                "status": row["status"], "code": row["code"], "error_code": row["code"]} for row in duplicate_targets]
         resolved = {x[1]["Account"] for x in contexts}
         for account in selected_accounts:
             if account not in resolved:
@@ -1016,6 +1886,8 @@ def collect(connector, requirements=None):
                 failed_scope(f"{error['account']}/{regions[0]}", ReadFailure(error["status"], error["error"]["code"]))
     except Exception as exc:
         failure = _failure(exc)
+        emit_progress(progress_callback, phase="error", provider="aws", scope="", completed=len(collections),
+            total=None, resources=total_items, dynamic_total=True)
         contexts = []
         for account in selected_accounts or ["unresolved"]:
             failed_scope(f"{account}/{regions[0]}", failure)
@@ -1026,6 +1898,7 @@ def collect(connector, requirements=None):
         for account_session, identity in contexts:
             account = identity["Account"]
             read = requests.pages(account_session, "ec2", regions[0], "describe_regions", "Regions", AllRegions=True)
+            requests.backup_region_discovery[account] = copy.deepcopy(read)
             valid = read.status in {"collected", "empty"} and all(isinstance(row, dict) and isinstance(row.get("RegionName"), str) and row.get("OptInStatus") in {"opt-in-not-required", "opted-in", "not-opted-in"} for row in read.items)
             enabled = sorted({row["RegionName"] for row in read.items if isinstance(row, dict) and row.get("OptInStatus") in {"opt-in-not-required", "opted-in"}}) if valid else []
             if not valid or not enabled:
@@ -1038,16 +1911,96 @@ def collect(connector, requirements=None):
         if discovered_regions:
             regions[:] = sorted({region for values in discovered_regions.values() for region in values})
         metadata["regions"] = list(regions)
+    requests.audited_regions_by_account = {identity["Account"]: list(regions_for(identity["Account"])) for _, identity in contexts}
+    progress_total = len(collections) + sum(len(GLOBAL_TYPES) + len(regions_for(identity["Account"])) * (len(set(SPECS) - GLOBAL_TYPES) + len(unsupported)) for context, identity in contexts)
+    emit_progress(progress_callback, phase="collecting", provider="aws", scope="", completed=len(collections),
+        total=progress_total, resources=total_items, dynamic_total=False)
 
     def global_job(session, identity, kind):
         account = identity["Account"]
         region = regions_for(account)[0]
         if kind in FETCHERS:
-            return FETCHERS[kind](requests, session, region, account)
+            return regional_job(session, identity, region, kind)
         if kind == "aws_account":
             return ReadResult([identity])
+        if kind == "aws_account_configuration":
+            return _account_configuration(requests, session, region, identity)
+        if kind == "config_delegated_administrator":
+            read = requests.pages(session, "organizations", region, "list_delegated_administrators", "DelegatedAdministrators", ServicePrincipal="config.amazonaws.com")
+            read.items = [{"Id": original["Id"]} for original in read.items]
+            return read
+        if kind == "config_account_aggregator_inventory":
+            if account in region_discovery_errors:
+                failure = region_discovery_errors[account]
+                return ReadResult([], failure.status, {"code": failure.code, "reason": "full_account_region_discovery_incomplete"})
+            if explicit_regions:
+                return ReadResult([], "not_collected", {"code": "full_account_region_coverage_not_proven"})
+            items, failure = [], None
+            for observed_region in regions_for(account):
+                read = regional_job(session, identity, observed_region, "config_aggregator")
+                items.extend({**original, "SourceRegion": observed_region} for original in read.items)
+                if read.status not in {"collected", "empty"}:
+                    failure = ReadFailure((read.error or {}).get("cause_status", read.status), (read.error or {}).get("code", "account_aggregator_inventory_incomplete"))
+            if failure:
+                return ReadResult(items, "partial" if items else failure.status, {"code": failure.code, "cause_status": failure.status})
+            return ReadResult(items, "collected" if items else "empty")
+        if kind == "cloudtrail_account_inventory":
+            if account in region_discovery_errors:
+                failure = region_discovery_errors[account]
+                return ReadResult([], failure.status, {"code": failure.code, "reason": "full_account_region_discovery_incomplete"})
+            if explicit_regions:
+                return ReadResult([], "not_collected", {"code": "full_account_region_coverage_not_proven"})
+            trails, failure = {}, None
+            for observed_region in regions_for(account):
+                read = regional_job(session, identity, observed_region, "cloudtrail")
+                for original in read.items:
+                    if not isinstance(original, dict) or not isinstance(original.get("TrailARN"), str):
+                        failure = ReadFailure("malformed", "malformed_account_trail")
+                        continue
+                    item = {**original, "SourceRegion": observed_region}
+                    existing = trails.get(item["TrailARN"])
+                    if existing is None or observed_region == item.get("HomeRegion"):
+                        trails[item["TrailARN"]] = item
+                if read.status not in {"collected", "empty"}:
+                    failure = ReadFailure((read.error or {}).get("cause_status", read.status), (read.error or {}).get("code", "account_trail_inventory_incomplete"))
+            if failure:
+                return ReadResult(list(trails.values()), "partial" if trails else failure.status, {"code": failure.code, "cause_status": failure.status})
+            return ReadResult(list(trails.values()), "collected" if trails else "empty")
+        if kind == "macie2_account_classification_job_inventory":
+            if account in region_discovery_errors:
+                failure = region_discovery_errors[account]
+                return ReadResult([], failure.status, {"code": failure.code, "reason": "full_account_region_discovery_incomplete"})
+            if explicit_regions:
+                return ReadResult([], "not_collected", {"code": "full_account_region_coverage_not_proven"})
+            # Every enabled Region gets a row carrying its own read status, so a
+            # failed Region leaves only buckets homed there unknown.
+            rows = []
+            for observed_region in regions_for(account):
+                # Same single-flight cached reads as the regional inventory.
+                read = regional_job(session, identity, observed_region, "macie2_classification_job")
+                state = (read.error or {}).get("code") if read.status == "empty" else None
+                jobs = {"collection_status": read.status, "items": read.items}
+                if read.error:
+                    jobs["error"] = {"code": (read.error or {}).get("code")}
+                rows.append({"id": f"macie-jobs/{account}/{observed_region}", "SourceRegion": observed_region,
+                    "ServiceState": state if state in SERVICE_STATE_CODES else "available" if read.status in {"collected", "empty"} else "unavailable",
+                    "Jobs": jobs})
+            return ReadResult(rows, "collected" if rows else "empty")
+        if kind == "metric_alarm_account_inventory":
+            # Every enabled Region gets a row with its own metric filter, alarm and
+            # subscription read status (aws_facts_gap.metric_alarm_rows).
+            if account in region_discovery_errors:
+                failure = region_discovery_errors[account]
+                return ReadResult([], failure.status, {"code": failure.code, "reason": "full_account_region_discovery_incomplete"})
+            if explicit_regions:
+                return ReadResult([], "not_collected", {"code": "full_account_region_coverage_not_proven"})
+            from .aws_facts_gap import metric_alarm_rows
+            return metric_alarm_rows(regional_job, session, identity, regions_for(account))
         if kind == "bucket":
             return _buckets(requests, session, region)
+        if kind == "iam_managed_policy":
+            from .aws_all_policies import collect as collect_all_policies
+            return collect_all_policies(requests, session, region, account)
         if kind in {"iam_user", "iam_group", "iam_role", "iam_policy"}:
             return _iam(requests, session, region, {kind})[kind]
         if kind == "iam_account_summary":
@@ -1056,6 +2009,8 @@ def collect(connector, requirements=None):
             return _single(requests, session, region, "iam", "get_account_password_policy", absent=("NoSuchEntity",))
         if kind == "iam_credential_report":
             return _credentials_report(requests, session, region)
+        if kind == "iam_access_key":
+            return _access_keys(requests, session, region)
         if kind == "s3_account_public_access_block":
             return _single(requests, session, region, "s3control", "get_public_access_block", AccountId=account, absent=("NoSuchPublicAccessBlockConfiguration",))
         if kind == "organization_account":
@@ -1063,27 +2018,117 @@ def collect(connector, requirements=None):
                 return org_inventory
             return requests.pages(session, "organizations", region, "list_accounts", "Accounts")
         if kind == "organization_parent":
+            if "organization_account" in wanted:
+                from .aws_organization_ou_native import collect as collect_organization_ou
+                return collect_organization_ou(requests, session, region, account,
+                    account_inventory=org_inventory if account == base_account else None)
             return _organization_parents(requests, session, region, account)
         if kind == "scp_policy":
             return _scp_policies(requests, session, region, account)
+        if kind in SPECS:
+            # Global extension specs share the exact same native read/enrich
+            # dispatcher as regional specs, rather than falling through.
+            return regional_job(session, identity, region, kind)
         return ReadResult([], "not_collected", {"code": "unsupported_inventory"})
 
     def regional_job(session, identity, region, kind):
-        if kind in FETCHERS:
+        if kind == 'lightsail_bucket' and lightsail_iam_only:
+            from .aws_lightsail_iam_native import bucket_metadata
+            return bucket_metadata(requests, session, region, identity['Account'])
+        from peaso.aws_service_lifecycle import retired_collection_error
+        retired = retired_collection_error(kind, requests.observed_at)
+        if retired is not None:
+            # A full-shutdown service has no current resource inventory. Keep
+            # the exact kind and reason in the snapshot without calling its SDK.
+            return ReadResult([], "empty", retired)
+        if kind == "ec2_regional_settings":
+            read = _ec2_regional_settings(requests, session, region)
+        elif kind == "aws_cloudtrail_activity":
+            read = _cloudtrail_activity(requests, session, region)
+        elif kind in {"aws_identity_center_user", "aws_identity_center_permission_set"}:
+            read = _identity_center(requests, session, region, kind)
+        elif kind in FETCHERS:
             read = FETCHERS[kind](requests, session, region, identity["Account"])
             if not isinstance(read, ReadResult):
                 return ReadResult([], "malformed", {"code": "malformed_extension_result"})
-            return read
-        service, operation, expression = SPECS[kind]
-        args = {"includeShadowTrails": True} if kind == "cloudtrail" else {"MaxResults": 1000} if kind == "sqs_queue" else {}
-        read = _single(requests, session, region, service, operation, **args) if expression is None else requests.pages(session, service, region, operation, expression, **args)
+        else:
+            service, operation, expression = SPECS[kind]
+            args = {"Owners": ["self"], "IncludeDeprecated": True, "IncludeDisabled": True} if kind == "ec2_image" else {"OwnerIds": ["self"]} if kind == "ebs_snapshot" else {"includeShadowTrails": True} if kind == "cloudtrail" else {"MaxResults": 1000} if kind == "sqs_queue" else {}
+            read = _single(requests, session, region, service, operation, **args) if expression is None else requests.pages(session, service, region, operation, expression, **args)
         try:
-            read.items = _enrich(requests, session, region, kind, read.items)
+            if kind == "transit_gateway_route_table":
+                for item in read.items:
+                    table_id = item.get("TransitGatewayRouteTableId")
+                    if not isinstance(table_id, str) or not table_id:
+                        continue
+                    routes = [requests.pages(session, "ec2", region, "search_transit_gateway_routes", "Routes",
+                        TransitGatewayRouteTableId=table_id,
+                        Filters=[{"Name": "type", "Values": [route_type]}])
+                        for route_type in ("static", "propagated")]
+                    route_items = [route for result in routes for route in result.items]
+                    complete = all(result.status in {"collected", "empty"} for result in routes)
+                    item["RouteInventory"] = {"collection_status": ("collected" if route_items else "empty") if complete else "partial",
+                        "items": route_items, "queries": ["type=static", "type=propagated"],
+                        **({"error": {"code": "transit_gateway_routes_incomplete",
+                            "sources": [result.error for result in routes if result.error]}} if not complete else {})}
+                    associations = requests.pages(session, "ec2", region, "get_transit_gateway_route_table_associations",
+                        "Associations", TransitGatewayRouteTableId=table_id)
+                    item["AssociationInventory"] = {"collection_status": associations.status,
+                        "items": associations.items,
+                        **({"error": associations.error} if associations.error else {})}
+            read.items = _enrich(requests, session, region, kind, read.items, account=identity["Account"], partition=identity["Arn"].split(":")[1])
+            if kind == "cloudtrail":
+                for item in read.items:
+                    item["_provenance"] = {"operation": "cloudtrail:DescribeTrails", "native_response_complete": True}
+                    _documented_omission(item, "CloudWatchLogsLogGroupArn", "", "cloudtrail:DescribeTrails")
+            if kind == "instance":
+                for item in read.items:
+                    item["_provenance"] = {"operation": "ec2:DescribeInstances", "native_response_complete": True}
+            if kind == "config_aggregator":
+                for item in read.items:
+                    item["_provenance"] = {"operation": "config:DescribeConfigurationAggregators", "native_response_complete": True}
             if kind == "log_group":
                 for item in read.items:
                     item["_provenance"] = {"operation": "logs:DescribeLogGroups", "native_response_complete": True}
+            if kind == "elasticache_replication_group" and read.status == "collected" and not read.error:
+                # DescribeReplicationGroups returns an unprojected ReplicationGroups
+                # record. Its documented omitted SnapshotRetentionLimit default is
+                # meaningful only when every page was read successfully.
+                for item in read.items:
+                    if not isinstance(item, dict) or item.get("collection_status") not in (None, "collected"):
+                        continue
+                    coverage = item.get("_coverage", {})
+                    if not isinstance(coverage, dict) or any(not isinstance(value, dict) or value.get("status") not in ("collected", "empty") for value in coverage.values()):
+                        continue
+                    provenance = item.get("_provenance", {})
+                    if not isinstance(provenance, dict) or provenance.get("operation") not in (None, "elasticache:DescribeReplicationGroups"):
+                        continue
+                    item["_provenance"] = {**provenance, "operation": "elasticache:DescribeReplicationGroups", "native_response_complete": True}
             if kind in ENRICHERS:
                 read.items = ENRICHERS[kind](requests, session, region, read.items)
+                if read.items and read.status not in {"collected", "partial"}:
+                    # Independent setting reads can add rows to an unavailable
+                    # parent inventory. They never prove parent completeness.
+                    # Preserve the failure and per-row coverage as partial data;
+                    # the strict snapshot invariant remains unchanged.
+                    cause = read.status
+                    read.status = "partial"
+                    read.error = {**(read.error or {}),
+                                  "code": (read.error or {}).get("code", "incomplete_parent_inventory"),
+                                  "cause_status": cause}
+            if kind == "lambda_function":
+                for item in read.items:
+                    configuration = item.get("Configuration", {})
+                    if isinstance(configuration, dict) and configuration.get("collection_status") == "collected":
+                        for field, empty_value in (("DeadLetterConfig", {}), ("VpcConfig", {"VpcId": ""})):
+                            if field not in item:
+                                if field in configuration:
+                                    item[field] = copy.deepcopy(configuration[field])
+                                else:
+                                    _documented_omission(item, field, empty_value, "lambda:GetFunctionConfiguration")
+                        vpc = item.get("VpcConfig")
+                        if isinstance(vpc, dict) and "VpcId" not in vpc:
+                            _documented_omission(vpc, "VpcId", "", "lambda:GetFunctionConfiguration")
         except Exception as exc:
             failure = _failure(exc)
             # Retain original valid dictionary evidence, mark incomplete detail.
@@ -1092,69 +2137,158 @@ def collect(connector, requirements=None):
             read.error = {"code": failure.code}
         return read
 
-    with ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool:
+    iam_kinds = {"iam_user", "iam_group", "iam_role", "iam_policy"}
+    # CloudTrail LookupEvents is rate limited per account and Region (2 TPS,
+    # enforced in Requests.call), so each Region's activity read runs on its
+    # own thread instead of occupying a shared service worker for minutes.
+    activity_workers = _bound(options, "activity_concurrency", min(32, max(1, len(regions) * min(scope_workers, max(1, len(contexts))))), maximum=32)
+    metadata["activity_concurrency"] = activity_workers
+    with ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
+            ThreadPoolExecutor(max_workers=activity_workers, thread_name_prefix="aws-activity") as activity_pool:
         for offset in range(0, len(contexts), scope_workers):
             scope_batch = contexts[offset:offset + scope_workers]
-            jobs = []
+            jobs, activity_jobs = [], {}
             for session, identity in scope_batch:
-                for kind in sorted(GLOBAL_TYPES):
+                # Activity reads start first: they are the longest rate-limited chains.
+                if "aws_cloudtrail_activity" in wanted and identity["Account"] not in region_discovery_errors:
+                    for region in regions_for(identity["Account"]):
+                        activity_jobs[(id(identity), region)] = activity_pool.submit(regional_job, session, identity, region, "aws_cloudtrail_activity")
+                # The four IAM projections share one GetAccountAuthorizationDetails
+                # pagination; one job reads them instead of four blocked workers.
+                selected_iam = sorted(iam_kinds & wanted)
+                iam_future = pool.submit(_iam, requests, session, regions_for(identity["Account"])[0], set(selected_iam)) if selected_iam else None
+                for kind in sorted(GLOBAL_TYPES - {"vpc_account_inventory"}):
                     if kind in wanted:
-                        jobs.append((kind, identity, regions_for(identity["Account"])[0], session, pool.submit(global_job, session, identity, kind)))
+                        if kind in iam_kinds:
+                            future = Future()
+                            def project(done, future=future, kind=kind):
+                                try:
+                                    future.set_result(done.result()[kind])
+                                except Exception as exc:
+                                    future.set_exception(exc)
+                            iam_future.add_done_callback(project)
+                        else:
+                            future = pool.submit(global_job, session, identity, kind)
+                        jobs.append((kind, identity, regions_for(identity["Account"])[0], session, future))
+            # Regional jobs are queued behind the global ones without a per-Region
+            # barrier; emission below stays in the same deterministic order.
+            regional_jobs = []
+            for session, identity in scope_batch:
+                for region in regions:
+                    if region not in regions_for(identity["Account"]):
+                        continue
+                    for kind in sorted(set(SPECS) - GLOBAL_TYPES - {"vpc_account_inventory"}):
+                        if kind in wanted:
+                            if identity["Account"] in region_discovery_errors:
+                                failure = region_discovery_errors[identity["Account"]]
+                                future = Future()
+                                future.set_result(ReadResult([], failure.status, {"code": failure.code, "reason": "default_region_discovery_incomplete"}))
+                            elif kind == "aws_cloudtrail_activity":
+                                future = activity_jobs[(id(identity), region)]
+                            else:
+                                future = pool.submit(regional_job, session, identity, region, kind)
+                            regional_jobs.append((kind, identity, region, session, future))
             for kind, identity, region, job_session, future in jobs:
                 try:
                     read = future.result()
                     if not isinstance(read, ReadResult):
                         raise ReadFailure("malformed", "malformed_extension_result")
-                    if kind in ENRICHERS and read.items:
+                    if kind in ENRICHERS and kind not in SPECS and kind not in FETCHERS and read.items:
                         read.items = ENRICHERS[kind](requests, job_session, region, read.items)
                 except Exception as exc:
                     failure = _failure(exc)
                     read = ReadResult([], failure.status, {"code": failure.code})
-                append(kind, f"{identity['Account']}/{region}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "organization_parent", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"], region)
+                # Account-global inventories are read once and scoped <account>/global, never to a region.
+                append(kind, f"{identity['Account']}/{GLOBAL_SCOPE}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "organization_parent", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"])
             for region_offset in range(0, len(regions), region_workers):
-                jobs = []
                 for session, identity in scope_batch:
                     for region in regions[region_offset:region_offset + region_workers]:
-                        if region not in regions_for(identity["Account"]):
-                            continue
-                        for kind in sorted(set(SPECS) - GLOBAL_TYPES):
-                            if kind in wanted:
-                                if identity["Account"] in region_discovery_errors:
-                                    failure = region_discovery_errors[identity["Account"]]
-                                    future = Future()
-                                    future.set_result(ReadResult([], failure.status, {"code": failure.code, "reason": "default_region_discovery_incomplete"}))
-                                else:
-                                    future = pool.submit(regional_job, session, identity, region, kind)
-                                jobs.append((kind, identity, region, session, future))
-                for kind, identity, region, job_session, future in jobs:
-                    try:
-                        read = future.result()
-                    except Exception as exc:
-                        failure = _failure(exc)
-                        read = ReadResult([], failure.status, {"code": failure.code})
-                    append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
+                        for kind, job_identity, job_region, job_session, future in regional_jobs:
+                            if job_identity is not identity or job_region != region:
+                                continue
+                            try:
+                                read = future.result()
+                            except Exception as exc:
+                                failure = _failure(exc)
+                                read = ReadResult([], failure.status, {"code": failure.code})
+                            append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
             for session, identity in scope_batch:
-                account_regions = regions_for(identity["Account"])
-                for region in account_regions:
-                    for kind in sorted((set(SPECS) - GLOBAL_TYPES - wanted) | unsupported | ((GLOBAL_TYPES - wanted) if region == account_regions[0] else set())):
+                if derive_account_vpcs:
+                    from .aws_inventory import vpc_account_inventory
+                    items, status, error = vpc_account_inventory(collections, identity["Account"], regions_for(identity["Account"]),
+                        full_region_coverage=not explicit_regions and identity["Account"] not in region_discovery_errors)
+                    append("vpc_account_inventory", f"{identity['Account']}/{GLOBAL_SCOPE}", "ec2", ReadResult(items, status, error), identity["Account"])
+                for kind in sorted(GLOBAL_TYPES - wanted):
+                    append(kind, f"{identity['Account']}/{GLOBAL_SCOPE}", SPECS.get(kind, ("aws",))[0], ReadResult([], "not_collected", {"code": "inventory_not_requested"}), identity["Account"])
+                for region in regions_for(identity["Account"]):
+                    for kind in sorted((set(SPECS) - GLOBAL_TYPES - wanted - {"vpc_account_inventory"}) | unsupported):
                         append(kind, f"{identity['Account']}/{region}", SPECS.get(kind, ("aws",))[0], ReadResult([], "not_collected", {"code": "unsupported_inventory" if kind in unsupported else "inventory_not_requested"}))
     collections.sort(key=lambda c: (c["scope"], c["type"]))
+    from peaso.collectors.aws_lambda_role_usage import summarize_lambda_role_usage
+    metadata["lambda_execution_role_usage"] = summarize_lambda_role_usage(
+        collections, identities, metadata.get("region_discovery"), explicit_regions=explicit_regions)
     metadata.update({"calls": requests.calls, "cache_hits": requests.cache_hits,
         "max_calls": requests.max_calls, "max_pages": requests.max_pages,
         "max_resources": requests.max_items, "resource_count": total_items,
         "credential_resolution_calls": "sdk_managed_not_counted",
         "intentional_limits": {key: options[key] for key in ("max_calls", "max_pages", "max_resources", "deadline_seconds") if options.get(key) is not None},
-        "authorized_evidence_generation": {"iam_credential_report": True, "generation_requests": requests.evidence_generations},
+        "authorized_evidence_generation": {"iam_credential_report": False, "generation_requests": requests.evidence_generations,
+            "iam_service_last_accessed_report": False, "service_last_accessed_generation_requests": requests.service_last_accessed_generations},
+        "activity_collection": {"projection": "actor_arn_type_event_name_time_id_only", "minutes": requests.activity_minutes,
+            "window_end": requests.observed_at.isoformat(), "declared_event_names": sorted({name for values in ACTIVITY_ACTIONS.values() for name in values}),
+            "global_service_event_names": {"names": sorted(IAM_ONLY_ACTIVITY_NAMES), "queried_only_in": IAM_EVENT_REGION,
+                "reason": "IAM-only API events are recorded by CloudTrail in us-east-1 for the aws partition"},
+            "lookup_attempts": requests.activity_lookup_calls, "maximum_requests_per_second_per_region": 2,
+            "limit": "CloudTrail LookupEvents management event history, no claim of data-event coverage"},
         "caller_identities": identities, "authentication_errors": auth_errors,
         "network_relationships": network_relationships(collections)})
-    scopes = sorted({c["scope"] for c in collections})
-    return make_snapshot("aws", scopes, collections, metadata=_safe(metadata))
+    report_collected = any(c["type"] == "iam_credential_report" and c["status"] in {"collected", "partial"} for c in collections)
+    metadata["usage_evidence"]["credential_report"] = ("authorized_generation_then_read" if report_collected else "authorized_generation_attempted_unavailable") if requests.evidence_generations else "existing_report_read" if report_collected else "report_unavailable_or_not_requested"
+    # <account>/global holds account-wide envelopes; it is not a regional evaluation scope
+    # (the engine joins it into every regional scope of the same account).
+    scopes = sorted({c["scope"] for c in collections if not c["scope"].endswith("/" + GLOBAL_SCOPE)} or {c["scope"] for c in collections})
+    emit_progress(progress_callback, phase="completed", provider="aws", scope="", completed=len(collections),
+        total=len(collections), resources=total_items, dynamic_total=False)
+    if backup_policy is not None:
+        metadata["compliance_policy"] = {"aws_backup_plan": bind_backup_plan_policy(backup_policy, scopes)}
+    if cost_policy is not None:
+        metadata.setdefault('compliance_policy', {})['cost_anomaly_alerts'] = cost_policy
+    if inventory_readers is not None:
+        metadata["compliance_inputs"] = {"approved_inventory_reader_arns": inventory_readers}
+    from .aws_ecr_artifacts_native import owner_metadata as ecr_owner_metadata
+    metadata.update(ecr_owner_metadata(requests.ecr_artifacts_policy))
+    from .aws_region_data_native import owner_metadata as data_region_owner_metadata
+    region_metadata = data_region_owner_metadata(data_regions_policy, scopes)
+    metadata.setdefault("parameters", {}).update(region_metadata.pop("parameters", {}))
+    metadata.update(region_metadata)
+    merge_lightsail(metadata, requests.lightsail_iam_policy)
+    from .aws_environment_boundaries_native import owner_metadata as environment_boundaries_metadata
+    metadata.setdefault('parameters', {}).update(environment_boundaries_metadata(environment_boundaries_owner, requests.observed_at))
+    if eks_admission_owner is not None:
+        metadata.setdefault('compliance_policy', {})['eks_image_integrity'] = eks_admission_owner
+    return make_snapshot("aws", scopes, collections, created_at=requests.observed_at.isoformat(), metadata=_safe(metadata))
 
 
-def _load_metadata_extension():
+# Trusted in-repository read-only extension modules, loaded in this order. Each
+# may add new kinds (SPECS/FETCHERS/NATIVE_IDS/GLOBAL_TYPES), declare read-only
+# detail operations (READ_ACTIONS) and add ENRICHERS. Enrichers for the same
+# kind from several modules are chained (never replaced), so independent
+# fact owners can extend one existing inventory.
+EXTENSION_MODULES = ("peaso.collectors.aws_b_services", "peaso.collectors.aws_privesc_facts",
+    "peaso.collectors.aws_facts_compute_edge", "peaso.collectors.aws_facts_data_identity", "peaso.collectors.aws_facts_cb_ca",
+    "peaso.collectors.aws_facts_gap", "peaso.collectors.aws_facts_swc", "peaso.collectors.aws_facts_ext",
+    "peaso.collectors.aws_facts_v4_holds", "peaso.collectors.aws_bulk_inventory", "peaso.collectors.aws_operational_groups_native", "peaso.collectors.aws_macie_coverage_native", "peaso.collectors.aws_budget_stop_native", "peaso.collectors.aws_ecr_artifacts_native", "peaso.collectors.aws_resolver_firewall_native", "peaso.collectors.aws_sagemaker_clarify_native", "peaso.collectors.aws_codecommit_review_native", "peaso.collectors.aws_cloudtrail_delivery_native", "peaso.collectors.aws_controltower_native", "peaso.collectors.aws_region_data_native", "peaso.collectors.aws_lightsail_iam_native", "peaso.collectors.aws_eks_admission_native", "peaso.collectors.aws_resource_tag_compliance_native", "peaso.collectors.aws_effective_tag_policy_native", "peaso.collectors.aws_bedrock_reasoning_native", "peaso.collectors.aws_fms_rule_metadata_native", "peaso.collectors.aws_wave_semantics_native")
+
+
+def _chain(first, second):
+    def enrich(requests, session, region, items):
+        return second(requests, session, region, first(requests, session, region, items))
+    return enrich
+
+
+def _load_metadata_extension(name="peaso.collectors.aws_b_services"):
     """Trusted in-repository read-only specs, sharing the scan request context."""
     from importlib import import_module
-    name = "peaso.collectors.aws_b_services"
     try:
         extension = import_module(name)
     except ModuleNotFoundError as exc:
@@ -1166,19 +2300,25 @@ def _load_metadata_extension():
         if not isinstance(kind, str) or not isinstance(spec, tuple) or len(spec) != 3:
             raise ValueError("invalid AWS extension service specification")
         if kind in SPECS and SPECS[kind] != spec:
-            raise ValueError("AWS extension cannot replace existing service specification")
+            raise ValueError("AWS extension cannot replace existing service specification: " + kind)
     actions = set(getattr(extension, "READ_ACTIONS", set()))
     for service, operation in actions | {(s, o) for s, o, expression in specs.values()}:
-        if operation in _PROHIBITED_VALUE_OPERATIONS or not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")):
+        if operation in _PROHIBITED_VALUE_OPERATIONS or (not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) and (service, operation) not in {("cloudtrail", "lookup_events"), ("iam", "simulate_principal_policy")}):
             raise ValueError("AWS extension includes a prohibited operation")
+    fetchers = getattr(extension, "FETCHERS", {})
+    for kind in fetchers:
+        if kind in FETCHERS and FETCHERS[kind] is not fetchers[kind]:
+            raise ValueError("AWS extension cannot replace an existing fetcher: " + kind)
     SPECS.update(specs)
     READ_ACTIONS.update(actions)
     READ_ACTIONS.update((s, o) for s, o, expression in specs.values())
     _NATIVE_IDS.update(getattr(extension, "NATIVE_IDS", {}))
     GLOBAL_TYPES.update(getattr(extension, "GLOBAL_TYPES", set()))
-    FETCHERS.update(getattr(extension, "FETCHERS", {}))
-    ENRICHERS.update(getattr(extension, "ENRICHERS", {}))
+    FETCHERS.update(fetchers)
+    for kind, enricher in getattr(extension, "ENRICHERS", {}).items():
+        ENRICHERS[kind] = _chain(ENRICHERS[kind], enricher) if kind in ENRICHERS else enricher
     AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
 
 
-_load_metadata_extension()
+for _extension in EXTENSION_MODULES:
+    _load_metadata_extension(_extension)

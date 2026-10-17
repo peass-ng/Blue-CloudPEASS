@@ -1,9 +1,10 @@
 # Defensive IAM and network snapshot review
 
 `peaso.analysis` builds read-only projections from schema 1.0 immutable native
-snapshots. The implemented IAM map is **Declared Access and Trust**, with
-conditional risk-review annotations. It is not a proven privilege escalation
-graph. The network map separates native inventory associations from rule
+snapshots. The backend IAM graph is **Declared Access and Trust**, with
+conditional risk-review annotations; reports and CLI consumers retain it, while
+the console has no dedicated IAM map page. It is not a proven privilege escalation
+graph. The Network Map separates native inventory associations from rule
 candidates, and does not infer routed connectivity or telemetry-confirmed reachability.
 
 ## Public contract
@@ -71,16 +72,85 @@ zero-activity observation and means **no activity observed in that window**.
 region boundaries, and telemetry outside the window can all invalidate an unused
 access conclusion; no automated permission-removal recommendation is produced.
 
-`snapshot.metadata.trusted_scope_ids` is an explicit string list, or a provider-keyed
-mapping of lists: AWS account IDs, GCP project IDs, Azure tenant IDs. GCP may also
-use explicit `trusted_domains`. No default scope becomes a trust allowlist.
-An AWS ARN account and GCP service-account email project may establish an affiliation;
-an Azure object ID alone cannot establish a tenant. Outcomes are allowlisted,
-external, public, everyone-authenticated, or unknown. Provider wildcard subjects
-are represented by an explicit everyone entity. Allow declarations with public
-or external principals remain conditional because denies and controls may restrict
-effective access. Native public asset/configuration checks remain in the check
-registry; analysis enriches public-principal and network-rule review evidence.
+**Default trust boundary** (`peaso/analysis/trust.py`): the scanned AWS accounts
+(scope prefixes, caller identities, `aws_account`), collected AWS Organizations member
+accounts (`organization_account`), scanned GCP projects, and the Azure tenant and
+subscriptions are trusted by default. `snapshot.metadata.trusted_scope_ids` (an
+explicit string list, or a provider-keyed mapping of lists) and GCP `trusted_domains`
+remain *additional* allowlists. An AWS ARN account and GCP service-account email
+project establish an affiliation; an Azure object ID alone cannot establish a tenant
+(collected `directory_service_principal.appOwnerOrganizationId` and guest users can).
+Outcomes are allowlisted, external, public, everyone-authenticated, provider-service,
+or unknown.
+
+`analysis.principal_exposure` statuses:
+
+- **FAIL**: a public principal (`*`, `allUsers`, `allAuthenticatedUsers`) without a
+  restrictive condition, or any principal outside the trust boundary (evidence lists
+  `external_scope_ids`; severity is medium when `sts:ExternalId` is required).
+- **MANUAL**: a public principal restricted by a positive condition (aws:SourceVpc,
+  SourceVpce, PrincipalOrgID/OrgPaths, SourceAccount/SourceArn, PrincipalAccount/Arn,
+  non-/0 SourceIp and similar; `IfExists`, `Not*` and wildcard values do not count),
+  a public principal on a VPC-bound policy (VPC endpoint, EFS), or an AWS service
+  principal on a resource policy without aws:SourceAccount/SourceArn (confused deputy).
+  Service principals in role trust policies and provider service agents are skipped.
+- **UNKNOWN**: the principal cannot be attributed to a scope (no scanned account known,
+  deleted-principal unique IDs, Azure object IDs without directory facts).
+
+`analysis.federated_trust` reviews web-identity trust: AWS roles trusting GitHub,
+GitLab, Terraform Cloud, other OIDC issuers or EKS without a positive `sub` condition,
+or with a wildcard that does not pin the owner/tenant (`repo:*`), FAIL (critical for
+multi-tenant issuers); Cognito trust without `aud` FAILs and guest (`amr`
+unauthenticated) access to a pinned pool is MANUAL. GCP workload identity providers
+without `attributeCondition` FAIL for multi-tenant issuers, and Azure federated
+credentials with wildcard claim expressions FAIL.
+
+Native public asset/configuration checks remain in the check registry; analysis
+enriches them with path evidence. `aws.s3.public_access_block` evaluates the
+effective bucket OR account Block Public Access (s3control) and is UNKNOWN when the
+bucket setting is incomplete and the account setting was not collected.
+
+## Internet exposure
+
+`analysis.internet_exposure` (`peaso/analysis/internet_exposure.py`) evaluates each
+asset with a public address or endpoint from 0.0.0.0/0 and ::/0 with exact per-protocol
+port-interval arithmetic:
+
+- AWS: public IPv4/IPv6 on instances and unattached ENIs through route table (active
+  default route to an IGW), NACL (ordered, /0 rules) and security groups (union of /0
+  rules); internet-facing ALB/NLB/Classic listeners intersected with SGs and NACLs;
+  publicly accessible RDS/Redshift; non-VPC OpenSearch; EKS `publicAccessCidrs`;
+  Lambda URLs with `AuthType NONE` plus a public `InvokeFunctionUrl` statement; REST
+  and HTTP APIs (PRIVATE or disabled execute-api endpoints PASS; method/route auth is
+  UNKNOWN until collected); RDS snapshots shared with `all` or external accounts; S3
+  buckets public by policy or ACL after effective Block Public Access.
+- GCP: instance external IPs through firewall policies and VPC firewall rules
+  (priority, deny-before-allow at equal priority, target tags and service accounts,
+  implied deny); external forwarding rules through target proxy, URL map and backend
+  service Cloud Armor attachment; Cloud Run/Functions ingress plus allUsers or
+  allAuthenticatedUsers invokers; Cloud SQL authorized networks; GKE authorized
+  networks; buckets with public bindings unless public access prevention is enforced.
+- Azure: NIC public IPs (reported on the VM) through subnet and NIC NSGs, which must
+  both allow (priority order, defaults, ASG membership; Standard SKU with no NSG is
+  closed, Basic is open); public load balancer and inbound NAT rules resolved to the
+  backend NIC NSGs; Application Gateway listeners; App Service public network access
+  and access restrictions; AKS authorized IP ranges; storage network rules and
+  anonymous blob access; SQL firewall 0.0.0.0-255.255.255.255.
+- Kubernetes: LoadBalancer services (internal annotations, private addresses,
+  `loadBalancerSourceRanges` and the source-range annotation), NodePort services on
+  nodes with public ExternalIPs, public `externalIPs`, and Ingress addresses with
+  allowlist annotations.
+
+FAIL means the primary filtering layers are collected and admit traffic; secondary
+gaps (route, NACL, public IP details) are listed in `unresolved`. PASS means a
+collected layer blocks. UNKNOWN means a primary layer (security group, NSG, firewall,
+invoker policy, listener, API authorization, sharing attributes) is missing. Evidence
+lists `exposed_ports`, `public_addresses`, the per-layer `path`, `unresolved` layers
+and `collector_facts_needed`. Stopped instances keep FAIL at one lower severity. A
+per-scope UNKNOWN `inventory:internet_exposure` finding lists denied or failed
+exposure inventories. The network graph receives one synthetic Internet node and
+`internet_exposure` edges (layer `exposure`) to every exposed or unresolved asset,
+which carries an `internet_exposed` risk annotation and an `exposure` summary.
 
 ## Graph semantics and display
 
@@ -106,6 +176,18 @@ selector nodes retain native selectors and explicitly do not expand matching
 workloads. Peering and routes establish structural relationships, not containment
 or reachability. Scope IDs preserve cross-account/cross-project separation even
 where native names and address ranges overlap.
+The UI's Network Map uses these containment hints for native React Flow network
+compounds and uses ELK only to place the top-level network groups. It does not
+assign a child to an ambiguous `parent_candidates` set. AWS VPC, GCP global/shared
+network, Azure VNet, and Kubernetes cluster tabs appear only for collected provider
+resources. Subnetworks and subnets can contain interfaces/workloads; namespaces
+contain Kubernetes workloads. Collapsed resources and cross-boundary edges disclose
+counts. ELK root-edge sections and cross-hierarchy React Flow routes are rendered
+by the registered network edge type. The first map uses the bounded 500-node server
+projection and no more than 280 rich nodes; network/subnet/resource pages,
+aggregate expansion and accumulated inventory paging are explicit. The UI
+fetches native resource configuration only after selecting a resource and displays
+readable network rule columns, with raw records behind Technical details.
 
 Edges use `layer: structural` for native associations and `layer: modeled_rule`
 for unrestricted-source rule candidates, with evidence and uncertainty in the

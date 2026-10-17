@@ -1,0 +1,652 @@
+{
+  "k8s.cis.file_admin_conf_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/admin.conf].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "03ba8c172356757025a9903d15974ba8ae8f52157ca6929d9f4c74ed4ff5c4cd",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/admin.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/admin.conf metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_admin_conf_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/admin.conf].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "c382819616ab516f0da90e2dc841d257d86c8fb298c9010189902c6ebca5f5ff",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/admin.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/admin.conf metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_controller_manager_conf_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/controller-manager.conf].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "8c613cc7e5799d3b3dc594cffc8efd039f44551f6f4f45b19b30ba4b5a02b7a8",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/controller-manager.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/controller-manager.conf metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_controller_manager_conf_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/controller-manager.conf].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "27ff66a725267b221e3c03236f9dbc6b3e1c1f501d4ca5017daf40deec72050e",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/controller-manager.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/controller-manager.conf metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_etc_cni_net_d_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/cni/net.d/*].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "ed0dec8053457242d5f59e32dd57a70eebf7dc6328c9978d0cc8cdfbe69ec9e1",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/cni/net.d/* paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/cni/net.d/* metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_etc_cni_net_d_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/cni/net.d/*].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "edd70c8ae3a84f4b261ad7798022c45b4fe1611fa469265c6bb387240a5c909f",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/cni/net.d/* paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/cni/net.d/* metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_etcd_yaml_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/etcd.yaml].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "c699b91e85fc59fa8ce120d2737c0af5e257d42a2eca04ecc9ddee2e73618e05",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/etcd.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/etcd.yaml metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_etcd_yaml_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/etcd.yaml].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "d5149d7eca251186ab4156c9a6943a8d8ba9f175aab81578bde5fbcd23394d38",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/etcd.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/etcd.yaml metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_kube_apiserver_yaml_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/kube-apiserver.yaml].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "975ec7bf2805aeedec6bf770f836abfa73ab1ad8fc4f058ff74d5fe6a7b89e8b",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/kube-apiserver.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/kube-apiserver.yaml metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_kube_apiserver_yaml_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/kube-apiserver.yaml].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "f8a6a3fcadf2fe94625afd0d988663a3cfa5330c3380c7c8e2009f2e0fb0abe0",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/kube-apiserver.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/kube-apiserver.yaml metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_kube_controller_manager_yaml_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/kube-controller-manager.yaml].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "95ccf1cb2caa1ea0bb18938e6787fcf8811088be130ab8e0caf6997bde48eb93",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/kube-controller-manager.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/kube-controller-manager.yaml metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_kube_controller_manager_yaml_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/kube-controller-manager.yaml].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "692763fd3b7f3230087da8cceaef4b4389864ac04c5ab11b8cc832582e3b99a7",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/kube-controller-manager.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/kube-controller-manager.yaml metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_kube_scheduler_yaml_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/kube-scheduler.yaml].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "33b9c5c02461c8397b8b52d15d2e2a22dd3ced8f7076dc4bcc37371243efdc5f",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/kube-scheduler.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/kube-scheduler.yaml metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_manifests_kube_scheduler_yaml_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/manifests/kube-scheduler.yaml].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "a4604e0beeafe7848fd05b1dd8dc774869029d4f7b5c7f0034e560a349e8a676",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/manifests/kube-scheduler.yaml paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/manifests/kube-scheduler.yaml metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_pki_ca_crt_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/pki/ca.crt].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "fd295ae6cdba8eb259b9181b9028d70a8758e5dd1bb98f09f1b6e3efe2a6bf5a",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/pki/ca.crt paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/pki/ca.crt metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_pki_ca_crt_mode_644": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/pki/ca.crt].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "49699112076d65891c3ef342dbe5d1c58276f92348326be2111a86112b4c82f3",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/pki/ca.crt paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o644; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/pki/ca.crt metadata with the host owner and bring its declared mode within mode within 0o644 where this path is actually applicable."
+  },
+  "k8s.cis.file_pki_ca_crt_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/pki/ca.crt].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "693df6214fd88534bdccc51872ae5fc2a0001652ee4cbaab8da00ceeb27f179f",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/pki/ca.crt paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/pki/ca.crt metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_pki_crt_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/pki/*.crt].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "761f119a8308521e441bab83fce3ad559e10ff1d07f3d2512fe0bf7178912a27",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/pki/*.crt paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/pki/*.crt metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_pki_crt_mode_644": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/pki/*.crt].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "a127b87fdc84ad2376a550fc9e4e0a468e2034ce123693552b621367e9e9ae77",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/pki/*.crt paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o644; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/pki/*.crt metadata with the host owner and bring its declared mode within mode within 0o644 where this path is actually applicable."
+  },
+  "k8s.cis.file_pki_key_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/pki/*.key].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "5fe0e1449efe9ce438150bd408bf1bfddd966500e8c5502b2017c8a33201762b",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/pki/*.key paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/pki/*.key metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_proxy_conf_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/proxy.conf].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "ed0ffd22daf7303f03e8fe5cba647ebb94e7c94bc936ccd742f8958e2e4b3e2b",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/proxy.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/proxy.conf metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_proxy_conf_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/proxy.conf].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "8e1061e22d674880bb0cd726dac153e2c7a1f2289d3a9daaff7959ba1f99820c",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/proxy.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/proxy.conf metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_scheduler_conf_mode_600": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/scheduler.conf].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "303d4cf920df6f198e351a1fed293a23726173fb2b4d48619b7016d5e9456ba0",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/scheduler.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o600; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/scheduler.conf metadata with the host owner and bring its declared mode within mode within 0o600 where this path is actually applicable."
+  },
+  "k8s.cis.file_scheduler_conf_owner": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/etc/kubernetes/scheduler.conf].uid and gid",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "2b2d0f08377b40fb39394c8ea98d5ce369ef6ab88b4928e77853e5a95d06c5c6",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /etc/kubernetes/scheduler.conf paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use root:root ownership; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /etc/kubernetes/scheduler.conf metadata with the host owner and bring its declared uid and gid within root:root ownership where this path is actually applicable."
+  },
+  "k8s.cis.file_var_lib_etcd_mode_700": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_file_metadata",
+      "kind": "file_metadata",
+      "path": "file_metadata[/var/lib/etcd].mode",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "93650bb3f79c1c5831a7295ff6cf761a98ee6c79060ac7c22d50851d765ad4d4",
+    "references": [
+      {
+        "title": "Kubernetes kubeadm implementation details",
+        "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/implementation-details/"
+      },
+      {
+        "title": "CIS Kubernetes Benchmark primary publisher",
+        "url": "https://www.cisecurity.org/benchmark/kubernetes"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm which owner-managed nodes and exact /var/lib/etcd paths apply; inspect fresh metadata and distinguish permission bits from symlink metadata before changing files.",
+      "With the host-image/IaC owner, update the file creation or configuration step to use mode within 0o700; validate component read access and planned restart or rollout impact before applying.",
+      "Verify every attested applicable node/path after rollout; restore the prior approved image or IaC revision if component startup, certificate access, or network setup fails. Managed control planes require provider-owner review rather than a host edit."
+    ],
+    "summary": "Review /var/lib/etcd metadata with the host owner and bring its declared mode within mode within 0o700 where this path is actually applicable."
+  }
+}

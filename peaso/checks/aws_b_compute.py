@@ -1,6 +1,6 @@
 """Container/build/cache/identity configuration checks using native SDK envelopes."""
 from . import result, unknown
-from .facts import get, list_of_objects
+from .facts import get, list_of_objects, optional, Unavailable
 from .aws_b_core import install, scalar, SOURCES
 
 
@@ -19,7 +19,7 @@ def privileges(item, index):
     _, rows = task(item)
     privileged = []
     for row in rows:
-        value = row.get("privileged", False)
+        value = optional(row, "privileged", False)
         if type(value) is not bool:
             return unknown("malformed privileged flag")
         if value:
@@ -32,7 +32,7 @@ def logging(item, index):
     _, rows = task(item)
     configured = []
     for row in rows:
-        log = row.get("logConfiguration")
+        log = optional(row, "logConfiguration", None)
         if log is not None and not isinstance(log, dict):
             return unknown("malformed log configuration")
         if log is not None:
@@ -43,7 +43,7 @@ def logging(item, index):
 @install("aws.b.ecs.no_host_pid", "ecs_task_definition", "ECS task definition avoids host PID namespace", {"Definition": {"taskDefinition": {"containerDefinitions": [{"name": "app"}], "pidMode": "task"}}}, {"Definition": {"taskDefinition": {"containerDefinitions": [{"name": "app"}], "pidMode": "host"}}}, query="ecs_task_definition_no_host_pid_mode")
 def host_pid(item, index):
     definition, _ = task(item)
-    pid = definition.get("pidMode")
+    pid = optional(definition, "pidMode", None)
     if pid not in (None, "host", "task"):
         return unknown("unknown PID mode")
     return result(pid == "host", pid_mode=pid or "container_default")
@@ -54,7 +54,7 @@ def readonly_roots(item, index):
     _, rows = task(item)
     writable = []
     for row in rows:
-        value = row.get("readonlyRootFilesystem", False)
+        value = optional(row, "readonlyRootFilesystem", False)
         if type(value) is not bool:
             return unknown("malformed filesystem flag")
         if not value:
@@ -105,7 +105,7 @@ def build_logs(item, index):
     logs = get(project(item), "logsConfig", dict)
     known = []
     for key in ("cloudWatchLogs", "s3Logs"):
-        block = logs.get(key)
+        block = optional(logs, key, None)
         if block is None:
             known.append("DISABLED")
             continue
@@ -119,10 +119,58 @@ def build_logs(item, index):
 @install("aws.b.codebuild.artifact_encryption", "codebuild_project", "CodeBuild primary and secondary artifacts retain encryption", {"Configuration": {"projects": [{"artifacts": {"encryptionDisabled": False}, "secondaryArtifacts": []}]}}, {"Configuration": {"projects": [{"artifacts": {"encryptionDisabled": False}, "secondaryArtifacts": [{"encryptionDisabled": True}]}]}}, query="codebuild_project_artifact_encryption_enabled")
 def artifacts(item, index):
     data = project(item)
-    primary = get(data, "artifacts.encryptionDisabled", bool)
+    observed = _observed_project(item, data)
+    artifact = get(data, "artifacts", dict)
+    primary = _artifact_setting(artifact, observed, None)
     secondary = list_of_objects(data.get("secondaryArtifacts", []))
-    values = [get(artifact, "encryptionDisabled", bool) for artifact in secondary]
-    return result(primary or any(values), primary_encryption_disabled=primary, secondary_encryption_disabled=values)
+    values = [_artifact_setting(artifact, observed, None) for artifact in secondary]
+    return result(primary is not False or any(value is True for value in values),
+                  primary_encryption_disabled=primary, secondary_encryption_disabled=values,
+                  semantics="Literal pinned source: primary must explicitly declare false; only explicitly true secondary flags alarm. This includes non-S3 artifact types; S3-only defensive applicability is a separate check.")
+
+
+def _observed_project(item, data):
+    configuration = get(item, "Configuration", dict)
+    if configuration.get("collection_status") != "collected":
+        return False
+    try:
+        return bool(get(data, "name", str))
+    except Unavailable:
+        return False
+
+
+def _artifact_setting(artifact, observed, default):
+    if observed:
+        value = optional(artifact, "encryptionDisabled", default)
+        if value is not None and type(value) is not bool:
+            raise ValueError("malformed artifact encryption setting")
+        return value
+    return get(artifact, "encryptionDisabled", bool)
+
+
+@install("aws.b.codebuild.s3_artifact_encryption", "codebuild_project", "CodeBuild S3 artifacts retain default or explicit encryption",
+         {"Configuration": {"projects": [{"artifacts": {"type": "S3", "encryptionDisabled": False}}]}},
+         {"Configuration": {"projects": [{"artifacts": {"type": "NO_ARTIFACTS"}, "secondaryArtifacts": [{"type": "S3", "encryptionDisabled": True}]}]}},
+         query="_corrected:codebuild_project_artifact_encryption_enabled",
+         extra={"not_applicable": {"Configuration": {"projects": [{"artifacts": {"type": "NO_ARTIFACTS"}}]}}})
+def s3_artifacts(item, index):
+    data = project(item)
+    observed = _observed_project(item, data)
+    artifacts = [get(data, "artifacts", dict)] + list_of_objects(data.get("secondaryArtifacts", []))
+    settings, types = [], []
+    for position, artifact in enumerate(artifacts):
+        kind = get(artifact, "type", str)
+        if kind not in {"NO_ARTIFACTS", "S3", "CODEPIPELINE"} or (position and kind == "CODEPIPELINE"):
+            return unknown("unknown or invalid native artifact type", artifact_type=kind)
+        types.append(kind)
+        if kind == "S3":
+            settings.append(_artifact_setting(artifact, observed, False))
+    if not settings:
+        return "NOT_APPLICABLE", {"artifact_types": types, "reason": "No S3 artifacts are configured; CodePipeline encryption is assessed by its owning artifact store.",
+            "official_reference": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectArtifacts.html"}
+    return result(any(settings), s3_encryption_disabled=settings, artifact_types=types,
+                  official_reference="https://docs.aws.amazon.com/codebuild/latest/userguide/security-encryption.html",
+                  semantics="Separate defensive S3-only variant. Known successful detail omission retains AWS default encryption; no artifact contents are read.")
 
 
 @install("aws.b.codebuild.s3_log_encryption", "codebuild_project", "CodeBuild S3 log configuration retains encryption", {"Configuration": {"projects": [{"logsConfig": {"s3Logs": {"encryptionDisabled": False}}}]}}, {"Configuration": {"projects": [{"logsConfig": {"s3Logs": {"encryptionDisabled": True}}}]}}, query="codebuild_project_s3_logs_encryption_enabled")
@@ -136,14 +184,18 @@ def nonroot_users(item, index):
     _, rows = task(item)
     root, inherited = [], []
     for row in rows:
-        user = row.get("user")
+        user = optional(row, "user", None)
         if user is None or user == "":
             inherited.append(row["name"])
             continue
         if not isinstance(user, str):
             return unknown("malformed user declaration")
+        if user.count(":") > 1:
+            return unknown("malformed user declaration")
         identity = user.split(":", 1)[0]
-        if identity in {"root", "0"}:
+        if not identity:
+            return unknown("user declaration does not identify a user")
+        if identity == "root" or identity.isascii() and identity.isdecimal() and int(identity) == 0:
             root.append(row["name"])
     if root:
         return result(True, root_user_containers=root, inherited_image_users=inherited)

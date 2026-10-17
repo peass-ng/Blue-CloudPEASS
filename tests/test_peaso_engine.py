@@ -9,6 +9,7 @@ from peaso.snapshot import make_snapshot, resources, validate
 from peaso.engine import evaluate_snapshot, collect_snapshot, run_scan, diff_reports, get_catalog
 from peaso.reports import render_markdown
 from peaso.demo import demo_snapshot
+from peaso.engine import hydrate_frameworks
 
 
 @pytest.mark.parametrize("provider,check,kind,item,expected", [
@@ -27,7 +28,7 @@ def test_native_crossprovider_facts(provider, check, kind, item, expected):
     report = evaluate_snapshot(snapshot, categories=["hardening"], checks=[check])
     assert snapshot == original
     assert report["findings"][0]["status"] == expected
-    assert "HackTricks Cloud Best Practices" in report["findings"][0]["frameworks"]
+    assert "HackTricks Cloud Best Practices" in hydrate_frameworks(report)["findings"][0]["frameworks"]
     assert report["findings"][0]["resource_id"] == report["resources"][0]["id"]
 
 
@@ -89,7 +90,7 @@ def test_selection_errors_and_framework_aliases():
 
 
 def test_offline_scan_and_markdown_preserve_all_evidence():
-    request = {"connector": {"provider": "aws", "options": {"demo": True}}, "categories": ["hardening"], "checks": ["aws.ec2.imdsv2"]}
+    request = {"connector": {"provider": "aws", "options": {"demo": True}}, "categories": ["hardening"], "checks": ["aws.ec2.imdsv2"], "embed_snapshot": True}
     report = run_scan(request)
     assert report["snapshot"]["snapshot_id"] == report["snapshot_id"]
     markdown = render_markdown(report)
@@ -181,7 +182,7 @@ def test_explicit_inventory_override_missing_prerequisites_remains_unknown(monke
         seen.append(requirements)
         return make_snapshot("aws", ["scope"], [{"type": "bucket", "scope": "scope", "status": "empty", "items": []}])
     monkeypatch.setattr(peaso.collectors.aws, "collect", collect)
-    request = {"connector": {"provider": "aws", "scopes": ["scope"], "options": {"inventories": ["bucket"]}}, "categories": ["hardening"], "checks": ["aws.ec2.imdsv2"]}
+    request = {"connector": {"provider": "aws", "scopes": ["scope"], "options": {"inventories": ["bucket"]}}, "categories": ["hardening"], "checks": ["aws.ec2.imdsv2"], "embed_snapshot": True}
     report = run_scan(request)
     assert seen == [["bucket"]]
     assert report["findings"][0]["status"] == "UNKNOWN"
@@ -226,14 +227,22 @@ def test_exact_framework_version_filters_registered_checks_and_exposes_pending()
     implemented = next(row for row in catalog["framework_versions"] if row["provider"] == "aws" and row["native_check_ids"])
     report = evaluate_snapshot(demo_snapshot("aws"), frameworks=[implemented["id"]])
     assert report["findings"]
-    assert {f["check_id"] for f in report["findings"]}.issubset(set(implemented["native_check_ids"]))
+    assert {f["check_id"] for f in report["findings"] if f["status"] != "MANUAL"}.issubset(set(implemented["native_check_ids"]))
     assert report["framework_versions"][0]["id"] == implemented["id"]
     assert any(c["level"] == "framework" for c in report["coverage"])
-    pending = next(row for row in catalog["framework_versions"] if row["provider"] == "aws" and not row["native_check_ids"])
+    # Incremental ports can give every checklist at least one native predicate
+    # while hundreds of its source references remain unimplemented.
+    pending = next((row for row in catalog["framework_versions"] if row["provider"] == "aws" and row["pending_source_checks"]), None)
+    if pending is None:
+        assert not any(row["pending_source_checks"] for row in catalog["framework_versions"] if row["provider"] in ("aws", "gcp", "azure", "k8s"))
+        pending = implemented
     report = evaluate_snapshot(demo_snapshot("aws"), frameworks=[pending["id"]])
-    assert report["findings"] == []
-    assert not report["stats"]["coverage_complete"]
-    assert any(c["level"] == "framework" and c["status"] == "unknown" for c in report["coverage"])
+    manual_ids = {m["id"] for m in report["manual_requirements"] if any(e.get("framework_id") == pending["id"] for e in m["frameworks"])}
+    assert {f["check_id"] for f in report["findings"] if f["status"] != "MANUAL"}.issubset(set(pending["native_check_ids"]))
+    assert {f["check_id"] for f in report["findings"] if f["status"] == "MANUAL"}.issubset(manual_ids)
+    if pending is not implemented:
+        assert not report["stats"]["coverage_complete"]
+        assert any(c["level"] == "framework" and c["status"] in ("unknown", "partial") and c["pending_source_checks"] for c in report["coverage"])
     foreign = next(row for row in catalog["framework_versions"] if row["provider"] == "gcp")
     with pytest.raises(ValueError, match="framework"):
         evaluate_snapshot(demo_snapshot("aws"), frameworks=[foreign["id"]])

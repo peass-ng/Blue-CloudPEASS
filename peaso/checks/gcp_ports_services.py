@@ -2,7 +2,7 @@
 from __future__ import annotations
 import copy
 from . import register, result, unknown, CHECKS
-from .facts import get, guard, Unavailable, list_of_objects
+from .facts import get, guard, Unavailable, list_of_objects, optional
 from .fixtures import CASES, nest
 
 IDS, REFERENCE_SPECS, SQL_SPECS = [], {}, {}
@@ -48,22 +48,122 @@ scalar("storage_bucket_uniform_access_enabled", "bucket", "iamConfiguration.unif
        "Bucket explicitly enables uniform access", canonical="gcp.storage.uniform_access")
 scalar("sql_instance_automated_backups_enabled", "sql_instance", "settings.backupConfiguration.enabled", True, False,
        "SQL instance explicitly enables automated backups", canonical="gcp.sql.backups")
-scalar("kubernetes_cluster_use_ip_aliases", "gke_cluster", "ipAllocationPolicy.useIpAliases", True, False,
-       "GKE explicitly uses alias IP ranges")
-scalar("kubernetes_cluster_legacy_endpoints_disabled", "gke_cluster", "nodeConfig.metadata.disable-legacy-endpoints", "true", "false",
-       "GKE node metadata explicitly disables legacy endpoints")
-scalar("kubernetes_cluster_node_config_image_cos_containerd", "gke_cluster", "nodeConfig.imageType", "COS_CONTAINERD", "UBUNTU_CONTAINERD",
-       "GKE node config selects COS with containerd")
-scalar("kubernetes_cluster_shielded_instance_integrity_monitoring_enabled", "gke_cluster", "nodeConfig.shieldedInstanceConfig.enableIntegrityMonitoring", True, False,
-       "GKE node config explicitly enables integrity monitoring")
-scalar("kubernetes_cluster_shielded_node_secure_boot_enabled", "gke_cluster", "nodeConfig.shieldedInstanceConfig.enableSecureBoot", True, False,
-       "GKE node config explicitly enables secure boot")
-scalar("kubernetes_cluster_intra_node_visibility_enabled", "gke_cluster", "networkConfig.enableIntraNodeVisibility", True, False,
-       "GKE explicitly enables intra-node visibility")
-scalar("app_engine_application_iap_enabled", "app_engine_application", "iap.enabled", True, False,
-       "App Engine application explicitly enables IAP")
+IDS.append("gcp.ports.app_engine_application_iap_enabled")
+REFERENCE_SPECS["app_engine_application_iap_enabled"] = "gcp.ports.app_engine_application_iap_enabled"
+
+
+@register("gcp.ports.app_engine_application_iap_enabled", "gcp", "hardening", "app_engine_application",
+    "App Engine application enables IAP", "medium", "CM-6",
+    "Review the explicit native service setting and its version/workload applicability before changing configuration.")
+def app_engine_iap(item, index):
+    # apps.get returns the full Application; IdentityAwareProxy.enabled is a
+    # proto3 bool ("Whether the serving infrastructure will authenticate and
+    # authorize all incoming requests"), so ProtoJSON omits it when false and
+    # omits the whole iap message when nothing is set. Only on an identified
+    # application (id + name apps/<id>) is that omission read as disabled.
+    app_id = get(item, "id", str)
+    if get(item, "name", str) != "apps/" + app_id:
+        return unknown("App Engine application identity unavailable")
+    iap = optional(item, "iap", {}, dict)
+    enabled = optional(iap, "enabled", False, bool)
+    return result(not enabled, field="iap.enabled", configured=enabled, declared="iap.enabled" in item.get("iap", {}),
+        semantics="Application-level IAP declaration, not per-service access or ingress proof")
+CASES["gcp.ports.app_engine_application_iap_enabled"] = {
+    "pass": {"id": "a", "name": "apps/a", "iap": {"enabled": True, "oauth2ClientId": "c"}},
+    "fail": {"id": "a", "name": "apps/a", "defaultHostname": "a.uc.r.appspot.com"},
+    "unknown": {"id": "a", "name": "apps/b"}, "missing": {}, "malformed": None}
 scalar("sql_instance_mysql_binary_log_enabled", "sql_instance", "settings.backupConfiguration.binaryLogEnabled", True, False,
        "MySQL explicitly enables binary log backups")
+
+
+def pool_scalar(query, path, good, bad, title, *, absent=None):
+    """Evaluate `path` under every nodePools[].config, not only the cluster's
+    default-pool nodeConfig. `absent` is the documented default of an omitted
+    field; None keeps an omitted field UNKNOWN."""
+    cid = "gcp.ports." + query
+    IDS.append(cid)
+    expected = type(good)
+    @register(cid, "gcp", "hardening", "gke_cluster", title, "medium", "CM-6",
+        "Review every node pool's configuration and recreate or update non-compliant pools.")
+    def evaluate(item, index):
+        get(item, "name", str)
+        pools = list_of_objects(get(item, "nodePools", list))
+        if not pools:
+            return unknown("node-pool inventory absent; Autopilot configuration requires separate evidence")
+        values, failing = {}, []
+        for pool in pools:
+            name = get(pool, "name", str)
+            value = get(pool, "config", dict)
+            parts = path.split(".")
+            for part in parts[:-1]:
+                value = get(value, part, dict) if absent is None else optional(value, part, {}, dict)
+            value = get(value, parts[-1], expected) if absent is None else optional(value, parts[-1], absent, expected)
+            if value not in (good, bad):
+                return unknown("unrecognized node-pool setting", node_pool=name, field=path)
+            values[name] = value
+            if value != good:
+                failing.append(name)
+        return result(bool(failing), field="nodePools[].config." + path, node_pools=values, failing_node_pools=failing,
+            semantics="Every node pool's declared configuration" + ("" if absent is None else "; an omitted field is the documented default " + repr(absent)))
+    def pools(*values):
+        return {"name": "c", "nodePools": [{"name": "p%d" % i, "config": nest(path, value)} for i, value in enumerate(values)]}
+    CASES[cid] = {"pass": pools(good, good), "fail": pools(good, bad), "missing": {}, "malformed": None,
+        "unknown": {"name": "c", "nodePools": [{"name": "p0", "config": nest(path, {"unexpected": True})}]}}
+    REFERENCE_SPECS[query] = cid
+
+
+pool_scalar("kubernetes_cluster_legacy_endpoints_disabled", "metadata.disable-legacy-endpoints", "true", "false",
+       "Every GKE node pool explicitly disables legacy metadata endpoints")
+pool_scalar("kubernetes_cluster_node_config_image_cos_containerd", "imageType", "COS_CONTAINERD", "UBUNTU_CONTAINERD",
+       "Every GKE node pool selects COS with containerd")
+# GKE: "Integrity monitoring is a node pool setting that's enabled by default";
+# "Secure boot is disabled by default on node pools" (Shielded GKE nodes how-to).
+pool_scalar("kubernetes_cluster_shielded_instance_integrity_monitoring_enabled", "shieldedInstanceConfig.enableIntegrityMonitoring", True, False,
+       "Every GKE node pool enables integrity monitoring", absent=True)
+pool_scalar("kubernetes_cluster_shielded_node_secure_boot_enabled", "shieldedInstanceConfig.enableSecureBoot", True, False,
+       "Every GKE node pool enables Shielded VM secure boot", absent=False)
+
+
+@register("gcp.ports.kubernetes_cluster_use_ip_aliases", "gcp", "hardening", "gke_cluster", "GKE uses alias IP ranges (VPC-native)", "medium", "CM-6",
+    "Create VPC-native clusters (alias IP ranges) instead of routes-based clusters.")
+def use_ip_aliases(item, index):
+    # The API makes these mode selectors mutually exclusive. Both false
+    # delegates mode selection to the server; it is not evidence of routes.
+    get(item, "name", str)
+    policy = get(item, "ipAllocationPolicy", dict)
+    aliases = optional(policy, "useIpAliases", None, bool)
+    routes = optional(policy, "useRoutes", None, bool)
+    if aliases is True and routes is True:
+        return unknown("contradictory IP allocation modes: aliases and routes are both true")
+    if aliases is True:
+        return result(False, field="ipAllocationPolicy.useIpAliases", configured=True, use_routes=routes,
+                      semantics="Explicit nonconflicting alias selection; no server default inferred")
+    if routes is True:
+        return result(True, field="ipAllocationPolicy.useIpAliases", configured=False, use_routes=True,
+                      semantics="Explicit route selection excludes alias IPs")
+    raise Unavailable("IP allocation mode unresolved: server-chosen default without a selected mode")
+IDS.append("gcp.ports.kubernetes_cluster_use_ip_aliases")
+REFERENCE_SPECS["kubernetes_cluster_use_ip_aliases"] = "gcp.ports.kubernetes_cluster_use_ip_aliases"
+CASES["gcp.ports.kubernetes_cluster_use_ip_aliases"] = {"pass": {"name": "c", "ipAllocationPolicy": {"useIpAliases": True}},
+    "fail": {"name": "c", "ipAllocationPolicy": {"useRoutes": True}}, "missing": {}, "malformed": None,
+    "unknown": {"name": "c", "ipAllocationPolicy": {}}}
+
+
+@register("gcp.ports.kubernetes_cluster_intra_node_visibility_enabled", "gcp", "hardening", "gke_cluster", "GKE enables intra-node visibility", "medium", "CM-6",
+    "Enable intra-node visibility so same-node pod-to-pod traffic is visible to VPC flow logs and firewall rules.")
+def intra_node_visibility(item, index):
+    # NetworkConfig.enableIntraNodeVisibility: "Whether Intra-node visibility is
+    # enabled for this cluster"; a false proto3 boolean is omitted.
+    get(item, "name", str)
+    network = optional(item, "networkConfig", {}, dict)
+    enabled = optional(network, "enableIntraNodeVisibility", False, bool)
+    return result(not enabled, field="networkConfig.enableIntraNodeVisibility", configured=enabled,
+        semantics="Absent enableIntraNodeVisibility is the proto3 false default")
+IDS.append("gcp.ports.kubernetes_cluster_intra_node_visibility_enabled")
+REFERENCE_SPECS["kubernetes_cluster_intra_node_visibility_enabled"] = "gcp.ports.kubernetes_cluster_intra_node_visibility_enabled"
+CASES["gcp.ports.kubernetes_cluster_intra_node_visibility_enabled"] = {"pass": {"name": "c", "networkConfig": {"enableIntraNodeVisibility": True}},
+    "fail": {"name": "c", "networkConfig": {"network": "n"}}, "missing": {}, "malformed": None,
+    "unknown": {"name": "c", "_coverage": {"networkConfig": {"status": "denied"}}}}
 
 
 def sql_flag(query, engine, flag, allowed, rejected, *, canonical=None, presence=False, forbidden=False):
@@ -84,6 +184,12 @@ def sql_flag(query, engine, flag, allowed, rejected, *, canonical=None, presence
         flags = {}
         for row in list_of_objects(get(item, "settings.databaseFlags", list)):
             name, value = get(row, "name", str), get(row, "value", str)
+            # The native 3625 name includes its documented trace-flag suffix;
+            # old imported fixtures used the short name. Reject two aliases.
+            if flag == "3625" and name == "3625 (trace flag)":
+                name = flag
+            if flag == "3625" and name == flag and value not in ("on", "off"):
+                return unknown("unrecognized trace flag value", flag=flag)
             if name in flags:
                 return unknown("duplicate database flag")
             flags[name] = value
@@ -137,10 +243,16 @@ def node_pool(query, field):
         pools = list_of_objects(get(item, "nodePools", list))
         if not pools:
             return unknown("node-pool inventory absent; Autopilot configuration requires separate evidence")
-        failed = [get(pool, "name", str) for pool in pools if not get(pool, "management." + field, bool)]
+        # NodeManagement.autoUpgrade/autoRepair: "A flag that specifies whether
+        # node auto-upgrade/auto-repair is enabled for the node pool"; an omitted
+        # flag inside a returned management message is false. A pool without a
+        # management message stays UNKNOWN.
+        failed = [get(pool, "name", str) for pool in pools
+                  if not optional(get(pool, "management", dict), field, False, bool)]
         return result(bool(failed), node_pools_needing_review=failed)
     CASES[cid] = {"pass": {"nodePools": [{"name": "p", "management": {field: True}}]},
-        "fail": {"nodePools": [{"name": "p", "management": {field: False}}]}, "missing": {}, "malformed": None}
+        "fail": {"nodePools": [{"name": "p", "management": {field: True}}, {"name": "q", "management": {}}]}, "missing": {}, "malformed": None,
+        "unknown": {"nodePools": [{"name": "p", "_coverage": {"management": {"status": "denied"}}}]}}
     REFERENCE_SPECS[query] = cid
 
 

@@ -5,7 +5,21 @@ export type Category =
   | "least_privilege"
   | "iam_graph"
   | "network"
-  | "privesc";
+  | "privesc"
+  | "monitoring"
+  | "encryption"
+  | "compliance"
+  | "logging"
+  | "identity"
+  | "recovery"
+  | "vulnerability"
+  | "threat_detection"
+  | "secure_development"
+  | "backup"
+  | "supply_chain"
+  | "malware"
+  | "asset_management"
+  | "patch_management";
 export type Connector = {
   id: string;
   name: string;
@@ -15,7 +29,18 @@ export type Connector = {
   scopes: string[];
   options?: Record<string, unknown>;
   input_mode?: string;
-  onboarding?: Record<string, string>;
+  onboarding?: {
+    external_id: string;
+    collector_role_arn: string;
+    target_role_arns: string[];
+    template_url: string;
+    quick_create_template_url?: string | null;
+  };
+  gcp_onboarding?: {
+    service_account_email: string;
+    project_label_key: string;
+    project_label_value: string;
+  };
   status?: string;
   created_at?: string;
 };
@@ -37,6 +62,21 @@ export type Finding = {
   frameworks: string[];
   evidence: unknown;
   remediation: unknown;
+  remediation_details?: RemediationDetails;
+  description?: string;
+  evaluated?: string[];
+  pass_when?: string;
+  fail_when?: string;
+  not_applicable_when?: string;
+  rationale?: string;
+};
+export type RemediationDetails = {
+  summary: string;
+  steps: string[];
+  cli: { label: string; shell?: string; code: string }[];
+  iac?: { label: string; code: string; language?: string } | string;
+  caveats?: string[];
+  references: { title: string; url: string }[];
 };
 export type GraphNode = {
   id: string;
@@ -61,6 +101,14 @@ export type GraphEdge = {
 export type Graph = {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  // Set by /graphs/{kind}/expand (server-side aggregate expansion).
+  expanded?: string;
+  member_count?: number;
+  truncated?: boolean;
+  edges_truncated?: boolean;
+  omitted_edges?: number;
+  omitted_underlying_edges?: number;
+  omitted_boundary_nodes?: number;
   projection?: {
     collapsed?: boolean;
     node_count?: number;
@@ -97,6 +145,7 @@ export type Schedule = {
   name?: string;
   connector_id: string;
   categories: string[];
+  frameworks?: string[];
   interval_hours?: number;
   enabled: boolean;
   next_run_at?: string;
@@ -118,6 +167,13 @@ export type Me = {
   identity?: Record<string, string>;
   [key: string]: unknown;
 };
+export type Workspace = {
+  id: string;
+  name: string;
+  owner?: string;
+  role: "read" | "write" | "admin";
+  personal?: boolean;
+};
 export const categories: { id: Category; label: string }[] = [
   { id: "hardening", label: "Hardening" },
   { id: "exposure", label: "Exposure" },
@@ -125,6 +181,20 @@ export const categories: { id: Category; label: string }[] = [
   { id: "iam_graph", label: "IAM relationships" },
   { id: "network", label: "Network map" },
   { id: "privesc", label: "Privilege escalation" },
+  { id: "monitoring", label: "Monitoring" },
+  { id: "encryption", label: "Encryption" },
+  { id: "compliance", label: "Compliance" },
+  { id: "logging", label: "Logging" },
+  { id: "identity", label: "Identity" },
+  { id: "recovery", label: "Recovery" },
+  { id: "vulnerability", label: "Vulnerabilities" },
+  { id: "threat_detection", label: "Threat detection" },
+  { id: "secure_development", label: "Secure development" },
+  { id: "backup", label: "Backups" },
+  { id: "supply_chain", label: "Supply chain" },
+  { id: "malware", label: "Malware" },
+  { id: "asset_management", label: "Asset management" },
+  { id: "patch_management", label: "Patch management" },
 ];
 export const providers: { id: Provider; name: string; detail: string }[] = [
   { id: "aws", name: "Amazon Web Services", detail: "Accounts & regions" },
@@ -149,6 +219,10 @@ export type PrivescNode = {
   confidence?: PrivescConfidence;
   candidate_set?: string;
   subset?: boolean;
+  /** Placeholder for a target set the evaluator could not resolve from the snapshot. */
+  unresolved?: boolean;
+  unresolved_reason?: string;
+  facts_needed?: string;
 };
 export type PrivescEvidenceRef = Record<string, unknown>;
 export type PrivescEdge = {
@@ -219,6 +293,9 @@ export type PrivescFindingEvidence = {
   confidence?: PrivescConfidence;
   technique_conditions?: { id: string; description?: string }[];
   blockers_not_evaluated?: string[];
+  blocker_verdicts?: string[];
+  reason?: string;
+  facts_needed?: string;
   required_permissions?: unknown;
 };
 export type PrivescPrincipalCard = {

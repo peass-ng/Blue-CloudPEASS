@@ -61,3 +61,10 @@ def test_alarm_action_boolean_and_list_variants_are_independent():
     assert REGISTRY["aws.a.cloudwatch.alarm_state_actions"].evaluate({"AlarmActions": []}, {})[0] == "FAIL"
     assert REGISTRY["aws.a.cloudwatch.alarm_actions_enabled"].evaluate({"ActionsEnabled": "true"}, {})[0] == "UNKNOWN"
     assert REGISTRY["aws.a.cloudwatch.alarm_state_actions"].evaluate({"AlarmActions": [None]}, {})[0] == "UNKNOWN"
+
+
+def test_any_state_action_is_separate_from_alarm_state_only_and_action_enablement():
+    item = {"AlarmActions": [], "OKActions": ["arn:aws:sns:us-east-1:123456789012:alerts"], "InsufficientDataActions": [], "ActionsEnabled": False}
+    assert REGISTRY["aws.a.cloudwatch.any_state_actions"].evaluate(item, {})[0] == "PASS"
+    assert REGISTRY["aws.a.cloudwatch.alarm_state_actions"].evaluate(item, {})[0] == "FAIL"
+    assert REGISTRY["aws.a.cloudwatch.alarm_actions_enabled"].evaluate(item, {})[0] == "FAIL"

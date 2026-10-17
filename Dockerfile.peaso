@@ -8,17 +8,21 @@ RUN npm run build
 FROM python:3.12-slim-bookworm AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PEASO_STATE_DIR=/var/lib/peaso/state PEASO_IDENTITY_DIR=/var/lib/peaso/identity
 WORKDIR /app
-COPY pyproject.toml ./
-COPY peaso/ ./peaso/
-COPY bluepeass/ ./bluepeass/
-COPY scripts/ ./scripts/
-COPY risk_rules/ ./risk_rules/
+COPY --chown=10001:10001 pyproject.toml ./
+COPY --chown=10001:10001 peaso/ ./peaso/
+COPY --chown=10001:10001 bluepeass/ ./bluepeass/
+COPY --chown=10001:10001 scripts/ ./scripts/
+COPY --chown=10001:10001 risk_rules/ ./risk_rules/
+COPY --chown=10001:10001 infra/aws/sdk-constraints.txt ./infra/aws/sdk-constraints.txt
 RUN python -c 'import json,pathlib; [json.loads(path.read_text()) for path in pathlib.Path("peaso").rglob("*.json")]'
-RUN pip install --no-cache-dir . && groupadd -g 10001 peaso && useradd -u 10001 -g 10001 --no-create-home peaso
+RUN pip install --no-cache-dir --constraint /app/infra/aws/sdk-constraints.txt . && groupadd -g 10001 peaso && useradd -u 10001 -g 10001 --no-create-home peaso
+USER 10001:10001
+RUN python scripts/peaso_test_resources/verify_runtime_bundle.py
+USER root
 ENTRYPOINT ["python", "-m", "peaso.server.bootstrap"]
 
 FROM runtime AS collector
-RUN pip install --no-cache-dir '.[cloud,hosted]'
+RUN pip install --no-cache-dir --constraint /app/infra/aws/sdk-constraints.txt '.[cloud,hosted]'
 USER 10001:10001
 CMD ["python", "-m", "peaso.worker", "collector"]
 
@@ -27,7 +31,7 @@ USER 10001:10001
 CMD ["python", "-m", "peaso.worker", "analyzer"]
 
 FROM runtime AS api
-RUN pip install --no-cache-dir '.[hosted]'
+RUN pip install --no-cache-dir --constraint /app/infra/aws/sdk-constraints.txt '.[hosted]'
 COPY --from=frontend /build/dist /app/peaso/frontend_dist/
 ENV PEASO_BIND=0.0.0.0 PEASO_INITIALIZE=1
 CMD ["python", "-m", "peaso.server"]

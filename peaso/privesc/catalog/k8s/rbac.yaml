@@ -1,5 +1,11 @@
+# catalog_description: Only principal-to-principal or principal-to-additional-permission
+# escalation paths belong here. A source must control a credential or hold the
+# required verbs, perform the named action, and reach a known target identity
+# or new effective permission. Generic Secret reads and guardrail changes
+# without a proven identity or permission gain are excluded.
+# Canonical provider policy: peaso/privesc/catalog_policy.yaml.
 # Kubernetes RBAC-plane privilege-escalation techniques (secrets, tokens, impersonation,
-# bind/escalate, CSR). Source: hacktricks-cloud rev a53b46392c.
+# bind/escalate, CSR). Source: hacktricks-cloud rev a53b46392c, re-verified against 171e422.
 #
 # Conventions used across catalog/k8s/*.yaml (see SCHEMA EXTENSIONS in the agent report):
 #   namespace: "{target.namespace}"  -> the effective grant (RoleBinding in that namespace, or a
@@ -14,40 +20,12 @@
 #   source_kind (top level)          -> the source is an identity of that kind rather than any RBAC
 #                                       subject holding the listed permissions (requires may be empty).
 
-- id: k8s-rbac-wildcard-cluster-admin
-  provider: k8s
-  service: rbac
-  title: Wildcard verbs on wildcard resources cluster-wide
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#access-any-resource-or-verb-wildcard
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of cluster-admin (full control of every API resource in the cluster).
-  requires:
-    all_of:
-      - verb: "*"
-        resource: "*"
-        api_group: "*"
-        namespace: "*"
-  target:
-    kind: k8s_cluster_admin
-    selector:
-      any_principal_in_scope: true
-    scope: cluster
-    aggregate_as: "cluster-admin of {cluster}"
-  conditions: []
-  blockers: []
-  confidence: derived
-  severity: critical
-  mitigation: Bind cluster-admin or wildcard ClusterRoles only to break-glass identities; replace wildcards with explicit verbs, resources and API groups.
-  references:
-    - https://kubernetes.io/docs/concepts/security/rbac-good-practices/
-  notes: A namespaced wildcard (Role or RoleBinding to a wildcard ClusterRole) is not modelled separately; the evaluator's wildcard expansion makes it match the per-permission entries (pods create, secrets read, serviceaccounts/token, rolebindings + bind) scoped to that namespace.
-
 - id: k8s-rbac-secrets-read-legacy-sa-token
   provider: k8s
   service: rbac
   title: Read Secrets containing legacy ServiceAccount tokens
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#listing-secrets
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/secrets-and-configmaps.md#verified-legacy-serviceaccount-token-secret
+  source_revision: c3052fe8de
   summary: The source can obtain the privileges of ServiceAccounts in the namespace that have a kubernetes.io/service-account-token Secret.
   requires:
     all_of: []
@@ -65,28 +43,30 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "{target.namespace}"
+      k8s_sa_has_legacy_token_secret: true
+      k8s_challenge_fact: k8s-rbac-secrets-read-legacy-sa-token
     scope: same_namespace
     aggregate_as: "ServiceAccounts with legacy token Secrets in {target.namespace}"
   conditions:
     - id: legacy_sa_token_secret_exists
-      description: Only ServiceAccounts that have a kubernetes.io/service-account-token Secret are reachable. Secrets are not collected, so existence is unknown; clusters >=1.24 no longer auto-create them and LegacyServiceAccountTokenCleanUp may have removed unused ones, but manually created token Secrets remain.
+      description: A reviewed evidence record must bind the exact Secret UID and version to this ServiceAccount and prove that its token was accepted by the API server; metadata alone does not prove a usable token.
     - id: get_requires_secret_name
-      description: With get alone (no list/watch) the Secret name must be known or discoverable (e.g. referenced in the ServiceAccount's secrets field or a workload spec).
+      description: The exact get, list or watch action must be authorized for the named Secret and a read of that Secret must have succeeded.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Remove get/list/watch on secrets from non-admin subjects, delete legacy service-account-token Secrets and rely on bound projected tokens.
   references:
     - https://kubernetes.io/docs/concepts/security/service-accounts/
     - https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#legacy-serviceaccount-token-cleaner
-  notes: Reading other Secret types (cloud keys, kubeconfigs) can also yield identities, but those targets are not derivable from the snapshot and are excluded. list and watch return Secret data, not only names.
+  notes: The typed k8s_privesc_challenge_evidence proof must freshly attest the exact source, target ServiceAccount, Secret UID/version, accepted audience and subject, usable token, successful Secret read, and at least one effective permission previously denied to the source. Secret values are never stored. Reading other Secret types (cloud keys, kubeconfigs) can also yield identities, but those targets are not derivable from inventory and are excluded.
 
 - id: k8s-rbac-secrets-create-sa-token-secret
   provider: k8s
   service: rbac
   title: Create a ServiceAccount token Secret and read it back
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#creating-and-reading-secrets
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/secrets-and-configmaps.md#creating-and-reading-secrets
+  source_revision: 683485eae7
   summary: The source can obtain the privileges of any ServiceAccount in the namespace by having the token controller populate a token Secret it can read.
   requires:
     all_of:
@@ -107,25 +87,26 @@
     kind: k8s_service_account
     selector:
       k8s_sa_in_namespace: "{target.namespace}"
+      k8s_challenge_fact: k8s-rbac-secrets-create-sa-token-secret
     scope: same_namespace
     aggregate_as: "All ServiceAccounts in {target.namespace}"
   conditions:
     - id: admission_blocks_sa_token_secret
-      description: An admission policy (VAP, Kyverno, Gatekeeper) rejecting Secrets of type kubernetes.io/service-account-token would remove the edge.
+      description: A reviewed proof must verify that creation was admitted, the token controller populated the exact Secret, and the API server accepted its token as the named ServiceAccount; admission rejection or an inert Secret removes the edge.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Do not combine create and read on secrets for non-admin subjects; deny creation of kubernetes.io/service-account-token Secrets via admission policy.
   references:
     - https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-an-api-token-for-a-serviceaccount
-  notes: Manually created token Secrets are still populated by the token controller on current Kubernetes versions. resourceNames cannot restrict create, so a get rule limited to resourceNames still works if it lists the name the source chooses.
+  notes: The typed k8s_privesc_challenge_evidence record must bind the source, target ServiceAccount, exact Secret UID/version, successful create and read, accepted token subject/audience, and at least one effective permission previously denied to the source. A get rule limited to resourceNames works only if it includes the chosen name; Secret metadata alone never creates this path.
 
 - id: k8s-rbac-serviceaccounts-token-create
   provider: k8s
   service: rbac
   title: Mint tokens with the TokenRequest API
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#create-serviceaccounts-token
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#create-serviceaccounts-token
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of the ServiceAccounts on which it can create serviceaccounts/token.
   requires:
     all_of:
@@ -154,8 +135,8 @@
   provider: k8s
   service: rbac
   title: Impersonate ServiceAccounts
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#impersonating-privileged-accounts
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#impersonating-privileged-accounts
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of the ServiceAccounts it may impersonate.
   requires:
     all_of:
@@ -183,8 +164,8 @@
   provider: k8s
   service: rbac
   title: Impersonate users
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#impersonating-privileged-accounts
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#impersonating-privileged-accounts
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of the users it may impersonate.
   requires:
     all_of:
@@ -211,8 +192,8 @@
   provider: k8s
   service: rbac
   title: Impersonate groups (with user impersonation)
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#impersonating-privileged-accounts
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#impersonating-privileged-accounts
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of the groups it may impersonate.
   requires:
     all_of:
@@ -245,8 +226,8 @@
   provider: k8s
   service: rbac
   title: Impersonate the system:masters group
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#impersonating-privileged-accounts
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#impersonating-privileged-accounts
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of cluster-admin through the system:masters group, which bypasses RBAC.
   requires:
     all_of:
@@ -276,8 +257,8 @@
   provider: k8s
   service: rbac
   title: Impersonate a node identity
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#impersonating-privileged-accounts
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#impersonating-privileged-accounts
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of a node (system:node:<name> in group system:nodes).
   requires:
     all_of:
@@ -308,18 +289,24 @@
   provider: k8s
   service: rbac
   title: Constrained impersonation of a user (user-info mode)
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#constrained-impersonation
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#constrained-impersonation
+  source_revision: 2415fadfbd
   summary: The source can obtain a subset of the privileges of the users it may impersonate in user-info mode.
   requires:
     all_of:
-      - verb: "impersonate:user-info"
-        resource: users
+      - verb_prefix: "impersonate-on:user-info:"
+        resource_match: any
         namespace: "*"
-        resource_name: "{target.name}"
-      - verb: "impersonate-on:user-info:*"
-        resource: "*"
-        namespace: "*"
+    any_of:
+      - - verb: "impersonate:user-info"
+          resource: users
+          api_group: authentication.k8s.io
+          namespace: "*"
+          resource_name: "{target.name}"
+      - - verb: "impersonate:user-info"
+          resource: users
+          namespace: "*"
+          resource_name: "{target.name}"
   target:
     kind: k8s_user
     selector:
@@ -332,19 +319,19 @@
     - id: constrained_impersonation_enabled
       description: Requires Kubernetes 1.36+ (beta, on by default) or the feature gate.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Grant impersonate:<mode> and impersonate-on:<mode>:<verb> only as narrow, resourceName-scoped pairs for the exact delegated operation.
   references:
     - https://kubernetes.io/docs/reference/access-authn-authz/user-impersonation/
-  notes: The requirement "impersonate-on:user-info:*" means at least one impersonate-on:user-info:<verb> grant on any resource. HackTricks reproduced the identity rule under api group authentication.k8s.io; the official doc example shows core group, so api_group is left unspecified. The source never gains more than the intersection of its impersonate-on grants and the target's own permissions.
+  notes: The action half (verb_prefix "impersonate-on:user-info:" with resource_match any) matches at least one impersonate-on:user-info:<verb> grant (or verb "*") on any resource of any group, e.g. impersonate-on:user-info:get on secrets. HackTricks (171e422) reproduced the identity rule on Kubernetes 1.37 as apiGroups ["authentication.k8s.io"] resources ["users"]; the core-group spelling is kept as an alternative because the api group of a rule is matched exactly. The source never gains more than the intersection of its impersonate-on grants and the target's own permissions.
 
 - id: k8s-rbac-constrained-impersonation-serviceaccount
   provider: k8s
   service: rbac
   title: Constrained impersonation of a ServiceAccount
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#constrained-impersonation
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#constrained-impersonation
+  source_revision: 2415fadfbd
   summary: The source can obtain a subset of the privileges of the ServiceAccounts it may impersonate in serviceaccount mode.
   requires:
     all_of:
@@ -352,8 +339,8 @@
         resource: serviceaccounts
         namespace: "{target.namespace}"
         resource_name: "{target.name}"
-      - verb: "impersonate-on:serviceaccount:*"
-        resource: "*"
+      - verb_prefix: "impersonate-on:serviceaccount:"
+        resource_match: any
         namespace: "*"
   target:
     kind: k8s_service_account
@@ -368,63 +355,88 @@
     - id: constrained_impersonation_enabled
       description: Requires Kubernetes 1.36+ (beta, on by default) or the feature gate.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Grant constrained impersonation only as narrow, resourceName-scoped identity/action pairs.
   references:
     - https://kubernetes.io/docs/reference/access-authn-authz/user-impersonation/
-  notes: Official doc example uses core group serviceaccounts with verb impersonate:serviceaccount.
+  notes: Official doc example uses core group serviceaccounts with verb impersonate:serviceaccount. The action half (verb_prefix "impersonate-on:serviceaccount:", resource_match any) matches any impersonate-on:serviceaccount:<verb> grant on any resource.
 
 - id: k8s-rbac-constrained-impersonation-node
   provider: k8s
   service: rbac
-  title: Constrained impersonation of nodes (arbitrary-node or associated-node mode)
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#constrained-impersonation
-  source_revision: a53b46392c
-  summary: The source can obtain a subset of the privileges of any node (arbitrary-node) or of the node its pod runs on (associated-node).
+  title: Constrained impersonation of nodes (arbitrary-node mode)
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#constrained-impersonation
+  source_revision: 2415fadfbd
+  summary: The source can obtain a subset of the privileges of any node it may impersonate in arbitrary-node mode.
   requires:
-    all_of: []
-    any_of:
-      - - verb: "impersonate:arbitrary-node"
-          resource: nodes
-          namespace: "*"
-          resource_name: "{target.name}"
-        - verb: "impersonate-on:arbitrary-node:*"
-          resource: "*"
-          namespace: "*"
-      - - verb: "impersonate:associated-node"
-          resource: nodes
-          namespace: "*"
-        - verb: "impersonate-on:associated-node:*"
-          resource: "*"
-          namespace: "*"
+    all_of:
+      - verb: "impersonate:arbitrary-node"
+        resource: nodes
+        namespace: "*"
+        resource_name: "{target.name}"
+      - verb_prefix: "impersonate-on:arbitrary-node:"
+        resource_match: any
+        namespace: "*"
   target:
     kind: k8s_node
     selector:
-      resource_permission_covers_target: "nodes:impersonate"
+      resource_permission_covers_target: "nodes:impersonate:arbitrary-node"
     scope: cluster
     aggregate_as: "Nodes impersonable in constrained mode in {cluster}"
   conditions:
     - id: constrained_impersonation_action_subset
       description: Only the verbs granted via impersonate-on:<mode>:<verb> are usable while impersonating the node.
-    - id: associated_node_only_own_node
-      description: associated-node mode only reaches the node bound into the source ServiceAccount's pod token (the node running the source's pod); arbitrary-node reaches any covered node.
     - id: constrained_impersonation_enabled
       description: Requires Kubernetes 1.36+ (beta, on by default) or the feature gate.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Do not grant node impersonation modes outside node-agent ServiceAccounts, and scope the impersonate-on verbs tightly.
   references:
     - https://kubernetes.io/docs/reference/access-authn-authz/user-impersonation/
-  notes: The exact resource/api group for the node-mode identity rule could not be confirmed from the official page excerpt; evaluator should match on the verb. The associated-node group needs the extension selector k8s_node_hosting_pod_of_source to narrow the target to the source's own node.
+  notes: The exact resource/api group for the node-mode identity rule could not be confirmed from the official page excerpt; the api group is omitted so any group matches. associated-node mode is k8s-rbac-constrained-impersonation-associated-node.
+
+- id: k8s-rbac-constrained-impersonation-associated-node
+  provider: k8s
+  service: rbac
+  title: Constrained impersonation of the node running the source's pod (associated-node mode)
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#constrained-impersonation
+  source_revision: 2415fadfbd
+  summary: A ServiceAccount granted associated-node impersonation can obtain a subset of the privileges of the node that runs its own pod.
+  requires:
+    all_of:
+      - verb: "impersonate:associated-node"
+        resource: nodes
+        namespace: "*"
+      - verb_prefix: "impersonate-on:associated-node:"
+        resource_match: any
+        namespace: "*"
+  target:
+    kind: k8s_node
+    selector:
+      k8s_node_hosting_pod_of_source: true
+    scope: cluster
+    aggregate_as: "Node hosting the source's pod in {cluster}"
+  conditions:
+    - id: constrained_impersonation_action_subset
+      description: Only the verbs granted via impersonate-on:associated-node:<verb> are usable while impersonating the node.
+    - id: constrained_impersonation_enabled
+      description: Requires Kubernetes 1.36+ (beta, on by default) or the feature gate.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Do not grant node impersonation modes outside node-agent ServiceAccounts, and scope the impersonate-on verbs tightly.
+  references:
+    - https://kubernetes.io/docs/reference/access-authn-authz/user-impersonation/
+  notes: associated-node mode only reaches the node bound into the source ServiceAccount's pod token; k8s_node_hosting_pod_of_source narrows the target to nodes hosting a collected pod that runs as the source ServiceAccount (no target without pod inventory).
 
 - id: k8s-rbac-bind-clusterrolebinding-cluster-admin
   provider: k8s
   service: rbac
   title: Bind cluster-admin through a ClusterRoleBinding
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#bind
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bind
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of cluster-admin by binding an admin-equivalent ClusterRole to itself cluster-wide.
   requires:
     all_of:
@@ -466,61 +478,21 @@
 - id: k8s-rbac-bind-rolebinding-namespace
   provider: k8s
   service: rbac
-  title: Bind a powerful Role or ClusterRole inside a namespace
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#bind
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the ServiceAccounts in the namespace by binding a role that grants workload or token control there.
+  title: Bind cluster-admin into a namespace through a RoleBinding
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bind
+  source_revision: 2415fadfbd
+  summary: The source can bind the exact cluster-admin ClusterRole to itself in a namespace, gaining its workload and token permissions there and reaching that namespace's ServiceAccounts.
   requires:
-    all_of: []
-    any_of:
-      - - verb: bind
-          resource: clusterroles
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-        - verb: create
-          resource: rolebindings
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-      - - verb: bind
-          resource: clusterroles
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-        - verb: update
-          resource: rolebindings
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-      - - verb: bind
-          resource: clusterroles
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-        - verb: patch
-          resource: rolebindings
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-      - - verb: bind
-          resource: roles
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-        - verb: create
-          resource: rolebindings
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-      - - verb: bind
-          resource: roles
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-        - verb: update
-          resource: rolebindings
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-      - - verb: bind
-          resource: roles
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
-        - verb: patch
-          resource: rolebindings
-          api_group: rbac.authorization.k8s.io
-          namespace: "{target.namespace}"
+    all_of:
+      - verb: bind
+        resource: clusterroles
+        api_group: rbac.authorization.k8s.io
+        namespace: "{target.namespace}"
+        resource_name: cluster-admin
+      - verb: create
+        resource: rolebindings
+        api_group: rbac.authorization.k8s.io
+        namespace: "{target.namespace}"
   target:
     kind: k8s_service_account
     selector:
@@ -528,22 +500,22 @@
     scope: same_namespace
     aggregate_as: "All ServiceAccounts in {target.namespace}"
   conditions:
-    - id: bindable_role_grants_identity_path
-      description: A Role/ClusterRole covered by bind (respecting resourceNames) must grant a path to ServiceAccounts in the namespace, e.g. pods/controllers create, serviceaccounts/token create, secrets read, or wildcards (admin/edit qualify).
+    - id: cluster_admin_role_exists
+      description: The cluster-admin ClusterRole must exist and retain the wildcard workload and token permissions that make the namespace's ServiceAccounts reachable.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict bind with resourceNames to low-privilege roles and avoid granting rolebinding writes to tenants.
   references:
     - https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update
-  notes: A RoleBinding grants a referenced ClusterRole's rules only inside its own namespace. The update/patch groups only apply to existing RoleBindings.
+  notes: A RoleBinding grants cluster-admin rules only inside its namespace. This active entry requires create because patch/update would need a known matching existing RoleBinding. Binding any other Role or ClusterRole requires evaluating that exact role's permissions before a principal edge can be established; those variants are excluded pending that join.
 
 - id: k8s-rbac-escalate-bound-clusterrole
   provider: k8s
   service: rbac
   title: Escalate a ClusterRole already bound to the source
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#escalate
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#escalate
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of cluster-admin by adding arbitrary rules to a ClusterRole bound to it cluster-wide.
   requires:
     all_of:
@@ -580,14 +552,51 @@
   mitigation: Do not grant escalate on roles/clusterroles to non-admin subjects.
   references:
     - https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update
-  notes: "{source_bound_clusterrole} = a ClusterRole referenced by a binding whose subjects include the source. escalate + create roles alone is not enough: binding the new role still needs bind or already-held permissions."
+  notes: "{source_bound_clusterrole} = a ClusterRole referenced by a ClusterRoleBinding whose subjects include the source (a RoleBinding to a ClusterRole only confines it to one namespace and does not yield cluster-admin). escalate + create roles alone is not enough: binding the new role still needs bind or already-held permissions."
+
+- id: k8s-rbac-escalate-aggregating-clusterrole
+  provider: k8s
+  service: rbac
+  title: Create an aggregating ClusterRole that feeds a ClusterRole already bound to the source
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#bindings-and-aggregated-clusterroles
+  source_revision: 2415fadfbd
+  summary: The source can obtain the privileges of cluster-admin by creating a ClusterRole with arbitrary rules and an aggregate-to-<role> label so the aggregation controller copies them into an aggregated ClusterRole already bound to it cluster-wide.
+  source_selector:
+    source_bound_to_aggregated_clusterrole: cluster
+  requires:
+    all_of:
+      - verb: create
+        resource: clusterroles
+        api_group: rbac.authorization.k8s.io
+        namespace: "*"
+      - verb: escalate
+        resource: clusterroles
+        api_group: rbac.authorization.k8s.io
+        namespace: "*"
+  target:
+    kind: k8s_cluster_admin
+    selector:
+      any_principal_in_scope: true
+    scope: cluster
+    aggregate_as: "cluster-admin of {cluster}"
+  conditions:
+    - id: source_bound_to_aggregated_clusterrole
+      description: The source_selector checks that the source is bound to a ClusterRole with an aggregationRule (view, edit, admin or a custom one); the new role's labels must satisfy that role's clusterRoleSelectors.
+  blockers: []
+  confidence: conditional
+  severity: critical
+  mitigation: Do not grant escalate on clusterroles; alert on new ClusterRoles carrying rbac.authorization.k8s.io/aggregate-to-* labels.
+  references:
+    - https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles
+    - https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update
+  notes: HackTricks (171e422) documents aggregation into an already-bound ClusterRole (lab adds patch on one ConfigMap to view) and states the caller still needs the proposed rules or escalate. Without escalate the source can only aggregate rules it already holds, which is not an escalation.
 
 - id: k8s-rbac-escalate-bound-role-namespace
   provider: k8s
   service: rbac
   title: Escalate a Role already bound to the source in a namespace
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#escalate
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#escalate
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of the ServiceAccounts in the namespace by adding workload or token rules to a Role bound to it there.
   requires:
     all_of:
@@ -628,29 +637,24 @@
   provider: k8s
   service: certificates
   title: Issue and approve a client certificate for an existing username
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#certificate-signing-requests
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#certificate-signing-requests
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of any user (or ServiceAccount username) that has RBAC bindings by self-approving a kube-apiserver-client certificate for it.
   requires:
     all_of:
-      - verb: create
-        resource: certificatesigningrequests
-        api_group: certificates.k8s.io
-        namespace: "*"
-      - verb: get
-        resource: certificatesigningrequests
-        api_group: certificates.k8s.io
-        namespace: "*"
-      - verb: update
-        resource: certificatesigningrequests
-        subresource: approval
-        api_group: certificates.k8s.io
-        namespace: "*"
-      - verb: approve
-        resource: signers
-        api_group: certificates.k8s.io
-        namespace: "*"
-        resource_name: "kubernetes.io/kube-apiserver-client"
+      - {verb: create, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+      # Read the issued certificate back (status.certificate).
+      - any_of:
+          - {verb: get, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+          - {verb: list, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+          - {verb: watch, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+      - any_of:
+          - {verb: update, resource: certificatesigningrequests, subresource: approval, api_group: certificates.k8s.io, namespace: "*"}
+          - {verb: patch, resource: certificatesigningrequests, subresource: approval, api_group: certificates.k8s.io, namespace: "*"}
+      # The signer check also accepts the domain wildcard resourceName.
+      - any_of:
+          - {verb: approve, resource: signers, api_group: certificates.k8s.io, namespace: "*", resource_name: "kubernetes.io/kube-apiserver-client"}
+          - {verb: approve, resource: signers, api_group: certificates.k8s.io, namespace: "*", resource_name: "kubernetes.io/*"}
   target:
     kind: k8s_user
     selector:
@@ -674,29 +678,24 @@
   provider: k8s
   service: certificates
   title: Issue and approve a client certificate carrying groups
-  source: src/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes/README.md#certificate-signing-requests
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#certificate-signing-requests
+  source_revision: 2415fadfbd
   summary: The source can obtain the privileges of RBAC-bound groups (other than system:masters) by self-approving a kube-apiserver-client certificate with those organizations.
   requires:
     all_of:
-      - verb: create
-        resource: certificatesigningrequests
-        api_group: certificates.k8s.io
-        namespace: "*"
-      - verb: get
-        resource: certificatesigningrequests
-        api_group: certificates.k8s.io
-        namespace: "*"
-      - verb: update
-        resource: certificatesigningrequests
-        subresource: approval
-        api_group: certificates.k8s.io
-        namespace: "*"
-      - verb: approve
-        resource: signers
-        api_group: certificates.k8s.io
-        namespace: "*"
-        resource_name: "kubernetes.io/kube-apiserver-client"
+      - {verb: create, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+      # Read the issued certificate back (status.certificate).
+      - any_of:
+          - {verb: get, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+          - {verb: list, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+          - {verb: watch, resource: certificatesigningrequests, api_group: certificates.k8s.io, namespace: "*"}
+      - any_of:
+          - {verb: update, resource: certificatesigningrequests, subresource: approval, api_group: certificates.k8s.io, namespace: "*"}
+          - {verb: patch, resource: certificatesigningrequests, subresource: approval, api_group: certificates.k8s.io, namespace: "*"}
+      # The signer check also accepts the domain wildcard resourceName.
+      - any_of:
+          - {verb: approve, resource: signers, api_group: certificates.k8s.io, namespace: "*", resource_name: "kubernetes.io/kube-apiserver-client"}
+          - {verb: approve, resource: signers, api_group: certificates.k8s.io, namespace: "*", resource_name: "kubernetes.io/*"}
   target:
     kind: k8s_group
     selector:
@@ -716,3 +715,137 @@
   references:
     - https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#kubernetes-signers
   notes: Official docs list no subject restrictions for kubernetes.io/kube-apiserver-client beyond approver/signer policy; the system:masters exclusion follows the HackTricks v1.37 lab result.
+
+- id: k8s-rbac-dangling-serviceaccount-reference
+  provider: k8s
+  service: rbac
+  title: Create a ServiceAccount referenced by an existing binding but missing
+  source: src/pentesting-cloud/openshift-pentesting/openshift-privilege-escalation/openshift-missing-service-account.md#missing-service-account
+  source_revision: a66f094ede
+  summary: The source can obtain the privileges granted to a non-existent ServiceAccount name by creating it (and its namespace if missing) and then using it.
+  requires:
+    all_of:
+      - verb: create
+        resource: serviceaccounts
+        namespace: "{target.namespace}"
+    any_of:
+      # Run a workload as the recreated ServiceAccount (pod or any pod-creating controller).
+      - - any_of:
+            - {verb: create, resource: pods, namespace: "{target.namespace}"}
+            - {verb: create, resource: deployments, api_group: apps, namespace: "{target.namespace}"}
+            - {verb: create, resource: daemonsets, api_group: apps, namespace: "{target.namespace}"}
+            - {verb: create, resource: statefulsets, api_group: apps, namespace: "{target.namespace}"}
+            - {verb: create, resource: replicasets, api_group: apps, namespace: "{target.namespace}"}
+            - {verb: create, resource: replicationcontrollers, namespace: "{target.namespace}"}
+            - {verb: create, resource: jobs, api_group: batch, namespace: "{target.namespace}"}
+            - {verb: create, resource: cronjobs, api_group: batch, namespace: "{target.namespace}"}
+      - - {verb: create, resource: serviceaccounts, subresource: token, namespace: "{target.namespace}"}
+      # Legacy token Secret for the recreated ServiceAccount, then read it back.
+      - - {verb: create, resource: secrets, namespace: "{target.namespace}"}
+        - any_of:
+            - {verb: get, resource: secrets, namespace: "{target.namespace}"}
+            - {verb: list, resource: secrets, namespace: "{target.namespace}"}
+            - {verb: watch, resource: secrets, namespace: "{target.namespace}"}
+  target:
+    kind: k8s_service_account
+    selector:
+      k8s_sa_absent_but_bound: true
+      k8s_sa_in_namespace: "{target.namespace}"
+    scope: same_namespace
+    aggregate_as: "Dangling ServiceAccount references in {target.namespace}"
+  conditions:
+    - id: namespace_missing
+      description: If the referenced namespace does not exist (possible for ClusterRoleBinding or SCC subjects), the source also needs create on namespaces (or projectrequests) and its namespaced grants must be effective in the new namespace.
+  blockers: []
+  confidence: derived
+  severity: high
+  mitigation: Remove bindings and SCC users entries whose ServiceAccount (or namespace) no longer exists.
+  references:
+    - https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-subjects
+  notes: Applies to vanilla Kubernetes too (RBAC subjects are matched by name, not UID). The target is the binding subject name; the evaluator should synthesize a virtual k8s_service_account node for each subject that does not exist in the snapshot, carrying the bound privileges. Controller creates are alternatives to pods create (the book requires "a way to use the account, such as permission to create a workload under it"); list/watch return Secret data like get (a66f094ede).
+
+- id: k8s-rbac-serviceaccount-in-absent-namespace
+  provider: k8s
+  service: rbac
+  title: Create the missing namespace and ServiceAccount named by a binding or SCC
+  source: src/pentesting-cloud/openshift-pentesting/openshift-privilege-escalation/openshift-missing-service-account.md#missing-service-account
+  source_revision: a66f094ede
+  summary: The source can obtain the privileges granted to a ServiceAccount whose namespace does not exist by creating that namespace and ServiceAccount and then running as it.
+  requires:
+    all_of: []
+    any_of:
+      - - {verb: create, resource: namespaces, namespace: "*"}
+        - {verb: create, resource: serviceaccounts, namespace: "*"}
+        - any_of:
+            - {verb: create, resource: pods, namespace: "*"}
+            - {verb: create, resource: deployments, api_group: apps, namespace: "*"}
+            - {verb: create, resource: daemonsets, api_group: apps, namespace: "*"}
+            - {verb: create, resource: statefulsets, api_group: apps, namespace: "*"}
+            - {verb: create, resource: replicasets, api_group: apps, namespace: "*"}
+            - {verb: create, resource: replicationcontrollers, namespace: "*"}
+            - {verb: create, resource: jobs, api_group: batch, namespace: "*"}
+            - {verb: create, resource: cronjobs, api_group: batch, namespace: "*"}
+      - - {verb: create, resource: namespaces, namespace: "*"}
+        - {verb: create, resource: serviceaccounts, namespace: "*"}
+        - {verb: create, resource: serviceaccounts, subresource: token, namespace: "*"}
+      - - {verb: create, resource: namespaces, namespace: "*"}
+        - {verb: create, resource: serviceaccounts, namespace: "*"}
+        - {verb: create, resource: secrets, namespace: "*"}
+        - any_of:
+            - {verb: get, resource: secrets, namespace: "*"}
+            - {verb: list, resource: secrets, namespace: "*"}
+            - {verb: watch, resource: secrets, namespace: "*"}
+      - - {verb: create, resource: projectrequests, api_group: project.openshift.io, namespace: "*"}
+  target:
+    kind: k8s_service_account
+    selector:
+      k8s_sa_namespace_absent: true
+    scope: cluster
+    aggregate_as: "ServiceAccounts in absent namespaces of {cluster}"
+  conditions:
+    - id: namespace_name_allowed
+      description: Namespace or project creation can be restricted by admission or the project request template; the exact referenced name must be creatable.
+    - id: projectrequest_grants_admin
+      description: The projectrequests alternative applies only on OpenShift, where the default project template makes the requester admin of the new project (enough to create the ServiceAccount and pods there).
+  blockers: [admission_policy]
+  confidence: conditional
+  severity: high
+  mitigation: Remove bindings and SCC users entries whose ServiceAccount namespace no longer exists; restrict namespace and project creation.
+  references:
+    - https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-subjects
+  notes: k8s_sa_namespace_absent targets ServiceAccounts referenced by a binding subject or SCC users[] whose namespace is absent from a complete namespace inventory (unknown if the inventory is incomplete). The serviceaccount and pod grants must be cluster-wide (namespace "*") because the namespace does not exist yet. Complements k8s-rbac-dangling-serviceaccount-reference (namespace exists).
+
+- id: k8s-rbac-escalate-rolebound-clusterrole-namespace
+  provider: k8s
+  service: rbac
+  title: Escalate a ClusterRole bound in one namespace
+  source: src/pentesting-cloud/kubernetes-security/kubernetes-privilege-escalation/rbac-and-identities.md#escalate
+  source_revision: 2415fadfbd
+  summary: Editing a ClusterRole bound through a RoleBinding can grant the source workload and token rights in that namespace.
+  requires:
+    all_of:
+      - verb: escalate
+        resource: clusterroles
+        api_group: rbac.authorization.k8s.io
+        namespace: "*"
+        resource_name: "{source_rolebound_clusterrole}"
+    any_of:
+      - - verb: update
+          resource: clusterroles
+          api_group: rbac.authorization.k8s.io
+          namespace: "*"
+          resource_name: "{source_rolebound_clusterrole}"
+      - - verb: patch
+          resource: clusterroles
+          api_group: rbac.authorization.k8s.io
+          namespace: "*"
+          resource_name: "{source_rolebound_clusterrole}"
+  target:
+    kind: k8s_service_account
+    selector: {k8s_sa_in_namespace: "{target.namespace}"}
+    scope: same_namespace
+    outcome: identity
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Do not combine escalate and edit authority on roles bound to the editor.

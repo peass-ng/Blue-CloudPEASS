@@ -1,0 +1,121 @@
+{
+  "prowler.aws.cloudtrail_bucket_requires_mfa_delete": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.bucket_mfa_delete"
+    ],
+    "reason": "Logging trail only; complete verified same-account bucket join, MFADelete Enabled passes and documented omitted/Disabled fails, out-of-scope bucket requires MANUAL. Denied or incomplete bucket inventory remains unknown. Full pinned source applicability and pass/fail/manual branches reviewed; malformed/denied native facts are not converted into safe state.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudtrail/client/get_trail_status.html"
+    ],
+    "review_notes": "Only configuration/usage metadata; captured-time and same-account join truth fixtures supplied. No source runtime/cloud contents or privileged target selectors.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "e9650c763e3bc401b245676451c496e66633e2ec4976258ce01c9c05a03e3e87",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_bucket_requires_mfa_delete/cloudtrail_bucket_requires_mfa_delete.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_cloudwatch_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.cloudwatch_delivery_24h"
+    ],
+    "reason": "LatestCloudWatchLogsDeliveryTime exists and captured observation minus delivery time is <=24 hours. Uses immutable captured clock, not wall time; exact24h and future timestamp semantics preserved, known native omitted timestamp fails. Full pinned source applicability and pass/fail/manual branches reviewed; malformed/denied native facts are not converted into safe state.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudtrail/client/get_trail_status.html"
+    ],
+    "review_notes": "Only configuration/usage metadata; captured-time and same-account join truth fixtures supplied. No source runtime/cloud contents or privileged target selectors.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "171959df86b488120997e31839cae54e9261d1f1010838d61197df23ca30564e",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_cloudwatch_logging_enabled/cloudtrail_cloudwatch_logging_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_insights_exist": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.insights_logging_trail"
+    ],
+    "reason": "Named logging trail only; nonlogging trail not applicable, retrieved nonempty Insights selector list passes and known disabled Insights configuration fails. Full pinned source applicability and pass/fail/manual branches reviewed; malformed/denied native facts are not converted into safe state.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudtrail/client/get_insight_selectors.html"
+    ],
+    "review_notes": "Only configuration/usage metadata; captured-time and same-account join truth fixtures supplied. No source runtime/cloud contents or privileged target selectors.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "43dac819eac484e2cb9cf969d3bff8e4f587a1c27acc93d5eab52c4d9ffa56d0",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_insights_exist/cloudtrail_insights_exist.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_logs_s3_bucket_access_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.bucket_access_logging"
+    ],
+    "reason": "Named trail with complete verified same-account bucket join; bucket LoggingEnabled target passes and complete native omitted logging fails, out-of-scope destination MANUAL. No active logging/content probe. Full pinned source applicability and pass/fail/manual branches reviewed; malformed/denied native facts are not converted into safe state.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudtrail/client/get_trail_status.html"
+    ],
+    "review_notes": "Only configuration/usage metadata; captured-time and same-account join truth fixtures supplied. No source runtime/cloud contents or privileged target selectors.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "1559b5ff34fa94dd940c0edab6f31873687aa891da626387d8ba8b8edc1f9686",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_logs_s3_bucket_access_logging_enabled/cloudtrail_logs_s3_bucket_access_logging_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_multi_region_enabled_logging_management_events": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Advanced branch trusts cosmetic selector Name Management events selector and absence of a readOnly condition, without requiring eventCategory Management. A valid eventCategory Data selector with that descriptive name falsely passes management-event logging. Official selector semantics and concrete counterexample independently verified by lead; no corrected-but-different predicate is advertised equivalent.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html"
+    ],
+    "review_notes": "Individually inspected exact source and preserved full source/framework/version IDs; no blanket rejection of other Bedrock or selector predicates. No secret values, source execution or active probes.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "7ff5fc5ecffe6d8c25cc802d85b5d54915a15a08b86f9adce71be795cff22545",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_multi_region_enabled_logging_management_events/cloudtrail_multi_region_enabled_logging_management_events.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_s3_dataevents_read_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Advanced source branch accepts resources.type AWS::S3::Object alone and ignores readOnly=false (write-only) and resources.ARN restrictions. A valid write-only or restricted-bucket selector falsely passes the all-S3-read-events predicate. Concrete native counterexamples independently verified by lead; source security condition is invalid, not a missing-facts rejection.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html"
+    ],
+    "review_notes": "Individually inspected exact source and preserved full source/framework/version IDs; no blanket rejection of other Bedrock or selector predicates. No secret values, source execution or active probes.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "0c12a0724aeb4eb326306696980ff961b1572056cee69f3d2d47615a2bce51d4",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_s3_dataevents_read_enabled/cloudtrail_s3_dataevents_read_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_s3_dataevents_write_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Advanced source branch accepts resources.type AWS::S3::Object alone and ignores readOnly=true (read-only) and resources.ARN restrictions. A valid read-only or restricted-bucket selector falsely passes the all-S3-write-events predicate. Concrete native counterexamples independently verified by lead; source security condition is invalid.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html"
+    ],
+    "review_notes": "Individually inspected exact source and preserved full source/framework/version IDs; no blanket rejection of other Bedrock or selector predicates. No secret values, source execution or active probes.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "fb3cb55faac3cf20e9f9dc04064d9d48302bf648bd0145c43448bac79a07e2cd",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_s3_dataevents_write_enabled/cloudtrail_s3_dataevents_write_enabled.metadata.json"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+ "prowler.aws.bedrock_agent_role_least_privilege": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Does every Amazon Bedrock agent execution role avoid AWS-managed *FullAccess policies, administrative or privilege-escalation permissions, and have a permissions boundary?",
+   "title": "Amazon Bedrock agent execution role follows least privilege",
+   "guidance": "Prowler joins GetAgent agentResourceRoleArn with the IAM role inventory and applies its own administrative-access and privilege-escalation combination catalogue to every attached and inline policy. That catalogue is Prowler-specific and not a documented AWS rule; review each agent role's policies and permissions boundary against your least-privilege baseline."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_Agent.html",
+   "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-permissions.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "74951419e5bce998e2f27735b0a77c3a1a9eea1c8047e5cd8701cfad2a400e53",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_agent_role_least_privilege/bedrock_agent_role_least_privilege.metadata.json"
+  }
+ },
+ "prowler.aws.bedrock_agent_role_not_shared_across_agents": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Does every Amazon Bedrock agent (draft and every version routed by an active alias) use an execution role that no other agent in the account uses?",
+   "title": "Amazon Bedrock agent has a dedicated execution role",
+   "guidance": "The source builds an account-wide role index across all regions, agent drafts and alias-routed versions (ListAgentAliases, GetAgentVersion). The per-region snapshot cannot prove dedication account-wide; list agentResourceRoleArn for every agent and deployed version and confirm no role repeats."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_GetAgentVersion.html",
+   "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_ListAgentAliases.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "be412a4fb101afe322e854a977e6419e2950fcc9f757e7b8f15c6cd565b1c487",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_agent_role_not_shared_across_agents/bedrock_agent_role_not_shared_across_agents.metadata.json"
+  }
+ },
+ "prowler.aws.bedrock_api_key_no_administrative_privileges": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Do the IAM users that own Amazon Bedrock API keys lack administrative privileges, privilege-escalation paths and full Bedrock service access?",
+   "title": "Amazon Bedrock API key owner has no administrative or privilege-escalation permissions",
+   "guidance": "Prowler evaluates each Bedrock service-specific credential's user policies with its own admin/privilege-escalation/full-service catalogue. Review the attached and inline policies of every user holding a Bedrock API key."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServiceSpecificCredentials.html",
+   "https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "4be81d76a1f11d70eece2e02251f827491fd73830f43520175256195cf95fcaf",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_api_key_no_administrative_privileges/bedrock_api_key_no_administrative_privileges.metadata.json"
+  }
+ },
+ "prowler.aws.codebuild_project_uses_allowed_github_organizations": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Does every CodeBuild project with a GitHub or GitHub Enterprise source (whose service role trusts codebuild.amazonaws.com) build only from a GitHub organization on your approved list?",
+   "title": "CodeBuild GitHub sources use approved GitHub organizations",
+   "guidance": "Prowler compares the organization segment of the source URL with the operator-supplied codebuild_github_allowed_organizations list (empty by default, so every GitHub project would fail). The approved list is organisation-specific; review each GitHub-sourced project's source.location organization against it."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectSource.html",
+   "https://docs.aws.amazon.com/codebuild/latest/userguide/access-tokens-github.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "d98050c685c5a796b2c61ff297fdfabdcc38d27663c2c51e9acabecf594d9007",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/codebuild/codebuild_project_uses_allowed_github_organizations/codebuild_project_uses_allowed_github_organizations.metadata.json"
+  }
+ },
+ "prowler.aws.codepipeline_project_repo_private": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Are the GitHub/GitLab repositories used as CodeStarSourceConnection sources by CodePipeline pipelines private?",
+   "title": "CodePipeline source repositories are private",
+   "guidance": "Prowler decides visibility by sending anonymous HTTP requests to github.com and gitlab.com for each FullRepositoryId. PEASO reads only the AWS control plane and makes no requests to third-party sites, so confirm each connection source repository's visibility in the source provider."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-CodestarConnectionSource.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "de864a718de19f08f9132d44334ce1a36970092be7bcf04084157026c00748d4",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/codepipeline/codepipeline_project_repo_private/codepipeline_project_repo_private.metadata.json"
+  }
+ }
+}

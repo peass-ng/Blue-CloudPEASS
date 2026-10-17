@@ -2139,6 +2139,388 @@
       "automated": false
     },
     {
+      "id": "aws-compliance.control.ec2_instance_no_high_level_finding_in_inspector_scan",
+      "provider": "aws",
+      "title": "EC2 instances high level findings should not be there in inspector scans",
+      "question": "Do EC2 instances have no High severity findings in Amazon Inspector scans?",
+      "guidance": "The pinned query reads aws_inspector_finding (Amazon Inspector Classic, ListFindings v1). The Inspector Classic API reference is no longer published and current Inspector (inspector2) findings use a different model, so review Inspector findings for each instance manually.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ec2_instance",
+        "aws_inspector_finding"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ec2.pp#L140",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS NIST Cybersecurity Framework (CSF) v2.0",
+          "framework_family": "NIST CSF",
+          "framework_id": "aws-compliance.benchmark.nist_csf_v2",
+          "control_id": "aws-compliance.control.ec2_instance_no_high_level_finding_in_inspector_scan",
+          "benchmark_ids": [
+            "aws-compliance.benchmark.nist_csf_v2",
+            "aws-compliance.benchmark.nist_csf_v2_id",
+            "aws-compliance.benchmark.nist_csf_v2_id_im",
+            "aws-compliance.benchmark.nist_csf_v2_id_im_01",
+            "aws-compliance.benchmark.nist_csf_v2_id_im_02",
+            "aws-compliance.benchmark.nist_csf_v2_id_ra",
+            "aws-compliance.benchmark.nist_csf_v2_id_ra_01",
+            "aws-compliance.benchmark.nist_csf_v2_id_ra_09"
+          ],
+          "version": "2.0",
+          "declared_version": "2.0",
+          "source_revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+          "source": "nist_csf_v2/nist_csf_v2.pp"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-compliance.control.ec2_instance_user_data_no_secrets",
+      "provider": "aws",
+      "title": "EC2 instances user data should not have secrets",
+      "question": "Is EC2 instance user data free of secrets (passwords, tokens, keys)?",
+      "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ec2_instance"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ec2.pp#L269",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.ebs_snapshot_shared_with_trusted_accounts",
+      "provider": "aws",
+      "title": "EBS snapshots should only be shared with trusted accounts",
+      "question": "Are EBS snapshots shared (createVolumePermission) only with trusted AWS accounts?",
+      "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ebs_snapshot"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L746",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.ebs_snapshot_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.ec2_ami_shared_with_trusted_accounts",
+      "provider": "aws",
+      "title": "EC2 AMIs should only be shared with trusted accounts",
+      "question": "Are EC2 AMIs shared (launchPermission UserId) only with trusted AWS accounts?",
+      "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ec2_ami"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L484",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.ec2_ami_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.ec2_ami_shared_with_trusted_organization_units",
+      "provider": "aws",
+      "title": "EC2 AMIs should only be shared with trusted OUs",
+      "question": "Are EC2 AMIs shared (launchPermission OrganizationalUnitArn) only with trusted organizational units?",
+      "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ec2_ami"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L660",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.ec2_ami_shared_with_trusted_organization_units",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.ec2_ami_shared_with_trusted_organizations",
+      "provider": "aws",
+      "title": "EC2 AMIs should only be shared with trusted organizations",
+      "question": "Are EC2 AMIs shared (launchPermission OrganizationArn) only with trusted organizations?",
+      "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ec2_ami"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L575",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.ec2_ami_shared_with_trusted_organizations",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.guarduty_findings_shared_with_trusted_accounts",
+      "provider": "aws",
+      "title": "GuardDuty findings should only be shared with trusted accounts",
+      "question": "Are GuardDuty findings shared only with a trusted administrator account?",
+      "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_guardduty_detector"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L805",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.guarduty_findings_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.vpc_peering_connection_cross_account_shared",
+      "provider": "aws",
+      "title": "VPCs should only be peered with trusted accounts",
+      "question": "Are VPCs peered only with trusted AWS accounts?",
+      "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_vpc_peering_connection"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/network_access.pp#L302",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Network Access",
+          "framework_family": "Network Access",
+          "framework_id": "aws-perimeter.benchmark.network_access",
+          "control_id": "aws-perimeter.control.vpc_peering_connection_cross_account_shared",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.network_access",
+            "aws-perimeter.benchmark.network_general_access"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/network_access.pp"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.appservice_function_app_latest_java_version",
+      "provider": "azure",
+      "title": "Ensure that 'Java version' is the latest, if used as a part of the Function app",
+      "question": "Ensure that 'Java version' is the latest, if used as a part of the Function app",
+      "guidance": "Compare the function app Java version with the supported Functions runtime versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/appservice.pp#L345",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.appservice_function_app_latest_python_version",
+      "provider": "azure",
+      "title": "Ensure that 'Python version' is the latest, if used as a part of the Function app",
+      "question": "Ensure that 'Python version' is the latest, if used as a part of the Function app",
+      "guidance": "Compare the function app Python version with the supported Functions runtime versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/appservice.pp#L369",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.appservice_web_app_latest_dotnet_framework_version",
+      "provider": "azure",
+      "title": "Web app should use the latest 'Net Framework' version",
+      "question": "Web app should use the latest 'Net Framework' version",
+      "guidance": "Compare netFrameworkVersion with the currently supported .NET versions for App Service.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/appservice.pp#L385",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.appservice_web_app_latest_java_version",
+      "provider": "azure",
+      "title": "Ensure that 'Java version' is the latest, if used as a part of the Web app",
+      "question": "Ensure that 'Java version' is the latest, if used as a part of the Web app",
+      "guidance": "Compare javaVersion / linuxFxVersion with the currently supported Java versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/appservice.pp#L353",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.appservice_web_app_latest_php_version",
+      "provider": "azure",
+      "title": "Ensure that 'PHP version' is the latest, if used as a part of the WEB app",
+      "question": "Ensure that 'PHP version' is the latest, if used as a part of the WEB app",
+      "guidance": "Compare phpVersion / linuxFxVersion with the currently supported PHP versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/appservice.pp#L361",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.appservice_web_app_latest_python_version",
+      "provider": "azure",
+      "title": "Ensure that 'Python version' is the latest, if used as a part of the Web app",
+      "question": "Ensure that 'Python version' is the latest, if used as a part of the Web app",
+      "guidance": "Compare pythonVersion / linuxFxVersion with the currently supported Python versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/appservice.pp#L377",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
       "id": "azure-compliance.control.arc_kubernetes_cluster_azure_defender_extension_installed",
       "provider": "azure",
       "title": "Azure Arc enabled Kubernetes clusters should have Microsoft Defender for Cloud extension installed",
@@ -9083,6 +9465,114 @@
       "automated": false
     },
     {
+      "id": "azure-compliance.control.cis_v210_9_5",
+      "provider": "azure",
+      "title": "9.5 Ensure That 'PHP version' is the Latest, If Used to Run the Web App",
+      "question": "9.5 Ensure That 'PHP version' is the Latest, If Used to Run the Web App",
+      "guidance": "Compare phpVersion / linuxFxVersion with the currently supported PHP versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/cis_v210/section_9.pp#L85",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Azure CIS v2.1.0",
+          "framework_family": "CIS",
+          "framework_id": "azure-compliance.benchmark.cis_v210",
+          "control_id": "azure-compliance.control.cis_v210_9_5",
+          "benchmark_ids": [
+            "azure-compliance.benchmark.cis_v210",
+            "azure-compliance.benchmark.cis_v210_9"
+          ],
+          "version": "2.1.0",
+          "declared_version": "2.1.0",
+          "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+          "source": "cis_v210/cis.pp"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.cis_v210_9_6",
+      "provider": "azure",
+      "title": "9.6 Ensure that 'Python version' is the Latest Stable Version, if Used to Run the Web App",
+      "question": "9.6 Ensure that 'Python version' is the Latest Stable Version, if Used to Run the Web App",
+      "guidance": "Compare pythonVersion / linuxFxVersion with the currently supported Python versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/cis_v210/section_9.pp#L99",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Azure CIS v2.1.0",
+          "framework_family": "CIS",
+          "framework_id": "azure-compliance.benchmark.cis_v210",
+          "control_id": "azure-compliance.control.cis_v210_9_6",
+          "benchmark_ids": [
+            "azure-compliance.benchmark.cis_v210",
+            "azure-compliance.benchmark.cis_v210_9"
+          ],
+          "version": "2.1.0",
+          "declared_version": "2.1.0",
+          "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+          "source": "cis_v210/cis.pp"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.cis_v210_9_7",
+      "provider": "azure",
+      "title": "9.7 Ensure that 'Java version' is the latest, if used to run the Web App",
+      "question": "9.7 Ensure that 'Java version' is the latest, if used to run the Web App",
+      "guidance": "Compare javaVersion / linuxFxVersion with the currently supported Java versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/cis_v210/section_9.pp#L113",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Azure CIS v2.1.0",
+          "framework_family": "CIS",
+          "framework_id": "azure-compliance.benchmark.cis_v210",
+          "control_id": "azure-compliance.control.cis_v210_9_7",
+          "benchmark_ids": [
+            "azure-compliance.benchmark.cis_v210",
+            "azure-compliance.benchmark.cis_v210_9"
+          ],
+          "version": "2.1.0",
+          "declared_version": "2.1.0",
+          "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+          "source": "cis_v210/cis.pp"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
       "id": "azure-compliance.control.cis_v300_10_1",
       "provider": "azure",
       "title": "10.1 Ensure that Resource Locks are set for Mission-Critical Azure Resources",
@@ -10743,6 +11233,114 @@
         }
       ],
       "reason": "Manual attestation requirement; upstream has no automated security condition. Individually inspected control cis_v300_9_6 in cis_v300/section_9.pp:101 delegates without arguments to manual_control in regulatory_compliance/manual.pp:1, whose status is constant INFO. This classifies the automation definition only; the original requirement and all framework identifiers remain visible for MANUAL review.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.cis_v300_9_7",
+      "provider": "azure",
+      "title": "9.7 Ensure that 'PHP version' is currently supported (if in use)",
+      "question": "9.7 Ensure that 'PHP version' is currently supported (if in use)",
+      "guidance": "Compare phpVersion / linuxFxVersion with the currently supported PHP versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/cis_v300/section_9.pp#L115",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Azure CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "azure-compliance.benchmark.cis_v300",
+          "control_id": "azure-compliance.control.cis_v300_9_7",
+          "benchmark_ids": [
+            "azure-compliance.benchmark.cis_v300",
+            "azure-compliance.benchmark.cis_v300_9"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.cis_v300_9_8",
+      "provider": "azure",
+      "title": "9.8 Ensure that 'Python version' is currently supported (if in use)",
+      "question": "9.8 Ensure that 'Python version' is currently supported (if in use)",
+      "guidance": "Compare pythonVersion / linuxFxVersion with the currently supported Python versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/cis_v300/section_9.pp#L129",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Azure CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "azure-compliance.benchmark.cis_v300",
+          "control_id": "azure-compliance.control.cis_v300_9_8",
+          "benchmark_ids": [
+            "azure-compliance.benchmark.cis_v300",
+            "azure-compliance.benchmark.cis_v300_9"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "azure-compliance.control.cis_v300_9_9",
+      "provider": "azure",
+      "title": "9.9 Ensure that 'Java version' is currently supported (if in use)",
+      "question": "9.9 Ensure that 'Java version' is currently supported (if in use)",
+      "guidance": "Compare javaVersion / linuxFxVersion with the currently supported Java versions.",
+      "scope_kinds": [
+        "subscription"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/cis_v300/section_9.pp#L143",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Azure CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "azure-compliance.benchmark.cis_v300",
+          "control_id": "azure-compliance.control.cis_v300_9_9",
+          "benchmark_ids": [
+            "azure-compliance.benchmark.cis_v300",
+            "azure-compliance.benchmark.cis_v300_9"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
       "automated": false
     },
     {
@@ -18732,6 +19330,2555 @@
         }
       ],
       "reason": "Individually inspected pinned execute() sets report.status to MANUAL without any automatic security condition. Rejected as an AUTOMATIC predicate per coordinator contract; preserved as a manual attestation question with its original title, source digest, revision and framework/control metadata. No automatic PASS/FAIL is claimed, and account recovery/security challenge answers are never retrieved.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.bedrock_agent_role_least_privilege",
+      "provider": "aws",
+      "title": "Amazon Bedrock agent execution role follows least privilege",
+      "question": "Does every Amazon Bedrock agent execution role avoid AWS-managed *FullAccess policies, administrative or privilege-escalation permissions, and have a permissions boundary?",
+      "guidance": "Prowler joins GetAgent agentResourceRoleArn with the IAM role inventory and applies its own administrative-access and privilege-escalation combination catalogue to every attached and inline policy. That catalogue is Prowler-specific and not a documented AWS rule; review each agent role's policies and permissions boundary against your least-privilege baseline.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_agent_role_least_privilege/bedrock_agent_role_least_privilege.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.bedrock_agent_role_not_shared_across_agents",
+      "provider": "aws",
+      "title": "Amazon Bedrock agent has a dedicated execution role",
+      "question": "Does every Amazon Bedrock agent (draft and every version routed by an active alias) use an execution role that no other agent in the account uses?",
+      "guidance": "The source builds an account-wide role index across all regions, agent drafts and alias-routed versions (ListAgentAliases, GetAgentVersion). The per-region snapshot cannot prove dedication account-wide; list agentResourceRoleArn for every agent and deployed version and confirm no role repeats.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_agent_role_not_shared_across_agents/bedrock_agent_role_not_shared_across_agents.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-AGENT-01",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.bedrock_api_key_no_administrative_privileges",
+      "provider": "aws",
+      "title": "Amazon Bedrock API key owner has no administrative or privilege-escalation permissions",
+      "question": "Do the IAM users that own Amazon Bedrock API keys lack administrative privileges, privilege-escalation paths and full Bedrock service access?",
+      "guidance": "Prowler evaluates each Bedrock service-specific credential's user policies with its own admin/privilege-escalation/full-service catalogue. Review the attached and inline policies of every user holding a Bedrock API key.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_api_key_no_administrative_privileges/bedrock_api_key_no_administrative_privileges.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-IAM-02",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OIS-04.01AC",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "SP-01.04B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "HR-01.01B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "IAM-01.01B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "IAM-01.04B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "CRY-03.01B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "Common Cloud Controls Catalog (CCC)",
+          "framework_id": "ccc_aws",
+          "framework_family": "CCC",
+          "version": "v2025.10",
+          "declared_version": "v2025.10",
+          "control_id": "CCC.GenAI.CN06.AR01",
+          "source": "prowler/compliance/aws/ccc_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.codebuild_project_uses_allowed_github_organizations",
+      "provider": "aws",
+      "title": "CodeBuild GitHub sources use approved GitHub organizations",
+      "question": "Does every CodeBuild project with a GitHub or GitHub Enterprise source (whose service role trusts codebuild.amazonaws.com) build only from a GitHub organization on your approved list?",
+      "guidance": "Prowler compares the organization segment of the source URL with the operator-supplied codebuild_github_allowed_organizations list (empty by default, so every GitHub project would fail). The approved list is organisation-specific; review each GitHub-sourced project's source.location organization against it.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/codebuild/codebuild_project_uses_allowed_github_organizations/codebuild_project_uses_allowed_github_organizations.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Common Cloud Controls Catalog (CCC)",
+          "framework_id": "ccc_aws",
+          "framework_family": "CCC",
+          "version": "v2025.10",
+          "declared_version": "v2025.10",
+          "control_id": "CCC.Build.CN01.AR01",
+          "source": "prowler/compliance/aws/ccc_aws.json"
+        },
+        {
+          "framework": "Common Cloud Controls Catalog (CCC)",
+          "framework_id": "ccc_aws",
+          "framework_family": "CCC",
+          "version": "v2025.10",
+          "declared_version": "v2025.10",
+          "control_id": "CCC.Build.CN02.AR01",
+          "source": "prowler/compliance/aws/ccc_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "sc_1",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "sc_2",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "sc_3",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "po_5",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "ip_2",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.codepipeline_project_repo_private",
+      "provider": "aws",
+      "title": "CodePipeline source repositories are private",
+      "question": "Are the GitHub/GitLab repositories used as CodeStarSourceConnection sources by CodePipeline pipelines private?",
+      "guidance": "Prowler decides visibility by sending anonymous HTTP requests to github.com and gitlab.com for each FullRepositoryId. PEASO reads only the AWS control plane and makes no requests to third-party sites, so confirm each connection source repository's visibility in the source provider.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/codepipeline/codepipeline_project_repo_private/codepipeline_project_repo_private.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "ip_2",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.ec2_elastic_ip_shodan",
+      "provider": "aws",
+      "title": "EC2 Elastic IP address is not listed in Shodan",
+      "question": "Is no Elastic IP address of the account listed in Shodan?",
+      "guidance": "Requires a third-party Shodan API key and query; PEASO does not send account addresses to external services. Look the addresses up manually.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_elastic_ip_shodan/ec2_elastic_ip_shodan.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.20",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.21",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.22",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.6.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.6.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.ec2_instance_secrets_user_data",
+      "provider": "aws",
+      "title": "EC2 instance user data contains no secrets",
+      "question": "Does EC2 instance user data contain no secrets?",
+      "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_instance_secrets_user_data/ec2_instance_secrets_user_data.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-DATA-05",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "AWS Well-Architected Framework Security Pillar",
+          "framework_id": "aws_well_architected_framework_security_pillar_aws",
+          "framework_family": "AWS-Well-Architected-Framework-Security-Pillar",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "SEC02-BP03",
+          "source": "prowler/compliance/aws/aws_well_architected_framework_security_pillar_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.20",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.21",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.22",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.7.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.7.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_aws",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1552",
+          "source": "prowler/compliance/aws/mitre_attack_aws.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_aws",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "3.5.3.a",
+          "source": "prowler/compliance/aws/nis2_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "ds_5",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "SecNumCloud Referentiel d'Exigences v3.2",
+          "framework_id": "secnumcloud_3.2_aws",
+          "framework_family": "SecNumCloud",
+          "version": "3.2",
+          "declared_version": "3.2",
+          "control_id": "10.5",
+          "source": "prowler/compliance/aws/secnumcloud_3.2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.ec2_launch_template_no_secrets",
+      "provider": "aws",
+      "title": "EC2 launch template user data contains no secrets in any version",
+      "question": "Does every version of every EC2 launch template contain no secrets in user data?",
+      "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_launch_template_no_secrets/ec2_launch_template_no_secrets.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS Well-Architected Framework Security Pillar",
+          "framework_id": "aws_well_architected_framework_security_pillar_aws",
+          "framework_family": "AWS-Well-Architected-Framework-Security-Pillar",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "SEC02-BP03",
+          "source": "prowler/compliance/aws/aws_well_architected_framework_security_pillar_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.20",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.21",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.22",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.7.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.7.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_aws",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1552",
+          "source": "prowler/compliance/aws/mitre_attack_aws.json"
+        },
+        {
+          "framework": "SecNumCloud Referentiel d'Exigences v3.2",
+          "framework_id": "secnumcloud_3.2_aws",
+          "framework_family": "SecNumCloud",
+          "version": "3.2",
+          "declared_version": "3.2",
+          "control_id": "10.5",
+          "source": "prowler/compliance/aws/secnumcloud_3.2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.kms_key_enclave_attestation_bypassable_path",
+      "provider": "aws",
+      "title": "kms_key_enclave_attestation_bypassable_path",
+      "question": "Does no authorization path in the KMS enclave key policy let principals use the key without kms:RecipientAttestation?",
+      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_bypassable_path/kms_key_enclave_attestation_bypassable_path.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-INFRA-09",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework_id": "ens_rd2022_aws",
+          "framework_family": "ENS",
+          "version": "RD2022",
+          "declared_version": "RD2022",
+          "control_id": "op.exp.10.aws.cmk.7",
+          "source": "prowler/compliance/aws/ens_rd2022_aws.json"
+        },
+        {
+          "framework": "FedRAMP Moderate Revision 4",
+          "framework_id": "fedramp_moderate_revision_4_aws",
+          "framework_family": "FedRamp-Moderate-Revision-4",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "ac-6",
+          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+        },
+        {
+          "framework": "FedRAMP Moderate Revision 4",
+          "framework_id": "fedramp_moderate_revision_4_aws",
+          "framework_family": "FedRamp-Moderate-Revision-4",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc-12",
+          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+        },
+        {
+          "framework": "HIPAA compliance framework",
+          "framework_id": "hipaa_aws",
+          "framework_family": "HIPAA",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "164_312_a_1",
+          "source": "prowler/compliance/aws/hipaa_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.24",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_aws",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1078",
+          "source": "prowler/compliance/aws/mitre_attack_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "ac_6",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc_12",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc_28_1",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
+          "framework_id": "pci_3.2.1_aws",
+          "framework_family": "PCI",
+          "version": "3.2.1",
+          "declared_version": "3.2.1",
+          "control_id": "3.5",
+          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
+          "framework_id": "pci_3.2.1_aws",
+          "framework_family": "PCI",
+          "version": "3.2.1",
+          "declared_version": "3.2.1",
+          "control_id": "7.2",
+          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "framework_id": "pci_4.0_aws",
+          "framework_family": "PCI",
+          "version": "4.0",
+          "declared_version": "4.0",
+          "control_id": "7.2.1.30",
+          "source": "prowler/compliance/aws/pci_4.0_aws.json"
+        },
+        {
+          "framework": "System and Organization Controls 2 (SOC2)",
+          "framework_id": "soc2_aws",
+          "framework_family": "SOC2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cc_6_3",
+          "source": "prowler/compliance/aws/soc2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.kms_key_enclave_attestation_no_deployment_binding",
+      "provider": "aws",
+      "title": "kms_key_enclave_attestation_no_deployment_binding",
+      "question": "Does the KMS enclave key attestation bind a specific deployment context (instance/account/role), not only image PCRs?",
+      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_no_deployment_binding/kms_key_enclave_attestation_no_deployment_binding.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-INFRA-09",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.24",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc_12",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "System and Organization Controls 2 (SOC2)",
+          "framework_id": "soc2_aws",
+          "framework_family": "SOC2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cc_6_3",
+          "source": "prowler/compliance/aws/soc2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.kms_key_enclave_attestation_not_enforced",
+      "provider": "aws",
+      "title": "kms_key_enclave_attestation_not_enforced",
+      "question": "Do sensitive actions on the KMS enclave key require kms:RecipientAttestation conditions?",
+      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_not_enforced/kms_key_enclave_attestation_not_enforced.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-INFRA-09",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "CRY-03.01B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "CRY-05.02B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework_id": "ens_rd2022_aws",
+          "framework_family": "ENS",
+          "version": "RD2022",
+          "declared_version": "RD2022",
+          "control_id": "op.exp.10.aws.cmk.6",
+          "source": "prowler/compliance/aws/ens_rd2022_aws.json"
+        },
+        {
+          "framework": "FedRAMP Moderate Revision 4",
+          "framework_id": "fedramp_moderate_revision_4_aws",
+          "framework_family": "FedRamp-Moderate-Revision-4",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "ac-3",
+          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+        },
+        {
+          "framework": "FedRAMP Moderate Revision 4",
+          "framework_id": "fedramp_moderate_revision_4_aws",
+          "framework_family": "FedRamp-Moderate-Revision-4",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc-12",
+          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+        },
+        {
+          "framework": "GDPR compliance framework",
+          "framework_id": "gdpr_aws",
+          "framework_family": "GDPR",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "article_25",
+          "source": "prowler/compliance/aws/gdpr_aws.json"
+        },
+        {
+          "framework": "GDPR compliance framework",
+          "framework_id": "gdpr_aws",
+          "framework_family": "GDPR",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "article_32",
+          "source": "prowler/compliance/aws/gdpr_aws.json"
+        },
+        {
+          "framework": "HIPAA compliance framework",
+          "framework_id": "hipaa_aws",
+          "framework_family": "HIPAA",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "164_312_a_2_iv",
+          "source": "prowler/compliance/aws/hipaa_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.24",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.7.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.7.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_aws",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1552",
+          "source": "prowler/compliance/aws/mitre_attack_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-171 Revision 2",
+          "framework_id": "nist_800_171_revision_2_aws",
+          "framework_family": "NIST-800-171-Revision-2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "3_13_11",
+          "source": "prowler/compliance/aws/nist_800_171_revision_2_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "ac_3",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc_12",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc_28_1",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
+          "framework_id": "pci_3.2.1_aws",
+          "framework_family": "PCI",
+          "version": "3.2.1",
+          "declared_version": "3.2.1",
+          "control_id": "3.5",
+          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
+          "framework_id": "pci_3.2.1_aws",
+          "framework_family": "PCI",
+          "version": "3.2.1",
+          "declared_version": "3.2.1",
+          "control_id": "3.6",
+          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "framework_id": "pci_4.0_aws",
+          "framework_family": "PCI",
+          "version": "4.0",
+          "declared_version": "4.0",
+          "control_id": "3.6.1.10",
+          "source": "prowler/compliance/aws/pci_4.0_aws.json"
+        },
+        {
+          "framework": "SecNumCloud Referentiel d'Exigences v3.2",
+          "framework_id": "secnumcloud_3.2_aws",
+          "framework_family": "SecNumCloud",
+          "version": "3.2",
+          "declared_version": "3.2",
+          "control_id": "10.5",
+          "source": "prowler/compliance/aws/secnumcloud_3.2_aws.json"
+        },
+        {
+          "framework": "System and Organization Controls 2 (SOC2)",
+          "framework_id": "soc2_aws",
+          "framework_family": "SOC2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cc_6_1",
+          "source": "prowler/compliance/aws/soc2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.kms_key_enclave_attestation_pcr_mismatch",
+      "provider": "aws",
+      "title": "kms_key_enclave_attestation_pcr_mismatch",
+      "question": "Do the KMS enclave key policy attestation PCRs match the customer's golden values?",
+      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_pcr_mismatch/kms_key_enclave_attestation_pcr_mismatch.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-INFRA-09",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework_id": "ens_rd2022_aws",
+          "framework_family": "ENS",
+          "version": "RD2022",
+          "declared_version": "RD2022",
+          "control_id": "op.exp.10.aws.cmk.8",
+          "source": "prowler/compliance/aws/ens_rd2022_aws.json"
+        },
+        {
+          "framework": "FedRAMP Moderate Revision 4",
+          "framework_id": "fedramp_moderate_revision_4_aws",
+          "framework_family": "FedRamp-Moderate-Revision-4",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "si-7",
+          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+        },
+        {
+          "framework": "HIPAA compliance framework",
+          "framework_id": "hipaa_aws",
+          "framework_family": "HIPAA",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "164_312_c_1",
+          "source": "prowler/compliance/aws/hipaa_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.9",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cm_6_a",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "si_7_a",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "framework_id": "pci_4.0_aws",
+          "framework_family": "PCI",
+          "version": "4.0",
+          "declared_version": "4.0",
+          "control_id": "3.7.1.11",
+          "source": "prowler/compliance/aws/pci_4.0_aws.json"
+        },
+        {
+          "framework": "System and Organization Controls 2 (SOC2)",
+          "framework_id": "soc2_aws",
+          "framework_family": "SOC2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cc_7_1",
+          "source": "prowler/compliance/aws/soc2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.kms_key_enclave_attestation_unknown_image",
+      "provider": "aws",
+      "title": "kms_key_enclave_attestation_unknown_image",
+      "question": "Has no enclave with an unknown image identity called this KMS key?",
+      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_unknown_image/kms_key_enclave_attestation_unknown_image.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-DETECT-03",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "HIPAA compliance framework",
+          "framework_id": "hipaa_aws",
+          "framework_family": "HIPAA",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "164_312_c_2",
+          "source": "prowler/compliance/aws/hipaa_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.16",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_aws",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1078",
+          "source": "prowler/compliance/aws/mitre_attack_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "si_4_2",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "cm_1",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "framework_id": "pci_4.0_aws",
+          "framework_family": "PCI",
+          "version": "4.0",
+          "declared_version": "4.0",
+          "control_id": "10.4.1.7",
+          "source": "prowler/compliance/aws/pci_4.0_aws.json"
+        },
+        {
+          "framework": "System and Organization Controls 2 (SOC2)",
+          "framework_id": "soc2_aws",
+          "framework_family": "SOC2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cc_7_2",
+          "source": "prowler/compliance/aws/soc2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.kms_key_enclave_debug_attestation_detected",
+      "provider": "aws",
+      "title": "kms_key_enclave_debug_attestation_detected",
+      "question": "Has no Nitro Enclave debug-mode attestation been observed against this KMS key?",
+      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_debug_attestation_detected/kms_key_enclave_debug_attestation_detected.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-DETECT-03",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        },
+        {
+          "framework": "FedRAMP Moderate Revision 4",
+          "framework_id": "fedramp_moderate_revision_4_aws",
+          "framework_family": "FedRamp-Moderate-Revision-4",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc-28",
+          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+        },
+        {
+          "framework": "FedRAMP Moderate Revision 4",
+          "framework_id": "fedramp_moderate_revision_4_aws",
+          "framework_family": "FedRamp-Moderate-Revision-4",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "si-4-2",
+          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+        },
+        {
+          "framework": "HIPAA compliance framework",
+          "framework_id": "hipaa_aws",
+          "framework_family": "HIPAA",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "164_308_a_1_ii_d",
+          "source": "prowler/compliance/aws/hipaa_aws.json"
+        },
+        {
+          "framework": "HIPAA compliance framework",
+          "framework_id": "hipaa_aws",
+          "framework_family": "HIPAA",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "164_312_b",
+          "source": "prowler/compliance/aws/hipaa_aws.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_aws",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.16",
+          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_aws",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1562",
+          "source": "prowler/compliance/aws/mitre_attack_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "sc_28_1",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
+          "framework_id": "nist_800_53_revision_5_aws",
+          "framework_family": "NIST-800-53-Revision-5",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "si_4_2",
+          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "cm_1",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
+          "framework_id": "pci_3.2.1_aws",
+          "framework_family": "PCI",
+          "version": "3.2.1",
+          "declared_version": "3.2.1",
+          "control_id": "10.2",
+          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "framework_id": "pci_4.0_aws",
+          "framework_family": "PCI",
+          "version": "4.0",
+          "declared_version": "4.0",
+          "control_id": "3.5.1.36",
+          "source": "prowler/compliance/aws/pci_4.0_aws.json"
+        },
+        {
+          "framework": "System and Organization Controls 2 (SOC2)",
+          "framework_id": "soc2_aws",
+          "framework_family": "SOC2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cc_7_2",
+          "source": "prowler/compliance/aws/soc2_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.rolesanywhere_profile_restricts_session_permissions",
+      "provider": "aws",
+      "title": "IAM Roles Anywhere profile restricts session permissions",
+      "question": "Does every IAM Roles Anywhere profile restrict session permissions (session policy or managed policy ARNs) to the minimum required?",
+      "guidance": "Whether a profile's session policy is sufficiently restrictive depends on the roles and workloads it serves; review ManagedPolicyArns and SessionPolicy of each profile.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rolesanywhere/rolesanywhere_profile_restricts_session_permissions/rolesanywhere_profile_restricts_session_permissions.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.route53_dangling_ip_subdomain_takeover",
+      "provider": "aws",
+      "title": "Route 53 A records do not point to released public IP addresses",
+      "question": "Do Route 53 A records in public hosted zones point only to IP addresses owned by this account (no dangling public IPs that allow subdomain takeover)?",
+      "guidance": "The prowler check joins every public hosted zone record with all account EIPs, all ENI public IPs and the published AWS ip-ranges across regions. The native per-scope snapshot does not hold the account-wide EIP/ENI join nor the ip-ranges feed, so review each A record IP against currently owned addresses.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/route53/route53_dangling_ip_subdomain_takeover/route53_dangling_ip_subdomain_takeover.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.6.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.6.1",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_aws",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.7.2.l",
+          "source": "prowler/compliance/aws/nis2_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "ra_1",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "ra_5",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "dp_4",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.s3_bucket_object_public",
+      "provider": "aws",
+      "title": "Spot-check S3 bucket objects for public ACLs",
+      "question": "Do spot-checked objects in each S3 bucket carry no public object ACL grants (AllUsers/AuthenticatedUsers)?",
+      "guidance": "Prowler samples objects and reads each object's ACL. Per-object reads are outside the bucket-level snapshot; sample objects with GetObjectAcl or rely on BucketOwnerEnforced/IgnorePublicAcls.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/s3/s3_bucket_object_public/s3_bucket_object_public.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.s3_bucket_shadow_resource_vulnerability",
+      "provider": "aws",
+      "title": "S3 bucket is not a known shadow resource owned by another account",
+      "question": "Are none of the service-pattern S3 bucket names used by this account (CloudFormation, Glue, EMR, SageMaker, Athena, ...) pre-claimed by another account?",
+      "guidance": "Prowler probes predictable bucket names in every Region and checks ownership; probing third-party bucket names is outside the read-only snapshot of this account. Review service buckets and use ExpectedBucketOwner.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/s3/s3_bucket_shadow_resource_vulnerability/s3_bucket_shadow_resource_vulnerability.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-25.01B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "ra_1",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.aws.secretsmanager_has_restrictive_resource_policy",
+      "provider": "aws",
+      "title": "Secrets Manager secret resource policy is restrictive (explicit deny for non-approved principals)",
+      "question": "Does each Secrets Manager secret have a resource policy that explicitly denies access to every principal except the intended roles and services?",
+      "guidance": "Prowler evaluates a deep, organisation-specific policy shape (explicit Deny with aws:PrincipalArn/aws:PrincipalServiceName exceptions and condition operators). Review each secret policy against your approved principal list.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/secretsmanager/secretsmanager_has_restrictive_resource_policy/secretsmanager_has_restrictive_resource_policy.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "AWS AI Security Framework",
+          "framework_id": "aws_ai_security_framework_aws",
+          "framework_family": "AWS-AI-Security-Framework",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "AISF-DATA-03",
+          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
+        }
+      ],
+      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.apim_threat_detection_llm_jacking",
+      "provider": "azure",
+      "title": "No potential LLM Jacking attacks detected across all Azure API Management instances",
+      "question": "No potential LLM Jacking attacks detected across all Azure API Management instances",
+      "guidance": "Review API Management gateway logs for abusive AI/LLM API usage and confirm alerting is in place.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/apim/apim_threat_detection_llm_jacking/apim_threat_detection_llm_jacking.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "DEV-02.01AC",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        }
+      ],
+      "reason": "Prowler queries Log Analytics for LLM-jacking request patterns; that is a data-plane log query, not a configuration fact.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.app_ensure_java_version_is_latest",
+      "provider": "azure",
+      "title": "App Service web app uses the latest supported Java version or 17 by default",
+      "question": "App Service web app uses the latest supported Java version or 17 by default",
+      "guidance": "Compare the app Java version with the currently supported versions.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/app/app_ensure_java_version_is_latest/app_ensure_java_version_is_latest.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.01AS",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-23.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-27.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-33.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "DEV-02.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v2.0.0",
+          "framework_id": "cis_2.0_azure",
+          "framework_family": "CIS",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "9.8",
+          "source": "prowler/compliance/azure/cis_2.0_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v2.1.0",
+          "framework_id": "cis_2.1_azure",
+          "framework_family": "CIS",
+          "version": "2.1",
+          "declared_version": "2.1",
+          "control_id": "9.7",
+          "source": "prowler/compliance/azure/cis_2.1_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v3.0.0",
+          "framework_id": "cis_3.0_azure",
+          "framework_family": "CIS",
+          "version": "3.0",
+          "declared_version": "3.0",
+          "control_id": "9.9",
+          "source": "prowler/compliance/azure/cis_3.0_azure.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_azure",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1190",
+          "source": "prowler/compliance/azure/mitre_attack_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "5.1.2.a",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.b",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.c",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "Reserve Bank of India (RBI) Cyber Security Framework",
+          "framework_id": "rbi_cyber_security_framework_azure",
+          "framework_family": "RBI-Cyber-Security-Framework",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "annex_i_6",
+          "source": "prowler/compliance/azure/rbi_cyber_security_framework_azure.json"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.app_ensure_php_version_is_latest",
+      "provider": "azure",
+      "title": "App Service web app uses the latest supported PHP version or 8.2 by default",
+      "question": "App Service web app uses the latest supported PHP version or 8.2 by default",
+      "guidance": "Compare the app PHP version with the currently supported versions.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/app/app_ensure_php_version_is_latest/app_ensure_php_version_is_latest.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.01AS",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-23.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-27.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-33.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "DEV-02.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v2.0.0",
+          "framework_id": "cis_2.0_azure",
+          "framework_family": "CIS",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "9.6",
+          "source": "prowler/compliance/azure/cis_2.0_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v2.1.0",
+          "framework_id": "cis_2.1_azure",
+          "framework_family": "CIS",
+          "version": "2.1",
+          "declared_version": "2.1",
+          "control_id": "9.5",
+          "source": "prowler/compliance/azure/cis_2.1_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v3.0.0",
+          "framework_id": "cis_3.0_azure",
+          "framework_family": "CIS",
+          "version": "3.0",
+          "declared_version": "3.0",
+          "control_id": "9.7",
+          "source": "prowler/compliance/azure/cis_3.0_azure.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_azure",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1190",
+          "source": "prowler/compliance/azure/mitre_attack_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "5.1.2.a",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.b",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.c",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "Reserve Bank of India (RBI) Cyber Security Framework",
+          "framework_id": "rbi_cyber_security_framework_azure",
+          "framework_family": "RBI-Cyber-Security-Framework",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "annex_i_6",
+          "source": "prowler/compliance/azure/rbi_cyber_security_framework_azure.json"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.app_ensure_python_version_is_latest",
+      "provider": "azure",
+      "title": "App Service web app uses the latest supported Python version or 3.12 by default",
+      "question": "App Service web app uses the latest supported Python version or 3.12 by default",
+      "guidance": "Compare the app Python version with the currently supported versions.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/app/app_ensure_python_version_is_latest/app_ensure_python_version_is_latest.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.01AS",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-23.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-27.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-33.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "DEV-02.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v2.0.0",
+          "framework_id": "cis_2.0_azure",
+          "framework_family": "CIS",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "9.7",
+          "source": "prowler/compliance/azure/cis_2.0_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v2.1.0",
+          "framework_id": "cis_2.1_azure",
+          "framework_family": "CIS",
+          "version": "2.1",
+          "declared_version": "2.1",
+          "control_id": "9.6",
+          "source": "prowler/compliance/azure/cis_2.1_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v3.0.0",
+          "framework_id": "cis_3.0_azure",
+          "framework_family": "CIS",
+          "version": "3.0",
+          "declared_version": "3.0",
+          "control_id": "9.8",
+          "source": "prowler/compliance/azure/cis_3.0_azure.json"
+        },
+        {
+          "framework": "MITRE ATT&CK compliance framework",
+          "framework_id": "mitre_attack_azure",
+          "framework_family": "MITRE-ATTACK",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "T1190",
+          "source": "prowler/compliance/azure/mitre_attack_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "5.1.2.a",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.b",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.c",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "Reserve Bank of India (RBI) Cyber Security Framework",
+          "framework_id": "rbi_cyber_security_framework_azure",
+          "framework_family": "RBI-Cyber-Security-Framework",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "annex_i_6",
+          "source": "prowler/compliance/azure/rbi_cyber_security_framework_azure.json"
+        }
+      ],
+      "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.app_function_access_keys_configured",
+      "provider": "azure",
+      "title": "Function app has function keys configured",
+      "question": "Function app has function keys configured",
+      "guidance": "Confirm the function app uses function/host keys and rotates them, and that anonymous triggers are intended.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/app/app_function_access_keys_configured/app_function_access_keys_configured.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "PS-03.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "IAM-03.01AS",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "IAM-10.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "IAM-10.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Common Cloud Controls Catalog (CCC)",
+          "framework_id": "ccc_azure",
+          "framework_family": "CCC",
+          "version": "v2025.10",
+          "declared_version": "v2025.10",
+          "control_id": "CCC.Core.CN03.AR02",
+          "source": "prowler/compliance/azure/ccc_azure.json"
+        },
+        {
+          "framework": "Common Cloud Controls Catalog (CCC)",
+          "framework_id": "ccc_azure",
+          "framework_family": "CCC",
+          "version": "v2025.10",
+          "declared_version": "v2025.10",
+          "control_id": "CCC.Core.CN03.AR04",
+          "source": "prowler/compliance/azure/ccc_azure.json"
+        },
+        {
+          "framework": "Common Cloud Controls Catalog (CCC)",
+          "framework_id": "ccc_azure",
+          "framework_family": "CCC",
+          "version": "v2025.10",
+          "declared_version": "v2025.10",
+          "control_id": "CCC.Monitor.CN06.AR01",
+          "source": "prowler/compliance/azure/ccc_azure.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_azure",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.3",
+          "source": "prowler/compliance/azure/iso27001_2022_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "2.1.2.g",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "5.1.2.a",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.b",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.c",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "9.2.c.iv",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        }
+      ],
+      "reason": "Function keys are only readable through secret-bearing POST listKeys APIs, which PEASO does not call.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.app_function_application_insights_enabled",
+      "provider": "azure",
+      "title": "Function App has Application Insights configured",
+      "question": "Function App has Application Insights configured",
+      "guidance": "Confirm the function app has Application Insights configured.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/app/app_function_application_insights_enabled/app_function_application_insights_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework_id": "ens_rd2022_azure",
+          "framework_family": "ENS",
+          "version": "RD2022",
+          "declared_version": "RD2022",
+          "control_id": "mp.s.4.r1.az.nt.2",
+          "source": "prowler/compliance/azure/ens_rd2022_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "2.1.2.g",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "5.1.2.a",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.b",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.c",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "Reserve Bank of India (RBI) Cyber Security Framework",
+          "framework_id": "rbi_cyber_security_framework_azure",
+          "framework_family": "RBI-Cyber-Security-Framework",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "annex_i_7_4",
+          "source": "prowler/compliance/azure/rbi_cyber_security_framework_azure.json"
+        }
+      ],
+      "reason": "Prowler reads APPLICATIONINSIGHTS_CONNECTION_STRING / APPINSIGHTS_INSTRUMENTATIONKEY from app settings (secret-bearing POST API).",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.app_function_latest_runtime_version",
+      "provider": "azure",
+      "title": "Function app uses the latest supported runtime version (~4)",
+      "question": "Function app uses the latest supported runtime version (~4)",
+      "guidance": "Confirm FUNCTIONS_EXTENSION_VERSION is ~4 in the function app configuration.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/app/app_function_latest_runtime_version/app_function_latest_runtime_version.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-05.01AS",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-27.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-33.02B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "DEV-02.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "2.1.2.g",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "5.1.2.a",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.b",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.2.2.c",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "framework_id": "pci_4.0_azure",
+          "framework_family": "PCI",
+          "version": "4.0",
+          "declared_version": "4.0",
+          "control_id": "6.3.3.8",
+          "source": "prowler/compliance/azure/pci_4.0_azure.json"
+        }
+      ],
+      "reason": "Prowler reads FUNCTIONS_EXTENSION_VERSION from app settings, which require the secret-bearing POST config/appsettings/list API; PEASO stays read-only on secrets.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.network_public_ip_shodan",
+      "provider": "azure",
+      "title": "Public IP internet-scanner exposure review",
+      "question": "Have the subscription's public IP addresses been reviewed in an internet-exposure scanner (e.g. Shodan/Censys) for unexpected open services?",
+      "guidance": "Export public IPs (az network public-ip list), look each up in an authorized exposure-scanning service and confirm only intended services are reachable.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/network/network_public_ip_shodan/network_public_ip_shodan.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v5.0.0",
+          "framework_id": "cis_5.0_azure",
+          "framework_family": "CIS",
+          "version": "5.0",
+          "declared_version": "5.0",
+          "control_id": "7.7",
+          "source": "prowler/compliance/azure/cis_5.0_azure.json"
+        },
+        {
+          "framework": "CIS Microsoft Azure Foundations Benchmark v6.0.0",
+          "framework_id": "cis_6.0_azure",
+          "framework_family": "CIS",
+          "version": "6.0",
+          "declared_version": "6.0",
+          "control_id": "7.7",
+          "source": "prowler/compliance/azure/cis_6.0_azure.json"
+        },
+        {
+          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework_id": "ens_rd2022_azure",
+          "framework_family": "ENS",
+          "version": "RD2022",
+          "declared_version": "RD2022",
+          "control_id": "op.mon.3.az.nw.1",
+          "source": "prowler/compliance/azure/ens_rd2022_azure.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_azure",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.1",
+          "source": "prowler/compliance/azure/iso27001_2022_azure.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_azure",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.20",
+          "source": "prowler/compliance/azure/iso27001_2022_azure.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_azure",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.21",
+          "source": "prowler/compliance/azure/iso27001_2022_azure.json"
+        },
+        {
+          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "framework_id": "iso27001_2022_azure",
+          "framework_family": "ISO27001",
+          "version": "2022",
+          "declared_version": "2022",
+          "control_id": "A.8.22",
+          "source": "prowler/compliance/azure/iso27001_2022_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "2.3.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.7.2.b",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "6.7.2.l",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
+          "framework_id": "nis2_azure",
+          "framework_family": "NIS2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "11.1.1",
+          "source": "prowler/compliance/azure/nis2_azure.json"
+        },
+        {
+          "framework": "System and Organization Controls 2 (SOC2)",
+          "framework_id": "soc2_azure",
+          "framework_family": "SOC2",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "cc_6_1",
+          "source": "prowler/compliance/azure/soc2_azure.json"
+        }
+      ],
+      "reason": "Prowler queries the third-party Shodan API for each public IP; PEASO is read-only against the cloud provider and does not call third-party internet scanners, so this becomes a reviewer question.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.vm_desired_sku_size",
+      "provider": "azure",
+      "title": "VMs use approved SKU sizes",
+      "question": "Are all virtual machines using a desired (approved) VM SKU size?",
+      "guidance": "Compare each VM hardwareProfile.vmSize with the organisation's approved size list, ideally enforced by the 'Allowed virtual machine size SKUs' Azure Policy.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/vm/vm_desired_sku_size/vm_desired_sku_size.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [],
+      "reason": "The desired VM size list is organisation-specific (prowler config desired_vm_sku_sizes, default Standard_A8_v2/Standard_DS3_v2/Standard_D4s_v3 placeholders), so it cannot be decided natively without an approved list.",
+      "automated": false
+    },
+    {
+      "id": "prowler.azure.vm_ensure_using_approved_images",
+      "provider": "azure",
+      "title": "VMs use approved images",
+      "question": "Are all virtual machines created from organisation-approved machine images?",
+      "guidance": "Check storageProfile.imageReference (managed image, Compute Gallery image version or Marketplace offer) against the approved golden image catalogue, ideally enforced by the 'Allowed images'/'Approved VM images' Azure Policy.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/azure/services/vm/vm_ensure_using_approved_images/vm_ensure_using_approved_images.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OPS-26.03B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_azure",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "PSS-11.01B",
+          "source": "prowler/compliance/azure/c5_azure.json"
+        },
+        {
+          "framework": "Reserve Bank of India (RBI) Cyber Security Framework",
+          "framework_id": "rbi_cyber_security_framework_azure",
+          "framework_family": "RBI-Cyber-Security-Framework",
+          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+          "declared_version": "",
+          "control_id": "annex_i_1_1",
+          "source": "prowler/compliance/azure/rbi_cyber_security_framework_azure.json"
+        }
+      ],
+      "reason": "Prowler counts any managed image id (/providers/Microsoft.Compute/images/) as approved and fails Compute Gallery and Marketplace images, even though its own remediation recommends Compute Gallery golden images. Approval is organisation-specific.",
+      "automated": false
+    },
+    {
+      "id": "prowler.kubernetes.kubelet_event_record_qps",
+      "provider": "k8s",
+      "title": "Kubelet eventRecordQPS is appropriate",
+      "question": "Is the kubelet eventRecordQPS set to a level that ensures appropriate event capture?",
+      "guidance": "Review eventRecordQPS in the kubelet configuration: CIS accepts 0 (unlimited) or a level that still captures events; Prowler fails 0. Record the chosen value and rationale.",
+      "scope_kinds": [],
+      "source_dependencies": [],
+      "status": "MANUAL",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/kubernetes/services/kubelet/kubelet_event_record_qps/kubelet_event_record_qps.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "CIS Kubernetes Benchmark v1.10.0",
+          "framework_id": "cis_1.10_kubernetes",
+          "framework_family": "CIS",
+          "version": "1.10",
+          "declared_version": "1.10",
+          "control_id": "4.2.8",
+          "source": "prowler/compliance/kubernetes/cis_1.10_kubernetes.json"
+        },
+        {
+          "framework": "CIS Kubernetes Benchmark v1.11.0",
+          "framework_id": "cis_1.11_kubernetes",
+          "framework_family": "CIS",
+          "version": "1.11.1",
+          "declared_version": "1.11.1",
+          "control_id": "4.2.8",
+          "source": "prowler/compliance/kubernetes/cis_1.11_kubernetes.json"
+        },
+        {
+          "framework": "CIS Kubernetes Benchmark v1.12.0",
+          "framework_id": "cis_1.12_kubernetes",
+          "framework_family": "CIS",
+          "version": "1.12.0",
+          "declared_version": "1.12.0",
+          "control_id": "4.2.8",
+          "source": "prowler/compliance/kubernetes/cis_1.12_kubernetes.json"
+        },
+        {
+          "framework": "CIS Kubernetes Benchmark v1.8.0",
+          "framework_id": "cis_1.8_kubernetes",
+          "framework_family": "CIS",
+          "version": "1.8",
+          "declared_version": "1.8",
+          "control_id": "4.2.8",
+          "source": "prowler/compliance/kubernetes/cis_1.8_kubernetes.json"
+        },
+        {
+          "framework": "CIS Kubernetes Benchmark v2.0.1",
+          "framework_id": "cis_2.0.1_kubernetes",
+          "framework_family": "CIS",
+          "version": "2.0.1",
+          "declared_version": "2.0.1",
+          "control_id": "4.2.8",
+          "source": "prowler/compliance/kubernetes/cis_2.0.1_kubernetes.json"
+        },
+        {
+          "framework": "Prowler ThreatScore Compliance Framework for Kubernetes",
+          "framework_id": "prowler_threatscore_kubernetes",
+          "framework_family": "ProwlerThreatScore",
+          "version": "1.0",
+          "declared_version": "1.0",
+          "control_id": "3.1.2",
+          "source": "prowler/compliance/kubernetes/prowler_threatscore_kubernetes.json"
+        }
+      ],
+      "reason": "Upstream sources disagree on whether 0 is acceptable and the Prowler implementation reads streamingConnectionIdleTimeout instead of eventRecordQPS; a deterministic native would produce false positives, so the question is kept as an attestation.",
       "automated": false
     }
   ]

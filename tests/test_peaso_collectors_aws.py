@@ -12,6 +12,7 @@ from botocore.stub import Stubber
 
 from peaso.collectors import aws
 from peaso.snapshot import validate
+from peaso.snapshot import nothing_readable
 
 ACCOUNT = "123456789012"
 REGION = "us-east-1"
@@ -42,6 +43,9 @@ def sdk(monkeypatch):
 
 
 def envelope(snapshot, kind, region=REGION):
+    # Account-global inventories are collected once, under <account>/global.
+    if kind in aws.GLOBAL_TYPES and region == REGION:
+        region = aws.GLOBAL_SCOPE
     return next(c for c in snapshot["collections"] if c["type"] == kind and c["scope"] == f"{ACCOUNT}/{region}")
 
 
@@ -74,17 +78,117 @@ def test_network_pagination_native_ids_and_relationships(sdk):
     assert all(x["reachability"] == "unknown" for x in snapshot["metadata"]["network_relationships"])
 
 
+def test_transit_gateway_route_table_captures_both_route_types_and_associations(sdk):
+    _, add, _ = sdk
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    ec2 = add("ec2")
+    table_id = "tgw-rtb-0123456789abcdef0"
+    ec2.add_response("describe_transit_gateway_route_tables", {"TransitGatewayRouteTables": [
+        {"TransitGatewayRouteTableId": table_id, "TransitGatewayId": "tgw-0123456789abcdef0", "State": "available"}]}, {})
+    ec2.add_response("search_transit_gateway_routes", {"Routes": [{
+        "DestinationCidrBlock": "10.1.0.0/16", "Type": "static", "State": "active",
+        "TransitGatewayAttachments": [{"TransitGatewayAttachmentId": "tgw-attach-111", "ResourceId": "vpc-1", "ResourceType": "vpc"}]}],
+        "AdditionalRoutesAvailable": False}, {"TransitGatewayRouteTableId": table_id,
+        "Filters": [{"Name": "type", "Values": ["static"]}]})
+    ec2.add_response("search_transit_gateway_routes", {"Routes": [{
+        "DestinationCidrBlock": "10.2.0.0/16", "Type": "propagated", "State": "active",
+        "TransitGatewayAttachments": [{"TransitGatewayAttachmentId": "tgw-attach-222", "ResourceId": "vpc-2", "ResourceType": "vpc"}]}],
+        "AdditionalRoutesAvailable": False}, {"TransitGatewayRouteTableId": table_id,
+        "Filters": [{"Name": "type", "Values": ["propagated"]}]})
+    ec2.add_response("get_transit_gateway_route_table_associations", {"Associations": [{
+        "TransitGatewayAttachmentId": "tgw-attach-111", "ResourceId": "vpc-1", "ResourceType": "vpc", "State": "associated"}]},
+        {"TransitGatewayRouteTableId": table_id})
+    snapshot = aws.collect({"provider": "aws", "scopes": [REGION], "options": {"service_concurrency": 1}},
+        ["transit_gateway_route_table"])
+    table = envelope(snapshot, "transit_gateway_route_table")["items"][0]
+    assert table["RouteInventory"]["collection_status"] == "collected", table["RouteInventory"]
+    assert {route["Type"] for route in table["RouteInventory"]["items"]} == {"static", "propagated"}
+    assert table["AssociationInventory"]["collection_status"] == "collected"
+    assert table["AssociationInventory"]["items"][0]["TransitGatewayAttachmentId"] == "tgw-attach-111"
+
+
+def test_transit_gateway_route_table_does_not_hide_truncated_route_search(sdk):
+    _, add, _ = sdk
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    ec2 = add("ec2")
+    table_id = "tgw-rtb-0123456789abcdef0"
+    ec2.add_response("describe_transit_gateway_route_tables", {"TransitGatewayRouteTables": [
+        {"TransitGatewayRouteTableId": table_id, "TransitGatewayId": "tgw-0123456789abcdef0", "State": "available"}]}, {})
+    ec2.add_response("search_transit_gateway_routes", {"Routes": [], "AdditionalRoutesAvailable": True},
+        {"TransitGatewayRouteTableId": table_id, "Filters": [{"Name": "type", "Values": ["static"]}]})
+    ec2.add_response("search_transit_gateway_routes", {"Routes": [], "AdditionalRoutesAvailable": False},
+        {"TransitGatewayRouteTableId": table_id, "Filters": [{"Name": "type", "Values": ["propagated"]}]})
+    ec2.add_response("get_transit_gateway_route_table_associations", {"Associations": []},
+        {"TransitGatewayRouteTableId": table_id})
+    snapshot = aws.collect({"provider": "aws", "scopes": [REGION], "options": {"service_concurrency": 1}},
+        ["transit_gateway_route_table"])
+    table = envelope(snapshot, "transit_gateway_route_table")["items"][0]
+    assert table["RouteInventory"]["collection_status"] == "partial"
+    assert {source["code"] for source in table["RouteInventory"]["error"]["sources"]} == {"missing_pagination_token"}
+
+
+def test_transit_gateway_vpc_attachment_keeps_native_subnet_and_option_facts(sdk):
+    _, add, _ = sdk
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    add("ec2").add_response("describe_transit_gateway_vpc_attachments", {"TransitGatewayVpcAttachments": [{
+        "TransitGatewayAttachmentId": "tgw-attach-0123456789abcdef0",
+        "TransitGatewayId": "tgw-0123456789abcdef0", "VpcId": "vpc-0123456789abcdef0",
+        "VpcOwnerId": ACCOUNT, "State": "available", "SubnetIds": ["subnet-0123456789abcdef0"],
+        "Options": {"Ipv6Support": "enable", "SecurityGroupReferencingSupport": "disable"}}]}, {})
+    snapshot = aws.collect({"provider": "aws", "scopes": [REGION], "options": {"service_concurrency": 1}},
+        ["transit_gateway_vpc_attachment"])
+    row = envelope(snapshot, "transit_gateway_vpc_attachment")["items"][0]
+    assert row["SubnetIds"] == ["subnet-0123456789abcdef0"]
+    assert row["Options"]["Ipv6Support"] == "enable"
+    assert row["State"] == "available"
+
+
 def test_iam_marker_pagination_shared_request_cache(sdk):
     session, add, _ = sdk
     iam = add("iam")
     iam.add_response("get_account_authorization_details", {"UserDetailList": [], "GroupDetailList": [], "RoleDetailList": [], "Policies": [], "IsTruncated": True, "Marker": "next"}, {})
-    iam.add_response("get_account_authorization_details", {"UserDetailList": [], "GroupDetailList": [], "RoleDetailList": [{"RoleName": "review", "RoleId": "AROAREVIEWROLE1234567", "Arn": f"arn:aws:iam::{ACCOUNT}:role/review", "Path": "/", "CreateDate": NOW, "AssumeRolePolicyDocument": json.dumps({"Version": "2012-10-17", "Statement": []})}], "Policies": [], "IsTruncated": False}, {"Marker": "next"})
+    iam.add_response("get_account_authorization_details", {"UserDetailList": [], "GroupDetailList": [], "RoleDetailList": [{"RoleName": "review", "RoleId": "AROAREVIEWROLE1234567", "Arn": f"arn:aws:iam::{ACCOUNT}:role/review", "Path": "/", "CreateDate": NOW, "AssumeRolePolicyDocument": json.dumps({"Version": "2012-10-17", "Statement": []}),
+        "RolePolicyList": [{"PolicyName": "models", "PolicyDocument": json.dumps({"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "bedrock:InvokeModel", "Resource": "*"}]})}]}], "Policies": [], "IsTruncated": False}, {"Marker": "next"})
+    role_arn = f"arn:aws:iam::{ACCOUNT}:role/review"
     requests = aws.Requests({})
     results = aws._iam(requests, session, REGION, {"iam_user", "iam_group", "iam_role", "iam_policy"})
     assert results["iam_role"].status == "collected"
     assert results["iam_user"].status == "empty"
     assert requests.calls == 2
-    assert requests.cache_hits == 6
+    assert requests.cache_hits == 8  # role report scoping re-reads the cached Policies pages
+    role = results["iam_role"].items[0]
+    assert "ServicesLastAccessed" not in role
+    assert role["ServicesLastAccessedStatus"]["collection_status"] == "not_collected"
+    assert requests.service_last_accessed_generations == 0
+
+
+def test_service_last_accessed_partial_failure_marks_only_affected_principal(sdk):
+    session, add, _ = sdk
+    add("iam")  # No SDK operations queued: report creation must never happen.
+    requests = aws.Requests({})
+    arns = [f"arn:aws:iam::{ACCOUNT}:role/{name}" for name in ("alpha", "beta", "gamma")]
+    results = aws._sla_reports(requests, session, REGION, arns)
+    assert set(results) == set(arns)
+    assert all(rows is None and status["collection_status"] == "not_collected"
+        and status["error"]["code"] == "service_last_accessed_generation_disabled"
+        for rows, status in results.values())
+    assert requests.calls == 0 and requests.service_last_accessed_generations == 0
+
+
+def test_service_last_accessed_deadline_and_gate(sdk):
+    session, add, _ = sdk
+    add("iam")
+    arn = f"arn:aws:iam::{ACCOUNT}:user/review"
+    requests = aws.Requests({"service_last_accessed_wait_seconds": 5})
+    item = {"Arn": arn}
+    aws._services_last_accessed(requests, session, REGION, [item])
+    assert "ServicesLastAccessed" not in item
+    assert item["ServicesLastAccessedStatus"]["collection_status"] == "not_collected"
+    assert requests.calls == 0
+    for operation in ("generate_credential_report", "generate_service_last_accessed_details"):
+        with pytest.raises(aws.ReadFailure):
+            requests.call(session, "iam", REGION, operation)
+    assert requests.calls == 0
 
 
 def test_throttle_retry_denial_cached_and_message_redacted(sdk):
@@ -162,7 +266,7 @@ def test_timeout_explicit_and_non_read_operation_blocked(sdk, monkeypatch):
     session, add, clients = sdk
     add("iam")
     monkeypatch.setattr(clients[("iam", REGION)], "get_account_summary", lambda **kwargs: (_ for _ in ()).throw(ReadTimeoutError(endpoint_url="https://iam.amazonaws.com")))
-    requests = aws.Requests({})
+    requests = aws.Requests({"retry_attempts": 1})
     assert requests.detail(session, "iam", REGION, "get_account_summary")["collection_status"] == "timeout"
     with pytest.raises(aws.ReadFailure, match="non_read_operation"):
         requests.call(session, "iam", REGION, "create_user", UserName="forbidden")
@@ -215,14 +319,16 @@ def test_secret_metadata_only_and_lambda_environment_redaction(sdk):
     secret_arn = f"arn:aws:secretsmanager:{REGION}:{ACCOUNT}:secret:metadata-only-123456"
     sm = add("secretsmanager")
     sm.add_response("list_secrets", {"SecretList": [{"ARN": secret_arn, "Name": "metadata-only", "KmsKeyId": "key-1"}]}, {})
+    sm.add_response("describe_secret", {"ARN": secret_arn, "Name": "metadata-only"}, {"SecretId": secret_arn})
     sm.add_response("get_resource_policy", {"ARN": secret_arn, "Name": "metadata-only", "ResourcePolicy": '{"Version":"2012-10-17","Statement":[]}'}, {"SecretId": secret_arn})
     requests = aws.Requests({})
     read = requests.pages(session, "secretsmanager", REGION, "list_secrets", "SecretList")
-    enriched = aws._enrich(requests, session, REGION, "secret", read.items)
+    enriched = aws._enrich(requests, session, REGION, "secret", read.items, account=ACCOUNT, partition="aws")
+    assert "RotationEnabled" not in enriched[0]
     assert enriched[0]["Policy"]["ResourcePolicy"]["Statement"] == []
     safe = aws._safe({"Environment": {"Variables": {"PASSWORD": "env-secret"}}, "Code": {"Location": "signed-download-url"}, "SecretString": "stored-secret", "FunctionName": "audit"})
     assert safe == {"FunctionName": "audit"}
-    assert requests.calls == 2
+    assert requests.calls == 3
 
 
 def test_existing_credential_report_no_generation(sdk):
@@ -237,15 +343,12 @@ def test_existing_credential_report_no_generation(sdk):
 
 def test_credential_report_missing_generation_denial_is_explicit(sdk):
     session, add, _ = sdk
-    iam = add("iam")
-    iam.add_client_error("get_credential_report", "ReportNotPresent", expected_params={})
-    iam.add_client_error("generate_credential_report", "AccessDenied", expected_params={})
+    add("iam").add_client_error("get_credential_report", "ReportNotPresent", expected_params={})
     requests = aws.Requests({})
     read = aws._credentials_report(requests, session, REGION)
-    assert read.status == "denied"
-    assert read.error["code"] == "AccessDenied"
-    assert read.items == []
-    assert requests.evidence_generations == 1
+    assert read.status == "not_collected" and read.items == []
+    assert read.error["code"] == "credential_report_generation_disabled"
+    assert requests.calls == 1 and requests.evidence_generations == 0
 
 
 def test_call_and_total_resource_budgets(sdk):
@@ -315,6 +418,176 @@ def test_assume_role_failure_no_base_credential_fallback(sdk):
     assert snapshot["metadata"]["caller_identities"] == []
     assert snapshot["metadata"]["calls"] == 1
     assert "private-external-id" not in json.dumps(snapshot)
+
+
+def test_hosted_fanout_refuses_unprotected_trust_and_continues(sdk, monkeypatch):
+    captured = []
+    original_init = aws.Requests.__init__
+    def capture_requests(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        captured.append(self)
+    monkeypatch.setattr(aws.Requests, "__init__", capture_requests)
+    original_session = boto3.Session
+    assumed_keys = []
+    def capture_session(*args, **kwargs):
+        assumed_keys.append(kwargs.get("aws_access_key_id"))
+        return original_session(*args, **kwargs)
+    monkeypatch.setattr(boto3, "Session", capture_session)
+    _, add, _ = sdk
+    unsafe, safe = (f"arn:aws:iam::{account}:role/Audit" for account in ("222222222222", "333333333333"))
+    sts = add("sts")
+    sts.add_response("get_caller_identity", {"Account": "202533532952",
+        "Arn": "arn:aws:sts::202533532952:assumed-role/collector/scan",
+        "UserId": "AROACOLLECTOR123456789:scan"}, {})
+    unsafe_credentials = assumed_credentials()
+    unsafe_credentials["Credentials"]["AccessKeyId"] = "ASIAUNSAFE123456789"
+    sts.add_response("assume_role", unsafe_credentials, {"RoleArn": unsafe, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    sts.add_client_error("assume_role", "AccessDenied", "External ID required", expected_params={"RoleArn": safe, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    sts.add_response("assume_role", assumed_credentials(), {"RoleArn": safe, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
+    sts.add_response("get_caller_identity", {"Account": "333333333333", "Arn": "arn:aws:sts::333333333333:assumed-role/Audit/peaso-read-only", "UserId": "AROASAFEROLE123456789:peaso-read-only"}, {})
+    add("ec2").add_response("describe_vpcs", {"Vpcs": []}, {})
+    snapshot = aws.collect({"provider": "aws", "scopes": ["222222222222", "333333333333"],
+        "auth": {"method": "task_role", "external_id": "peaso-server-only", "assume_roles": [unsafe, safe]},
+        "options": {"hosted": True, "include_source_account": True, "regions": [REGION]}}, ["vpc"])
+    assert snapshot["metadata"]["authentication_errors"] == [{"account": "222222222222", "role_arn": unsafe,
+        "error": {"code": "external_id_not_required_by_trust"}, "status": "denied"}]
+    assert next(c for c in snapshot["collections"] if c["type"] == "vpc" and c["scope"].startswith("222222222222/"))["status"] == "denied"
+    assert next(c for c in snapshot["collections"] if c["type"] == "vpc" and c["scope"].startswith("333333333333/"))["status"] == "empty"
+    assert "202533532952" not in {identity["Account"] for identity in snapshot["metadata"]["caller_identities"]}
+    assert "peaso-server-only" not in json.dumps(snapshot)
+    assert "ASIAUNSAFE123456789" not in repr(captured[0]._cache)
+    assert not any("222222222222" in key[-1] for key in captured[0]._cache)
+    assert assumed_keys == ["ASIAASSUMED123456789"]
+
+
+def test_hosted_all_targets_refused_has_no_resource_reads(sdk):
+    _, add, clients = sdk
+    role = "arn:aws:iam::222222222222:role/Audit"
+    sts = add("sts")
+    sts.add_response("get_caller_identity", {"Account": "202533532952",
+        "Arn": "arn:aws:sts::202533532952:assumed-role/collector/scan",
+        "UserId": "AROACOLLECTOR123456789:scan"}, {})
+    sts.add_response("assume_role", assumed_credentials(),
+        {"RoleArn": role, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    snapshot = aws.collect({"provider": "aws", "scopes": ["222222222222"],
+        "auth": {"method": "task_role", "external_id": "peaso-server-only", "assume_roles": [role]},
+        "options": {"hosted": True, "include_source_account": False, "regions": [REGION]}}, ["vpc"])
+    assert nothing_readable(snapshot)
+    assert snapshot["metadata"]["calls"] == 2
+    assert set(clients) == {("sts", REGION)}
+    assert snapshot["metadata"]["authentication_errors"] == [{"account": "222222222222", "role_arn": role,
+        "error": {"code": "external_id_not_required_by_trust"}, "status": "denied"}]
+
+
+def test_hosted_second_role_same_account_skips_before_any_sts(sdk):
+    _, add, _ = sdk
+    account = "947247140022"
+    first = f"arn:aws:iam::{account}:role/RoleA"
+    second = f"arn:aws:iam::{account}:role/RoleB"
+    sts = add("sts")
+    sts.add_response("get_caller_identity", IDENTITY, {})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={
+        "RoleArn": first, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    sts.add_response("assume_role", assumed_credentials(), {
+        "RoleArn": first, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
+    sts.add_response("get_caller_identity", {"Account": account,
+        "Arn": f"arn:aws:sts::{account}:assumed-role/RoleA/peaso-read-only",
+        "UserId": "AROASAFEROLE12345678A:peaso-read-only"}, {})
+    add("ec2").add_response("describe_vpcs", {"Vpcs": [{"VpcId": "vpc-role-a"}]}, {})
+    snapshot = aws.collect({"provider": "aws", "scopes": [account],
+        "auth": {"method": "task_role", "external_id": "peaso-server-only", "assume_roles": [first, second]},
+        "options": {"hosted": True, "include_source_account": True, "regions": [REGION], "service_concurrency": 1}}, ["vpc"])
+    assert validate(snapshot) == snapshot
+    vpc = next(c for c in snapshot["collections"] if c["type"] == "vpc")
+    assert vpc["status"] == "collected" and [row["VpcId"] for row in vpc["items"]] == ["vpc-role-a"]
+    assert "authority_reads" not in vpc
+    assert snapshot["metadata"]["role_target_selection"]["duplicate_account_targets"] == [
+        {"account": account, "role_arn": second, "status": "not_collected", "code": "duplicate_account_target"}]
+    assert snapshot["metadata"]["scan_coverage"] == [{"level": "credential_target", "scope": account,
+        "account": account, "role_arn": second, "status": "not_collected", "code": "duplicate_account_target",
+        "error_code": "duplicate_account_target"}]
+    assert len(snapshot["metadata"]["caller_identities"]) == 1
+    assert snapshot["metadata"]["calls"] == 5
+
+
+def test_hosted_failed_first_role_allows_second_role_same_account(sdk):
+    _, add, _ = sdk
+    account = "947247140022"
+    first = f"arn:aws:iam::{account}:role/RoleA"
+    second = f"arn:aws:iam::{account}:role/RoleB"
+    sts = add("sts")
+    sts.add_response("get_caller_identity", IDENTITY, {})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={
+        "RoleArn": first, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={
+        "RoleArn": first, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={
+        "RoleArn": second, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    sts.add_response("assume_role", assumed_credentials(), {
+        "RoleArn": second, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
+    sts.add_response("get_caller_identity", {"Account": account,
+        "Arn": f"arn:aws:sts::{account}:assumed-role/RoleB/peaso-read-only",
+        "UserId": "AROASAFEROLE12345678B:peaso-read-only"}, {})
+    add("ec2").add_response("describe_vpcs", {"Vpcs": [{"VpcId": "vpc-role-b"}]}, {})
+    snapshot = aws.collect({"provider": "aws", "scopes": [account],
+        "auth": {"method": "task_role", "external_id": "peaso-server-only", "assume_roles": [first, second]},
+        "options": {"hosted": True, "regions": [REGION], "service_concurrency": 1}}, ["vpc"])
+    vpc = next(c for c in snapshot["collections"] if c["type"] == "vpc")
+    assert vpc["status"] == "collected" and [row["VpcId"] for row in vpc["items"]] == ["vpc-role-b"]
+    assert snapshot["metadata"]["role_target_selection"]["duplicate_account_targets"] == []
+    assert snapshot["metadata"]["authentication_errors"] == [{"account": account,
+        "role_arn": first, "error": {"code": "AccessDenied"}, "status": "denied"}]
+
+
+def test_checked_source_account_skips_assumed_role_in_same_account(sdk):
+    _, add, _ = sdk
+    role = f"arn:aws:iam::{ACCOUNT}:role/OtherAudit"
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    add("ec2").add_response("describe_vpcs", {"Vpcs": []}, {})
+    snapshot = aws.collect({"provider": "aws", "scopes": [ACCOUNT],
+        "auth": {"assume_roles": [role]}, "options": {"regions": [REGION], "include_source_account": True}}, ["vpc"])
+    assert snapshot["metadata"]["role_target_selection"]["duplicate_account_targets"][0]["role_arn"] == role
+    assert snapshot["metadata"]["caller_identities"] == [IDENTITY]
+
+
+def test_uncached_trust_probe_obeys_budget_and_read_guard(sdk):
+    session, add, _ = sdk
+    role = "arn:aws:iam::222222222222:role/Audit"
+    requests = aws.Requests({"max_calls": 1})
+    add("sts").add_response("assume_role", assumed_credentials(), {"RoleArn": role, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    assert requests.call(session, "sts", REGION, "assume_role", _uncached_credential_exchange=True,
+        RoleArn=role, RoleSessionName="peaso-read-only", DurationSeconds=900)["Credentials"]["AccessKeyId"]
+    assert requests.calls == 1
+    assert requests._cache == {}
+    with pytest.raises(aws.ReadFailure, match="call_limit"):
+        requests.call(session, "sts", REGION, "assume_role", _uncached_credential_exchange=True,
+            RoleArn=role, RoleSessionName="peaso-read-only", DurationSeconds=900)
+    with pytest.raises(aws.ReadFailure, match="uncached_exchange_requires_assume_role"):
+        requests.call(session, "sts", REGION, "get_caller_identity", _uncached_credential_exchange=True)
+
+
+def test_hosted_owned_target_never_reaches_sts_assume_role(sdk):
+    _, add, _ = sdk
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    snapshot = aws.collect({"provider": "aws", "scopes": ["202533532952"],
+        "auth": {"method": "task_role", "external_id": "peaso-server-only",
+                 "assume_roles": ["arn:aws:iam::202533532952:role/Internal"]},
+        "options": {"hosted": True, "regions": [REGION]}}, ["vpc"])
+    assert snapshot["metadata"]["calls"] == 1
+    assert snapshot["metadata"]["authentication_errors"][0]["error"]["code"] == "platform_owned_account"
+
+
+def test_customer_key_fanout_uses_per_target_external_id_and_excludes_source(sdk):
+    _, add, _ = sdk
+    target = "arn:aws:iam::333333333333:role/Audit"
+    sts = add("sts")
+    sts.add_response("get_caller_identity", IDENTITY, {})
+    sts.add_response("assume_role", assumed_credentials(), {"RoleArn": target, "RoleSessionName": "peaso-read-only", "ExternalId": "customer-id"})
+    sts.add_response("get_caller_identity", {"Account": "333333333333", "Arn": "arn:aws:sts::333333333333:assumed-role/Audit/peaso-read-only", "UserId": "AROASAFEROLE123456789:peaso-read-only"}, {})
+    add("ec2").add_response("describe_vpcs", {"Vpcs": []}, {})
+    snapshot = aws.collect({"provider": "aws", "auth": {"assume_roles": [{"role_arn": target, "external_id": "customer-id"}]},
+        "options": {"include_source_account": False, "regions": [REGION]}}, ["vpc"])
+    assert snapshot["scopes"] == ["333333333333/us-east-1"]
 
 
 def test_explicit_account_region_pairs_not_broadened(sdk):
@@ -433,6 +706,166 @@ def test_organization_accessible_role_requires_explicit_name_and_verifies_accoun
     assert snapshot["metadata"]["organization_discovery"]["accounts_seen"] == 3
 
 
+@pytest.mark.parametrize("hosted,scheduled_count", [(False, 51), (True, 50)])
+def test_organization_discovery_51_distinct_targets_respects_hosted_limit(sdk, hosted, scheduled_count):
+    _, add, _ = sdk
+    accounts = [f"{200000000000 + n:012d}" for n in range(51)]
+    roles = [f"arn:aws:iam::{account}:role/audit" for account in accounts]
+    sts = add("sts")
+    sts.add_response("get_caller_identity", IDENTITY, {})
+    for role in roles[:scheduled_count]:
+        sts.add_client_error("assume_role", "AccessDenied", expected_params={"RoleArn": role, "RoleSessionName": "peaso-read-only"})
+    add("organizations").add_response("list_accounts", {"Accounts": [{"Id": account, "State": "ACTIVE"} for account in accounts]}, {})
+    snapshot = aws.collect({"provider": "aws", "auth": {"aws_access_key_id": "customer-key", "aws_secret_access_key": "customer-secret"},
+        "options": {"organization_role_name": "audit", "include_source_account": False,
+        "regions": [REGION], "hosted": hosted}}, [])
+    selection = snapshot["metadata"]["role_target_selection"]
+    assert selection == {"requested": 51, "scheduled_limit": 50 if hosted else None,
+        "scheduled": scheduled_count, "omitted": 51 - scheduled_count,
+        "omitted_role_arns": roles[scheduled_count:], "status": "partial" if hosted else "collected",
+        "duplicate_account_targets": []}
+    assert snapshot["metadata"]["calls"] == scheduled_count + 2
+    assert {error["account"] for error in snapshot["metadata"]["authentication_errors"]} == set(accounts)
+    last = next(c for c in snapshot["collections"] if c["type"] == "aws_account" and c["scope"] == f"{accounts[50]}/global")
+    assert last["error"]["code"] == ("role_target_limit" if hosted else "AccessDenied")
+
+
+def test_local_explicit_60_role_targets_have_no_implicit_fanout_cap(sdk):
+    _, add, _ = sdk
+    accounts = [f"{300000000000 + n:012d}" for n in range(60)]
+    roles = [f"arn:aws:iam::{account}:role/audit" for account in accounts]
+    sts = add("sts")
+    sts.add_response("get_caller_identity", IDENTITY, {})
+    for role in roles:
+        sts.add_client_error("assume_role", "AccessDenied", expected_params={"RoleArn": role,
+            "RoleSessionName": "peaso-read-only"})
+    snapshot = aws.collect({"provider": "aws", "auth": {"assume_roles": roles},
+        "options": {"include_source_account": False, "regions": [REGION]}}, [])
+    assert snapshot["metadata"]["role_target_selection"] == {"requested": 60, "scheduled_limit": None,
+        "scheduled": 60, "omitted": 0, "omitted_role_arns": [], "status": "collected",
+        "duplicate_account_targets": []}
+    assert snapshot["metadata"]["calls"] == 61
+    assert {error["account"] for error in snapshot["metadata"]["authentication_errors"]} == set(accounts)
+    assert all(error["error"]["code"] == "AccessDenied" for error in snapshot["metadata"]["authentication_errors"])
+
+
+def test_hosted_worker_injects_trusted_scan_flag_after_validation(monkeypatch):
+    import threading
+    import time
+    from peaso.worker import Worker
+
+    auth = {"method": "access_keys", "aws_access_key_id": "customer-key", "aws_secret_access_key": "customer-secret"}
+    private = {"auth": auth, "options": {"organization_role_name": "audit"}}
+    captured, finished = [], []
+    job = {"id": "scan", "tenant": "tenant", "owner": "owner", "deadline": time.time() + 60,
+        "data": "{}", "connector": json.dumps({"data": {"provider": "aws"}, "auth": "encrypted"})}
+
+    class Store:
+        def claim(self, *args, **kwargs):
+            return job
+        def public_job(self, row):
+            return {"timeline": []}
+        def heartbeat(self, *args):
+            return True
+        def job(self, *args):
+            return {"status": "collecting"}
+        def finish(self, *args, **kwargs):
+            finished.append((args, kwargs))
+
+    class Connection:
+        def close(self):
+            pass
+        def poll(self, timeout):
+            return True
+        def recv(self):
+            return True, "artifact"
+
+    class Process:
+        def __init__(self, **kwargs):
+            captured.append(kwargs["args"][1]["connector"])
+            self.alive = False
+        def start(self):
+            self.alive = True
+        def is_alive(self):
+            return self.alive
+        def terminate(self):
+            self.alive = False
+        def join(self, timeout):
+            pass
+
+    class Context:
+        @staticmethod
+        def Pipe(duplex):
+            return Connection(), Connection()
+
+    Context.Process = Process
+    monkeypatch.setattr("peaso.worker.multiprocessing.get_context", lambda _: Context())
+    worker = Worker.__new__(Worker)
+    worker.role = "collector"
+    worker.settings = SimpleNamespace(auth_mode="cognito", lease_seconds=30)
+    worker.store = Store()
+    worker.artifacts = SimpleNamespace(bucket="unused", kms_key=None)
+    worker.cipher = SimpleNamespace(decrypt=lambda _: private)
+    worker.stopping = threading.Event()
+    assert worker.run_once("tenant", "scan")
+    assert len(captured) == len(finished) == 1
+    assert captured[0]["options"] == {"organization_role_name": "audit", "hosted": True}
+    assert captured[0]["auth"] == auth
+    assert private["options"] == {"organization_role_name": "audit"}
+
+
+@pytest.mark.parametrize("hosted,page_count", [(False, 11), (True, 10)])
+def test_organization_discovery_paginates_local_and_bounds_hosted(sdk, hosted, page_count):
+    _, add, _ = sdk
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    organizations = add("organizations")
+    for page in range(page_count):
+        arguments = {} if page == 0 else {"NextToken": f"page-{page}"}
+        response = {"Accounts": []}
+        if page < 10:
+            response["NextToken"] = f"page-{page + 1}"
+        organizations.add_response("list_accounts", response, arguments)
+    snapshot = aws.collect({"provider": "aws", "options": {"hosted": hosted,
+        "organization_role_name": "audit", "include_source_account": False, "regions": [REGION]}}, [])
+    discovery = snapshot["metadata"]["organization_discovery"]
+    assert discovery["status"] == ("not_collected" if hosted else "empty")
+    assert discovery["error"] == ({"code": "page_limit", "cause_status": "not_collected"} if hosted else None)
+    assert snapshot["metadata"]["role_target_selection"]["status"] == ("partial" if hosted else "collected")
+    assert snapshot["metadata"]["calls"] == page_count + 1
+
+
+def test_explicit_and_discovered_duplicate_role_uses_one_target_slot(sdk):
+    _, add, _ = sdk
+    account = "222222222222"
+    role = f"arn:aws:iam::{account}:role/audit"
+    sts = add("sts")
+    sts.add_response("get_caller_identity", IDENTITY, {})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={"RoleArn": role,
+        "RoleSessionName": "peaso-read-only", "ExternalId": "explicit-id"})
+    add("organizations").add_response("list_accounts", {"Accounts": [{"Id": account, "State": "ACTIVE"}]}, {})
+    snapshot = aws.collect({"provider": "aws", "auth": {"assume_roles": [{"role_arn": role, "external_id": "explicit-id"}]},
+        "options": {"organization_role_name": "audit", "include_source_account": False, "regions": [REGION]}}, [])
+    assert snapshot["metadata"]["role_target_selection"]["requested"] == 1
+    assert snapshot["metadata"]["role_target_selection"]["omitted"] == 0
+    assert snapshot["metadata"]["calls"] == 3
+
+
+@pytest.mark.parametrize("include_source,scopes,source_expected", [
+    (True, ["222222222222"], False), (False, [ACCOUNT], False), (True, [ACCOUNT], True),
+])
+def test_source_checkbox_respects_explicit_account_scope(sdk, include_source, scopes, source_expected):
+    _, add, _ = sdk
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    snapshot = aws.collect({"provider": "aws", "scopes": scopes,
+        "options": {"include_source_account": include_source, "regions": [REGION]}}, [])
+    assert (ACCOUNT in {identity["Account"] for identity in snapshot["metadata"]["caller_identities"]}) is source_expected
+    if scopes == [ACCOUNT]:
+        source = envelope(snapshot, "aws_account")
+        assert (source["status"] == "collected") is source_expected
+        if not source_expected:
+            assert source["error"]["code"] == "account_role_not_configured"
+
+
 def test_cross_account_identity_mismatch_fails_without_base_fallback(sdk):
     session, add, _ = sdk
     target = "999999999999"
@@ -486,3 +919,142 @@ def test_platform_task_role_supports_lambda_and_ecs_and_excludes_profile_fallbac
         session, method = aws._session({"method": "task_role"}, REGION)
         assert session is pinned
         assert method == expected
+
+
+def _client_error(operation, code, message):
+    from botocore.exceptions import ClientError
+    return ClientError({"Error": {"Code": code, "Message": message}}, operation)
+
+
+@pytest.mark.parametrize("operation, code, message, state", [
+    ("GetMacieSession", "AccessDeniedException", "Macie is not enabled.", "service_not_enabled"),
+    ("ListClassificationJobs", "AccessDeniedException", "Macie is not enabled", "service_not_enabled"),
+    ("ListPolicies", "AccessDeniedException", "No default admin could be found for account 947247140022 in Region us-east-1", "no_service_administrator"),
+    ("DescribeOrganizationConfiguration", "AccessDeniedException", "Invoking account does not have access to describe the organization configuration.", "not_delegated_administrator"),
+    ("GetDelegatedAdminAccount", "ResourceNotFoundException", "No delegated admin found for caller account.", "no_delegated_administrator"),
+    ("GetDevEndpoints", "AccessDeniedException", "GetDevEndpoints operation is currently disabled.", "operation_disabled_for_account"),
+    ("GetDevEndpoints", "InvalidInputException", "Operation is not supported in <eu-south-2> region", "region_operation_unsupported"),
+    ("ListCustomModels", "ValidationException", "Unknown operation", "region_operation_unsupported"),
+    ("ListCustomModels", "UnknownOperationException", "Unknown Operation", "region_operation_unsupported"),
+    ("ListEndpoints", "UnknownOperationException", "Operation is disabled in this region.", "region_operation_unsupported"),
+    ("ListEmailIdentities", "UnknownOperationException", None, "region_operation_unsupported"),
+])
+def test_documented_service_state_replies_are_facts_not_denials(operation, code, message, state):
+    failure = aws._failure(_client_error(operation, code, message))
+    assert (failure.status, failure.code) == ("empty", state)
+
+
+@pytest.mark.parametrize("operation, code, message", [
+    ("GetMacieSession", "AccessDeniedException", "User is not authorized to perform: macie2:GetMacieSession"),
+    ("ListPolicies", "AccessDeniedException", "No default admin could be found for account 947247140022 in Region us-east-1 because of SCP"),
+    ("DescribeOrganizationConfiguration", "AccessDeniedException", "Access denied"),
+    ("ListFindings", "AccessDeniedException", "Macie is not enabled."),
+    ("ListCustomModels", "ValidationException", "1 validation error detected"),
+    ("GetDevEndpoints", "AccessDeniedException", ""),
+])
+def test_undocumented_or_nonmatching_replies_stay_denied_or_unknown(operation, code, message):
+    failure = aws._failure(_client_error(operation, code, message))
+    assert failure.status in {"denied", "unknown"} and failure.code == code
+
+
+def test_service_state_detail_is_absent_container():
+    requests = aws.Requests({})
+    def raiser(*args, **kwargs):
+        raise aws._failure(_client_error("GetMacieSession", "AccessDeniedException", "Macie is not enabled."))
+    requests.call = raiser
+    detail = requests.detail(None, "macie2", REGION, "get_macie_session")
+    assert detail["collection_status"] == "empty" and detail["absent"] is True and detail["error"]["code"] == "service_not_enabled"
+
+
+@pytest.mark.parametrize("operation", ["GetInstances", "GetRelationalDatabases", "GetStaticIps"])
+def test_lightsail_region_setup_in_progress_is_transient_unknown_not_absence(sdk, operation):
+    session, add, _ = sdk
+    failure = aws._failure(_client_error(operation, "RegionSetupInProgressException", "Lightsail is setting up this region for your account, please try again later."))
+    assert (failure.status, failure.code) == ("unknown", "region_setup_in_progress")
+    assert "region_setup_in_progress" not in aws.SERVICE_STATE_CODES
+    lightsail = add("lightsail")
+    lightsail.add_client_error("get_instances", "RegionSetupInProgressException", "Lightsail is setting up this region for your account, please try again later.", expected_params={})
+    read = aws.Requests({}).pages(session, "lightsail", REGION, "get_instances", "instances")
+    assert read.status == "unknown" and read.items == [] and read.error["code"] == "region_setup_in_progress"
+    requests = aws.Requests({})
+    def raiser(*args, **kwargs):
+        raise failure
+    requests.call = raiser
+    detail = requests.detail(None, "lightsail", REGION, "get_instances")
+    assert detail["collection_status"] == "unknown" and "absent" not in detail
+
+
+def test_role_report_scope_is_conservative():
+    allow = lambda action, **extra: {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": action, "Resource": "*", **extra}]}
+    assert not aws._may_allow_namespace(allow(["s3:GetObject", "ec2:Describe*"]), "bedrock")
+    assert not aws._may_allow_namespace({"Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}, "bedrock")
+    for document in (allow("*"), allow("bedrock:InvokeModel"), allow("bed*:*"), allow("Bedrock:List*"), allow("b?drock:*"),
+                     {"Statement": [{"Effect": "Allow", "NotAction": "s3:*", "Resource": "*"}]}, {"collection_status": "malformed"}, allow(None)):
+        assert aws._may_allow_namespace(document, "bedrock")
+
+
+def test_roles_without_possible_bedrock_grant_skip_reports_only_when_documents_are_known(sdk):
+    session, add, _ = sdk
+    iam = add("iam")
+    doc = lambda action: json.dumps({"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": action, "Resource": "*"}]})
+    role = lambda name, attached, inline=(): {"RoleName": name, "RoleId": "AROAREVIEWROLE12345" + name[:2], "Arn": f"arn:aws:iam::{ACCOUNT}:role/{name}", "Path": "/", "CreateDate": NOW,
+        "AssumeRolePolicyDocument": json.dumps({"Version": "2012-10-17", "Statement": []}),
+        "AttachedManagedPolicies": [{"PolicyName": arn.rsplit("/", 1)[1], "PolicyArn": arn} for arn in attached],
+        "RolePolicyList": [{"PolicyName": "inline", "PolicyDocument": d} for d in inline]}
+    s3_only, admin = f"arn:aws:iam::{ACCOUNT}:policy/s3-only", "arn:aws:iam::aws:policy/AdministratorAccess"
+    policies = [{"PolicyName": arn.rsplit("/", 1)[1], "PolicyId": "ANPAREVIEWPOLICY12" + str(n), "Arn": arn, "Path": "/", "DefaultVersionId": "v1",
+                 "PolicyVersionList": [{"Document": doc(action), "VersionId": "v1", "IsDefaultVersion": True}]} for n, (arn, action) in enumerate(((s3_only, "s3:GetObject"), (admin, "*")))]
+    roles = [role("ad", [admin]), role("in", [s3_only], [doc("bedrock:InvokeModel")]), role("s3", [s3_only]), role("un", [f"arn:aws:iam::{ACCOUNT}:policy/unlisted"])]
+    iam.add_response("get_account_authorization_details", {"RoleDetailList": roles, "Policies": policies, "IsTruncated": False}, {})
+    items = {r["RoleName"]: r for r in aws._iam(aws.Requests({"service_last_accessed_concurrency": 1}, sleep=lambda _: None), session, REGION, {"iam_role"})["iam_role"].items}
+    assert items["s3"]["ServicesLastAccessedStatus"]["reason"] == "identity_policies_cannot_allow_namespaces"
+    assert all(items[name]["ServicesLastAccessedStatus"]["collection_status"] == "not_collected" for name in ("ad", "in", "un"))
+
+
+@pytest.mark.parametrize("flag,want", [(True, "PASS"), (False, "FAIL"), ("denied", "UNKNOWN"), (None, "UNKNOWN"), ("missing_value", "UNKNOWN")])
+def test_instance_termination_protection_native_fact(sdk, flag, want):
+    from peaso.checks import CHECKS
+    from peaso.checks import claude_aws_a_ec2  # noqa: F401 - register native predicate
+    session, add, _ = sdk
+    stub = add("ec2")
+    params = {"InstanceId": "i-1234567890abcdef0", "Attribute": "userData"}
+    stub.add_response("describe_instance_attribute", {"InstanceId": params["InstanceId"]}, params)
+    protection_params = dict(params, Attribute="disableApiTermination")
+    if flag == "denied":
+        stub.add_client_error("describe_instance_attribute", "UnauthorizedOperation", expected_params=protection_params)
+    elif flag == "missing_value":
+        # A successful response without the boolean cannot prove either state.
+        stub.add_response("describe_instance_attribute", {"DisableApiTermination": {}}, protection_params)
+    else:
+        response = {"InstanceId": params["InstanceId"]}
+        if flag is not None:
+            response.update(DisableApiTermination={"Value": flag}, UserData={"Value": "synthetic-content-must-be-discarded"})
+        stub.add_response("describe_instance_attribute", response, protection_params)
+    requests = aws.Requests({"max_calls": 2})
+    original = {"InstanceId": params["InstanceId"]}
+    item = aws._enrich(requests, session, REGION, "instance", [original])[0]
+    assert original == {"InstanceId": params["InstanceId"]}
+    assert requests.calls == 2
+    assert "synthetic-content-must-be-discarded" not in json.dumps(item)
+    check = next(check for check in CHECKS if check.id == "aws.claude_a.ec2.instance_termination_protection")
+    status, evidence = check.evaluate(item, {})
+    assert status == want
+    if want in {"PASS", "FAIL"}:
+        assert item["Attributes"]["DisableApiTermination"] is flag
+        assert evidence["disable_api_termination"] is flag
+    else:
+        fact = item["Attributes"]["DisableApiTermination"]
+        assert fact["collection_status"] == ("denied" if flag == "denied" else "malformed")
+        assert evidence["reason"]
+
+
+@pytest.mark.parametrize("arguments", [
+    {"InstanceId": "i-1234567890abcdef0", "Attribute": "instanceType"},
+    {"InstanceId": "i-1234567890abcdef0", "Attribute": "disableApiTermination", "DryRun": True},
+    {"Attribute": "disableApiTermination"},
+])
+def test_instance_termination_protection_readguard_stays_narrow(arguments):
+    requests = aws.Requests({})
+    with pytest.raises(aws.ReadFailure, match="undeclared_instance_attribute_query"):
+        requests.call(object(), "ec2", REGION, "describe_instance_attribute", **arguments)
+    assert requests.calls == 0

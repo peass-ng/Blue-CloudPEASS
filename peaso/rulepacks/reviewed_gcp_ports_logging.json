@@ -1,0 +1,1367 @@
+{
+  "gcp-compliance.control.cis_v120_2_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_storage_iam_permission_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_storage_iam_permission_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L156"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_sql_instance_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_sql_instance_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L170"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_project_ownership_assignment_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_project_ownership_assignment",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L72"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_audit_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_audit_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L86"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_custom_role_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_custom_role_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L100"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_firewall_rule_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_firewall_rule_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L114"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_route_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_route_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L128"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L142"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_storage_iam_permission_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_storage_iam_permission_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L159"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_sql_instance_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_sql_instance_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L173"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_project_ownership_assignment_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_project_ownership_assignment",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L75"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_audit_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_audit_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L89"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_custom_role_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_custom_role_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L103"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_firewall_rule_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_firewall_rule_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L117"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_route_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_route_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L131"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L145"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_storage_iam_permission_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_storage_iam_permission_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L160"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_sql_instance_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_sql_instance_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L174"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_project_ownership_assignment_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_project_ownership_assignment",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L76"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_audit_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_audit_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L90"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_custom_role_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_custom_role_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L104"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_firewall_rule_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_firewall_rule_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L118"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_route_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_route_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L132"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L146"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_storage_iam_permission_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_storage_iam_permission_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L160"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_sql_instance_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_sql_instance_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L174"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_project_ownership_assignment_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_project_ownership_assignment",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L76"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_audit_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_audit_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L90"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_custom_role_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_custom_role_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L104"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_firewall_rule_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_firewall_rule_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L118"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_route_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_route_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L132"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L146"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_storage_iam_permission_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_storage_iam_permission_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L160"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_sql_instance_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_sql_instance_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L174"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_project_ownership_assignment_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_project_ownership_assignment",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L76"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_audit_configuration_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_audit_configuration_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L90"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_custom_role_changes_with_iam_admin_undelete_role_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_custom_role_changes_with_iam_admin_undelete_role",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "458c474d3a4d62ef9a0cbf80ea21d24d8090338a58d2ff7057bc6b1f7abac549",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L104"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_firewall_rule_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_firewall_rule_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L118"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_route_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_route_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L132"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_metric_alert_network_changes_scoped"
+    ],
+    "reason": "The pinned SQL joins all monitoring alerts to m.filter and unqualified metric.type without relating alert project or monitored metrics scope to metric project. Counterexample: metric in project p and enabled matching-type alert in unrelated project q whose default metrics scope contains q only; SQL returns OK for p although that alert cannot observe p. This is a substantive cross-project false-clean, not missing local implementation. Replacement separately evaluates complete same-project metadata declarations; cross-project monitoring requires explicit metrics-scope evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/monitoring/settings",
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics",
+      "https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies"
+    ],
+    "review_notes": {
+      "predicate": "logging_metric_alert_network_changes",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py::test_pinned_source_scope_omission_counterexample",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L146"
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source discards project-qualified networkUrl and joins only network name. Network v in p and same-named network v in unrelated q: logging policy attached solely to p falsely marks q compliant. Replacement uses the exact qualified resource reference with complete policy inventory.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_dns_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L184"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.compute_network_dns_logging_scoped"
+    ]
+  },
+  "gcp-compliance.control.cis_v120_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source classifies every empty-filter/nonempty-destination sink OK without checking disabled or active exclusions. Counterexamples: disabled=true exports no entries; active severity exclusion drops matching entries. These produce substantive false-cleans for all-resource logging, not collection gaps. Replacement tests enabled unfiltered declaration with no active exclusions.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_sink_configured_for_all_resource",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L44"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_sink_all_entries_enabled"
+    ]
+  },
+  "gcp-compliance.control.cis_v120_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.logging_bucket_retention_policy_enabled"
+    ],
+    "reason": "Reviewed exact storage sink destination and locked retentionPolicy.isLocked criterion, excluding non-Cloud-Storage destinations; complete bucket inventory and unambiguous global bucket-name join required. No log values, export writes or storage contents are read.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_bucket_retention_policy_enabled",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L58"
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source discards project-qualified networkUrl and joins only network name. Network v in p and same-named network v in unrelated q: logging policy attached solely to p falsely marks q compliant. Replacement uses the exact qualified resource reference with complete policy inventory.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_dns_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L187"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.compute_network_dns_logging_scoped"
+    ]
+  },
+  "gcp-compliance.control.cis_v130_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source classifies every empty-filter/nonempty-destination sink OK without checking disabled or active exclusions. Counterexamples: disabled=true exports no entries; active severity exclusion drops matching entries. These produce substantive false-cleans for all-resource logging, not collection gaps. Replacement tests enabled unfiltered declaration with no active exclusions.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_sink_configured_for_all_resource",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L47"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_sink_all_entries_enabled"
+    ]
+  },
+  "gcp-compliance.control.cis_v130_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.logging_bucket_retention_policy_enabled"
+    ],
+    "reason": "Reviewed exact storage sink destination and locked retentionPolicy.isLocked criterion, excluding non-Cloud-Storage destinations; complete bucket inventory and unambiguous global bucket-name join required. No log values, export writes or storage contents are read.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_bucket_retention_policy_enabled",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L61"
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source discards project-qualified networkUrl and joins only network name. Network v in p and same-named network v in unrelated q: logging policy attached solely to p falsely marks q compliant. Replacement uses the exact qualified resource reference with complete policy inventory.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_dns_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L188"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.compute_network_dns_logging_scoped"
+    ]
+  },
+  "gcp-compliance.control.cis_v200_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source classifies every empty-filter/nonempty-destination sink OK without checking disabled or active exclusions. Counterexamples: disabled=true exports no entries; active severity exclusion drops matching entries. These produce substantive false-cleans for all-resource logging, not collection gaps. Replacement tests enabled unfiltered declaration with no active exclusions.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_sink_configured_for_all_resource",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L48"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_sink_all_entries_enabled"
+    ]
+  },
+  "gcp-compliance.control.cis_v200_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.logging_bucket_retention_policy_enabled"
+    ],
+    "reason": "Reviewed exact storage sink destination and locked retentionPolicy.isLocked criterion, excluding non-Cloud-Storage destinations; complete bucket inventory and unambiguous global bucket-name join required. No log values, export writes or storage contents are read.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_bucket_retention_policy_enabled",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L62"
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source discards project-qualified networkUrl and joins only network name. Network v in p and same-named network v in unrelated q: logging policy attached solely to p falsely marks q compliant. Replacement uses the exact qualified resource reference with complete policy inventory.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_dns_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L188"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.compute_network_dns_logging_scoped"
+    ]
+  },
+  "gcp-compliance.control.cis_v300_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source classifies every empty-filter/nonempty-destination sink OK without checking disabled or active exclusions. Counterexamples: disabled=true exports no entries; active severity exclusion drops matching entries. These produce substantive false-cleans for all-resource logging, not collection gaps. Replacement tests enabled unfiltered declaration with no active exclusions.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_sink_configured_for_all_resource",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L48"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_sink_all_entries_enabled"
+    ]
+  },
+  "gcp-compliance.control.cis_v300_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.logging_bucket_retention_policy_enabled"
+    ],
+    "reason": "Reviewed exact storage sink destination and locked retentionPolicy.isLocked criterion, excluding non-Cloud-Storage destinations; complete bucket inventory and unambiguous global bucket-name join required. No log values, export writes or storage contents are read.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_bucket_retention_policy_enabled",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L62"
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source discards project-qualified networkUrl and joins only network name. Network v in p and same-named network v in unrelated q: logging policy attached solely to p falsely marks q compliant. Replacement uses the exact qualified resource reference with complete policy inventory.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_dns_logging_enabled",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L188"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.compute_network_dns_logging_scoped"
+    ]
+  },
+  "gcp-compliance.control.cis_v400_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source classifies every empty-filter/nonempty-destination sink OK without checking disabled or active exclusions. Counterexamples: disabled=true exports no entries; active severity exclusion drops matching entries. These produce substantive false-cleans for all-resource logging, not collection gaps. Replacement tests enabled unfiltered declaration with no active exclusions.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_sink_configured_for_all_resource",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L48"
+    },
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "gcp.ports.logging_sink_all_entries_enabled"
+    ]
+  },
+  "gcp-compliance.control.cis_v400_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.logging_bucket_retention_policy_enabled"
+    ],
+    "reason": "Reviewed exact storage sink destination and locked retentionPolicy.isLocked criterion, excluding non-Cloud-Storage destinations; complete bucket inventory and unambiguous global bucket-name join required. No log values, export writes or storage contents are read.",
+    "official_docs": [
+      "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/projects.sinks",
+      "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "https://docs.cloud.google.com/dns/docs/reference/v1/policies"
+    ],
+    "review_notes": {
+      "predicate": "logging_bucket_retention_policy_enabled",
+      "source_path": [
+        "policy_bundle/logging.pp"
+      ],
+      "source_query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_logging.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L62"
+    }
+  }
+}

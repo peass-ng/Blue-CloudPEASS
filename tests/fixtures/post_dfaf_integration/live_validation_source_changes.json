@@ -1,0 +1,27 @@
+{
+  "frontend/src/ui.tsx": {
+    "baseline_sha256": "2548dff20f5358df6d17bf9cf1249dfd4d0205ca4a42d0280de3319efb67f1f1",
+    "sha256": "405c34f8b0047e2a5839fefb4580e230705c6d0e3c9db82bc1750eb2a483ffca",
+    "reason": "Preserve authored catalog resource placeholders in the evidence inspector."
+  },
+  "frontend/tests/privesc.spec.ts": {
+    "baseline_sha256": "da9b58ded4085b9b935ecebcdf542b55afcb2e7c4ecd348c6d9c2b7dadaac48a",
+    "sha256": "b9f538795f614ff2c3eb03db1a7b67f5c5afdd5876eef06c70c05d4e5c982384",
+    "reason": "Assert authored PassRole conditions and literal resource selectors."
+  },
+  "peaso/collectors/azure.py": {
+    "baseline_sha256": "9924ec59faf32467f17030a4635732be519fab0ae5452bf2bf6611faec6250cf",
+    "sha256": "c9e85901af5d95fabdeed5911f697d2aee1eca1a1b06b3a9b890614bd9774cb8",
+    "reason": "Accept and normalize the exact live subscription policy ID without a leading slash."
+  },
+  "peaso/collectors/gcp.py": {
+    "baseline_sha256": "79a70efe8380929f947266dff41faf8f59766eb00b030a93ccaf90f407131d25",
+    "sha256": "70bdc6f7fae78bbecc703d5ef14014134b5e61e2a0ea07764a6fe0be919ed360",
+    "reason": "Permit official Certificate Manager and Network Security metadata API hosts."
+  },
+  "peaso/engine.py": {
+    "baseline_sha256": "fd476b1b371d1b1ce34f74083ae8022dc2e4388f4856c3d5ed92e2cf0929e5fa",
+    "sha256": "8b0e0bfeec538469a0f4550307416b3a5b640b05a55e28680dcdf9d0dcd1a46a",
+    "reason": "Produce deterministic coverage order across offline reevaluation processes."
+  }
+}

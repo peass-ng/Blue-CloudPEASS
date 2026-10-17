@@ -1,12 +1,18 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
 # Amazon EventBridge Scheduler privilege escalation techniques.
-# Source: hacktricks-cloud eventbridgescheduler-privesc/README.md (rev a53b46392c).
+# Source: hacktricks-cloud eventbridgescheduler-privesc/README.md (rev 171e422299).
 
 - id: aws-scheduler-passrole-createschedule-or-updateschedule
   provider: aws
   service: scheduler
   title: Create or update a schedule that runs with a passed execution role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/eventbridgescheduler-privesc/README.md#iampassrole-schedulercreateschedule--schedulerupdateschedule
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of any passable role trusting scheduler.amazonaws.com, exercised through universal (AWS SDK) or templated targets.
   requires:
     all_of:

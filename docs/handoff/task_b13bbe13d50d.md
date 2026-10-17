@@ -100,6 +100,29 @@ Latest isolated milestone after the initial handoff checkpoint: **46 tests passe
 
 This worker created only local resources, no AWS deployment or cloud IAM mutations. Default Docker project `peaso` remains on `127.0.0.1:8000` with `peaso-api-1`, `peaso-collector-1`, `peaso-analyzer-1`, volumes `peaso_state` and `peaso_identity`. Owned completed offline validation scan is `352cd1a27143434fb7952f48d39beb59`; three connector attempts used an inert supplied fixture after a source-manifest build race. They consume the local free reservation one. Preserve for review or clean only proven owned fixtures once the coordinator authorizes cleanup; do not reset an actual user's quota.
 
+### Authorized isolated live authentication fixture — record before creation
+
+Coordinator message `msg_3d4ec18ef126` authorizes **one** suppressed free test user through the existing QA-owned helper, without changing any pool, client, existing user, billing or entitlement. No scan/engine/evaluator or supervisor feature will be invoked. This authorization is narrower than deployment or provider scanning.
+
+- Private fixture directory: `/Users/carlospolop/git/Blue-CloudPEASS/.cache/peaso-api-live-auth/task_b13bbe13d50d`
+- Planned private ledger: the directory's `cognito-ledger.json`.
+- Planned private credentials: `hosted-test-identities.json`, mode 0600; read only `users[0].id_token`, `refresh_token` and subject privately; never output values.
+- Helper is `scripts/peaso_test_resources/cognito_session.py`, unchanged, with `--count 1` under `assume wiki --exec`.
+- Helper's internal ledger task tag is intentionally QA-owned `task_02a312b5ac1f`, while the separate directory and invocation owner are this API Task. Do not alter that guard/tag.
+- Scope: existing account `202533532952`, region `us-east-1`, pool `us-east-1_7rbhezdKX`, client `3g2u5ilb7kbte92lra40ji2ht0`. Helper verifies account before every write, records the planned row before creation, suppresses email and has 40-minute finally cleanup.
+- Final state: **created exactly one suppressed free fixture, isolated check passed, then deleted and verified not found**. The helper session exited successfully through finally cleanup and removed `hosted-test-identities.json`. No fixture user or credentials file remains.
+- Non-secret evidence: private directory `auth-results.json` records passed real ID JWT signature/issuer/audience/expiry/subject, enabled subject, free entitlement, existing refresh-token backend flow and tampered-signature rejection. `auth-check-ledger.json` records the refresh operation and verified account without parameters/token values. `cognito-ledger.json` has one row, `creation_status=deleted`, `verification=not_found`, credentials removed.
+- Start used the helper unchanged with count one and the authorized wiki session; direct authentication used account verification before refresh. No engine evaluation, scan, pool/client mutation, existing user mutation, plan/billing/entitlement edit, email delivery or paid live claim occurred.
+
+```sh
+# Create exactly one bounded fixture session using the unchanged helper.
+assume wiki --exec '/tmp/peaso-api-venv/bin/python /Users/carlospolop/git/Blue-CloudPEASS/scripts/peaso_test_resources/cognito_session.py --directory /Users/carlospolop/git/Blue-CloudPEASS/.cache/peaso-api-live-auth/task_b13bbe13d50d --count 1'
+# Release immediately after the isolated check; helper finally verifies deletion.
+touch /Users/carlospolop/git/Blue-CloudPEASS/.cache/peaso-api-live-auth/task_b13bbe13d50d/release-cognito
+# Explicit recovery if the original helper session is no longer running.
+assume wiki --exec '/tmp/peaso-api-venv/bin/python /Users/carlospolop/git/Blue-CloudPEASS/scripts/peaso_test_resources/cognito_session.py --directory /Users/carlospolop/git/Blue-CloudPEASS/.cache/peaso-api-live-auth/task_b13bbe13d50d --cleanup'
+```
+
 ```sh
 # Inspect and stop this exact project; preserve private volumes by default.
 docker compose -p peaso -f /Users/carlospolop/git/Blue-CloudPEASS/docker-compose.yml ps

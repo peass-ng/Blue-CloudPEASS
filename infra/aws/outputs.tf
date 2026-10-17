@@ -1,5 +1,7 @@
 output "url" { value = "https://${local.domain}" }
 output "frontend_bucket" { value = aws_s3_bucket.frontend.id }
+output "customer_role_template_download_url" { value = "https://${local.domain}/${aws_s3_object.customer_role_download.key}" }
+output "customer_role_template_quick_create_url" { value = var.enable_public_customer_role_template ? "https://${aws_s3_bucket.templates[0].bucket}.s3.${var.region}.amazonaws.com/${aws_s3_object.customer_role_template[local.customer_role_template_sha256].key}" : null }
 output "artifact_bucket" { value = aws_s3_bucket.artifacts.id }
 output "metadata_table" { value = aws_dynamodb_table.metadata.id }
 output "cloudfront_distribution_id" { value = aws_cloudfront_distribution.cspm.id }

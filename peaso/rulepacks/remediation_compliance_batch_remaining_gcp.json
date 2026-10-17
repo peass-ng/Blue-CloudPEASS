@@ -1,0 +1,1973 @@
+{
+  "gcp.apikeys.active_service_restrictions": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "api_key",
+      "path": "Existing API Keys keys.list restrictions.apiTargets[].service and key name; new read-only Service Usage services.list name/state for the owning project.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "7c91d652644f5e1644dacb522fc4fd15d2f30eabdbe7ec4c9481e87fa85c69db",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "In APIs & Services > Credentials, edit the key's API restrictions to remove disabled services; delete unused keys.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "In APIs & Services > Credentials, edit the key's API restrictions to remove disabled services; delete unused keys."
+  },
+  "gcp.appengine.version_https_only": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "app_engine_version",
+      "path": "Complete unmasked App Engine Admin API apps.services.versions.list view=FULL for every service, including Version.servingStatus and Version.handlers[].securityLevel (UrlMap), plus full handler-list provenance.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "31bf24910d36ea78c6a82f402310a5504c4800e38585aff1d879dfaea1554dbe",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Review handler routing with the service owner, set secure: always in app.yaml for the intended handlers, deploy a new version, and verify the Admin API securityLevel declaration.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Review handler routing with the service owner, set secure: always in app.yaml for the intended handlers, deploy a new version, and verify the Admin API securityLevel declaration."
+  },
+  "gcp.bigquery.table_classification_tags": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw55",
+      "kind": "bigquery_table",
+      "observed_fail_evidence": "A listed column exists in the full schema but has no approved policy tag.",
+      "path": "complete same-project bigquery_table collection and exact tableReference; full tables.get schema.fields including nested fields and policyTags.names; scope-bound required_classification mapping of table and column paths to approved tag names",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ac162311af5af478129f0189a04b0ee521e467be5c188b5a8a3428ce14379072",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete same-project bigquery_table collection and exact tableReference; full tables.get schema.fields including nested fields and policyTags.names; scope-bound required_classification mapping of table and column paths to approved tag names and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, apply the approved BigQuery policy tag to each listed schema.fields column with ALTER COLUMN SET OPTIONS(policy_tags=...). Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Apply the approved BigQuery policy tag to each listed schema.fields column with ALTER COLUMN SET OPTIONS(policy_tags=...)."
+  },
+  "gcp.identity.non_service_account_mfa": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "workspace_user",
+      "observed_fail_evidence": "Directory reports isEnrolledIn2Sv=false.",
+      "path": "workspace_user; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "edfebcea837753b12adb7c2fb5102e436acf271f2e2e583e1fbc23b4c8e84d36",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm workspace_user; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, require and enroll two-step verification for each active Workspace user with Cloud IAM access in the Admin console. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Require and enroll two-step verification for each active Workspace user with Cloud IAM access in the Admin console."
+  },
+  "gcp.identity.super_admin_recovery_group": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "workspace_user",
+      "observed_fail_evidence": "Full user detail shows no recovery address, the address is not a Directory group, or its group has fewer than two ACTIVE members.",
+      "path": "workspace_user; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "e46623b833f063bcbe9d87e6dd05df2c01022b546432a4ad4249446f9e5c3748",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm workspace_user; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, set each super admin's recoveryEmail to a Directory group containing at least two active recovery operators. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Set each super admin's recoveryEmail to a Directory group containing at least two active recovery operators."
+  },
+  "gcp.identity.super_admin_separation": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "workspace_role_assignment",
+      "observed_fail_evidence": "The super-admin email has a direct user binding to owner, editor or an Admin/admin-suffixed role.",
+      "path": "workspace_role_assignment; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "5c3aac256f8045b056051bbde1f346770bc4997df67d5fdef0f34542a7ee231c",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm workspace_role_assignment; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, remove roles/owner, roles/editor and administrative IAM bindings for Workspace super admins; use separate routine-admin identities. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Remove roles/owner, roles/editor and administrative IAM bindings for Workspace super admins; use separate routine-admin identities."
+  },
+  "gcp.logging.access_transparency_entries": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "project",
+      "observed_fail_evidence": "Never; zero entries are UNKNOWN because provider access may not have occurred.",
+      "path": "complete 30-day Access Transparency entry inventory and snapshot time; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "e01b749df156d911fa655a78925d42f0a71f172b00cb2034c58899ddea46bd60",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete 30-day Access Transparency entry inventory and snapshot time; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, enable Access Transparency for supported services and retain its Cloud Logging entries; investigate missing 30-day evidence manually. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Enable Access Transparency for supported services and retain its Cloud Logging entries; investigate missing 30-day evidence manually."
+  },
+  "gcp.network.vpc_service_controls_supported_services": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw55",
+      "kind": "service_perimeter",
+      "observed_fail_evidence": "An approved protected project number is absent from every complete perimeter, or an approved enabled service is absent from the union of restricted services of perimeters containing the audited project.",
+      "path": "complete same-project service_perimeter status.resources and status.restrictedServices; complete same-project service_usage name,state inventory; scope-bound project ID, project number, protected_project_numbers, supported_services",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "607319275defe6b723c60901fe4f3af50e1b342c6b63c53d825656ec0f97b3ad",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete same-project service_perimeter status.resources and status.restrictedServices; complete same-project service_usage name,state inventory; scope-bound project ID, project number, protected_project_numbers, supported_services and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, add protected project numbers and each approved enabled service to the appropriate VPC Service Controls perimeter restrictedServices. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Add protected project numbers and each approved enabled service to the appropriate VPC Service Controls perimeter restrictedServices."
+  },
+  "gcp.orgpolicy.central_constraints": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "org_policy_effective",
+      "observed_fail_evidence": "A required boolean effective rule has enforce=false or a required list rule allows an unapproved value.",
+      "path": "org_policy_effective; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "4482c0e47017b1fcb06fdacc6ba1b1c5664a8791a15bc5b2ed0984e0644b1a95",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm org_policy_effective; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, set the required Org Policy constraints at the organization or folder; correct descendant exceptions and allowedValues. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Set the required Org Policy constraints at the organization or folder; correct descendant exceptions and allowedValues."
+  },
+  "gcp.resourcemanager.folder_environment_structure": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw55",
+      "kind": "folder",
+      "observed_fail_evidence": "A fully resolved project parent chain lacks an approved environment or sensitivity folder.",
+      "path": "complete same-scope folder.name,parent,displayName inventory; complete same-scope project.name,parent inventory; scope-bound environment_labels and sensitivity_labels",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "927e416e4c574f9da17900ad759015e677c572af348613aaa7aaa922daf1e69d",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete same-scope folder.name,parent,displayName inventory; complete same-scope project.name,parent inventory; scope-bound environment_labels and sensitivity_labels and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, move each project beneath folders whose displayName matches the approved environment and sensitivity labels. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Move each project beneath folders whose displayName matches the approved environment and sensitivity labels."
+  },
+  "gcp.sql.iam_database_authentication": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "sql_instance",
+      "path": "Existing collected type sql_instance.databaseVersion from Cloud SQL instances.list; new read-only Cloud SQL users.list fields type,name for each supported PostgreSQL or MySQL instance.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0fa6351e4358600196dc9658773cf10e4cece7acddc95bbe9cfe5b6a30c0b6b3",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Create an IAM database user on the Cloud SQL instance with gcloud sql users create --type=CLOUD_IAM_USER or CLOUD_IAM_SERVICE_ACCOUNT.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Create an IAM database user on the Cloud SQL instance with gcloud sql users create --type=CLOUD_IAM_USER or CLOUD_IAM_SERVICE_ACCOUNT."
+  },
+  "gcp.sql.mysql_admin_account_posture": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "sql_user",
+      "path": "New read-only Cloud SQL users.list for each MySQL sql_instance; inspect user name, host and type, with instance databaseVersion from instances.list.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ebded375bd9e341806de99ef9f490c3b17aec3c51e4fae9b3ff2beb57ff2e34c",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Restrict MySQL root or built-in account host from % and 0.0.0.0/0 using Cloud SQL Users settings.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Restrict MySQL root or built-in account host from % and 0.0.0.0/0 using Cloud SQL Users settings."
+  },
+  "gcp_artifact_registry_cleanup_policy": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "artifact_repository",
+      "path": "new read-only Artifact Registry:Repositories.list with cleanupPolicies and cleanupPolicyDryRun",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "73e2c420470a52c7a17b69a6b305a0b3b5cce7fe14a20f3102291682d56ae4e1",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Add an Artifact Registry DELETE cleanupPolicy with an age condition at or below the approved max_artifact_age and disable dry run.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Add an Artifact Registry DELETE cleanupPolicy with an age condition at or below the approved max_artifact_age and disable dry run."
+  },
+  "gcp_autoscaler_capacity_target": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "autoscaler",
+      "path": "new read-only Compute:Autoscalers.list with autoscalingPolicy.cpuUtilization.utilizationTarget,minNumReplicas,maxNumReplicas,target",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "f863fe5de239d95cacfaf54ec8ca29d724a8b89a8ff850e137172e8065d1e282",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Lower autoscalingPolicy.cpuUtilization.utilizationTarget to 0.8 or less and raise maxNumReplicas above the current MIG target size.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Lower autoscalingPolicy.cpuUtilization.utilizationTarget to 0.8 or less and raise maxNumReplicas above the current MIG target size."
+  },
+  "gcp_backend_service_checks_armor_security_policy_contains_f48cc81ccae3": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "security_policy",
+      "observed_fail_evidence": "An attached policy has no rule before priority 2147483647 with a nonempty match.",
+      "path": "complete security_policy and backend_service inventories; securityPolicy association; rules.priority, match and action",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "f3a1fb04121ee657262db2a5a822bc0c550552459d7daffc3017e0431fd8fdab",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete security_policy and backend_service inventories; securityPolicy association; rules.priority, match and action and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, add a non-default Cloud Armor security policy rule with an explicit match and action before priority 2147483647. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Add a non-default Cloud Armor security policy rule with an explicit match and action before priority 2147483647."
+  },
+  "gcp_c5_asset_risk_label": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "asset",
+      "observed_fail_evidence": "An in-scope asset has no required label or its value is outside approved_risk_values.",
+      "path": "complete asset inventory; assetType and resource.data.labels; sw51_policy.risk_asset_types, required_risk_label, approved_risk_values",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "1f34b2233baa5f745b58ea4921d597da021f74caee012994378a6e7fc5f6dd72",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete asset inventory; assetType and resource.data.labels; sw51_policy.risk_asset_types, required_risk_label, approved_risk_values and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, set the approved risk classification label or tag on each in-scope asset using its service label settings. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Set the approved risk classification label or tag on each in-scope asset using its service label settings."
+  },
+  "gcp_c5_classification_label": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "bucket",
+      "path": "Existing collected type bucket.labels from Cloud Storage buckets.list projection=full; approved classification key and values as input.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "eee3ae9bd7d11ebffeb52ee72c8704e4f322c4db72810645762bc9e7556e5fdc",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set the approved classification label and value on each in-scope Cloud Storage bucket with gcloud storage buckets update --update-labels.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set the approved classification label and value on each in-scope Cloud Storage bucket with gcloud storage buckets update --update-labels."
+  },
+  "gcp_c5_cloud_armor_waf": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "backend_service",
+      "observed_fail_evidence": "An in-scope public admin backend has no attached policy or the attached policy lacks the approved enabled WAF rule.",
+      "path": "complete backend_service, security_policy, url_map, target_https_proxy and forwarding_rule inventories; sw51_policy.admin_backend_mapping, approved_waf_expression and approved_waf_action; security policy rules priority, disabled, match expression and action",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "2e50f08919f54706e8277622def1b1144997a0d2bf84290047d1872d6975e778",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete backend_service, security_policy, url_map, target_https_proxy and forwarding_rule inventories; sw51_policy.admin_backend_mapping, approved_waf_expression and approved_waf_action; security policy rules priority, disabled, match expression and action and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, attach a Cloud Armor securityPolicy to each in-scope admin backend and add the approved WAF expression/action rule. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Attach a Cloud Armor securityPolicy to each in-scope admin backend and add the approved WAF expression/action rule."
+  },
+  "gcp_c5_cloudbuild_gate": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "cloudbuild_trigger",
+      "observed_fail_evidence": "Required approval is false or the collected build definition lacks the required security-test step.",
+      "path": "cloudbuild_trigger.approvalConfig/buildDefinition.steps; cloudbuild.production_trigger_ids/approval_required/security_test_step/deployment_coverage; cloudbuild.production_trigger_scope_complete",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ff3bc5b9a3900b9c436320504eaae9ebd11589e4708caad706763b035ce13c85",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm cloudbuild_trigger.approvalConfig/buildDefinition.steps; cloudbuild.production_trigger_ids/approval_required/security_test_step/deployment_coverage; cloudbuild.production_trigger_scope_complete and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, enable approvalConfig.approvalRequired and add the required security-test build step to each production Cloud Build trigger. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Enable approvalConfig.approvalRequired and add the required security-test build step to each production Cloud Build trigger."
+  },
+  "gcp_c5_deletion_recoverability": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw50",
+      "kind": "bucket",
+      "observed_fail_evidence": "After the approved immediate-deletion deadline, soft-delete retention or retention-policy period is positive, or versioning is enabled.",
+      "path": "complete bucket collection and _provenance.scope; context.metadata.approved_bucket_deletions[bucket].immediate_deletion and deadline; context.created_at; softDeletePolicy.retentionDurationSeconds; versioning.enabled; retentionPolicy.retentionPeriod",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "c94a6ab16bb557fc96bd817bc8229a10886c7e2757bae20a3afcc8be3851d641",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete bucket collection and _provenance.scope; context.metadata.approved_bucket_deletions[bucket].immediate_deletion and deadline; context.created_at; softDeletePolicy.retentionDurationSeconds; versioning.enabled; retentionPolicy.retentionPeriod and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, for approved immediate deletion, set bucket softDeletePolicy.retentionDurationSeconds=0 and remove versioning or retention blockers before the deadline. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "For approved immediate deletion, set bucket softDeletePolicy.retentionDurationSeconds=0 and remove versioning or retention blockers before the deadline."
+  },
+  "gcp_c5_iam_change_timeliness": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "iam_policy",
+      "observed_fail_evidence": "An event principal still holds its forbidden role after the applicable deadline.",
+      "path": "complete scoped/inherited IAM bindings, complete approved personnel-change feed and snapshot time; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "1b657b9854c94550c79e2ce76004c12566b9f2157f029147bbb297c3b724dc16",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete scoped/inherited IAM bindings, complete approved personnel-change feed and snapshot time; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, remove IAM grants past the approved 48-hour or 14-day personnel-change deadline using the resource IAM policy editor. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Remove IAM grants past the approved 48-hour or 14-day personnel-change deadline using the resource IAM policy editor."
+  },
+  "gcp_c5_iam_conditions": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "iam_policy",
+      "observed_fail_evidence": "A required grant has no condition expression or omits an approved required reference.",
+      "path": "complete scoped/inherited IAM bindings and approved required attribute references by grant; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "1c2fb9389d8f18834e1e780ad505734ba2bf447e702eac75e8ed0fa5a86c6acc",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete scoped/inherited IAM bindings and approved required attribute references by grant; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, add a binding condition.expression covering the required time, resource or principal attributes to each contextual IAM grant. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Add a binding condition.expression covering the required time, resource or principal attributes to each contextual IAM grant."
+  },
+  "gcp_c5_iam_expiry": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "iam_policy",
+      "observed_fail_evidence": "A listed privileged grant has no enforceable request.time expiry expression.",
+      "path": "complete scoped/inherited IAM bindings and approved list of privileged grants requiring expiry; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "47e512ef2925182e65984b2f973289be83597104bc88ddfed585578e4244b9e4",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete scoped/inherited IAM bindings and approved list of privileged grants requiring expiry; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, add a request.time expiry condition to each privileged IAM binding that requires a time limit. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Add a request.time expiry condition to each privileged IAM binding that requires a time limit."
+  },
+  "gcp_c5_iam_inventory": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "iam_policy",
+      "path": "Cloud Asset Inventory searchAllIamPolicies: resource, policy.bindings.role, policy.bindings.members, policy.bindings.condition.expression; approved principal-to-role roster with principal, role, resource and approval status.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6075f72737eaf598de67931fedf320534c39a7c8614ab272324774cba9be6a01",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Remove prohibited IAM roles and unapproved privileged members from the affected resource or ancestor policy bindings.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Remove prohibited IAM roles and unapproved privileged members from the affected resource or ancestor policy bindings."
+  },
+  "gcp_c5_key_versions": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "kms_key",
+      "observed_fail_evidence": "An ENABLED version remains after approved expiry or a DESTROYED version was destroyed before the approved date.",
+      "path": "complete kms_key and kms_key_version inventories; version name, state and destroyTime for destroyed versions; context.created_at; sw51_policy.key_version_schedule[keyName][versionName]",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "80fc3e2ab09a8aef8e551099d2b6736c22280702c4808e620b10a480fc54aa07",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete kms_key and kms_key_version inventories; version name, state and destroyTime for destroyed versions; context.created_at; sw51_policy.key_version_schedule[keyName][versionName] and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, disable or destroy KMS key versions according to the approved lifecycle schedule; rotate expired ENABLED versions. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Disable or destroy KMS key versions according to the approved lifecycle schedule; rotate expired ENABLED versions."
+  },
+  "gcp_c5_kms_hsm": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "kms_key",
+      "path": "Existing collected type kms_key.primary.protectionLevel from Cloud KMS cryptoKeys.get; designated HSM key scope as input.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "70698b8e45c47909338af939b701513e16da2d72a114777777772153c12817b7",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Create designated Cloud KMS keys with protectionLevel=HSM, or approved EXTERNAL_VPC, and migrate protected workloads.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Create designated Cloud KMS keys with protectionLevel=HSM, or approved EXTERNAL_VPC, and migrate protected workloads."
+  },
+  "gcp_c5_log_export": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "log_sink",
+      "observed_fail_evidence": "At least one required class reaches no enabled approved customer destination.",
+      "path": "log_sink destination/disabled/filter/exclusions; logging.approved_customer_destination/required_log_classes; complete ancestor sink inventory",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "318ddc6106b0a68d4e0c5743139860c157377cb7a204875f7dfcdb1da41e9574",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm log_sink destination/disabled/filter/exclusions; logging.approved_customer_destination/required_log_classes; complete ancestor sink inventory and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, create an enabled Cloud Logging sink to the approved customer-access destination with filters covering required audit classes. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Create an enabled Cloud Logging sink to the approved customer-access destination with filters covering required audit classes."
+  },
+  "gcp_c5_log_isolation": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "log_sink",
+      "observed_fail_evidence": "An enabled sink exports to a registered customer-data bucket without an exception.",
+      "path": "log_sink destination/disabled; logging.customer_data_buckets/separation_exceptions; complete project and ancestor sink inventory",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "77df5a8e1f8b39fde85732c672c4eec793f52dfdc0a20cbe0a94a3c48d67dc4e",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm log_sink destination/disabled; logging.customer_data_buckets/separation_exceptions; complete project and ancestor sink inventory and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, change the sink destination to a dedicated log bucket outside the customer-data bucket register, or record the approved exception. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Change the sink destination to a dedicated log bucket outside the customer-data bucket register, or record the approved exception."
+  },
+  "gcp_c5_log_retention": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw50",
+      "kind": "bucket",
+      "observed_fail_evidence": "Retention is below the approved minimum, exceeds the maximum after the deletion deadline, or the required lock is disabled.",
+      "path": "complete scoped bucket projection of projects.locations.buckets.list with unique name and _provenance.scope; bucket name, retentionDays, locked, destinationExternal; context.metadata.approved_log_retention minimum_days, maximum_days, lock_required, deletion_deadline; context.created_at",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "830c5c85b1d141fcc93392d72fb3802caa2d7791558ba1c9558523f914117c49",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete scoped bucket projection of projects.locations.buckets.list with unique name and _provenance.scope; bucket name, retentionDays, locked, destinationExternal; context.metadata.approved_log_retention minimum_days, maximum_days, lock_required, deletion_deadline; context.created_at and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, set Cloud Logging bucket retentionDays within approved bounds and lock buckets where the policy requires it. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Set Cloud Logging bucket retentionDays within approved bounds and lock buckets where the policy requires it."
+  },
+  "gcp_c5_logging_redundancy": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "log_sink",
+      "observed_fail_evidence": "At least one critical class has fewer than two such destinations.",
+      "path": "log_sink destination/disabled/filter/exclusions; logging.critical_log_classes/require_two_destinations; complete ancestor sink inventory; logging.independent_destination_pairs",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "8087cc5bf0becb89846816b5ea18753e1e0ab1a9c803923e91fcd50b20e40df9",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm log_sink destination/disabled/filter/exclusions; logging.critical_log_classes/require_two_destinations; complete ancestor sink inventory; logging.independent_destination_pairs and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, create a second enabled sink to an independent approved destination for each critical log class. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Create a second enabled sink to an independent approved destination for each critical log class."
+  },
+  "gcp_c5_malware_telemetry": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "instance",
+      "observed_fail_evidence": "The required agent package name is absent from current complete inventory.",
+      "path": "current complete package inventory and an approved required agent name for the VM; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0e8ed1849da32ed14468b932436b6f81461343571bcd9d8f127157e09ae9077a",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm current complete package inventory and an approved required agent name for the VM; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, install the approved VM protection agent through OS Config and verify its package appears in current guest inventory. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Install the approved VM protection agent through OS Config and verify its package appears in current guest inventory."
+  },
+  "gcp_c5_network_separation": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "network",
+      "path": "Compute instances.list: name, labels.env, networkInterfaces.subnetwork; approved production/nonproduction subnet-separation policy keyed by project and VPC.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "f7b5b6896117881de40ea2dab4a367f80fd3692cccbbfae1814bebe6011c281f",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Move production and nonproduction VMs to separate approved subnetworks using Compute networkInterfaces settings.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Move production and nonproduction VMs to separate approved subnetworks using Compute networkInterfaces settings."
+  },
+  "gcp_c5_network_topology": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "network",
+      "path": "Compute networks.list: name, selfLink; subnetworks.list: name, network, region; firewalls.list: name, network; approved topology register resource name, network and region.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "b198065c82c12ec16ee923223e3cc2934269de02e7c8b18de93a65f990a03bf8",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Update the approved topology register for observed VPC, subnet and firewall names/regions, or restore missing resources.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Update the approved topology register for observed VPC, subnet and firewall names/regions, or restore missing resources."
+  },
+  "gcp_c5_region": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "asset",
+      "observed_fail_evidence": "A mapped in-scope resource resolves to at least one region outside its approved set.",
+      "path": "complete asset and mapped service inventory; bucket.location, sql_instance.region, gke_cluster.location or kms_key.name location; sw51_policy.asset_locations, approved_regions_by_asset, location_region_mapping",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ac225864983ec75673564559895b6f816b0254406b954d7904263392ea74dcc6",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete asset and mapped service inventory; bucket.location, sql_instance.region, gke_cluster.location or kms_key.name location; sw51_policy.asset_locations, approved_regions_by_asset, location_region_mapping and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, move or recreate resources in their contract-approved region; update bucket, SQL, GKE or KMS location settings through migration. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Move or recreate resources in their contract-approved region; update bucket, SQL, GKE or KMS location settings through migration."
+  },
+  "gcp_c5_secret_access": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "secret",
+      "observed_fail_evidence": "A payload-reader binding includes a public or unapproved principal.",
+      "path": "secret; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6582d525f02368dbd08e3e0acf96b63c80638071c4c007d5ed9373109e8c61e2",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm secret; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, remove allUsers and unapproved secretAccessor IAM bindings from credential secrets, including inherited grants. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Remove allUsers and unapproved secretAccessor IAM bindings from credential secrets, including inherited grants."
+  },
+  "gcp_c5_security_event_route": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "monitoring_alert_policy",
+      "observed_fail_evidence": "A required metric is absent from the complete Logging inventory or has no enabled policy with an enabled notification channel.",
+      "path": "monitoring_alert_policy; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "d5b98064d1ad7362c0620a0e83aed33cd35ca38a5afa273c72ce4dae2ab83df2",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm monitoring_alert_policy; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, link each approved security log metric to an enabled Monitoring alert policy and enabled verified notification channel. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Link each approved security log metric to an enabled Monitoring alert policy and enabled verified notification channel."
+  },
+  "gcp_c5_siem_sink": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "log_sink",
+      "observed_fail_evidence": "At least one required class has no such route.",
+      "path": "log_sink destination/disabled/filter/exclusions; logging.approved_siem_destination/required_log_classes; complete ancestor sink inventory",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "17c1f0f3bca2a3ae61bb8a003998e59db5bea77377e9e0d87f5d25df397074c2",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm log_sink destination/disabled/filter/exclusions; logging.approved_siem_destination/required_log_classes; complete ancestor sink inventory and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, create an enabled project or organization sink for required audit classes to the approved SIEM destination; remove exclusions. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Create an enabled project or organization sink for required audit classes to the approved SIEM destination; remove exclusions."
+  },
+  "gcp_c5_software_inventory": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "instance",
+      "observed_fail_evidence": "No current inventory record exists in complete coverage or an installed name/version is unregistered.",
+      "path": "complete OS inventory, current updateTime, installed package names/versions and approved software register; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0848faaa07ab99c9cbe38a1b732339bed8ed270f8e0d5212a8213f87741bacd9",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete OS inventory, current updateTime, installed package names/versions and approved software register; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, enable OS Config guest inventory for each in-scope VM and reconcile installed package names/versions with the software register. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Enable OS Config guest inventory for each in-scope VM and reconcile installed package names/versions with the software register."
+  },
+  "gcp_c5_sql_backup_run": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "sql_instance",
+      "observed_fail_evidence": "Automated backups are disabled or no successful automated run ended within the approved RPO.",
+      "path": "primary SQL instance backup setting, complete automated backup-run inventory and approved RPO; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ef1fca722907ad138012c3144b91da9a40f59e5fd13b6456a959a983a2115b80",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm primary SQL instance backup setting, complete automated backup-run inventory and approved RPO; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, enable automated Cloud SQL backups and correct backup schedules until a SUCCESSFUL run falls inside the approved RPO window. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Enable automated Cloud SQL backups and correct backup schedules until a SUCCESSFUL run falls inside the approved RPO window."
+  },
+  "gcp_c5_tls_policy": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "target_proxy",
+      "path": "Existing collected types target_proxy.sslPolicy and ssl_policy.minTlsVersion,profile,customFeatures from Compute targetHttpsProxies.list and sslPolicies.get.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ed286edd189b2231b318a52ffc6f8dbbd18617ca3f78575c1cbc76d95377483c",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Attach an SSL policy with approved minTlsVersion and cipher profile to every in-scope target HTTPS/SSL proxy.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Attach an SSL policy with approved minTlsVersion and cipher profile to every in-scope target HTTPS/SSL proxy."
+  },
+  "gcp_c5_workforce_federation": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "workforce_pool",
+      "observed_fail_evidence": "The mapped pool or provider is not ACTIVE, or its issuer/audiences violate the approved mapping.",
+      "path": "workforce_pool.name/state; workforce_provider.name/state/oidc; workforce.customer_provider_mapping; workforce.mapping_complete",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "5b6718c21edf435238f25cd53e2d612abd70674ab1a264cd020b9c85431528bc",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm workforce_pool.name/state; workforce_provider.name/state/oidc; workforce.customer_provider_mapping; workforce.mapping_complete and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, enable the approved workforce pool and provider, and set oidc.issuerUri and allowedAudiences to the customer mapping. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Enable the approved workforce pool and provider, and set oidc.issuerUri and allowedAudiences to the customer mapping."
+  },
+  "gcp_certificate_renewal_30_days": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "certificate",
+      "observed_fail_evidence": "The threshold was crossed more than 24 hours ago without a timely covering ACTIVE replacement.",
+      "path": "certificate.expireTime/managed.domains; deployment.deployed/replacements/replacement_inventory_complete; context.created_at",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "11f691cd2536cbce82bda538799e29b66e5bcf090587062df51bae9a97dd0e13",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm certificate.expireTime/managed.domains; deployment.deployed/replacements/replacement_inventory_complete; context.created_at and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, deploy an ACTIVE replacement Certificate Manager certificate for the same domains at least 30 days before expiry. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Deploy an ACTIVE replacement Certificate Manager certificate for the same domains at least 30 days before expiry."
+  },
+  "gcp_certificate_rotation_180_days": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "certificate",
+      "observed_fail_evidence": "An ACTIVE deployed certificate is more than 180 days old.",
+      "path": "certificate.createTime/managed.state; deployment.deployed; context.created_at",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6a431322f2a3bd29eafb58e687939d4a2cf2571e18657fe06901329ffd884ea2",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm certificate.createTime/managed.state; deployment.deployed; context.created_at and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, replace deployed certificates before their createTime exceeds 180 days and update the certificate map entry. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Replace deployed certificates before their createTime exceeds 180 days and update the certificate map entry."
+  },
+  "gcp_certificate_rotation_90_days": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "certificate",
+      "observed_fail_evidence": "A deployed leaf certificate was issued more than 90 days before the scan.",
+      "path": "certificate.pemCertificate leaf X.509; deployment.deployed; context.created_at",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "1e05687599e9eab821cd78cf41635b937fe28f88a1205b9903d0bf0b2d74ef5f",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm certificate.pemCertificate leaf X.509; deployment.deployed; context.created_at and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, replace deployed certificates before their createTime exceeds 90 days and update the certificate map entry. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Replace deployed certificates before their createTime exceeds 90 days and update the certificate map entry."
+  },
+  "gcp_certificate_validity": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "certificate",
+      "path": "new read-only Certificate Manager:ListCertificates with name,expireTime,managed.state",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6a623dc5d64f07b6de945273d5d7237f880b0e3a028e722f8ad67fa043220084",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Renew or replace expired Certificate Manager certificates and attach an ACTIVE certificate to the map entry.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Renew or replace expired Certificate Manager certificates and attach an ACTIVE certificate to the map entry."
+  },
+  "gcp_cloud_armor_cidr_deny": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "security_policy",
+      "observed_fail_evidence": "A complete precedence-verified policy lacks the exact approved outside-CIDR DENY rule.",
+      "path": "complete security_policy and backend_service inventories; backend internetFacing and securityPolicy; rules priority, action, disabled and match expression; cidrRulePrecedenceVerified; sw51_policy.approved_cidrs, approved_cidr_deny_expression and cidr_expression_review",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6c5e6a889088018ceca523c160f2f1197572eef14dbda5ab999c8bba5bf0bbbd",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete security_policy and backend_service inventories; backend internetFacing and securityPolicy; rules priority, action, disabled and match expression; cidrRulePrecedenceVerified; sw51_policy.approved_cidrs, approved_cidr_deny_expression and cidr_expression_review and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, add a Cloud Armor DENY rule for sources outside approved_cidrs on each internet-facing backend security policy. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Add a Cloud Armor DENY rule for sources outside approved_cidrs on each internet-facing backend security policy."
+  },
+  "gcp_cloud_armor_rate_limit": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "security_policy",
+      "observed_fail_evidence": "No matching enabled rule has count <=2000, intervalSec <=300 and banDurationSec >=60 on the approved client key.",
+      "path": "complete security_policy and backend_service inventories; backend internetFacing and securityPolicy; rules priority, action, disabled, match expression and rateLimitOptions; rateRulePrecedenceVerified; sw51_policy.rate_limit_enforce_on_key and rate_limit_match_expression",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "8a70e73734e90422d33dc7b7fc06c9fdd004922d0730b8312bb7cfff9d660895",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete security_policy and backend_service inventories; backend internetFacing and securityPolicy; rules priority, action, disabled, match expression and rateLimitOptions; rateRulePrecedenceVerified; sw51_policy.rate_limit_enforce_on_key and rate_limit_match_expression and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, add a Cloud Armor throttle or rate-based-ban rule at 2000 requests/300 seconds or less with banDurationSec >=60. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Add a Cloud Armor throttle or rate-based-ban rule at 2000 requests/300 seconds or less with banDurationSec >=60."
+  },
+  "gcp_cloud_armor_waf_enabled": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "security_policy",
+      "observed_fail_evidence": "No deny rule contains evaluatePreconfiguredWaf.",
+      "path": "security_policy; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "549f5ab190fe2aa10963bb45b8d01b3157d546ce56cfd6bf7811926908beb55c",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm security_policy; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, attach a Cloud Armor policy containing an enabled evaluatePreconfiguredWaf expression to each public backend. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Attach a Cloud Armor policy containing an enabled evaluatePreconfiguredWaf expression to each public backend."
+  },
+  "gcp_cloudbuild_private_pool": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "worker_pool",
+      "observed_fail_evidence": "Full worker pool detail shows no peeredNetwork or a network outside the approved list.",
+      "path": "worker_pool; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "a436859b439a4d993300d08fca00cdbaf49582e01fb803ea8018d51a2e8c405d",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm worker_pool; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, set privatePoolV1Config.networkConfig.peeredNetwork to an approved VPC on enabled Cloud Build worker pools. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Set privatePoolV1Config.networkConfig.peeredNetwork to an approved VPC on enabled Cloud Build worker pools."
+  },
+  "gcp_cloudbuild_trigger_trust": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "cloudbuild_trigger",
+      "path": "existing collected type cloudbuild_trigger + triggerTemplate,github,repositoryEventConfig,serviceAccount,disabled",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "fb317c2787af526c9c6a44c9bb9c98837c475bd28e07335fcec705b02ff80d16",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Restrict enabled Cloud Build trigger repository selectors and serviceAccount to the approved source and identity lists.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Restrict enabled Cloud Build trigger repository selectors and serviceAccount to the approved source and identity lists."
+  },
+  "gcp_cloudcdn_cache_policy": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "backend_service",
+      "observed_fail_evidence": "A sensitive CDN-enabled backend has a cache mode outside the approved modes or either TTL exceeds its approved maximum.",
+      "path": "complete backend_service inventory; enableCDN and cdnPolicy.cacheMode/clientTtl/defaultTtl; sw51_policy.sensitive_backend_services and approved_cache_policy",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "edbd68bbac81644f78cadfa5777f8c8be2b59409b4cf5d358c4a87584b87d993",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete backend_service inventory; enableCDN and cdnPolicy.cacheMode/clientTtl/defaultTtl; sw51_policy.sensitive_backend_services and approved_cache_policy and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, disable CDN on sensitive backends or set an approved cdnPolicy.cacheMode, clientTtl and defaultTtl. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Disable CDN on sensitive backends or set an approved cdnPolicy.cacheMode, clientTtl and defaultTtl."
+  },
+  "gcp_cloudsql_backup_failure_alert": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "project",
+      "observed_fail_evidence": "No enabled alert condition references a proven failed Cloud SQL backup metric in complete coverage.",
+      "path": "complete Logging metric and Monitoring alert inventories with verified failed-backup filter semantics; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "df0e1a5f9e2b010cd4a9850e2d6e21932f5cf96da23168082ac64f6e96c6e363",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete Logging metric and Monitoring alert inventories with verified failed-backup filter semantics; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, create a Logging metric for failed Cloud SQL backup events and link it to an enabled Monitoring alert policy and channel. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Create a Logging metric for failed Cloud SQL backup events and link it to an enabled Monitoring alert policy and channel."
+  },
+  "gcp_compute_approved_image": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "instance",
+      "path": "existing collected instance and disk types; join instance.disks[].source to disk.selfLink and inspect disk.sourceImage or sourceSnapshot, with approved_image_projects context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "518042836f9498a3e1f199accb53b806f2f7a28b3e72e7e55c79e1886c1c234f",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Replace the VM boot disk with an image from approved_image_projects, then verify its disk.sourceImage.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Replace the VM boot disk with an image from approved_image_projects, then verify its disk.sourceImage."
+  },
+  "gcp_compute_approved_packages": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw53",
+      "kind": "instance",
+      "observed_fail_evidence": "An installed package name is absent from the allowlist or its comparable version matches no approved exact version or numeric dotted range.",
+      "path": "current installed package inventory and approved exact package versions or numeric dotted version ranges; complete same-project collection envelopes and exact resource identity",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "81a70ce021c281eabb1b17ff7074e7a5cb29774c6a86af9e12d3db0c0caf0c71",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm current installed package inventory and approved exact package versions or numeric dotted version ranges; complete same-project collection envelopes and exact resource identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, remove unapproved OS packages or pin them to approved version ranges using OS Config package management. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Remove unapproved OS packages or pin them to approved version ranges using OS Config package management."
+  },
+  "gcp_gcs_replication_status": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw50",
+      "kind": "bucket",
+      "observed_fail_evidence": "Replication health is HEALTHY and declared locations differ from the approved location set.",
+      "path": "complete scoped bucket collection and _provenance.scope; location and customPlacementConfig.dataLocations when present; context.metadata.expected_replica_locations[bucket]; replicationHealth.status",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "686a8a2bfa2a1ef2f381272cb3c31d5dd8cca4935d5ab1a997117533e63b595c",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete scoped bucket collection and _provenance.scope; location and customPlacementConfig.dataLocations when present; context.metadata.expected_replica_locations[bucket]; replicationHealth.status and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, choose Cloud Storage placement/replication locations matching expected_replica_locations and migrate mismatched buckets. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Choose Cloud Storage placement/replication locations matching expected_replica_locations and migrate mismatched buckets."
+  },
+  "gcp_gke_client_certificate_enabled": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "gke_cluster",
+      "path": "existing collected type gke_cluster from Container API clusters.list; masterAuth.clientCertificateConfig.issueClientCertificate",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "788f62a784cf46f983650da3e354ef6b2289e196dd037517e4847a7ad17f8699",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Review legacy certificate authentication with the cluster owner and use modern GKE authentication; do not enable certificate issuance solely for this historical control.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Review legacy certificate authentication with the cluster owner and use modern GKE authentication; do not enable certificate issuance solely for this historical control."
+  },
+  "gcp_gke_cluster_endpoint_publicly_accessible_ea8dcc0ec97d": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "gke_cluster",
+      "path": "Complete unmasked GKE projects.locations.clusters.list Cluster.controlPlaneEndpointsConfig.ipEndpointsConfig.enabled and enablePublicEndpoint, with explicit full-response provenance and endpoint fields.",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "a4bc783f635ca235b78a8795b9a9f3ae592f1ca2cb172069a29c5ff2f24c7f41",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Review control-plane access needs and disable the public IP endpoint through GKE endpoint configuration after verifying private or DNS access for administrators.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Review control-plane access needs and disable the public IP endpoint through GKE endpoint configuration after verifying private or DNS access for administrators."
+  },
+  "gcp_gke_small_cluster_auto_upgrade": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "gke_cluster",
+      "observed_fail_evidence": "The complete target size is below three and at least one node pool disables auto upgrade.",
+      "path": "gke_cluster.nodePools.management.autoUpgrade/instanceGroupUrls; instance_group_manager.instanceGroup/targetSize",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "260dbbea71e5afaf4130bb435471179c58aba97803637886504b6dcf8d8f00f6",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm gke_cluster.nodePools.management.autoUpgrade/instanceGroupUrls; instance_group_manager.instanceGroup/targetSize and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, enable nodePools[].management.autoUpgrade on every node pool in clusters with fewer than three target nodes. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Enable nodePools[].management.autoUpgrade on every node pool in clusters with fewer than three target nodes."
+  },
+  "gcp_https_proxy_mtls_required": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "target_https_proxy",
+      "path": "new read-only Compute:TargetHttpsProxies.list with serverTlsPolicy; Network Security:ServerTlsPolicies.get with mtlsPolicy.clientValidationMode",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "9a13a18ff4e298ca90e176a41355195492cd6d508ab5d1e9f60194a543b88913",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Attach a Network Security serverTlsPolicy to each HTTPS proxy with mtlsPolicy.clientValidationMode=REJECT_INVALID.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Attach a Network Security serverTlsPolicy to each HTTPS proxy with mtlsPolicy.clientValidationMode=REJECT_INVALID."
+  },
+  "gcp_iam_workforce_mfa": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "workforce_pool",
+      "observed_fail_evidence": "An enabled mapped provider lacks that mapping.",
+      "path": "workforce_provider.state/attributeMapping; workforce.customer_provider_mapping.mfa_claim/mfa_mapping/idp_assurance_verified; workforce.mapping_complete",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "411db580689828e9f5d0dcbdd648d5be3ccf173b5a5c4f2235703326a6ebe68a",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm workforce_provider.state/attributeMapping; workforce.customer_provider_mapping.mfa_claim/mfa_mapping/idp_assurance_verified; workforce.mapping_complete and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, map and require a verified MFA assurance claim in each enabled workforce provider's attributeMapping/IdP policy. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Map and require a verified MFA assurance claim in each enabled workforce provider's attributeMapping/IdP policy."
+  },
+  "gcp_kms_approved_algorithm": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "kms_key_version",
+      "path": "new read-only Cloud KMS:CryptoKeyVersions.list with algorithm,state and key purpose",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "71068c89df5053ff3a950dd33b6fc4b8af1896186e8ae7789a19714c9bbc6166",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Rotate ENABLED KMS key versions using an algorithm in approved_algorithms and disable unapproved versions.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Rotate ENABLED KMS key versions using an algorithm in approved_algorithms and disable unapproved versions."
+  },
+  "gcp_kms_key_destroy_alert": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "project",
+      "observed_fail_evidence": "No such enabled metric and alert condition exist in complete inventories.",
+      "path": "logging_metric.name/filter; logging_metric.disabled (omitted=false); alert_policy.enabled/conditions.conditionThreshold.filter; scope identity",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "78bebc15faa5125dd3a0e32f73265e68417553701e59902276d795f3bf42bee8",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm logging_metric.name/filter; logging_metric.disabled (omitted=false); alert_policy.enabled/conditions.conditionThreshold.filter; scope identity and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, create an enabled alert on log metrics matching Cloud KMS key-version disable and destroy API method names. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Create an enabled alert on log metrics matching Cloud KMS key-version disable and destroy API method names."
+  },
+  "gcp_kms_key_kms_keys_scheduled_deletion_56316ac06650": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "kms_key",
+      "path": "Cloud KMS projects.locations.keyRings.cryptoKeys.cryptoKeyVersions.list; inspect cryptoKeyVersion.state and destroyTime.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "8e9aff3409ed1c0ce2b30b898508439cb18006ec1f7b8b2ee94287b8d37c82e8",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Cancel destruction of any KMS version in DESTROY_SCHEDULED state if deletion is not approved.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Cancel destruction of any KMS version in DESTROY_SCHEDULED state if deletion is not approved."
+  },
+  "gcp_lb_server_header_rewrite": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "url_map",
+      "observed_fail_evidence": "At least one enumerated route lacks a replace=true Server: lb response header action.",
+      "path": "url_map; scoped complete URL map inventory; internetFacing; routeCoverageComplete; effectiveRoutes[].routeId; effectiveRoutes[].responseHeadersToAdd[]",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "3d86ed59b371a720fe64ca9e98c253b7166a2e95e0ad865d4193c7309025b330",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm url_map; scoped complete URL map inventory; internetFacing; routeCoverageComplete; effectiveRoutes[].routeId; effectiveRoutes[].responseHeadersToAdd[] and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, set replace=true for the Server response header with value lb on every route of the public URL map. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Set replace=true for the Server response header with value lb on every route of the public URL map."
+  },
+  "gcp_logging_detect_t1136": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "e859d6be906ef8bce5f3bdf65201c2c2e286efea9213e148be3457278baaf05d",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Remove unauthorized service accounts and revoke CreateServiceAccount from principals outside approved_identity_admins."
+  },
+  "gcp_logging_detect_t1546": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "eb87cb4e5a61ed26915d102d308e686522260728d902d71c547a084bb594a06d",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Delete unauthorized Cloud Build triggers or Scheduler jobs and revoke creation permissions from unapproved principals."
+  },
+  "gcp_logging_enumeration_alert": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "project",
+      "observed_fail_evidence": "No such policy on an enabled metric exists in complete inventories.",
+      "path": "logging_metric.filter/labelExtractors; logging_metric.disabled (omitted=false); alert_policy.enabled/notificationChannels/conditions.conditionThreshold; 300-second aggregation and principal grouping",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "6c03fad52a36b138da18d6567a48bbf4b7ce6475a66b8bcd70c85896cd909b7f",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm logging_metric.filter/labelExtractors; logging_metric.disabled (omitted=false); alert_policy.enabled/notificationChannels/conditions.conditionThreshold; 300-second aggregation and principal grouping and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, create a log metric filtering .list/.get audit methods by principal and an enabled five-minute alert at ten events with a channel. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Create a log metric filtering .list/.get audit methods by principal and an enabled five-minute alert at ten events with a channel."
+  },
+  "gcp_logging_query_rate_alert": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw54",
+      "kind": "project",
+      "observed_fail_evidence": "No such policy on an enabled metric exists in complete inventories.",
+      "path": "logging_metric.filter/labelExtractors; logging_metric.disabled (omitted=false); alert_policy.enabled/notificationChannels/conditions.conditionThreshold; monitoring.approved_query_count",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "47da289b1075223927d698d04c0a8e49dac369d25826daf2e93360080edfbb1f",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm logging_metric.filter/labelExtractors; logging_metric.disabled (omitted=false); alert_policy.enabled/notificationChannels/conditions.conditionThreshold; monitoring.approved_query_count and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, create a log metric for logging.entries.list by principal and an enabled 300-second threshold alert using approved_query_count. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Create a log metric for logging.entries.list by principal and an enabled 300-second threshold alert using approved_query_count."
+  },
+  "gcp_network_auto_subnets_enabled": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "network",
+      "path": "Existing collected type network.autoCreateSubnetworks from Compute networks.list; approved automatic-subnet VPC scope as input.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "baee4c53108558634672b2aaaa0013b32e57e578d2aadfdf530184b65656094e",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set autoCreateSubnetworks=true on the VPC only if automatic regional subnet creation is the approved network design.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set autoCreateSubnetworks=true on the VPC only if automatic regional subnet creation is the approved network design."
+  },
+  "gcp_pci_asset_6ee2fef37d98": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "logging_bucket",
+      "path": "Cloud Logging projects.locations.buckets.list (new read); inspect LogBucket.retentionDays and configured MinRetentionTime; UNKNOWN on denied, incomplete or malformed reads",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "076d04357099e5a69960c32b2106b4ff0fba622a6e2f2d1ee1b7068a49dcc276",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set each Cloud Logging bucket retentionDays to at least configured MinRetentionTime (365 days by default).",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set each Cloud Logging bucket retentionDays to at least configured MinRetentionTime (365 days by default)."
+  },
+  "gcp_pci_backend_service_2ce96d36d0bf": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "backend_service",
+      "observed_fail_evidence": "Any serving HTTPS proxy has an attached SSL policy with minTlsVersion TLS_1_0 or TLS_1_1.",
+      "path": "complete backend_service, url_map, target_https_proxy and ssl_policy inventories; enableCDN, URL map backend references, proxy urlMap/sslPolicy, policy minTlsVersion",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "e91c420f69ae45b8a47d6838fb976c7d18a6f1719792d686d822ab6fbbd7ce3b",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete backend_service, url_map, target_https_proxy and ssl_policy inventories; enableCDN, URL map backend references, proxy urlMap/sslPolicy, policy minTlsVersion and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, attach an SSL policy with minTlsVersion=TLS_1_2 or later to every HTTPS proxy serving a CDN-enabled backend. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Attach an SSL policy with minTlsVersion=TLS_1_2 or later to every HTTPS proxy serving a CDN-enabled backend."
+  },
+  "gcp_pci_backend_service_571fd0bfec67": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw51",
+      "kind": "backend_service",
+      "observed_fail_evidence": "Request logging is explicitly disabled or the required matching sink is absent from a complete inventory.",
+      "path": "complete backend_service inventory; securityPolicy and logConfig.enable; sw51_policy.required_armor_log_sink; complete log_sink destination/filter inventory when required",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "23906fc2e721c6089372a30c1305cc3bc178cd73a2c234edb6b3e5133bc9a89d",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete backend_service inventory; securityPolicy and logConfig.enable; sw51_policy.required_armor_log_sink; complete log_sink destination/filter inventory when required and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, enable backendServices.logConfig.enable and create the required matching Cloud Logging sink destination/filter. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Enable backendServices.logConfig.enable and create the required matching Cloud Logging sink destination/filter."
+  },
+  "gcp_pci_bucket_157fb0c69361": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw50",
+      "kind": "bucket",
+      "observed_fail_evidence": "An unconditional public IAM role known to grant object read, or an active public bucket/object ACL read grant, exists in complete applicable facts.",
+      "path": "complete bucket collection and _provenance.scope; iamPolicy.bindings role and members; iamConfiguration.uniformBucketLevelAccess.enabled; bucketAccessControls status, all_pages, items[] bucket/entity/role when ACLs active; objectAccessControls status, all_pages, all_objects, items[] bucket/entity/role when ACLs active",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "d413f1487731342416eef1c6784782ae4188b153616262cee03d91a4d1d8d3c4",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm complete bucket collection and _provenance.scope; iamPolicy.bindings role and members; iamConfiguration.uniformBucketLevelAccess.enabled; bucketAccessControls status, all_pages, items[] bucket/entity/role when ACLs active; objectAccessControls status, all_pages, all_objects, items[] bucket/entity/role when ACLs active and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, remove public object-read IAM grants and active bucket/object ACL grants; enable uniformBucketLevelAccess where feasible. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Remove public object-read IAM grants and active bucket/object ACL grants; enable uniformBucketLevelAccess where feasible."
+  },
+  "gcp_pci_firewall_2080b14f1361": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "firewall",
+      "path": "Compute firewalls.list (existing collector); inspect direction, allowed[], sourceRanges[]; UNKNOWN on denied, incomplete or malformed reads",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0492786d4f15b0ec06330e86eb57d9e042864815ffb238d8eac9f509c78a2a18",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Restrict firewall sourceRanges from 0.0.0.0/0 and ::/0 to approved CIDRs for each allowed port/protocol.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Restrict firewall sourceRanges from 0.0.0.0/0 and ::/0 to approved CIDRs for each allowed port/protocol."
+  },
+  "gcp_pci_url_map_9ed56c323a05": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "url_map",
+      "observed_fail_evidence": "An HTTP frontend reaches at least one enumerated route without httpsRedirect=true.",
+      "path": "url_map; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "e5f9b05acf39fd18fc76362eeb1a7cabe2e81d63fa206e16a974131fd9782407",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm url_map; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, set urlMaps.defaultUrlRedirect.httpsRedirect=true and equivalent redirects for every HTTP path matcher/route. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Set urlMaps.defaultUrlRedirect.httpsRedirect=true and equivalent redirects for every HTTP path matcher/route."
+  },
+  "gcp_resource_approved_location": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "cloud_asset",
+      "path": "new read-only Cloud Asset Inventory:SearchAllResources with name,assetType,location; organization approved_locations policy supplied as context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0f5f46d8008cd59aa112912de3c4927c07436e682d4627e970282f34479f5766",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Move resources to an approved location or update the approved_locations policy for explicitly authorized regions.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Move resources to an approved location or update the approved_locations policy for explicitly authorized regions."
+  },
+  "gcp_resource_label_inventory": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "cloud_asset",
+      "path": "new read-only Cloud Asset Inventory:SearchAllResources with name,assetType,labels",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "36f85f16df8fe45d6bfc59eb0e339adaba6d790d437b49c55c8a45a544d02366",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Add required owner, criticality and data_classification labels to each in-scope Cloud Asset resource.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Add required owner, criticality and data_classification labels to each in-scope Cloud Asset resource."
+  },
+  "gcp_source_repo_access_restricted": {
+    "caveats": [
+      "Incomplete, malformed, or foreign-scope facts remain UNKNOWN; the proposed change requires owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw52",
+      "kind": "source_repository",
+      "observed_fail_evidence": "A repository read/write/admin role grants public or unapproved access.",
+      "path": "source_repository; complete scoped dependency inventories; required operator policy where applicable",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "db85b846749340071a9c4daddf182a90c0abe4bd5f66159aaf40b7510d3bbefb",
+    "references": [
+      {
+        "title": "Google Cloud documentation",
+        "url": "https://cloud.google.com/docs"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Use read-only GCP list/get inspection to confirm source_repository; complete scoped dependency inventories; required operator policy where applicable and collection completeness for the exact owning scope.",
+      "Review the signed control, approved policy inputs, affected resources, and operational impact with the owner.",
+      "After owner approval, remove allUsers/allAuthenticatedUsers and principals outside approved_developers from repository IAM bindings. Read back the setting and collect a fresh complete snapshot."
+    ],
+    "summary": "Remove allUsers/allAuthenticatedUsers and principals outside approved_developers from repository IAM bindings."
+  },
+  "gcp_sql_instance_sql_instance_does_have_iam_4b5fe00566e6": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "sql_instance",
+      "path": "Cloud SQL instances.list; inspect databaseVersion and settings.databaseFlags[].name/value.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "cad29977e6a92560969e484fc3ea920903a5bd63c45f13f70acf92c23cbe285a",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set the Cloud SQL engine-specific IAM authentication flag to on in settings.databaseFlags and restart if required.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set the Cloud SQL engine-specific IAM authentication flag to on in settings.databaseFlags and restart if required."
+  },
+  "gcp_sql_trace3625_off": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "sql_instance",
+      "path": "existing collected type sql_instance from SQL Admin instances.list; settings.databaseFlags[name=3625].value and databaseVersion",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "4d66f0f95070505aadeca1a4020620b4d40fff6436e41cb92d733a6ab1dcbb1f",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "With the database owner, set trace flag 3625 off or remove an explicit on setting after compatibility review.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "With the database owner, set trace flag 3625 off or remove an explicit on setting after compatibility review."
+  },
+  "gcp_vpc_peering_allowlist": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "network",
+      "path": "existing collected type network + peerings[].network,peerings[].state; approved_peer_networks context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "acc84a2a6fca1b31883e7d4199febab2d3ed6ee1e688e11b115d60e6e3f830bf",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Delete unapproved ACTIVE VPC peerings or add only vetted peer networks to approved_peer_networks.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Delete unapproved ACTIVE VPC peerings or add only vetted peer networks to approved_peer_networks."
+  },
+  "gcp_workbench_approved_image": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "workbench_instance",
+      "path": "existing collected type workbench_instance + gceSetup.vmImage, gceSetup.containerImage",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ed670835e571526ea18d080d056059e61fe87326d152bc4546d4f6e0fc2fc4bd",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Recreate the Workbench instance with gceSetup.vmImage or containerImage from approved_workbench_images.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Recreate the Workbench instance with gceSetup.vmImage or containerImage from approved_workbench_images."
+  },
+  "gcp_workbench_approved_vpc": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "workbench_instance",
+      "path": "existing collected type workbench_instance from Notebooks v2 instances.list; gceSetup.networkInterfaces[].network and approved_workbench_networks context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "f4f5feed1c78426146fec3ce0bbcaf09f039ab7bee7f39a175be69cbf5c0c111",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Move or recreate the Workbench instance on a VPC in approved_workbench_networks.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Move or recreate the Workbench instance on a VPC in approved_workbench_networks."
+  },
+  "gcp_workbench_download_disabled": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "workbench_instance",
+      "path": "existing collected type workbench_instance from Notebooks v2 instances.list; gceSetup.metadata.notebook-disable-downloads plus sensitive classification context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "a604366f60551960af7b76911769643a196549adeaf205f383804b4dc1097678",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set gceSetup.metadata.notebook-disable-downloads=true on sensitive Workbench instances.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set gceSetup.metadata.notebook-disable-downloads=true on sensitive Workbench instances."
+  },
+  "gcp_workbench_no_public_ip": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "workbench_instance",
+      "path": "existing collected type workbench_instance from Notebooks v2 instances.list; gceSetup.disablePublicIp and sensitive classification context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "bf7b3cc245cd475915b7ef6210af00f072ab2e5eb723223856befcf7aae7db8d",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set gceSetup.disablePublicIp=true on sensitive Workbench instances and use private access.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set gceSetup.disablePublicIp=true on sensitive Workbench instances and use private access."
+  },
+  "gcp_workbench_root_disabled": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "workbench_instance",
+      "path": "existing collected type workbench_instance from Notebooks v2 instances.list; gceSetup.metadata.notebook-disable-root plus sensitive classification context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "16d65c05518f4aa17fd4390611160fe5fb1ffc0f96b1503242e4a86bf32362a0",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set gceSetup.metadata.notebook-disable-root=true on sensitive Workbench instances; document nonsensitive exceptions.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set gceSetup.metadata.notebook-disable-root=true on sensitive Workbench instances; document nonsensitive exceptions."
+  },
+  "gcp_workbench_terminal_disabled": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_gcp",
+      "kind": "workbench_instance",
+      "path": "existing collected type workbench_instance from Notebooks v2 instances.list; gceSetup.metadata.notebook-disable-terminal plus sensitive classification context",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "020c75fd76b06549135f21c1499fee6172b1e433cbe62980286065dc72a10f69",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set gceSetup.metadata.notebook-disable-terminal=true on sensitive Workbench instances; document nonsensitive exceptions.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set gceSetup.metadata.notebook-disable-terminal=true on sensitive Workbench instances; document nonsensitive exceptions."
+  }
+}

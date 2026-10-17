@@ -1,0 +1,25 @@
+{
+  "baseline_source_version": "7d60a2384e5d1ec0b18213af2dae8f078ef095553e9a938c324ae4af45a4530e",
+  "changes": {
+    "peaso/collectors/gcp.py": {
+      "baseline_sha256": "70bdc6f7fae78bbecc703d5ef14014134b5e61e2a0ea07764a6fe0be919ed360",
+      "sha256": "241dc6616ff3f7a06a858c907ceedfcad68aeb408e43c7dda89a6c41cf501c06",
+      "reason": "Collect native build history and SQL operations; discover all Cloud Build regions and preserve partial denied-region coverage."
+    },
+    "peaso/collectors/gcp_compliance_wave.py": {
+      "baseline_sha256": "92007225b251abd013e4be533fff2ba6cdbe5835a638c6419c6663c2e458aba3",
+      "sha256": "49250bb20e6b692b7d43ba1bb69d979acd827f6df58789d729175d107fe9fe47",
+      "reason": "Join DNS records and SQL operation histories only to complete native parent inventories."
+    },
+    "peaso/collectors/gcp_history.py": {
+      "baseline_sha256": null,
+      "sha256": "247084b652dc8ceefeb3f4f60a099c7e4dff124f4054c46d4714d61b1576dfda",
+      "reason": "Read bounded native histories without interpreting builds as deployments or restores as validated."
+    },
+    "peaso/server/validation.py": {
+      "baseline_sha256": "abbc9d0726cb040331e193f28b6f54574d5fa9ceae9d4503cefd156aa77199ca",
+      "sha256": "0523b71273b2186d2471d160551e47ad46407917a663a338bff2dbcf2ff86889",
+      "reason": "Permit only validated, bounded Cloud Build region selectors for GCP hosted connectors."
+    }
+  }
+}

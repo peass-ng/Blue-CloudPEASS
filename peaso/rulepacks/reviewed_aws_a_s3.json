@@ -1,0 +1,326 @@
+{
+  "aws-compliance.control.cis_v130_1_20": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L306"
+    }
+  },
+  "aws-compliance.control.cis_v130_2_1_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.s3.default_encryption_configuration"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketEncryption.html"
+    ],
+    "reason": "Exact server_side_encryption_configuration non-NULL source policy; native documented default configuration object passes, typed absent configuration fails, malformed/denied unknown. AES256 valid, no KMS-only or encryption-strength condition invented.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_default_encryption_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "3b65368a3bee357d395ad1ff2c0ec74fc27ded1d2f72ca25511186241cf1c7d1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_2.pp#L56"
+    }
+  },
+  "aws-compliance.control.cis_v140_2_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.default_encryption_configuration"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketEncryption.html"
+    ],
+    "reason": "Exact server_side_encryption_configuration non-NULL source policy; native documented default configuration object passes, typed absent configuration fails, malformed/denied unknown. AES256 valid, no KMS-only or encryption-strength condition invented.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_default_encryption_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "3b65368a3bee357d395ad1ff2c0ec74fc27ded1d2f72ca25511186241cf1c7d1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L50"
+    }
+  },
+  "aws-compliance.control.cis_v140_2_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.s3.mfa_delete_enabled"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Exact versioning_mfa_delete boolean predicate independent of versioning enabled or ObjectLock. Native Enabled passes, Disabled/proven optional omission from successful GetBucketVersioning fails, denial/missing response unknown.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_mfa_delete_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "84b532b9e18f38b8202a4f42291557e956be8e4a8955ac976c979535b8c76d16",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L78"
+    }
+  },
+  "aws-compliance.control.cis_v140_2_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L106"
+    }
+  },
+  "aws-compliance.control.cis_v150_2_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.default_encryption_configuration"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketEncryption.html"
+    ],
+    "reason": "Exact server_side_encryption_configuration non-NULL source policy; native documented default configuration object passes, typed absent configuration fails, malformed/denied unknown. AES256 valid, no KMS-only or encryption-strength condition invented.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_default_encryption_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "3b65368a3bee357d395ad1ff2c0ec74fc27ded1d2f72ca25511186241cf1c7d1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L54"
+    }
+  },
+  "aws-compliance.control.cis_v150_2_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.mfa_delete_enabled"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Exact versioning_mfa_delete boolean predicate independent of versioning enabled or ObjectLock. Native Enabled passes, Disabled/proven optional omission from successful GetBucketVersioning fails, denial/missing response unknown.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_mfa_delete_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "84b532b9e18f38b8202a4f42291557e956be8e4a8955ac976c979535b8c76d16",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L82"
+    }
+  },
+  "aws-compliance.control.cis_v150_2_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L110"
+    }
+  },
+  "aws-compliance.control.cis_v200_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.mfa_delete_enabled"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Exact versioning_mfa_delete boolean predicate independent of versioning enabled or ObjectLock. Native Enabled passes, Disabled/proven optional omission from successful GetBucketVersioning fails, denial/missing response unknown.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_mfa_delete_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "84b532b9e18f38b8202a4f42291557e956be8e4a8955ac976c979535b8c76d16",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L67"
+    }
+  },
+  "aws-compliance.control.cis_v200_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L95"
+    }
+  },
+  "aws-compliance.control.cis_v300_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.mfa_delete_enabled"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Exact versioning_mfa_delete boolean predicate independent of versioning enabled or ObjectLock. Native Enabled passes, Disabled/proven optional omission from successful GetBucketVersioning fails, denial/missing response unknown.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_mfa_delete_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "84b532b9e18f38b8202a4f42291557e956be8e4a8955ac976c979535b8c76d16",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L67"
+    }
+  },
+  "aws-compliance.control.cis_v300_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L95"
+    }
+  },
+  "aws-compliance.control.cis_v400_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.mfa_delete_enabled"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Exact versioning_mfa_delete boolean predicate independent of versioning enabled or ObjectLock. Native Enabled passes, Disabled/proven optional omission from successful GetBucketVersioning fails, denial/missing response unknown.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_mfa_delete_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "84b532b9e18f38b8202a4f42291557e956be8e4a8955ac976c979535b8c76d16",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L63"
+    }
+  },
+  "aws-compliance.control.cis_v400_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L91"
+    }
+  },
+  "aws-compliance.control.cis_v500_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.mfa_delete_enabled"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Exact versioning_mfa_delete boolean predicate independent of versioning enabled or ObjectLock. Native Enabled passes, Disabled/proven optional omission from successful GetBucketVersioning fails, denial/missing response unknown.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_mfa_delete_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "84b532b9e18f38b8202a4f42291557e956be8e4a8955ac976c979535b8c76d16",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L63"
+    }
+  },
+  "aws-compliance.control.cis_v500_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L91"
+    }
+  },
+  "aws-compliance.control.cis_v600_3_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.mfa_delete_enabled"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Exact versioning_mfa_delete boolean predicate independent of versioning enabled or ObjectLock. Native Enabled passes, Disabled/proven optional omission from successful GetBucketVersioning fails, denial/missing response unknown.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_bucket_mfa_delete_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "84b532b9e18f38b8202a4f42291557e956be8e4a8955ac976c979535b8c76d16",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L92"
+    }
+  },
+  "aws-compliance.control.cis_v600_3_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.s3.bucket_account_public_blocks"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    ],
+    "reason": "Full four conjuncts, each bucket boolean OR same-account public-access setting, preserved. Each control must be satisfied, no aggregate OR shortcut. Only verified complete global same-account dependency/knownempty absence can supply false settings; native booleans strict and conflicting accounts unknown. Stronger native malformed-field guard required rather than reusing previous bool-casting/unscoped check.",
+    "review_notes": "Full pinned SQL/source aliases individually inspected; real pass/fail/unknown/denied/malformed/purity, optional omission, sameaccount and eachcontrol differential fixtures. Offline metadata-only evaluators, no object/secret values or probes; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "s3_public_access_block_bucket_account",
+    "reviewed_source": {
+      "evaluator_sha256": "34ee4015f1189187f0df10aa7f2efab79cfa259627769f0f8801c70defb53a19",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L120"
+    }
+  }
+}

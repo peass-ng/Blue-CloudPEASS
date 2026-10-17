@@ -19,8 +19,9 @@ async function emptyApi(page: Page) {
 }
 async function openDemoMap(page: Page) {
   await emptyApi(page);
+  await page.route("**/api/me", (route) => route.fulfill({ status: 401, json: { detail: "Bearer authentication required" } }));
   await page.goto("/");
-  await page.getByLabel("Fixture demo", { exact: true }).check();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
   await page
     .getByRole("navigation")
     .getByRole("button", { name: "Privilege Escalation Map", exact: true })
@@ -28,6 +29,7 @@ async function openDemoMap(page: Page) {
   await expect(
     page.getByRole("heading", { name: "Privilege Escalation Map" }),
   ).toBeVisible();
+  await page.getByLabel("Hide unknown").uncheck();
   // ELK runs in a web worker; allow for a loaded CI machine.
   await expect(page.locator(".react-flow__node").first()).toBeVisible({ timeout: 30000 });
   await expect(page.getByText("Laying out escalation paths…")).toHaveCount(0, { timeout: 30000 });
@@ -83,7 +85,7 @@ test("who can reach admin lists principals and highlights a path", async ({
 }) => {
   await openDemoMap(page);
   await sidebar(page).getByRole("button", { name: "Who can reach admin" }).click();
-  const results = page.getByRole("list", { name: "Principals reaching admin" });
+  const results = page.getByRole("list", { name: "Principals with potential admin paths", exact: true });
   await expect(results.getByRole("button").first()).toBeVisible();
   await expect(results).toContainText("alice");
   await expect(results).toContainText("grace@contoso.example");
@@ -149,14 +151,18 @@ test("edge card shows technique summary, permissions and HackTricks source", asy
   const link = dialog.getByRole("link", { name: /HackTricks Cloud source/ }).first();
   await expect(link).toHaveAttribute(
     "href",
-    "https://cloud.hacktricks.wiki/en/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.html#iampassrole-lambdacreatefunction-lambdainvokefunction",
+    "https://cloud.hacktricks.wiki/en/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/#iampassrole-lambdacreatefunction-lambdainvokefunction",
   );
   await dialog.getByRole("button", { name: "Close inspector" }).click();
   // Conditions appear for conditional techniques.
   const conditional = page.locator('.react-flow__edge[aria-label^="alice to "]');
   await conditional.locator(".react-flow__edge-textbg").click();
-  await expect(page.getByRole("dialog")).toContainText("passrole_condition_key");
-  await expect(page.getByRole("dialog")).toContainText("scp_not_evaluated");
+  await expect(page.getByRole("dialog")).toContainText("Conditional path:");
+  await expect(page.getByRole("dialog")).toContainText("Conditions and blockers");
+  await expect(page.getByRole("dialog")).toContainText("iam:PassedToService / iam:AssociatedResourceArn conditions may restrict this");
+  await expect(page.getByRole("dialog")).toContainText("{target.arn}");
+  await expect(page.getByRole("dialog")).not.toContainText("Structured text could not be parsed");
+  await expect(page.getByRole("dialog")).toContainText("SCP was not evaluated");
 });
 
 test("filters narrow provider, severity, confidence and unknown edges", async ({
@@ -180,7 +186,8 @@ test("filters narrow provider, severity, confidence and unknown edges", async ({
   await expect(page.locator(".react-flow__edge.conf-derived")).toHaveCount(0);
   await expect(page.locator(".react-flow__edge.conf-conditional").first()).toBeVisible();
   await page.getByLabel("Confidence filter").selectOption("unknown");
-  await expect(page.locator(".react-flow__edge")).toHaveCount(3);
+  // 3 unknown escalation edges + 2 into the unresolved Batch placeholder.
+  await expect(page.locator(".react-flow__edge")).toHaveCount(5);
 });
 
 test("search focuses a node neighbourhood", async ({ page }) => {
@@ -259,15 +266,82 @@ test("empty graph from a privesc scan explains missing paths", async ({ page }) 
   ).toBeVisible();
 });
 
-test("IAM Risk Map remains available as a separate view", async ({ page }) => {
-  await emptyApi(page);
-  await page.goto("/");
-  await page.getByLabel("Fixture demo", { exact: true }).check();
-  await page
-    .getByRole("navigation")
-    .getByRole("button", { name: "IAM Risk Map", exact: true })
-    .click();
-  await expect(page.getByText(/Declared access and trust/)).toBeVisible();
+const UNRESOLVED = "unresolved:aws_role:298a174944:111111111111";
+test("unresolved placeholders are grey, explain missing facts and obey Hide unknown", async ({
+  page,
+}) => {
+  await openDemoMap(page);
+  await fitAll(page);
+  const ph = node(page, UNRESOLVED);
+  await expect(ph.locator(".pe-unresolved")).toBeVisible();
+  await expect(ph).toContainText("Unresolved");
+  await expect(ph.locator(".pe-unresolved")).toHaveCSS("border-top-style", "dashed");
+  await expect(ph.locator(".pe-node-count")).toHaveCount(0);
+  await expect(page.getByLabel("Show unresolved (1)")).toBeChecked();
+  await ph.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Unresolved target set" })).toBeVisible();
+  await expect(dialog).toContainText("batch_attachment_not_collected");
+  await expect(dialog).toContainText("batch:DescribeJobDefinitions");
+  await expect(dialog).toContainText("Principals pointing here · 2");
+  await expect(dialog).toContainText("bob-ci");
+  await dialog.getByRole("button", { name: "Close inspector" }).click();
+  await page.getByLabel("Hide unknown").check();
+  await expect(ph).toHaveCount(0);
+  await page.getByLabel("Hide unknown").uncheck();
+  await page.getByLabel("Show unresolved (1)").uncheck();
+  await expect(ph).toHaveCount(0);
+  await expect(page.locator(".pe-unresolved-notice")).toContainText("1 unresolved target set (2 unknown edges) hidden");
+});
+
+test("admin query separates potential paths from unknown paths", async ({ page }) => {
+  await openDemoMap(page);
+  await sidebar(page).getByRole("button", { name: "Who can reach admin" }).click();
+  const potential = page.getByRole("list", { name: "Principals with potential admin paths", exact: true });
+  const unknown = page.getByRole("list", { name: "Principals reaching admin over unknown edges" });
+  await expect(potential).toContainText("alice");
+  await expect(potential).not.toContainText("ivan@contoso.example");
+  // ivan only reaches admin through an unknown service-principal ownership edge.
+  await expect(unknown).toContainText("ivan@contoso.example");
+  await expect(sidebar(page).locator(".pe-admin-potential .pe-group-title")).toContainText("Potential paths");
+  await expect(sidebar(page).locator(".pe-admin-unknown .pe-group-title")).toContainText("Unknown paths");
+  await expect(page.locator(".pe-chip.hl")).toContainText(/\d+ potential · \d+ unknown reach admin/);
+});
+
+test("many unresolved placeholders start hidden", async ({ page }) => {
+  const ADMIN = "aws_account_admin:999";
+  const nodes = [
+    { id: "arn:aws:iam::999:user/u", label: "u", type: "aws_user", provider: "aws", scope: "999", kind: "principal" },
+    { id: ADMIN, label: "Admin 999", type: "aws_account_admin", provider: "aws", scope: "999", kind: "entity", attrs: { admin: true } },
+    ...Array.from({ length: 21 }, (_, i) => ({
+      id: `unresolved:aws_role:x${i}:999`, kind: "aggregate", type: "aws_role", provider: "aws", scope: "999",
+      label: `Unresolved: set ${i}`, underlying_count: 0, members: [], confidence: "unknown",
+      unresolved: true, unresolved_reason: "glue_attachment_not_collected", facts_needed: "facts not in snapshot: glue_attachment_not_collected",
+    })),
+  ];
+  const edges = [
+    { id: "e:admin", source: nodes[0].id, target: ADMIN, techniques: ["admin-equivalent"], confidence: "derived" },
+    ...nodes.slice(2).map((n, i) => ({ id: `e:u${i}`, source: nodes[0].id, target: n.id, techniques: ["aws-glue-passrole-createjob"], confidence: "unknown" })),
+  ];
+  await page.route("**/api/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    await route.fulfill({
+      json: path.endsWith("/graphs/privesc")
+        ? { nodes, edges }
+        : path.endsWith("/scans")
+          ? { items: [{ id: "scan-3", connector_id: "c1", status: "completed", created_at: "2026-01-01T00:00:00Z", categories: ["privesc"] }] }
+          : path.endsWith("/summary")
+            ? { findings: [], stats: {}, scopes: [], graphs: {} }
+            : { items: [] },
+    });
+  });
+  await page.goto("/#Privilege%20Escalation%20Map");
+  await expect(page.locator(".react-flow__node")).toHaveCount(2, { timeout: 30000 });
+  await expect(page.getByLabel("Show unresolved (21)")).not.toBeChecked();
+  await expect(page.locator(".pe-unresolved-notice")).toContainText("21 unresolved target sets (21 unknown edges) hidden");
+  await page.getByLabel("Hide unknown").uncheck();
+  await page.getByRole("button", { name: "Show them" }).click();
+  await expect(page.locator(".react-flow__node")).toHaveCount(23, { timeout: 30000 });
 });
 
 test.describe("mobile", () => {

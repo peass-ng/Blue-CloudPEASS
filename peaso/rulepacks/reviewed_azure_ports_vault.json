@@ -1,0 +1,1799 @@
+{
+  "azure-compliance.control.cis_v130_5_1_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_5.pp",
+      "control_line": 124,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v130_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 430,
+      "query_sha256": "b4a54c001c21b45d47abaa6ccf7fad755334d4ceb8df21735adf409f68820bcf",
+      "status_case_sql": "case\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_8.pp",
+      "control_line": 23,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v130_8_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 453,
+      "query_sha256": "82032050f8766a2dc8bb8a716b0e252c6c77f837d8b1007e4a5700cac3e90146",
+      "status_case_sql": "case\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_8.pp",
+      "control_line": 37,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v140_5_1_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_5.pp",
+      "control_line": 124,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v140_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 607,
+      "query_sha256": "a527ee276d0581e743dd79e089983813eb4221343c0fb886a1d0f41590cd310d",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_8.pp",
+      "control_line": 25,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v140_8_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 518,
+      "query_sha256": "404875aab6b081fb8f8f22e662e954c028672f07f0774e73010b3d5924ee534e",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_8.pp",
+      "control_line": 39,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v140_8_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 640,
+      "query_sha256": "98e90c6a452878e5347773373937160ff759b943cafa4bdb3a8cfe745e9749e5",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_8.pp",
+      "control_line": 53,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v140_8_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 574,
+      "query_sha256": "afcb760043363977922a2af6d3966a3ab1a677236edb5864a596563f98ea839f",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_8.pp",
+      "control_line": 67,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_5_1_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_5.pp",
+      "control_line": 126,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 607,
+      "query_sha256": "a527ee276d0581e743dd79e089983813eb4221343c0fb886a1d0f41590cd310d",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 26,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_8_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 518,
+      "query_sha256": "404875aab6b081fb8f8f22e662e954c028672f07f0774e73010b3d5924ee534e",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 40,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_8_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 640,
+      "query_sha256": "98e90c6a452878e5347773373937160ff759b943cafa4bdb3a8cfe745e9749e5",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 54,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_8_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 574,
+      "query_sha256": "afcb760043363977922a2af6d3966a3ab1a677236edb5864a596563f98ea839f",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 68,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_8_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.rbac"
+    ],
+    "reason": "Individually inspected full keyvault_rbac_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_rbac_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 497,
+      "query_sha256": "a5ab01fc017ac5700075fae2955011b5db3fbc4559b78d699ee5d12ae195a92e",
+      "status_case_sql": "case\n        when enable_rbac_authorization then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 96,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_8_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_vault_private_link_used"
+    ],
+    "reason": "Individually inspected full keyvault_vault_private_link_used source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_private_link_used",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 378,
+      "query_sha256": "53e551dc7a19546bbefa1afe8696836130dcc185704228c2420de52ec0bb1cac",
+      "status_case_sql": "case\n      -- Having private_endpoint_connections will not permit vault to use the same.\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed, which will not satisfy the private endpoint connection.\n      -- Default All network will have not network_acls associated.\n        when network_acls is null or network_acls ->> 'defaultAction' = 'Allow' then 'alarm'\n        when private_endpoint_connections is null then 'info'\n        when private_endpoint_connections @> '[{\"PrivateLinkServiceConnectionStateStatus\": \"Approved\"}]' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 110,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v150_8_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_key_automatic_rotation_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_key_automatic_rotation_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_key_automatic_rotation_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 721,
+      "query_sha256": "7d1a0d4216a89cdce6532e92498a8fadd1cc20289b538bc6fcdb9440ac7a7ea5",
+      "status_case_sql": "case\n        when p.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_8.pp",
+      "control_line": 124,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_5_1_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_5.pp",
+      "control_line": 109,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 607,
+      "query_sha256": "a527ee276d0581e743dd79e089983813eb4221343c0fb886a1d0f41590cd310d",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 26,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_8_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 518,
+      "query_sha256": "404875aab6b081fb8f8f22e662e954c028672f07f0774e73010b3d5924ee534e",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 40,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_8_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 640,
+      "query_sha256": "98e90c6a452878e5347773373937160ff759b943cafa4bdb3a8cfe745e9749e5",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 54,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_8_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 574,
+      "query_sha256": "afcb760043363977922a2af6d3966a3ab1a677236edb5864a596563f98ea839f",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 68,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_8_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.rbac"
+    ],
+    "reason": "Individually inspected full keyvault_rbac_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_rbac_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 497,
+      "query_sha256": "a5ab01fc017ac5700075fae2955011b5db3fbc4559b78d699ee5d12ae195a92e",
+      "status_case_sql": "case\n        when enable_rbac_authorization then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 96,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_8_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_vault_private_link_used"
+    ],
+    "reason": "Individually inspected full keyvault_vault_private_link_used source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_private_link_used",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 378,
+      "query_sha256": "53e551dc7a19546bbefa1afe8696836130dcc185704228c2420de52ec0bb1cac",
+      "status_case_sql": "case\n      -- Having private_endpoint_connections will not permit vault to use the same.\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed, which will not satisfy the private endpoint connection.\n      -- Default All network will have not network_acls associated.\n        when network_acls is null or network_acls ->> 'defaultAction' = 'Allow' then 'alarm'\n        when private_endpoint_connections is null then 'info'\n        when private_endpoint_connections @> '[{\"PrivateLinkServiceConnectionStateStatus\": \"Approved\"}]' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 110,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v200_8_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_key_automatic_rotation_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_key_automatic_rotation_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_key_automatic_rotation_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 721,
+      "query_sha256": "7d1a0d4216a89cdce6532e92498a8fadd1cc20289b538bc6fcdb9440ac7a7ea5",
+      "status_case_sql": "case\n        when p.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_8.pp",
+      "control_line": 124,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_5_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_5.pp",
+      "control_line": 94,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 607,
+      "query_sha256": "a527ee276d0581e743dd79e089983813eb4221343c0fb886a1d0f41590cd310d",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 26,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_8_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 518,
+      "query_sha256": "404875aab6b081fb8f8f22e662e954c028672f07f0774e73010b3d5924ee534e",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 40,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_8_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 640,
+      "query_sha256": "98e90c6a452878e5347773373937160ff759b943cafa4bdb3a8cfe745e9749e5",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 54,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_8_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 574,
+      "query_sha256": "afcb760043363977922a2af6d3966a3ab1a677236edb5864a596563f98ea839f",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 68,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_8_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.rbac"
+    ],
+    "reason": "Individually inspected full keyvault_rbac_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_rbac_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 497,
+      "query_sha256": "a5ab01fc017ac5700075fae2955011b5db3fbc4559b78d699ee5d12ae195a92e",
+      "status_case_sql": "case\n        when enable_rbac_authorization then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 96,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_8_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_vault_private_link_used"
+    ],
+    "reason": "Individually inspected full keyvault_vault_private_link_used source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_private_link_used",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 378,
+      "query_sha256": "53e551dc7a19546bbefa1afe8696836130dcc185704228c2420de52ec0bb1cac",
+      "status_case_sql": "case\n      -- Having private_endpoint_connections will not permit vault to use the same.\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed, which will not satisfy the private endpoint connection.\n      -- Default All network will have not network_acls associated.\n        when network_acls is null or network_acls ->> 'defaultAction' = 'Allow' then 'alarm'\n        when private_endpoint_connections is null then 'info'\n        when private_endpoint_connections @> '[{\"PrivateLinkServiceConnectionStateStatus\": \"Approved\"}]' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 110,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v210_8_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_key_automatic_rotation_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_key_automatic_rotation_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_key_automatic_rotation_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 721,
+      "query_sha256": "7d1a0d4216a89cdce6532e92498a8fadd1cc20289b538bc6fcdb9440ac7a7ea5",
+      "status_case_sql": "case\n        when p.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_8.pp",
+      "control_line": 124,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 607,
+      "query_sha256": "a527ee276d0581e743dd79e089983813eb4221343c0fb886a1d0f41590cd310d",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 571,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 518,
+      "query_sha256": "404875aab6b081fb8f8f22e662e954c028672f07f0774e73010b3d5924ee534e",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 585,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 640,
+      "query_sha256": "98e90c6a452878e5347773373937160ff759b943cafa4bdb3a8cfe745e9749e5",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 599,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 574,
+      "query_sha256": "afcb760043363977922a2af6d3966a3ab1a677236edb5864a596563f98ea839f",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 613,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.rbac"
+    ],
+    "reason": "Individually inspected full keyvault_rbac_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_rbac_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 497,
+      "query_sha256": "a5ab01fc017ac5700075fae2955011b5db3fbc4559b78d699ee5d12ae195a92e",
+      "status_case_sql": "case\n        when enable_rbac_authorization then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 641,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_vault_private_link_used"
+    ],
+    "reason": "Individually inspected full keyvault_vault_private_link_used source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_private_link_used",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 378,
+      "query_sha256": "53e551dc7a19546bbefa1afe8696836130dcc185704228c2420de52ec0bb1cac",
+      "status_case_sql": "case\n      -- Having private_endpoint_connections will not permit vault to use the same.\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed, which will not satisfy the private endpoint connection.\n      -- Default All network will have not network_acls associated.\n        when network_acls is null or network_acls ->> 'defaultAction' = 'Allow' then 'alarm'\n        when private_endpoint_connections is null then 'info'\n        when private_endpoint_connections @> '[{\"PrivateLinkServiceConnectionStateStatus\": \"Approved\"}]' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 655,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_3_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_key_automatic_rotation_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_key_automatic_rotation_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_key_automatic_rotation_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 721,
+      "query_sha256": "7d1a0d4216a89cdce6532e92498a8fadd1cc20289b538bc6fcdb9440ac7a7ea5",
+      "status_case_sql": "case\n        when p.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 669,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v300_6_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_6.pp",
+      "control_line": 94,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_7_1_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_7.pp",
+      "control_line": 115,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 607,
+      "query_sha256": "a527ee276d0581e743dd79e089983813eb4221343c0fb886a1d0f41590cd310d",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 540,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 518,
+      "query_sha256": "404875aab6b081fb8f8f22e662e954c028672f07f0774e73010b3d5924ee534e",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 554,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 640,
+      "query_sha256": "98e90c6a452878e5347773373937160ff759b943cafa4bdb3a8cfe745e9749e5",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 568,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 574,
+      "query_sha256": "afcb760043363977922a2af6d3966a3ab1a677236edb5864a596563f98ea839f",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 582,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.rbac"
+    ],
+    "reason": "Individually inspected full keyvault_rbac_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_rbac_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 497,
+      "query_sha256": "a5ab01fc017ac5700075fae2955011b5db3fbc4559b78d699ee5d12ae195a92e",
+      "status_case_sql": "case\n        when enable_rbac_authorization then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 610,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_public_network_access_disabled"
+    ],
+    "reason": "Individually inspected full keyvault_public_network_access_disabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_public_network_access_disabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 694,
+      "query_sha256": "09757a33894b8716cc4d4bca8f74bd3391f504e7c7bde6962bdcc0645dff7886",
+      "status_case_sql": "case\n        when jsonb_array_length(v.private_endpoint_connections) > 0\n          and v.network_acls ->> 'defaultAction' = 'Deny' then 'ok'\n        when jsonb_array_length(v.private_endpoint_connections) = 0 then 'skip'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 624,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_vault_private_link_used"
+    ],
+    "reason": "Individually inspected full keyvault_vault_private_link_used source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_private_link_used",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 378,
+      "query_sha256": "53e551dc7a19546bbefa1afe8696836130dcc185704228c2420de52ec0bb1cac",
+      "status_case_sql": "case\n      -- Having private_endpoint_connections will not permit vault to use the same.\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed, which will not satisfy the private endpoint connection.\n      -- Default All network will have not network_acls associated.\n        when network_acls is null or network_acls ->> 'defaultAction' = 'Allow' then 'alarm'\n        when private_endpoint_connections is null then 'info'\n        when private_endpoint_connections @> '[{\"PrivateLinkServiceConnectionStateStatus\": \"Approved\"}]' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 638,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_3_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_key_automatic_rotation_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_key_automatic_rotation_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_key_automatic_rotation_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 721,
+      "query_sha256": "7d1a0d4216a89cdce6532e92498a8fadd1cc20289b538bc6fcdb9440ac7a7ea5",
+      "status_case_sql": "case\n        when p.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 652,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_logging_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_logging_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_logging_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 231,
+      "query_sha256": "fa7c6d103c871b02ff8e4f9d12b3d345c65a9ff1a95a64dbcf74cb6cbf2e6232",
+      "status_case_sql": "case\n        when v.diagnostic_settings is null then 'alarm'\n        when audit.id is not null  and alllogs.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_6.pp",
+      "control_line": 118,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 607,
+      "query_sha256": "a527ee276d0581e743dd79e089983813eb4221343c0fb886a1d0f41590cd310d",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 600,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_key_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_key_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_key_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 518,
+      "query_sha256": "404875aab6b081fb8f8f22e662e954c028672f07f0774e73010b3d5924ee534e",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 614,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 640,
+      "query_sha256": "98e90c6a452878e5347773373937160ff759b943cafa4bdb3a8cfe745e9749e5",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 628,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_with_non_rbac_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_with_non_rbac_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_with_non_rbac_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 574,
+      "query_sha256": "afcb760043363977922a2af6d3966a3ab1a677236edb5864a596563f98ea839f",
+      "status_case_sql": "case\n        when v.name is null then 'skip'\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 642,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.purge_protection"
+    ],
+    "reason": "Individually inspected full keyvault_purge_protection_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_purge_protection_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 210,
+      "query_sha256": "206b9fa9b91e76a005b3151e789437fa81ec903c21b95ef6fa49168af4b2cb0a",
+      "status_case_sql": "case\n        when purge_protection_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 656,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.rbac"
+    ],
+    "reason": "Individually inspected full keyvault_rbac_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_rbac_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 497,
+      "query_sha256": "a5ab01fc017ac5700075fae2955011b5db3fbc4559b78d699ee5d12ae195a92e",
+      "status_case_sql": "case\n        when enable_rbac_authorization then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 670,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.vault.default_deny"
+    ],
+    "reason": "Individually inspected full keyvault_vault_public_network_access_disabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_public_network_access_disabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 407,
+      "query_sha256": "d28c0d35f19df12c2f8f5e1370ce8c337dd2ef5fd311fac904fb98962d742f41",
+      "status_case_sql": "case\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed\n      -- Default All network will have not network_acls associated\n        when network_acls is null or network_acls ->> 'defaultAction' != 'Deny' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 684,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_vault_private_link_used"
+    ],
+    "reason": "Individually inspected full keyvault_vault_private_link_used source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_private_link_used",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 378,
+      "query_sha256": "53e551dc7a19546bbefa1afe8696836130dcc185704228c2420de52ec0bb1cac",
+      "status_case_sql": "case\n      -- Having private_endpoint_connections will not permit vault to use the same.\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed, which will not satisfy the private endpoint connection.\n      -- Default All network will have not network_acls associated.\n        when network_acls is null or network_acls ->> 'defaultAction' = 'Allow' then 'alarm'\n        when private_endpoint_connections is null then 'info'\n        when private_endpoint_connections @> '[{\"PrivateLinkServiceConnectionStateStatus\": \"Approved\"}]' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 698,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_3_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_key_automatic_rotation_enabled"
+    ],
+    "reason": "Individually inspected full keyvault_key_automatic_rotation_enabled source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_key_automatic_rotation_enabled",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 721,
+      "query_sha256": "7d1a0d4216a89cdce6532e92498a8fadd1cc20289b538bc6fcdb9440ac7a7ea5",
+      "status_case_sql": "case\n        when p.id is not null then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 712,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_key",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.keyvault_secret_expiration_set": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_secret_expiration_set"
+    ],
+    "reason": "Individually inspected full keyvault_secret_expiration_set source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_secret_expiration_set",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 453,
+      "query_sha256": "82032050f8766a2dc8bb8a716b0e252c6c77f837d8b1007e4a5700cac3e90146",
+      "status_case_sql": "case\n        when enabled and expires_at is null then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "regulatory_compliance/keyvault.pp",
+      "control_line": 97,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault_secret",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  },
+  "azure-compliance.control.keyvault_vault_private_link_used": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.keyvault_vault_private_link_used"
+    ],
+    "reason": "Individually inspected full keyvault_vault_private_link_used source and no-argument delegation. Preserve authorization-mode applicability, enabled expiration-presence condition, exact rotation trigger, audit ANDallLogs categories, and source private-link/ACL conditions without substituting publicNetworkAccess. Parent relationships require exact complete full ARM-ID joins; malformed/unreadable context UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.keyvault/2025-05-01/vaults",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-keys/get-keys?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/keyvault/keys/get-key-rotation-policy/get-key-rotation-policy?view=rest-keyvault-keys-2025-07-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "Disabled keys/secrets PASS exact source, not reused secret check with NOT_APPLICABLE. Enabled absent expiration FAIL after known complete attributes; expired dates still satisfy source presence-only baseline. Known null connections INFO mapsMANUAL, completeempty listFAIL; distinct skipempty ACL rule. Data-plane listmetadata/rotationpolicy only, no secretvalues/keymaterial.",
+    "source_review": {
+      "query_id": "keyvault_vault_private_link_used",
+      "query_path": "regulatory_compliance/keyvault.pp",
+      "query_line": 378,
+      "query_sha256": "53e551dc7a19546bbefa1afe8696836130dcc185704228c2420de52ec0bb1cac",
+      "status_case_sql": "case\n      -- Having private_endpoint_connections will not permit vault to use the same.\n      -- In case'defaultAction' = 'Allow', All Network including internet is allowed, which will not satisfy the private endpoint connection.\n      -- Default All network will have not network_acls associated.\n        when network_acls is null or network_acls ->> 'defaultAction' = 'Allow' then 'alarm'\n        when private_endpoint_connections is null then 'info'\n        when private_endpoint_connections @> '[{\"PrivateLinkServiceConnectionStateStatus\": \"Approved\"}]' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/keyvault.pp",
+      "control_line": 64,
+      "arguments": [],
+      "source_dependencies": [
+        "azure_key_vault",
+        "azure_subscription"
+      ],
+      "scope": "source child identity with exact full ARM parent join when authorization-mode gated"
+    }
+  }
+}

@@ -162,12 +162,15 @@ def test_large_group_projection_counts_and_evidence_refs():
         ("iam_user", "scope-a"): [{"UserName": f"u{i}", "GroupList": ["large"]} for i in range(1500)]})
     graph = build_graphs(snap, resources(snap), max_nodes=50)["iam"]
     assert graph["projection"]["node_count"] == 1501
-    assert len(graph["nodes"]) == 2
+    # The budget is used: 1,500 flat principals split into contiguous label ranges, not one bucket per type.
+    assert 2 < len(graph["nodes"]) <= 50
     assert sum(n["underlying_count"] for n in graph["nodes"]) == 1501
-    assert len(graph["edges"]) == 1
-    assert graph["edges"][0]["underlying_count"] == 1500
-    assert len(graph["edges"][0]["edge_refs"]) == 1500
-    assert graph["edges"][0]["evidence"]["sampled_evidence"]
+    assert sorted(ref for n in graph["nodes"] for ref in n["node_refs"]) == sorted(n["id"] for n in build_graphs(snap, resources(snap), max_nodes=None)["iam"]["nodes"])
+    ranges = [n for n in graph["nodes"] if n.get("label_range")]
+    assert ranges and all(n["type"] == "iam_user" and n["aggregate"] for n in ranges)
+    assert sum(e["underlying_count"] for e in graph["edges"]) == 1500
+    assert sum(len(e["edge_refs"]) for e in graph["edges"]) == 1500
+    assert any(e["evidence"]["sampled_evidence"] for e in graph["edges"])
 
 
 def test_denied_and_missing_inventory_never_clean():
@@ -189,7 +192,11 @@ def test_engine_real_snapshot_contract_and_offline_demo(provider, monkeypatch):
     assert result["snapshot_id"] == snap["snapshot_id"]
     assert result["graphs"]["iam"]["nodes"]
     assert result["graphs"]["network"]["nodes"]
-    assert any(f["check_id"].startswith("analysis.") for f in result["findings"])
+    if provider == "k8s":
+        # The demo cluster only binds an in-cluster ServiceAccount to a read-only Role: no exposure or broad grant.
+        assert not any(f["check_id"] == "analysis.principal_exposure" for f in result["findings"])
+    else:
+        assert any(f["check_id"].startswith("analysis.") for f in result["findings"])
     assert all(f["resource_id"] in {r["id"] for r in result["resources"]} or f["resource_id"] == "inventory" for f in result["findings"] if f["check_id"].startswith("analysis."))
 
 

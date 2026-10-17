@@ -1,0 +1,75 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
+# Amazon AppStream 2.0 (WorkSpaces Applications) privilege escalation techniques.
+# Source: hacktricks-cloud aws-appstream-privesc/README.md (rev 171e422299).
+# Existing-resource techniques use via_resource_type appstream_* (roles trusting appstream.amazonaws.com; the
+# fleet / image-builder / app-block-builder inventory is not collected, so attachment resolves as unknown).
+
+- id: aws-appstream-passrole-createimagebuilder-createfleet
+  provider: aws
+  service: appstream
+  title: Create an image builder or fleet with a passed role and stream into it
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appstream-privesc/README.md#appstreamcreateimagebuilder--createfleet--iampassrole--session-with-the-passed-roles-credentials
+  source_revision: 6fb9ac51fd
+  summary: The source can obtain the privileges of any passable role trusting appstream.amazonaws.com.
+  requires:
+    all_of:
+    - action: iam:PassRole
+      resource: '{target.arn}'
+    any_of:
+    - - action: appstream:CreateImageBuilder
+        resource: '*'
+      - action: appstream:CreateImageBuilderStreamingURL
+        resource: '*'
+    - - action: appstream:CreateFleet
+        resource: '*'
+      - action: appstream:CreateStack
+        resource: '*'
+      - action: appstream:AssociateFleet
+        resource: '*'
+      - action: appstream:CreateStreamingURL
+        resource: '*'
+    - - action: appstream:CreateAppBlockBuilder
+        resource: '*'
+      - action: appstream:CreateAppBlockBuilderStreamingURL
+        resource: '*'
+    - - action: appstream:UpdateFleet
+        resource: '*'
+      - action: appstream:CreateStreamingURL
+        resource: '*'
+    - - action: appstream:UpdateAppBlockBuilder
+        resource: '*'
+      - action: appstream:CreateAppBlockBuilderStreamingURL
+        resource: '*'
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: appstream.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: Roles trusting appstream.amazonaws.com passable in {account}
+    outcome: workload_execution
+  conditions:
+  - id: passrole_condition_key
+    description: iam:PassedToService conditions may restrict which roles can be passed.
+  - id: image_and_network
+    description: An available image and VPC subnet/security group the source may use are required; the fleet path
+      can reuse an existing stack instead of CreateStack/AssociateFleet.
+  - id: update_existing
+    description: The UpdateFleet and UpdateAppBlockBuilder alternatives need an existing fleet (associated with
+      a stack the source can stream from) or app block builder in scope, and set its role to the passed one.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole on AppStream roles with iam:PassedToService and specific role ARNs; limit image
+    builder and fleet creation to AppStream administrators.
+  references:
+  - https://docs.aws.amazon.com/appstream2/latest/APIReference/API_CreateImageBuilder.html
+  - https://docs.aws.amazon.com/appstream2/latest/APIReference/API_CreateFleet.html
+  notes: 'Reach is roles trusting appstream.amazonaws.com in PassRole scope. Alternatives: new image builder, new
+    fleet with stack, new app block builder, or an existing fleet / app block builder repointed to the passed role.'

@@ -1,0 +1,63 @@
+{
+ "prowler.aws.rolesanywhere_profile_restricts_session_permissions": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Does every IAM Roles Anywhere profile restrict session permissions (session policy or managed policy ARNs) to the minimum required?",
+   "title": "IAM Roles Anywhere profile restricts session permissions",
+   "guidance": "Whether a profile's session policy is sufficiently restrictive depends on the roles and workloads it serves; review ManagedPolicyArns and SessionPolicy of each profile."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/rolesanywhere/latest/APIReference/API_ProfileDetail.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "e2911a5f51900f3aa0f37a70eac3cc400c91bd1773f7f39e73cbf5faa8b545b1",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rolesanywhere/rolesanywhere_profile_restricts_session_permissions/rolesanywhere_profile_restricts_session_permissions.metadata.json"
+  }
+ },
+ "prowler.aws.route53_dangling_ip_subdomain_takeover": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Do Route 53 A records in public hosted zones point only to IP addresses owned by this account (no dangling public IPs that allow subdomain takeover)?",
+   "title": "Route 53 A records do not point to released public IP addresses",
+   "guidance": "The prowler check joins every public hosted zone record with all account EIPs, all ENI public IPs and the published AWS ip-ranges across regions. The native per-scope snapshot does not hold the account-wide EIP/ENI join nor the ip-ranges feed, so review each A record IP against currently owned addresses."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListResourceRecordSets.html",
+   "https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-ranges.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "4b8b078be6b1aa662fc8e6d11cbb5b9df74755e7e7c42f85ac3804caaa9f2d09",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/route53/route53_dangling_ip_subdomain_takeover/route53_dangling_ip_subdomain_takeover.metadata.json"
+  }
+ },
+ "prowler.aws.secretsmanager_has_restrictive_resource_policy": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Does each Secrets Manager secret have a resource policy that explicitly denies access to every principal except the intended roles and services?",
+   "title": "Secrets Manager secret resource policy is restrictive (explicit deny for non-approved principals)",
+   "guidance": "Prowler evaluates a deep, organisation-specific policy shape (explicit Deny with aws:PrincipalArn/aws:PrincipalServiceName exceptions and condition operators). Review each secret policy against your approved principal list."
+  },
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "official_docs": [
+   "https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_examples.html"
+  ],
+  "reviewed_source": {
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "evaluator_sha256": "2ba3b358984b909b5459a9aa5be252e9112e2853812c7d872450788db032b212",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/secretsmanager/secretsmanager_has_restrictive_resource_policy/secretsmanager_has_restrictive_resource_policy.metadata.json"
+  }
+ }
+}

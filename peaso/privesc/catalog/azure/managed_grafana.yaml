@@ -1,12 +1,17 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Azure Managed Grafana techniques (declarative only).
-# Source: hacktricks-cloud az-managed-grafana-privesc.md (rev a53b46392c; working-tree copy read).
+# Source: hacktricks-cloud az-managed-grafana-privesc.md (rev 171e422; re-reviewed at a66f094ede).
 
 - id: azure-grafana-act-as-admin
   provider: azure
   service: managed_grafana
   title: Grafana Admin through the ActAsGrafanaAdmin data action
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-managed-grafana-privesc.md#microsoftdashboardgrafanaactasgrafanaadminaction
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain Grafana Admin on the workspace, including use of its configured data sources.
   requires:
     all_of:

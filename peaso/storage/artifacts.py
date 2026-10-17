@@ -1,5 +1,6 @@
 """Private artifact storage interfaces. References are generated, never paths from HTTP."""
 import hashlib
+import gzip
 import json
 import os
 from pathlib import Path
@@ -18,7 +19,7 @@ def prefix(tenant):
 
 
 def check_reference(tenant, reference):
-    if not re.fullmatch(r"[a-f0-9]{64}/[a-f0-9]{32}/(snapshot|network-snapshot|report|manifest|findings|finding-index|coverage|graph-network|graph-iam|graph-privesc|markdown|detail)-[a-f0-9]{32}\.(json|md)", reference) or not reference.startswith(prefix(tenant) + "/"):
+    if not re.fullmatch(r"[a-f0-9]{64}/[a-f0-9]{32}/(snapshot|network-snapshot|report|manifest|findings|finding-index|coverage|graph-network|graph-iam|graph-privesc|markdown|detail|resources)-[a-f0-9]{32}\.(json|md)", reference) or not reference.startswith(prefix(tenant) + "/"):
         raise ValueError("Invalid artifact reference")
 
 
@@ -79,28 +80,46 @@ class S3Artifacts:
         self.client, self.bucket, self.kms_key = client, bucket, kms_key
 
     def put(self, tenant, job_id, kind, value):
+        body = json.dumps(value, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
+        return self._put(tenant, job_id, kind, body, "application/json")
+
+    def _put(self, tenant, job_id, kind, body, content_type):
         reference = reference_for(tenant, job_id, kind)
         encryption = {"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": self.kms_key} if self.kms_key else {"ServerSideEncryption": "AES256"}
-        self.client.put_object(Bucket=self.bucket, Key="artifacts/" + reference, Body=json.dumps(value, allow_nan=False).encode(), ContentType="application/json", **encryption)
+        encoding = {}
+        if len(body) >= 64 * 1024:
+            compressed = gzip.compress(body, compresslevel=1, mtime=0)
+            if len(compressed) < len(body):
+                encoding = {"ContentEncoding": "gzip", "Metadata": {"peaso-uncompressed-bytes": str(len(body))}}
+                body = compressed
+        self.client.put_object(Bucket=self.bucket, Key="artifacts/" + reference, Body=body, ContentType=content_type, **encoding, **encryption)
         return reference
+
+    def _get_bytes(self, tenant, reference):
+        check_reference(tenant, reference)
+        body = self.client.get_object(Bucket=self.bucket, Key="artifacts/" + reference)["Body"].read()
+        # Also recognize the standard gzip signature for older clients/proxies
+        # that omit encoding metadata. Plain JSON/UTF-8 Markdown cannot have it.
+        return gzip.decompress(body) if body.startswith(b"\x1f\x8b") else body
 
     def get(self, tenant, reference):
-        check_reference(tenant, reference)
-        return json.loads(self.client.get_object(Bucket=self.bucket, Key="artifacts/" + reference)["Body"].read())
+        return json.loads(self._get_bytes(tenant, reference))
 
     def put_text(self, tenant, job_id, kind, value):
-        reference = reference_for(tenant, job_id, kind)
-        encryption = {"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": self.kms_key} if self.kms_key else {"ServerSideEncryption": "AES256"}
-        self.client.put_object(Bucket=self.bucket, Key="artifacts/" + reference, Body=value.encode(), ContentType="text/markdown", **encryption)
-        return reference
+        return self._put(tenant, job_id, kind, value.encode(), "text/markdown")
 
     def get_text(self, tenant, reference):
-        check_reference(tenant, reference)
-        return self.client.get_object(Bucket=self.bucket, Key="artifacts/" + reference)["Body"].read().decode()
+        return self._get_bytes(tenant, reference).decode()
 
     def size(self, tenant, reference):
         check_reference(tenant, reference)
-        return self.client.head_object(Bucket=self.bucket, Key="artifacts/" + reference)["ContentLength"]
+        header = self.client.head_object(Bucket=self.bucket, Key="artifacts/" + reference)
+        if header.get("ContentEncoding") == "gzip":
+            size = header.get("Metadata", {}).get("peaso-uncompressed-bytes", "")
+            # Never mistake a small compressed object for a small response. An
+            # older compressed artifact without size metadata stays non-inline.
+            return int(size) if size.isdigit() else 2**63 - 1
+        return header["ContentLength"]
 
     def presign(self, tenant, reference, filename=None):
         check_reference(tenant, reference)

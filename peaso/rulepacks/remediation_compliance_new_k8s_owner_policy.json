@@ -1,0 +1,152 @@
+{
+  "k8s_namespace_has_rolebinding": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_owner_policy",
+      "kind": "namespace",
+      "path": "metadata.name, rolebinding.metadata.namespace/name, snapshot.metadata.compliance_policy.target_namespace",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "2f2bf891392a911ff925f9b87a052b16e1545d89698c733585b3a36861f1d293",
+    "references": [
+      {
+        "title": "Kubernetes Service types",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+      },
+      {
+        "title": "Kubernetes labels",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/"
+      },
+      {
+        "title": "Kubernetes RoleBindings",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the selected Namespace and inspect its complete RoleBinding inventory with the RBAC owner.",
+      "If a local binding is required, review the intended subjects and Role permissions before adding a scoped RoleBinding through the owned manifest.",
+      "Verify the binding subjects and access in the intended environment; remove or revise the new binding if it grants unintended access."
+    ],
+    "summary": "Review the selected Namespace RBAC intent and add a scoped RoleBinding only if approved."
+  },
+  "k8s_namespace_namespace_part_specific_label_set_07ecb6d791": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_owner_policy",
+      "kind": "namespace",
+      "path": "metadata.name, metadata.labels, snapshot.metadata.compliance_policy.namespace_labels",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "76099c103200d0c5bf1cec33f0224128803808cb35ec33acc435ac1c3e499b4d",
+    "references": [
+      {
+        "title": "Kubernetes Service types",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+      },
+      {
+        "title": "Kubernetes labels",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/"
+      },
+      {
+        "title": "Kubernetes RoleBindings",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the two required label keys and values with the namespace and policy owners; inspect the collected Namespace metadata.",
+      "Update the owned Namespace manifest with the approved labels and review selectors that may use them.",
+      "Verify the Namespace labels and selector behavior after rollout; restore the previous manifest if workload selection changes unexpectedly."
+    ],
+    "summary": "Set the two approved Namespace labels in the owned manifest after selector review."
+  },
+  "k8s_service_loadbalancers_associated_authorized_namespace_rule_8b0a04d99f": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_owner_policy",
+      "kind": "service",
+      "path": "metadata.namespace/name/uid, spec.type, snapshot.metadata.compliance_policy.authorized_namespaces",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "520443cdf4a41ca81e9d382756720262ddb52769b630143bd94fa87db81b416b",
+    "references": [
+      {
+        "title": "Kubernetes Service types",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+      },
+      {
+        "title": "Kubernetes labels",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/"
+      },
+      {
+        "title": "Kubernetes RoleBindings",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the approved namespace set and the affected LoadBalancer Service identity and ownership.",
+      "Review traffic, DNS, provider annotations, and namespace dependencies before moving/recreating the Service or changing the approved policy.",
+      "Verify availability and approved placement after rollout; restore the prior owner-approved Service configuration if traffic breaks."
+    ],
+    "summary": "Review LoadBalancer Service placement against the approved Namespace set."
+  },
+  "k8s_service_services_type_specified_rule_parameter_86993f7594": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_owner_policy",
+      "kind": "service",
+      "path": "metadata.namespace/name/uid, spec.type, snapshot.metadata.compliance_policy.serviceType",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "bb80b67fc65e24679bec31223595492b1302a2ca3c2e87871e5dc8ac9a24fa00",
+    "references": [
+      {
+        "title": "Kubernetes Service types",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+      },
+      {
+        "title": "Kubernetes labels",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/"
+      },
+      {
+        "title": "Kubernetes RoleBindings",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the owner-required Service type and inspect the observed Service type and endpoint usage.",
+      "Review exposure and availability impact, then update spec.type in the owned manifest only if the policy is correct for this Service.",
+      "Verify endpoint behavior after rollout and roll back the manifest revision if traffic is disrupted."
+    ],
+    "summary": "Align the Service type with the owner policy after traffic-impact review."
+  },
+  "k8s_service_spec_type_loadbalancer": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_owner_policy",
+      "kind": "service",
+      "path": "complete Service metadata.namespace/name/uid and spec.type compared with operator-selected identities",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "2dd036156f8c5d7e59523c3f64a1eb44cc5244f7c3d1f6918532a96e3ab06e17",
+    "references": [
+      {
+        "title": "Kubernetes Service types",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+      },
+      {
+        "title": "Kubernetes labels",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/"
+      },
+      {
+        "title": "Kubernetes RoleBindings",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the selected Service namespace, name and UID still match the owner approval; a recreated UID needs renewed approval.",
+      "Review external exposure, provider annotations, and dependent traffic with the Service owner before changing spec.type to LoadBalancer.",
+      "Verify Service and load balancer provisioning and traffic after rollout; restore the previous manifest if the change is unsuitable."
+    ],
+    "summary": "Use LoadBalancer type only for the currently approved exact Service identity."
+  }
+}

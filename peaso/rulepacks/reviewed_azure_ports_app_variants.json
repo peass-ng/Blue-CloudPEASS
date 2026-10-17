@@ -1,0 +1,1410 @@
+{
+  "azure-compliance.control.appservice_api_app_client_certificates_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_api_app_client_certificates_on"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_api_app_client_certificates_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1019,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 242,
+      "query_sha256": "6acab351f291c55d247ae77a89a74849259a9c53f505f3c83254c0d4cee98d27",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_api_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like '%api'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when client_cert_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when client_cert_enabled then a.name || ' client certificate enabled.'\n        else a.name || ' client certificate disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_api_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "e71693e08896ee3f33bcbffd9533d227c2d8250f121306ec6711ef1cd3db9b1f",
+      "upstream_evaluator_sha256": "6acab351f291c55d247ae77a89a74849259a9c53f505f3c83254c0d4cee98d27",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_api_app_cors_no_star": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_api_app_cors_no_star"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_api_app_cors_no_star",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 852,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 204,
+      "query_sha256": "cd774400cf947756780c21a12239fc9b504fb0da51f16856925aa6928ade04d4",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_api_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like '%api'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]' then a.name || ' CORS allow all domains to access the application.'\n        else a.name || ' CORS does not all domains to access the application.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_api_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "c88b99516190c597897deda7fdb0f744950b788179b00b6d7e6628c425fb22a3",
+      "upstream_evaluator_sha256": "cd774400cf947756780c21a12239fc9b504fb0da51f16856925aa6928ade04d4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_api_app_ftps_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_api_app_ftps_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_api_app_ftps_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1116,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 287,
+      "query_sha256": "a1981650ce8811823aee80ab9717bd6be5533ec4e63888aeee380a92ffbe2e07",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_api_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like '%api'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then a.name || ' FTPS disabled.'\n        else a.name || ' FTPS enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_api_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "1017f85d6ca139f9c1925e2718762989d457468b8159fa7f212ae1c05ee6166a",
+      "upstream_evaluator_sha256": "a1981650ce8811823aee80ab9717bd6be5533ec4e63888aeee380a92ffbe2e07",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_api_app_latest_tls_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_api_app_latest_tls_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_api_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 738,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 145,
+      "query_sha256": "00085037857d44cf61f000273136b7710a9e6b05f9409f2b13fb8f60a071f6f6",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_api_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like '%api'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then a.name || ' not using the latest version of TLS encryption.'\n        else a.name || ' using the latest version of TLS encryption.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_api_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "4532509488f1ae5530cdef3113315530064eaf72d5289549249abf14a16ac108",
+      "upstream_evaluator_sha256": "00085037857d44cf61f000273136b7710a9e6b05f9409f2b13fb8f60a071f6f6",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_api_app_remote_debugging_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_api_app_remote_debugging_disabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_api_app_remote_debugging_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 715,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 131,
+      "query_sha256": "a798a3941a65968d21a5b5f2207573f99da9cf1d823a57b89835f18f93e11f1a",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when kind <> 'api' then 'skip'\n        when configuration -> 'properties' ->> 'remoteDebuggingEnabled' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when kind <> 'api' then name || ' is of ' || kind || ' type.'\n        when configuration -> 'properties' ->> 'remoteDebuggingEnabled' = 'false' then name || ' remote debugging disabled.'\n        else name || ' remote debugging enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "2b497de2f5c212cb98280f7604182c06a79c9cd42635403575e8c46e2df129c8",
+      "upstream_evaluator_sha256": "a798a3941a65968d21a5b5f2207573f99da9cf1d823a57b89835f18f93e11f1a",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_api_app_use_https": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_api_app_use_https"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_api_app_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 677,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 119,
+      "query_sha256": "e6074b69e5f632397d7417de25b066c19df1d921e5cf0a27791a6f0a84b8d90c",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_api_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like '%api'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when not https_only then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when not https_only then a.name || ' does not redirect all HTTP traffic to HTTPS.'\n        else a.name || ' redirects all HTTP traffic to HTTPS.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_api_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "5fb57ec3e02ed8ea95bb4904a908883851c5badbbaad859c2f121f6f9e7a6305",
+      "upstream_evaluator_sha256": "e6074b69e5f632397d7417de25b066c19df1d921e5cf0a27791a6f0a84b8d90c",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_authentication_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_authentication_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_authentication_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1563,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 459,
+      "query_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then name || ' authentication not set.'\n        else name || ' authentication set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "590ce1e88d32865bdfa489afa7027a93647f2169ded0ec25da320040e814c08c",
+      "upstream_evaluator_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_authentication_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_authentication_on"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_authentication_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1828,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 483,
+      "query_sha256": "96669256939bc83bead08ef73f25ee68808ba98477d57c15a66b6bc0621d8ab8",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      fa.id as resource,\n      case\n        when auth_settings -> 'properties' ->> 'enabled' = 'true' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when auth_settings -> 'properties' ->> 'enabled' = 'true' then name || ' authentication enabled.'\n        else name || ' authentication disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app fa\n      left join azure_subscription as sub on sub.subscription_id = fa.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "b3d30259d929368737e1d001e6959e97ebea2b2700bcfba9d2704a30ad271d78",
+      "upstream_evaluator_sha256": "96669256939bc83bead08ef73f25ee68808ba98477d57c15a66b6bc0621d8ab8",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_client_certificates_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_client_certificates_on"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_client_certificates_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1095,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 274,
+      "query_sha256": "d3d5e15b614f18853471bbe7c7f9598ace5a821d1abf013a408f928f1985918b",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when client_cert_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when client_cert_enabled then app.name || ' client certificate enabled.'\n        else app.name || ' client certificate disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "b131ab2f3d3eccd310fe767e7a02eb70808fca309fe13ead5a9d066aaaea627c",
+      "upstream_evaluator_sha256": "d3d5e15b614f18853471bbe7c7f9598ace5a821d1abf013a408f928f1985918b",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_cors_no_star": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_cors_no_star"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_cors_no_star",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 830,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 183,
+      "query_sha256": "9921d6aec54b405e612ed6d3ac534ada19813d79dc2386710a21c49cfbbd9455",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      b.id as resource,\n      case\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]'\n          then b.name || ' CORS allow all domains to access the application.'\n        else b.name || ' CORS does not all domains to access the application.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"b.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"b.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as b\n      left join azure_subscription as sub on sub.subscription_id = b.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "f8e5b408808ddb8936413f642c8121c26aea88945d94e94708f3b70fb1d027cb",
+      "upstream_evaluator_sha256": "9921d6aec54b405e612ed6d3ac534ada19813d79dc2386710a21c49cfbbd9455",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_ftps_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_ftps_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_ftps_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1154,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 298,
+      "query_sha256": "ce8b5decd3919e52f867a37544fbb873bf28da3b46b8a17ffc2ae434361c3bbe",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_function_app as (\n      select\n        id\n      from\n        azure_app_service_function_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'functionapp%'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then a.name || ' FTPS disabled.'\n        else a.name || ' FTPS enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as a\n      left join all_function_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "6f48ded31d9036a58fc72e47799f6b226f08ae3436549e48a1136ff21790a354",
+      "upstream_evaluator_sha256": "ce8b5decd3919e52f867a37544fbb873bf28da3b46b8a17ffc2ae434361c3bbe",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_latest_http_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_latest_http_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_latest_http_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1230,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 309,
+      "query_sha256": "9e44b63e40a7386b18add09940aa681dd8f1f111eab3f4bb172da9e348e74d8d",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_function_app as (\n      select\n        id\n      from\n        azure_app_service_function_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'functionapp%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'http20Enabled' = 'true' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is not a linux function app.'\n        when configuration -> 'properties' ->> 'http20Enabled' = 'true' then a.name || ' is using the latest HTTP version.'\n        else a.name || ' not using latest HTTP version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as a\n      left join all_function_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "a83309345c058c9b5cde16ceb1d684022023605e096dd8a12c7c9a136eb495e8",
+      "upstream_evaluator_sha256": "9e44b63e40a7386b18add09940aa681dd8f1f111eab3f4bb172da9e348e74d8d",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_latest_java_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_latest_java_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_latest_java_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1329,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 345,
+      "query_sha256": "58c6d3abf8207c75f941e0778d865edcb38a46016d0b5903d7705d5fd05af06e",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'Java%' and configuration -> 'properties' ->> 'javaVersion' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'Java%' and configuration -> 'properties' ->> 'javaVersion' is null then a.name || ' not using JAVA version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then a.name || ' using the latest JAVA version.'\n        else a.name || ' not using latest JAVA version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "21",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "0bbe6507154cd8da2c23b69b354dd99bef0da01dec9f2eb4c25b84a8226d14c2",
+      "upstream_evaluator_sha256": "58c6d3abf8207c75f941e0778d865edcb38a46016d0b5903d7705d5fd05af06e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_latest_python_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_latest_python_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_latest_python_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1455,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 369,
+      "query_sha256": "199d3a369e458143da5ee3c1112711e02d9b0972e4f88c46a136e4c0a6a37f68",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_function_app as (\n      select\n        id\n      from\n        azure_app_service_function_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'functionapp%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'Python%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'Python%' then a.name || ' not using python version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then a.name || ' using the latest python version.'\n        else a.name || ' not using latest python version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as a\n      left join all_function_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "Python|3.12",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "fe195b2ecae5b7f45ca251dc7eb363265f71a93c352b22f2af5e8e1b9b6b00a8",
+      "upstream_evaluator_sha256": "199d3a369e458143da5ee3c1112711e02d9b0972e4f88c46a136e4c0a6a37f68",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_latest_tls_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_latest_tls_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_latest_tls_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 593,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 72,
+      "query_sha256": "b5719e436d2282a5bc7c18dc51fb27acdd0109a18306af2f564240f1c3d2f119",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when configuration -> 'properties' ->> 'minTlsVersion' < '1.2' then name || ' not using the latest version of TLS encryption.'\n        else name || ' using the latest version of TLS encryption.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as app\n      left join azure_subscription sub on app.subscription_id = sub.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "46f7762d78df119f8761d44887515e9f132df7659afc0a400cc7b9e7191457ca",
+      "upstream_evaluator_sha256": "b5719e436d2282a5bc7c18dc51fb27acdd0109a18306af2f564240f1c3d2f119",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_only_https_accessible": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_only_https_accessible"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_only_https_accessible",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 635,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 94,
+      "query_sha256": "dbdcd42ae710a91f058fe9e17131b2a74b7c584cc4ee380b3963b65a24ff8f54",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when https_only then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when https_only then name || ' https-only accessible enabled.'\n        else name || ' https-only accessible disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as app\n      left join azure_subscription sub on app.subscription_id = sub.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "43e8e1d4245df4ea9234c6b21e94ade7b0ad8b1dc4ef42f5e8b642319935a58f",
+      "upstream_evaluator_sha256": "dbdcd42ae710a91f058fe9e17131b2a74b7c584cc4ee380b3963b65a24ff8f54",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_function_app_remote_debugging_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_remote_debugging_disabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_remote_debugging_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 572,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 58,
+      "query_sha256": "1f6a811fd4c5cf92dced8426ccf761532fe03077ec17585d43ea7cfd1b2395ca",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when configuration -> 'properties' ->> 'remoteDebuggingEnabled' = 'false' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when configuration -> 'properties' ->> 'remoteDebuggingEnabled' = 'false' then name || ' remote debugging disabled.'\n        else name || ' remote debugging enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as app\n      left join azure_subscription sub on app.subscription_id = sub.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "85e26c8d345a08b988110821db73af69d9f44bfe32a7064819268f1691647f87",
+      "upstream_evaluator_sha256": "1f6a811fd4c5cf92dced8426ccf761532fe03077ec17585d43ea7cfd1b2395ca",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_plan_minimum_sku": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_plan_minimum_sku"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_plan_minimum_sku",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1788,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 433,
+      "query_sha256": "b70ca024ff173827a20de6c98a9fe59163393c3a9270a6dc06df1f27ac6e52b2",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        -- The below basic plans are used for development and testing purposes.\n        when sku_name in ('F1', 'D1', 'B1', 'B2', 'B3') then 'alarm'\n        else 'ok'\n      end as status,\n      a.name || ' is of ' || sku_family || ' SKU family.'  as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_plan as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "c7f97071061067f388b7afbffe98dda8a4580f5f506de44cca63b28225141203",
+      "upstream_evaluator_sha256": "b70ca024ff173827a20de6c98a9fe59163393c3a9270a6dc06df1f27ac6e52b2",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service_plan",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_always_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_always_on"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_always_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1767,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 425,
+      "query_sha256": "1030126e72cd55f97f40286d3e4c59dfcade2a2da8aed70d07d491304103b75e",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when configuration -> 'properties' ->> 'alwaysOn' = 'true' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when configuration -> 'properties' ->> 'alwaysOn' = 'true' then a.name || ' alwaysOn is enabled.'\n        else a.name || ' alwaysOn is disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "9f07f28f3f3a6dd5287e3552a868e1bc8fca57506ace3220c87b6963dc4bfb10",
+      "upstream_evaluator_sha256": "1030126e72cd55f97f40286d3e4c59dfcade2a2da8aed70d07d491304103b75e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_client_certificates_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_client_certificates_on"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_client_certificates_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1057,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 254,
+      "query_sha256": "812cbf69694871564a6e76b765af4d3c7b531abc3fb243e1aca8670b9bf97061",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when client_cert_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when client_cert_enabled then a.name || ' client certificate enabled.'\n        else a.name || ' client certificate disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "cdb04c3fbea3edf65d5b840a2e46a4610ba6b78e4551f4777013d829b19c9583",
+      "upstream_evaluator_sha256": "812cbf69694871564a6e76b765af4d3c7b531abc3fb243e1aca8670b9bf97061",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_diagnostic_logs_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_diagnostic_logs_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_diagnostic_logs_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 776,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 159,
+      "query_sha256": "87b29d7d9c877c4a039def04f5e9c10f1291c3fc25009ff0bc9ee156376d2d58",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when (a.configuration-> 'properties' -> 'detailedErrorLoggingEnabled')::bool\n          and (a.configuration -> 'properties' -> 'httpLoggingEnabled')::bool\n          and (a.configuration-> 'properties' -> 'requestTracingEnabled')::bool\n        then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (a.configuration-> 'properties' -> 'detailedErrorLoggingEnabled')::bool\n          and (a.configuration -> 'properties' -> 'httpLoggingEnabled')::bool\n          and (a.configuration-> 'properties' -> 'requestTracingEnabled')::bool\n          then a.name || ' diagnostic logs enabled.'\n        else a.title || ' diagnostic logs disabled.'\n          -- concat_ws(', ',\n          -- case when not ((a.configuration-> 'properties' -> 'detailedErrorLoggingEnabled')::bool) then 'detailed_Error_Logging_Enabled' end,\n          -- case when not ((a.configuration -> 'properties' -> 'httpLoggingEnabled')::bool) then 'http_logging_enabled' end,\n          -- case when not ((a.configuration-> 'properties' -> 'requestTracingEnabled')::bool) then 'request_tracing_enabled' end\n          -- ) || '.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "9537a5ea87476918545d1191c9aa052b24d9c60812df790edc4aa0f34eca3216",
+      "upstream_evaluator_sha256": "87b29d7d9c877c4a039def04f5e9c10f1291c3fc25009ff0bc9ee156376d2d58",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_failed_request_tracing_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_failed_request_tracing_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_failed_request_tracing_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1685,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 393,
+      "query_sha256": "70e32948c890720aa21cfe1090b69fc25d3dda5677280354dfa880bd20fa7a25",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when diagnostic_logs_configuration -> 'properties' -> 'failedRequestsTracing' ->> 'enabled' = 'true' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when diagnostic_logs_configuration -> 'properties' -> 'failedRequestsTracing' ->> 'enabled' = 'true' then a.name || ' failed requests tracing enabled.'\n        else a.name || ' failed requests tracing disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "526e24684f73e164a80fdca6a4124283210a89aa1c7ec8593641afa574d0eadb",
+      "upstream_evaluator_sha256": "70e32948c890720aa21cfe1090b69fc25d3dda5677280354dfa880bd20fa7a25",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_ftps_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_ftps_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_ftps_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1192,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 264,
+      "query_sha256": "4f5c4cf1cfb1c8f5b91ff72c21618e7653cea112e7dea671b5877aa31f41096e",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then a.name || ' FTPS disabled.'\n        else a.name || ' FTPS enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "ea7dd4f01c7fd26e79aa6e98313031c8413bea248d879be4e42c9f05fb42c7c8",
+      "upstream_evaluator_sha256": "4f5c4cf1cfb1c8f5b91ff72c21618e7653cea112e7dea671b5877aa31f41096e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_health_check_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_health_check_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_health_check_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1807,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 441,
+      "query_sha256": "369f5cd0ab6d5061a5bcc7ab691c6fa7345dbcf5c6191ea061d0351e7c386822",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when configuration -> 'properties' ->> 'healthCheckPath' is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when configuration -> 'properties' ->> 'healthCheckPath' is not null then a.name || ' health check enabled.'\n        else a.name || ' health check disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "f68f8e6710e894bc660e5932c56869ecd87bc49c5e61bc6e2df82184adcf8fd0",
+      "upstream_evaluator_sha256": "369f5cd0ab6d5061a5bcc7ab691c6fa7345dbcf5c6191ea061d0351e7c386822",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_latest_java_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_java_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_java_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1357,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 353,
+      "query_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then a.name ||  ' not using JAVA version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1  then a.name || ' using the latest JAVA version.'\n        else a.name || ' not using latest JAVA version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "21",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "8357c784c00be008e954dbe70e6004a2f55c8f185bc718171f0320d1f6f4febf",
+      "upstream_evaluator_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_latest_php_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_php_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_php_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1402,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 361,
+      "query_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then a.name ||  ' not using php version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then a.name || ' using the latest php version.'\n        else a.name || ' not using latest php version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "PHP|8.4",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "1afc73670ad5285c6dad3ec0d88cd8dd8e7920f5249572df6e70dfdea995a609",
+      "upstream_evaluator_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_latest_python_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_python_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_python_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1508,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 377,
+      "query_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is not of linux kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then a.name ||  ' not using python version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then a.name || ' using the latest python version.'\n        else a.name || ' not using latest python version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "PYTHON|3.13",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "f37828d6224e94285c4bc6760cb10ee5dab3307c3fc440fc968e62b8407808fc",
+      "upstream_evaluator_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_slot_use_https": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_slot_use_https"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_slot_use_https",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1746,
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 417,
+      "query_sha256": "f8794e11e6a8b6edc0c8ca745dffbc65b9367f35477b218ac1ba43584d441c97",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when https_only then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when https_only then name || ' https-only accessible enabled.'\n        else name || ' https-only accessible disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app_slot as s\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "91ccd6c025ac2f42ef9d766a5b77d9870391617e283fb4457d7e9bc39c63f358",
+      "upstream_evaluator_sha256": "f8794e11e6a8b6edc0c8ca745dffbc65b9367f35477b218ac1ba43584d441c97",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service_slot",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.cis_v130_9_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_authentication_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_authentication_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1563,
+      "control_path": "cis_v130/section_9.pp",
+      "control_line": 30,
+      "query_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then name || ' authentication not set.'\n        else name || ' authentication set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "590ce1e88d32865bdfa489afa7027a93647f2169ded0ec25da320040e814c08c",
+      "upstream_evaluator_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.cis_v140_9_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_authentication_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_authentication_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1563,
+      "control_path": "cis_v140/section_9.pp",
+      "control_line": 30,
+      "query_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then name || ' authentication not set.'\n        else name || ' authentication set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "590ce1e88d32865bdfa489afa7027a93647f2169ded0ec25da320040e814c08c",
+      "upstream_evaluator_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.cis_v150_9_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_authentication_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_authentication_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1563,
+      "control_path": "cis_v150/section_9.pp",
+      "control_line": 30,
+      "query_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then name || ' authentication not set.'\n        else name || ' authentication set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "590ce1e88d32865bdfa489afa7027a93647f2169ded0ec25da320040e814c08c",
+      "upstream_evaluator_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.cis_v200_9_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_authentication_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_authentication_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1563,
+      "control_path": "cis_v200/section_9.pp",
+      "control_line": 30,
+      "query_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then name || ' authentication not set.'\n        else name || ' authentication set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "590ce1e88d32865bdfa489afa7027a93647f2169ded0ec25da320040e814c08c",
+      "upstream_evaluator_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.cis_v210_9_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_authentication_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_authentication_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1563,
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 29,
+      "query_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then name || ' authentication not set.'\n        else name || ' authentication set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "590ce1e88d32865bdfa489afa7027a93647f2169ded0ec25da320040e814c08c",
+      "upstream_evaluator_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.cis_v210_9_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_php_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_php_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1402,
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 85,
+      "query_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then a.name ||  ' not using php version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then a.name || ' using the latest php version.'\n        else a.name || ' not using latest php version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "PHP|8.4",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "1afc73670ad5285c6dad3ec0d88cd8dd8e7920f5249572df6e70dfdea995a609",
+      "upstream_evaluator_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.cis_v210_9_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_python_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_python_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1508,
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 99,
+      "query_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is not of linux kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then a.name ||  ' not using python version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then a.name || ' using the latest python version.'\n        else a.name || ' not using latest python version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "PYTHON|3.13",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "f37828d6224e94285c4bc6760cb10ee5dab3307c3fc440fc968e62b8407808fc",
+      "upstream_evaluator_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.cis_v210_9_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_java_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_java_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1357,
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 113,
+      "query_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then a.name ||  ' not using JAVA version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1  then a.name || ' using the latest JAVA version.'\n        else a.name || ' not using latest JAVA version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "21",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "8357c784c00be008e954dbe70e6004a2f55c8f185bc718171f0320d1f6f4febf",
+      "upstream_evaluator_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.cis_v300_9_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_authentication_enabled"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_authentication_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1563,
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 45,
+      "query_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      app.id as resource,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (auth_settings -> 'properties' ->> 'enabled') :: boolean then name || ' authentication not set.'\n        else name || ' authentication set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"app.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as app\n      left join azure_subscription as sub on sub.subscription_id = app.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "590ce1e88d32865bdfa489afa7027a93647f2169ded0ec25da320040e814c08c",
+      "upstream_evaluator_sha256": "1d0674be36729e1a32dbed06ceeb4bedbbb68da91f8b010a138a9ef5cde4e0cb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": false,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "captured_only"
+    }
+  },
+  "azure-compliance.control.cis_v300_9_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_php_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_php_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1402,
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 115,
+      "query_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then a.name ||  ' not using php version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then a.name || ' using the latest php version.'\n        else a.name || ' not using latest php version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "PHP|8.4",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "1afc73670ad5285c6dad3ec0d88cd8dd8e7920f5249572df6e70dfdea995a609",
+      "upstream_evaluator_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.cis_v300_9_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_python_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_python_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1508,
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 129,
+      "query_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n        and\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is not of linux kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then a.name ||  ' not using python version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then a.name || ' using the latest python version.'\n        else a.name || ' not using latest python version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "PYTHON|3.13",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "f37828d6224e94285c4bc6760cb10ee5dab3307c3fc440fc968e62b8407808fc",
+      "upstream_evaluator_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-compliance.control.cis_v300_9_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_latest_java_version"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_java_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1357,
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 143,
+      "query_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then a.name ||  ' not using JAVA version.'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1  then a.name || ' using the latest JAVA version.'\n        else a.name || ' not using latest JAVA version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "resolved_default_baseline": "21",
+      "parameter_semantics": "Pinned query default and captured metadata.source_parameters[query_id] overrides are resolved exactly; non-literal/ambiguous parameters are UNKNOWN. No latest-version or wildcard argument inference.",
+      "pinned_sql_sha256": "8357c784c00be008e954dbe70e6004a2f55c8f185bc718171f0320d1f6f4febf",
+      "upstream_evaluator_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-perimeter.control.appservice_function_app_cors_prohibit_public_access": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.appservice_function_app_cors_no_star"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_function_app_cors_prohibit_public_access",
+      "query_path": "perimeter/public_access.pp",
+      "query_line": 219,
+      "control_path": "perimeter/public_access.pp",
+      "control_line": 219,
+      "query_sha256": "9dea5bd4b61643f96ead1cd33ce1f422104d4b47eddaf98d17fa780c85524f9a",
+      "source_revision": "397b1d63e80e6a948b457cd523ce8b56fb0a5295",
+      "arguments": [],
+      "pinned_sql": "select\n      b.id as resource,\n      case\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]'\n          then b.name || ' CORS policy allows all domains to access the application.'\n        else b.name || ' CORS does not allow all domains to access the application.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"b.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"b.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as b,\n      azure_subscription as sub\n    where\n      sub.subscription_id = b.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "eefe0f7c4e9fc3f1e0ab6486398e5871822d8ca4fed881630ead06f762dc720b",
+      "upstream_evaluator_sha256": "9dea5bd4b61643f96ead1cd33ce1f422104d4b47eddaf98d17fa780c85524f9a",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  },
+  "azure-perimeter.control.appservice_web_app_cors_prohibit_public_access": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.appservice_web_app_cors_no_star"
+    ],
+    "reason": "Inspected full source CASE, literal parameter, table/kind selector, joins and scope. Native declaration predicate preserves exact boolean/list/TLS/FTP/runtime criterion and strict UNKNOWN for unreadable/missing metadata; no broader scope or latest-version equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-05-01"
+    ],
+    "review_notes": "V1 legacy authentication flags are pure captured-snapshot predicates but currently not native-collected: secret-bearing config/authsettings/list is excluded and V2 is never inferred as exact V1. Other safe config/log/slot fields already collected. Runtime literals are pinned policy baselines, not assertions of current latest.",
+    "source_review": {
+      "query_id": "appservice_web_app_cors_prohibit_public_access",
+      "query_path": "perimeter/public_access.pp",
+      "query_line": 188,
+      "control_path": "perimeter/public_access.pp",
+      "control_line": 188,
+      "query_sha256": "6e57e9f3232ddbe35d4ca17e59cc5a5406476ad38cf8f153a34015277740c68d",
+      "source_revision": "397b1d63e80e6a948b457cd523ce8b56fb0a5295",
+      "arguments": [],
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when configuration -> 'properties' -> 'cors' -> 'allowedOrigins' @> '[\"*\"]'\n          then a.name || ' CORS policy allows all domains to access the application.'\n        else a.name || ' CORS does not allow all domains to access the application.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a,\n      azure_subscription as sub\n    where\n      sub.subscription_id = a.subscription_id;",
+      "table_applicability": "function table contains functionapp substring; web table excludes exact functionapp; additional SQL tokens/exact api predicates preserved",
+      "pinned_sql_sha256": "0ceebbec864610cc28099f0789be76cc7114edd32778abb1da5c18ff66403362",
+      "upstream_evaluator_sha256": "6e57e9f3232ddbe35d4ca17e59cc5a5406476ad38cf8f153a34015277740c68d",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "fact_requirements": {
+      "resource_type": "app_service",
+      "legacy_authentication_metadata": "not_required"
+    }
+  }
+}

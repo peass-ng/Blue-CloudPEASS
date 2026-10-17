@@ -196,9 +196,16 @@ def rsa(item, index):
     algorithm = get(certificate(item), "KeyAlgorithm", str)
     if algorithm in {"EC_prime256v1", "EC_secp384r1", "EC_secp521r1"}:
         return "NOT_APPLICABLE", {"key_algorithm": algorithm}
-    if algorithm not in {"RSA_1024", "RSA_2048", "RSA_3072", "RSA_4096"}:
-        return unknown("unknown ACM key algorithm")
-    return result(algorithm == "RSA_1024", key_algorithm=algorithm, semantics="Corrected native rule; upstream SQL's RSA-% eligibility contradicts its RSA_1024 failing branch and is not equivalent.")
+    # DescribeCertificate's official CLI example returns RSA-2048, while the
+    # API enum reference uses RSA_2048. Preserve the raw fact and interpret only
+    # the enumerated spellings; an arbitrary future algorithm stays unknown.
+    bits = {"RSA" + separator + str(size): size
+            for separator in ("_", "-") for size in (1024, 2048, 3072, 4096)}
+    if algorithm not in bits:
+        return unknown("unknown ACM key algorithm", key_algorithm=algorithm)
+    return result(bits[algorithm] < 2048, key_algorithm=algorithm, rsa_bits=bits[algorithm],
+                  official_reference="https://docs.aws.amazon.com/cli/latest/reference/acm/describe-certificate.html",
+                  semantics="Corrected native rule; upstream SQL's RSA-% eligibility contradicts its RSA_1024 failing branch and is not equivalent.")
 
 
 # A legitimate source with conditional manual status has no failing assessment.

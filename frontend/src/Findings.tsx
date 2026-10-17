@@ -9,8 +9,10 @@ import {
 import { Search, SlidersHorizontal, ChevronRight } from "lucide-react";
 import type { Catalog, Finding, Report } from "./types";
 import { Badge, Evidence, Inspector, Panel, State } from "./ui";
-import { items, request, useApi } from "./api";
+import { catalogFrameworksPath, items, request, useApi } from "./api";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { explainFindingEvidence, explainInternetExposure } from "./findingExplanation";
+import { Remediation } from "./Remediation";
 type FindingPage = {
   items: Finding[];
   total?: number;
@@ -21,6 +23,39 @@ type FindingPage = {
 const col = createColumnHelper<Finding>();
 const assetLabel = (finding: Finding) =>
   finding.resource_name || finding.native_resource_id || finding.resource_id;
+type SortField = "severity" | "title" | "service" | "account" | "status" | "resource_id";
+function accountLabel(finding: Finding): string {
+  if ("account" in finding && typeof finding.account === "string" && finding.account)
+    return finding.account;
+  const scope = finding.scope?.trim() || "";
+  const resource = finding.native_resource_id || finding.resource_id || "";
+  if (finding.provider === "aws") {
+    const account = scope.match(/(?:^|\/)(\d{12})(?:\/|$)/)?.[1] ||
+      resource.match(/^arn:[^:]*:[^:]*:[^:]*:(\d{12}):/)?.[1];
+    return account || (scope && !scope.includes("/") ? scope : "Unknown");
+  }
+  if (finding.provider === "gcp") {
+    const project = scope.match(/(?:^|\/)projects\/([^/]+)/)?.[1] ||
+      resource.match(/(?:^|\/)projects\/([^/]+)/)?.[1];
+    if (project) return project;
+    const owner = scope.match(/(?:^|\/)(folders|organizations)\/([^/]+)/) ||
+      resource.match(/(?:^|\/)(folders|organizations)\/([^/]+)/);
+    return owner ? owner[2] :
+      scope && !scope.includes("/") ? scope : "Unknown";
+  }
+  if (finding.provider === "azure") {
+    const subscription = scope.match(/(?:^|\/)subscriptions\/([^/]+)/i)?.[1] ||
+      resource.match(/(?:^|\/)subscriptions\/([^/]+)/i)?.[1];
+    if (subscription) return subscription;
+    const tenant = scope.match(/(?:^|\/)(tenants)\/([^/]+)/i) ||
+      resource.match(/(?:^|\/)(tenants)\/([^/]+)/i);
+    return tenant ? tenant[2] :
+      scope && !scope.includes("/") ? scope : "Unknown";
+  }
+  if (finding.provider === "k8s")
+    return resource.match(/^k8s:\/\/([^/]+)/)?.[1] || "Unknown";
+  return scope.split("/")[0] || "Unknown";
+}
 export function Findings({
   scanId,
   category,
@@ -35,17 +70,18 @@ export function Findings({
   const [status, setStatus] = useState("");
   const [service, setService] = useState("");
   const [framework, setFramework] = useState("");
-  const [checklist, setChecklist] = useState("");
-  const catalog = useApi<Catalog>("/catalog", demo);
+  const [sort, setSort] = useState<{ field: SortField; order: "asc" | "desc" }>();
+  const catalog = useApi<Catalog>(catalogFrameworksPath, demo);
   const summary = useApi<Report>(
     `/scans/${encodeURIComponent(scanId)}/summary`,
     demo,
     !!scanId,
   );
   const selectedChecklist = catalog.data?.framework_versions?.find(
-    (row) => row.id === checklist,
+    (row) => row.id === framework,
   );
   const [group, setGroup] = useState("service");
+  const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
   const [inspect, setInspect] = useState<Finding>();
   const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
@@ -63,11 +99,12 @@ export function Findings({
       status,
       service,
       framework,
-      checklist,
       group,
+      sort?.field,
+      sort?.order,
     ],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => {
+    queryFn: ({ pageParam, signal }) => {
       const params = new URLSearchParams({
         limit: "200",
         offset: String(pageParam),
@@ -79,13 +116,17 @@ export function Findings({
         severity,
         status,
         service,
-        framework: checklist || framework,
+        framework,
       })) {
         if (value) params.set(key, value);
       }
+      if (sort) {
+        params.set("sort_by", sort.field);
+        params.set("sort_order", sort.order);
+      }
       return request<FindingPage>(
         `/scans/${encodeURIComponent(scanId)}/findings?${params}`,
-        {},
+        { signal },
         demo,
       );
     },
@@ -100,6 +141,25 @@ export function Findings({
   );
   const serverFiltered = typeof firstPage?.total === "number";
   const facets = firstPage?.facets;
+  const frameworkOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [
+            ...(catalog.data?.frameworks || []).map((row) =>
+              typeof row === "string"
+                ? row
+                : row && typeof row === "object" && "name" in row
+                  ? String(row.name)
+                  : "",
+            ),
+            ...(facets?.frameworks || []),
+            ...all.flatMap((finding) => finding.frameworks || []),
+          ].filter(Boolean),
+        ),
+      ).sort(),
+    [catalog.data?.frameworks, facets?.frameworks, all],
+  );
   const filtered = useMemo(
     () =>
       all
@@ -110,20 +170,39 @@ export function Findings({
               (!severity || f.severity === severity) &&
               (!status || f.status === status) &&
               (!service || f.service === service) &&
-              (!framework || f.frameworks?.includes(framework)) &&
-              (!checklist ||
-                f.framework_ids?.includes(checklist) ||
-                (Array.isArray(selectedChecklist?.native_check_ids) &&
-                  selectedChecklist.native_check_ids.includes(f.check_id))) &&
+              (!framework || (selectedChecklist
+                ? f.framework_ids?.includes(framework) ||
+                  (!!selectedChecklist.name && f.frameworks?.includes(String(selectedChecklist.name)))
+                : f.frameworks?.includes(framework))) &&
               `${f.title} ${f.resource_id} ${f.resource_name || ""} ${f.native_resource_id || ""} ${f.check_id} ${f.scope} ${JSON.stringify(f.evidence)}`
                 .toLowerCase()
                 .includes(search.toLowerCase())),
         )
-        .sort((a, b) =>
-          String(a[group as keyof Finding]).localeCompare(
+        .sort((a, b) => {
+          if (sort && !serverFiltered) {
+            if (sort.field === "severity") {
+              const rank: Record<string, number> = {
+                critical: 0, high: 1, medium: 2, low: 3,
+                info: 4, informational: 4,
+              };
+              const leftRank = rank[a.severity.toLowerCase()] ?? 5;
+              const rightRank = rank[b.severity.toLowerCase()] ?? 5;
+              const difference = leftRank - rightRank ||
+                a.severity.localeCompare(b.severity);
+              return difference * (sort.order === "asc" ? 1 : -1);
+            }
+            const left = sort.field === "account" ? accountLabel(a)
+              : sort.field === "resource_id" ? assetLabel(a) : String(a[sort.field]);
+            const right = sort.field === "account" ? accountLabel(b)
+              : sort.field === "resource_id" ? assetLabel(b) : String(b[sort.field]);
+            return left.localeCompare(right, undefined, { numeric: true }) *
+              (sort.order === "asc" ? 1 : -1);
+          }
+          if (sort && serverFiltered) return 0;
+          return String(a[group as keyof Finding]).localeCompare(
             String(b[group as keyof Finding]),
-          ),
-        ),
+          );
+        }),
     [
       all,
       category,
@@ -134,8 +213,8 @@ export function Findings({
       search,
       group,
       serverFiltered,
-      checklist,
       selectedChecklist,
+      sort,
     ],
   );
   const columns = useMemo(
@@ -180,8 +259,21 @@ export function Findings({
                   {i.row.original.native_resource_id}
                 </span>
               )}
+            {/* Collection-level rows ("inventory:<type>") repeat per region;
+                the scope is what tells them apart. */}
+            {i.row.original.resource_id?.startsWith("inventory:") &&
+              i.row.original.scope && (
+                <span className="native-asset-id" title={i.row.original.scope}>
+                  {i.row.original.scope}
+                </span>
+              )}
           </div>
         ),
+      }),
+      col.display({
+        id: "account",
+        header: "Account",
+        cell: (i) => accountLabel(i.row.original),
       }),
       col.accessor("status", {
         header: "Status",
@@ -196,13 +288,43 @@ export function Findings({
     getCoreRowModel: getCoreRowModel(),
   });
   const rows = table.getRowModel().rows;
+  const groupedServices = category === "exposure" && group === "service";
+  const visibleRows = useMemo(() => {
+    if (!groupedServices) return rows.map((row) => ({ kind: "finding" as const, row }));
+    const services = new Map<string, typeof rows>();
+    for (const row of rows) {
+      const name = row.original.service || "Unknown service";
+      if (!services.has(name)) services.set(name, []);
+      services.get(name)!.push(row);
+    }
+    return [...services].flatMap(([name, findings]) => [
+      { kind: "service" as const, name, findings },
+      ...(expandedServices.has(name) ? findings.map((row) => ({ kind: "finding" as const, row })) : []),
+    ]);
+  }, [rows, groupedServices, expandedServices]);
+  const sortableColumns: Record<string, SortField> = {
+    severity: "severity", title: "title", service: "service",
+    resource_id: "resource_id", account: "account", status: "status",
+  };
   const parent = useRef<HTMLDivElement>(null);
   const virtual = useVirtualizer({
-    count: rows.length,
+    count: visibleRows.length,
     getScrollElement: () => parent.current,
-    estimateSize: () => 87,
+    estimateSize: (index) => visibleRows[index]?.kind === "service" ? 58 : 87,
     overscan: 8,
   });
+  const lastVisible = virtual.getVirtualItems().at(-1)?.index ?? -1;
+  const browsingKey = JSON.stringify([scanId, category, debouncedSearch, severity, status, service, framework, group, sort]);
+  useEffect(() => setExpandedServices(new Set()), [browsingKey]);
+  useEffect(() => {
+    if (parent.current) parent.current.scrollTop = 0;
+    virtual.scrollToOffset(0);
+  }, [browsingKey]);
+  useEffect(() => {
+    if (!serverFiltered || !query.hasNextPage || query.isFetching || query.isFetchNextPageError ||
+        (!groupedServices && (all.length < 20 || lastVisible < visibleRows.length - 20))) return;
+    void query.fetchNextPage({ cancelRefetch: false });
+  }, [serverFiltered, query.hasNextPage, query.isFetching, query.isFetchNextPageError, groupedServices, all.length, visibleRows.length, lastVisible, query.fetchNextPage]);
   return (
     <>
       <div className="section-top">
@@ -217,12 +339,7 @@ export function Findings({
       {selectedChecklist && (
         <div className="notice">
           <p>
-            {String(selectedChecklist.name)} ·{" "}
-            {String(selectedChecklist.supported_native_checks ?? 0)} mapped
-            native checks ·{" "}
-            {String(selectedChecklist.pending_source_checks ?? "unknown")}{" "}
-            pending source checks. Missing or pending evidence does not
-            establish compliance.
+            Selected checklist: {String(selectedChecklist.name)}. Findings are filtered across the complete assessment.
           </p>
         </div>
       )}
@@ -301,44 +418,19 @@ export function Findings({
           <select
             aria-label="Compliance framework"
             value={framework}
-            onChange={(e) => {
-              setFramework(e.target.value);
-              setChecklist("");
-            }}
+            onChange={(e) => setFramework(e.target.value)}
           >
             <option value="">All compliance frameworks</option>
-            {Array.from(
-              new Set([
-                ...(facets?.frameworks || []),
-                ...all.flatMap((f) => f.frameworks || []),
-              ]),
-            )
-              .sort()
-              .map((s) => (
+            {frameworkOptions.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-          </select>
-          <select
-            aria-label="Exact finding checklist version"
-            value={checklist}
-            onChange={(e) => {
-              setChecklist(e.target.value);
-              setFramework("");
-            }}
-          >
-            <option value="">All checklist versions</option>
-            {(catalog.data?.framework_versions || [])
-              .filter(
-                (row) =>
-                  row.provider === summary.data?.provider ||
-                  row.provider === "all",
-              )
-              .map((row, i) => (
-                <option key={String(row.id || i)} value={String(row.id)}>
-                  {String(row.name || row.id)} ·{" "}
-                  {String(row.status || "unknown")}
-                </option>
-              ))}
+            {(catalog.data?.framework_versions || []).filter((row) =>
+              row.provider === summary.data?.provider || row.provider === "all"
+            ).map((row, i) => (
+              <option key={String(row.id || i)} value={String(row.id)}>
+                {String(row.name || row.id)}
+              </option>
+            ))}
           </select>
           <label>
             Group by{" "}
@@ -385,11 +477,18 @@ export function Findings({
                   {table.getHeaderGroups().map((g) => (
                     <tr key={g.id}>
                       {g.headers.map((h) => (
-                        <th key={h.id}>
-                          {flexRender(
-                            h.column.columnDef.header,
-                            h.getContext(),
-                          )}
+                        <th key={h.id} aria-sort={sort?.field === sortableColumns[h.id]
+                          ? sort.order === "asc" ? "ascending" : "descending"
+                          : "none"}>
+                          <button className="text-button" type="button" onClick={() => {
+                            const field = sortableColumns[h.id];
+                            setSort((current) => ({
+                              field,
+                              order: current?.field === field && current.order === "asc" ? "desc" : "asc",
+                            }));
+                          }}>
+                            {flexRender(h.column.columnDef.header, h.getContext())}
+                          </button>
                         </th>
                       ))}
                     </tr>
@@ -399,7 +498,7 @@ export function Findings({
                   {virtual.getVirtualItems().length > 0 && (
                     <tr aria-hidden="true">
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         style={{
                           height: virtual.getVirtualItems()[0]?.start || 0,
                           padding: 0,
@@ -408,12 +507,32 @@ export function Findings({
                     </tr>
                   )}
                   {virtual.getVirtualItems().map((v) => {
-                    const row = rows[v.index];
+                    const item = visibleRows[v.index];
+                    if (item.kind === "service") {
+                      const counts = item.findings.reduce((result, finding) => {
+                        result[finding.original.status] = (result[finding.original.status] || 0) + 1;
+                        return result;
+                      }, {} as Record<string, number>);
+                      return <tr key={`service-${item.name}`} className="service-group-row"><td colSpan={6}>
+                        <button type="button" className="service-group-button" aria-expanded={expandedServices.has(item.name)}
+                          onClick={() => setExpandedServices((current) => {
+                            const next = new Set(current);
+                            if (next.has(item.name)) next.delete(item.name); else next.add(item.name);
+                            return next;
+                          })}>
+                          <ChevronRight size={16} className={expandedServices.has(item.name) ? "expanded" : ""} />
+                          <strong>{item.name}</strong>
+                          <span>{item.findings.length} findings{query.hasNextPage ? " loaded" : ""}</span>
+                          {Object.entries(counts).map(([status, count]) => <span key={status}>{count} {status}</span>)}
+                        </button>
+                      </td></tr>;
+                    }
+                    const row = item.row;
                     const current = String(
                       row.original[group as keyof Finding],
                     );
                     const previous =
-                      v.index > 0
+                      !groupedServices && v.index > 0
                         ? String(
                             rows[v.index - 1].original[group as keyof Finding],
                           )
@@ -422,7 +541,7 @@ export function Findings({
                       <tr key={row.id} style={{ height: 87 }}>
                         {row.getVisibleCells().map((cell, index) => (
                           <td key={cell.id}>
-                            {index === 1 && current !== previous && (
+                            {index === 1 && !groupedServices && !sort && current !== previous && (
                               <span className="group-label">
                                 {group === "resource_id"
                                   ? assetLabel(row.original)
@@ -441,7 +560,7 @@ export function Findings({
                   {virtual.getVirtualItems().length > 0 && (
                     <tr aria-hidden="true">
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         style={{
                           height: Math.max(
                             0,
@@ -464,8 +583,7 @@ export function Findings({
                     severity ||
                     status ||
                     service ||
-                    framework ||
-                    checklist
+                    framework
                       ? "No findings match these filters"
                       : "No findings recorded"}
                   </h3>
@@ -475,8 +593,7 @@ export function Findings({
                     severity ||
                     status ||
                     service ||
-                    framework ||
-                    checklist
+                    framework
                       ? "Try another search or reset your filters."
                       : "Review scan coverage before drawing a security conclusion."}
                   </p>
@@ -493,19 +610,19 @@ export function Findings({
                   <button
                     className="button"
                     disabled={query.isFetchingNextPage}
-                    onClick={() => void query.fetchNextPage()}
+                    onClick={() => void query.fetchNextPage({ cancelRefetch: false })}
                   >
                     {query.isFetchingNextPage
                       ? "Loading more…"
                       : "Load more findings"}
                   </button>
                 )}
-                {query.error && (
+                {query.isFetchNextPageError && (
                   <span role="alert">
                     More results could not be loaded.{" "}
                     <button
                       className="text-button"
-                      onClick={() => void query.fetchNextPage()}
+                      onClick={() => void query.fetchNextPage({ cancelRefetch: false })}
                     >
                       Retry
                     </button>
@@ -516,16 +633,12 @@ export function Findings({
           </State>
         )}
       </Panel>
-      <p className="muted small">
-        A passing check applies only to its observed scope. Unknown, skipped and
-        denied collections are not passing checks.
-      </p>
       {inspect && (
         <FindingInspector
           finding={inspect}
           scanId={scanId}
           demo={demo}
-          lazy={serverFiltered}
+          lazy={!demo}
           onClose={() => setInspect(undefined)}
         />
       )}
@@ -551,6 +664,21 @@ function FindingInspector({
     lazy && !demo,
   );
   const observed = detail.data || finding;
+  const internetExposure = observed.check_id === "analysis.internet_exposure";
+  const exposure = internetExposure ? explainInternetExposure(observed.evidence, observed.status) : undefined;
+  const definition = <>
+    <h3>What this check evaluates</h3>
+    <p>{observed.description}</p>
+    {Array.isArray(observed.evaluated) && observed.evaluated.length > 0 && <>
+      <h4>Fields read</h4>
+      <ul>{observed.evaluated.map((field, index) => <li key={`${field}-${index}`}>{field}</li>)}</ul>
+    </>}
+    <dl>
+      {observed.pass_when && <><dt>Pass</dt><dd>{observed.pass_when}</dd></>}
+      {observed.fail_when && <><dt>Fail</dt><dd>{observed.fail_when}</dd></>}
+      {observed.not_applicable_when && <><dt>Not applicable</dt><dd>{observed.not_applicable_when}</dd></>}
+    </dl>
+  </>;
   return (
     <Inspector title="Finding evidence" onClose={onClose}>
       <div className="inspector-badges">
@@ -558,6 +686,18 @@ function FindingInspector({
         <Badge value={observed.status} />
       </div>
       <h3>{observed.title}</h3>
+      {internetExposure && <State loading={lazy && !demo && detail.isPending}
+        error={lazy && !demo ? detail.error : undefined} onRetry={() => void detail.refetch()}>
+        <h3>Affected asset</h3>
+        <p><strong>{assetLabel(observed)}</strong> · {observed.service} · {observed.scope}</p>
+        <h3>Why this result</h3>
+        <p>{exposure?.summary}</p>
+        {!!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+        {observed.evidence != null && <details><summary>Technical evidence details</summary><Evidence data={observed.evidence} /></details>}
+        <h3>Defensive remediation</h3>
+        <Remediation legacy={observed.remediation} details={observed.remediation_details} />
+      </State>}
+      {internetExposure && <details><summary>Check and report metadata</summary>
       <dl>
         <dt>Check</dt>
         <dd>{observed.check_id}</dd>
@@ -576,16 +716,36 @@ function FindingInspector({
         <dt>Frameworks</dt>
         <dd>{observed.frameworks?.join(" · ") || "No framework mapping"}</dd>
       </dl>
-      <State
+      </details>}
+      {!internetExposure && <dl>
+        <dt>Check</dt><dd>{observed.check_id}</dd>
+        <dt>Asset</dt><dd>{assetLabel(observed)}</dd>
+        {observed.native_resource_id && <><dt>Native ID</dt><dd>{observed.native_resource_id}</dd></>}
+        <dt>Report resource ID</dt><dd>{observed.resource_id}</dd>
+        <dt>Scope</dt><dd>{observed.scope}</dd>
+        <dt>Frameworks</dt><dd>{observed.frameworks?.join(" · ") || "No framework mapping"}</dd>
+      </dl>}
+      {observed.description && (
+        <section aria-label="Check explanation">
+          {internetExposure ? <details><summary>Check definition</summary>{definition}</details> : definition}
+        </section>
+      )}
+      {!internetExposure && <State
         loading={lazy && !demo && detail.isPending}
         error={lazy && !demo ? detail.error : undefined}
         onRetry={() => void detail.refetch()}
       >
         <h3>Observed evidence</h3>
-        <Evidence data={observed.evidence} />
+        <p>{explainFindingEvidence(observed.evidence, observed.status)}</p>
+        {observed.evidence != null && (
+          <details>
+            <summary>Technical evidence details</summary>
+            <Evidence data={observed.evidence} />
+          </details>
+        )}
         <h3>Defensive remediation</h3>
-        <Evidence data={observed.remediation} />
-      </State>
+        <Remediation legacy={observed.remediation} details={observed.remediation_details} />
+      </State>}
       <button className="button" onClick={onClose}>
         Back to findings
         <ChevronRight size={16} />

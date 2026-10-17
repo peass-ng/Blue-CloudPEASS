@@ -9,6 +9,7 @@ import copy
 import json
 
 SPECS = {
+    "inspector_organization_review": ("inspector2", "get_delegated_admin_account", None),
     "rest_api_stage": ("apigateway", "get_stages", "item"),
     "http_api_stage": ("apigatewayv2", "get_stages", "Items"),
     "ecr_registry_scanning_configuration": ("ecr", "get_registry_scanning_configuration", None),
@@ -52,6 +53,7 @@ SPECS = {
     "ssm_service_settings": ("ssm", "get_service_setting", None),
 }
 NATIVE_IDS = {
+    "inspector_organization_review": "id",
     "rest_api_stage": "id", "http_api_stage": "id",
     "ecr_registry_scanning_configuration": "registryId",
     "rds_event_subscription": "EventSubscriptionArn", "rds_proxy": "DBProxyArn", "rds_cluster_snapshot": "DBClusterSnapshotArn", "rds_certificate": "CertificateIdentifier",
@@ -75,6 +77,7 @@ READ_ACTIONS.update({
     ("rds", "describe_db_parameters"), ("rds", "describe_db_cluster_parameters"), ("rds", "describe_option_groups"),
     ("redshift", "describe_logging_status"), ("redshift", "describe_cluster_parameters"),
     ("cognito-idp", "describe_user_pool"), ("cognito-idp", "list_user_pool_clients"), ("cognito-idp", "describe_user_pool_client"),
+    ("cognito-idp", "describe_risk_configuration"),
     ("cognito-identity", "describe_identity_pool"), ("route53", "get_query_logging_config"), ("route53", "list_query_logging_configs"),
     ("codebuild", "batch_get_projects"), ("mq", "describe_broker"),
     ("efs", "describe_backup_policy"), ("efs", "describe_file_system_policy"),
@@ -109,8 +112,51 @@ def _read_list(requests, session, region, service, operation, expression, **argu
     return result
 
 
+_ACM_STATUSES = ("PENDING_VALIDATION", "ISSUED", "INACTIVE", "EXPIRED", "VALIDATION_TIMED_OUT", "REVOKED", "FAILED")
+_ACM_ORIGINS = ("AWS_MANAGED", "ACME", "CUSTOMER_PROVIDED")
+_ACM_KEY_TYPES = ("RSA_1024", "RSA_2048", "RSA_3072", "RSA_4096", "EC_prime256v1", "EC_secp384r1", "EC_secp521r1")
+
+
+def _acm_certificates(requests, session, region, account):
+    """One modeled, complete known-enum ACM list read per Region.
+
+    The older SDK omits ACME origin filtering and its default list excludes
+    ACME/nondefault key types. Never treat that response as all certificates.
+    """
+    from .aws import ReadResult
+
+    try:
+        model = requests.client(session, "acm", region).meta.service_model.operation_model("ListCertificates")
+        members = model.input_shape.members
+        statuses = members["CertificateStatuses"].member.metadata["enum"]
+        origins = members["CertificateKeyPairOrigins"].member.metadata["enum"]
+        key_types = members["Includes"].members["keyTypes"].member.metadata["enum"]
+    except (AttributeError, KeyError, TypeError):
+        return ReadResult([], "not_collected", {"code": "acm_complete_filter_unsupported_sdk"})
+    if any(set(observed) != set(expected) for observed, expected in (
+            (statuses, _ACM_STATUSES), (origins, _ACM_ORIGINS), (key_types, _ACM_KEY_TYPES))):
+        return ReadResult([], "not_collected", {"code": "acm_filter_enum_unreviewed"})
+    read = requests.pages(session, "acm", region, "list_certificates", "CertificateSummaryList",
+                          CertificateStatuses=list(_ACM_STATUSES),
+                          CertificateKeyPairOrigins=list(_ACM_ORIGINS),
+                          Includes={"keyTypes": list(_ACM_KEY_TYPES)})
+    if read.status in {"collected", "empty"}:
+        for row in read.items:
+            if not isinstance(row, dict) or row.get("CertificateKeyPairOrigin") not in (*_ACM_ORIGINS, None):
+                return ReadResult(read.items, "partial" if read.items else "malformed",
+                                  {"code": "acm_unreviewed_origin_response"})
+    return read
+
+
 def _detail(requests, session, region, service, operation, **arguments):
-    return _metadata(requests.detail(session, service, region, operation, **arguments))
+    detail = requests.detail(session, service, region, operation, **arguments)
+    output = _metadata(detail)
+    error = detail.get("error") if isinstance(detail, dict) else None
+    if isinstance(output, dict) and isinstance(error, dict) and isinstance(error.get("code"), str):
+        # Collector-sanitized read error codes are status metadata, not the
+        # omitted "code" content field (for example Lambda function code).
+        output["error"] = {**(output.get("error") or {}), "code": error["code"]}
+    return output
 
 
 def _single(requests, session, region, service, operation, **arguments):
@@ -134,9 +180,37 @@ def _self_documents(requests, session, region, account):
     return requests.pages(session, "ssm", region, "list_documents", "DocumentIdentifiers", Filters=[{"Key": "Owner", "Values": ["Self"]}])
 
 
+def _inspector_review(requests, session, region, account):
+    """Keep independent admin proof and config availability in separate fields.
+
+    This inventory is an assessment record, not a replacement for the original
+    organization-configuration inventory. Each native read retains its status;
+    failed admin/config reads cannot be treated as absent settings.
+    """
+    from .aws import ReadResult
+    return ReadResult([{
+        "id": "inspector-organization-review",
+        "AccountId": account,
+        "Administrator": _detail(requests, session, region, "inspector2", "get_delegated_admin_account"),
+        "Configuration": _detail(requests, session, region, "inspector2", "describe_organization_configuration"),
+    }])
+
+
 def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argument):
     def fetch(requests, session, region, account):
         from .aws import ReadResult
+        # The SDK endpoint resolver supplies the partition without a provider
+        # request. REST stage ARNs use /restapis/; APIv2 stages use /apis/.
+        resolver = getattr(session, "get_partition_for_region", None)
+        if resolver is None:
+            # Offline callers may pass a lightweight session adapter. Use the
+            # same SDK endpoint model without touching credentials or network.
+            from boto3.session import Session
+            resolver = Session().get_partition_for_region
+        partition = resolver(region)
+        if not isinstance(partition, str) or not partition:
+            return ReadResult([], "malformed", {"code": "unknown_region_partition"})
+        stage_path = "restapis" if service == "apigateway" else "apis"
         parents = requests.pages(session, service, region, parent_op, parent_expr)
         if parents.status not in ("collected", "empty"):
             return ReadResult([], parents.status, parents.error)
@@ -154,8 +228,14 @@ def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argumen
                     return ReadResult(items, "partial" if items else "malformed", {"code": "malformed_stage"})
                 row = _metadata(child)
                 row["ParentApiId"] = api_id
-                row["id"] = f"arn:aws:apigateway:{region}::/apis/{api_id}/stages/{name}"
+                row["id"] = f"arn:{partition}:apigateway:{region}::/{stage_path}/{api_id}/stages/{name}"
                 row["_provenance"] = {"source_operation": "get_stages", "parent_api_id": api_id, "read_only": True}
+                if service == 'apigateway':
+                    # AccessLogSettings is optional in the complete native
+                    # Stage response and survives the metadata projection.
+                    # This proves only that field's absence, never full-row or
+                    # log-delivery completeness.
+                    row['_provenance']['optional_fields_complete'] = ['accessLogSettings']
                 items.append(row)
         if failures:
             return ReadResult(items, "partial" if items else failures[0].status, failures[0].error)
@@ -164,6 +244,8 @@ def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argumen
 
 
 FETCHERS = {
+    "acm_certificate": _acm_certificates,
+    "inspector_organization_review": _inspector_review,
     "rest_api_stage": _api_stages("apigateway", "get_rest_apis", "items", "id", "item", "restApiId"),
     "http_api_stage": _api_stages("apigatewayv2", "get_apis", "Items", "ApiId", "Items", "ApiId"),
     "ssm_service_settings": _single_settings, "ssm_document_metadata": _self_documents,
@@ -185,6 +267,8 @@ def _enricher(kind):
                 item["Services"] = _read_list(requests, session, region, "ecs", "list_services", "serviceArns", cluster=item["clusterArn"])
             elif kind == "ecs_task_definition":
                 item["Definition"] = _detail(requests, session, region, "ecs", "describe_task_definition", taskDefinition=item["taskDefinitionArn"])
+            elif kind == "redshift_cluster":
+                item["Logging"] = _detail(requests, session, region, "redshift", "describe_logging_status", ClusterIdentifier=item["ClusterIdentifier"])
             elif kind == "dynamodb_table":
                 item["ContinuousBackups"] = _detail(requests, session, region, "dynamodb", "describe_continuous_backups", TableName=item["TableName"])
             elif kind == "lambda_function":
@@ -203,6 +287,7 @@ def _enricher(kind):
                 item["Policy"] = _detail(requests, session, region, "backup", "get_backup_vault_access_policy", BackupVaultName=name)
             elif kind == "cognito_user_pool":
                 item["Configuration"] = _detail(requests, session, region, "cognito-idp", "describe_user_pool", UserPoolId=item["Id"])
+                item["Risk"] = _detail(requests, session, region, "cognito-idp", "describe_risk_configuration", UserPoolId=item["Id"])
                 item["Clients"] = _read_list(requests, session, region, "cognito-idp", "list_user_pool_clients", "UserPoolClients", UserPoolId=item["Id"], MaxResults=60)
                 if item["Clients"]["collection_status"] in ("collected", "empty"):
                     for client in item["Clients"]["items"]:
@@ -210,7 +295,18 @@ def _enricher(kind):
             elif kind == "cognito_identity_pool":
                 item["Configuration"] = _detail(requests, session, region, "cognito-identity", "describe_identity_pool", IdentityPoolId=item["IdentityPoolId"])
             elif kind == "codebuild_project":
-                item["Configuration"] = _detail(requests, session, region, "codebuild", "batch_get_projects", names=[item["name"]])
+                # Requests.call already projected this response before caching;
+                # retain the safe source.auth type/resource reference which the
+                # generic service metadata filter would otherwise discard.
+                item["Configuration"] = requests.detail(session, "codebuild", region, "batch_get_projects", names=[item["name"]])
+                config = item["Configuration"]
+                if config.get("collection_status") == "collected":
+                    rows = config.get("projects")
+                    missing = config.get("projectsNotFound")
+                    if (not isinstance(rows, list) or len(rows) != 1 or not isinstance(rows[0], dict)
+                            or rows[0].get("name") != item["name"] or missing):
+                        config["collection_status"] = "partial"
+                        config["error"] = {"code": "codebuild_project_detail_incomplete"}
             elif kind == "mq_broker":
                 item["Configuration"] = _detail(requests, session, region, "mq", "describe_broker", BrokerId=item["BrokerId"])
             elif kind == "efs_file_system":
@@ -222,7 +318,7 @@ def _enricher(kind):
                 item["Stages"] = _read_list(requests, session, region, "apigateway", "get_stages", "item", restApiId=item["id"])
             elif kind == "http_api":
                 item["Stages"] = _read_list(requests, session, region, "apigatewayv2", "get_stages", "Items", ApiId=item["ApiId"])
-            output.append(_metadata(item))
+            output.append(item if kind == "codebuild_project" else _metadata(item))
         return output
     return enrich
 
@@ -270,6 +366,19 @@ def _ecr_repository_metadata(requests, session, region, items):
     return output
 
 
-ENRICHERS = {kind: _enricher(kind) for kind in ["acm_certificate", "cloudfront_distribution", "ecs_cluster", "ecs_task_definition", "lambda_function", "dynamodb_table", "backup_plan", "backup_vault", "cognito_user_pool", "cognito_identity_pool", "codebuild_project", "mq_broker", "efs_file_system", "ssm_document_metadata", "rest_api", "http_api"]}
+ENRICHERS = {kind: _enricher(kind) for kind in ["acm_certificate", "cloudfront_distribution", "ecs_cluster", "ecs_task_definition", "redshift_cluster", "lambda_function", "dynamodb_table", "backup_plan", "backup_vault", "cognito_user_pool", "cognito_identity_pool", "codebuild_project", "mq_broker", "efs_file_system", "ssm_document_metadata", "rest_api", "http_api"]}
 
 ENRICHERS["ecr_repository"] = _ecr_repository_metadata
+
+
+def _global_inventory(kind):
+    def fetch(requests, session, region, account):
+        service, operation, expression = SPECS[kind]
+        # All custom FETCHERS return raw native records. The main common
+        # pipeline normalizes and applies registered ENRICHERS exactly once.
+        return requests.pages(session, service, region, operation, expression)
+    return fetch
+
+
+for _global_kind in GLOBAL_TYPES:
+    FETCHERS[_global_kind] = _global_inventory(_global_kind)

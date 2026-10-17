@@ -1,3 +1,15 @@
+data "aws_cloudfront_cache_policy" "api" {
+  name = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_cache_policy" "frontend" {
+  name = "Managed-CachingOptimized"
+}
+
+data "aws_cloudfront_origin_request_policy" "api" {
+  name = "Managed-AllViewerExceptHostHeader"
+}
+
 resource "aws_cloudfront_origin_access_control" "frontend" {
   name                              = local.name
   origin_access_control_origin_type = "s3"
@@ -7,6 +19,10 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
 resource "aws_cloudfront_response_headers_policy" "security" {
   name = local.name
   security_headers_config {
+    content_security_policy {
+      content_security_policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://${aws_s3_bucket.artifacts.bucket}.s3.amazonaws.com/artifacts/; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+      override                = true
+    }
     content_type_options { override = true }
     frame_options {
       frame_option = "DENY"
@@ -67,7 +83,7 @@ resource "aws_cloudfront_distribution" "cspm" {
     allowed_methods            = ["GET", "HEAD", "OPTIONS"]
     cached_methods             = ["GET", "HEAD"]
     compress                   = true
-    cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    cache_policy_id            = data.aws_cloudfront_cache_policy.frontend.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
     function_association {
       event_type   = "viewer-request"
@@ -75,14 +91,15 @@ resource "aws_cloudfront_distribution" "cspm" {
     }
   }
   ordered_cache_behavior {
-    path_pattern             = "/api/*"
-    target_origin_id         = "api"
-    viewer_protocol_policy   = "https-only"
-    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods           = ["GET", "HEAD"]
-    cache_policy_id          = "413f160e-6fd7-4b54-9aac-74d34941d972"
-    origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
-    compress                 = true
+    path_pattern               = "/api/*"
+    target_origin_id           = "api"
+    viewer_protocol_policy     = "https-only"
+    allowed_methods            = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods             = ["GET", "HEAD"]
+    cache_policy_id            = data.aws_cloudfront_cache_policy.api.id
+    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.api.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
+    compress                   = true
   }
   restrictions {
     geo_restriction { restriction_type = "none" }

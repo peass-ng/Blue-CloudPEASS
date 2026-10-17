@@ -1,0 +1,93 @@
+{
+  "aws-compliance.control.cloudwatch_cross_account_sharing": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.cross_account_sharing_review"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_Role.html"
+    ],
+    "reason": "Full named role plus cross-joined Statement CTE: no joined statement PASS, named role with any statement INFO/MANUAL even if service-only/Deny; role existence alone or emptyStatement doesnotMANUAL. Different from prior source role-absence FAIL predicate.",
+    "review_notes": "Full control/query/helper statically independently reviewed; PASS/MANUAL where sourcehasnoFAIL plus relevantFAIL/UNKNOWN/denied/malformed/purity/defaultparameter/case/join/optionalomission fixtures. Full native function computes real source outcomes, not an alwaysUNKNOWN stub; read-only declaredConfig/DLM/log-policy facts and normalcache/budgets. Lead imports/parameter-review/conservation stillpending.",
+    "reviewed_query_id": "cloudwatch_cross_account_sharing",
+    "reviewed_source": {
+      "evaluator_sha256": "6819225775469cf67c1385765b2516edb43c38576f64a1343808451e69354624",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L52"
+    }
+  },
+  "aws-perimeter.control.cloudwatch_log_resource_policy_prohibit_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.resource_policy_declared_public"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeResourcePolicies.html"
+    ],
+    "reason": "Expanded entire shared resource_policy_public_sql helper reviewed, table substitutedtoaws_cloudwatch_log_resource_policy and identitypolicy_name. ExactAllow/whole-wildcard principal with six unrestricting keys/operator branches, including ArnEquals[*] unrestricting, alarms; explicit policyNULL sourceINFO staysMANUAL. Native declared-policy lint has no effectiveCloudWatchauthorization/publicendpoint claim.",
+    "review_notes": "Full control/query/helper statically independently reviewed; PASS/MANUAL where sourcehasnoFAIL plus relevantFAIL/UNKNOWN/denied/malformed/purity/defaultparameter/case/join/optionalomission fixtures. Full native function computes real source outcomes, not an alwaysUNKNOWN stub; read-only declaredConfig/DLM/log-policy facts and normalcache/budgets. Lead imports/parameter-review/conservation stillpending.",
+    "reviewed_source": {
+      "evaluator_sha256": "daf4f7af9bce29218830a1e72201150f07a8cb2e08fc076a6989d817511dfaf1",
+      "repository": "turbot/steampipe-mod-aws-perimeter",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/public_access.pp#L610"
+    }
+  },
+  "aws-perimeter.control.config_aggregator_shared_with_trusted_accounts": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.config.aggregate_authorization_review"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/config/latest/APIReference/API_DescribeAggregationAuthorizations.html"
+    ],
+    "reason": "Exact authorized_account_id NULL or ANY supplied trusted_accounts passes; untrusted source INFO stays MANUAL, not inventedFAIL. Native binds parameter to existing snapshot context.metadata.trusted_scope_ids; explicit user list (including empty list) is the evaluated parameter, not source illustrative sample account defaults.",
+    "review_notes": "Full control/query/helper statically independently reviewed; PASS/MANUAL where sourcehasnoFAIL plus relevantFAIL/UNKNOWN/denied/malformed/purity/defaultparameter/case/join/optionalomission fixtures. Full native function computes real source outcomes, not an alwaysUNKNOWN stub; read-only declaredConfig/DLM/log-policy facts and normalcache/budgets. Lead imports/parameter-review/conservation stillpending.",
+    "reviewed_parameters": {
+      "trusted_accounts": {
+        "native_default": [],
+        "requires_declared_configuration": true,
+        "snapshot_binding": "context.metadata.trusted_scope_ids",
+        "source_illustrative_default": [
+          "123456781234",
+          "123456781200"
+        ]
+      }
+    },
+    "reviewed_source": {
+      "evaluator_sha256": "9f4cc32c7f063691f63e1d86540f5a9485a46e7c92196b12c358ce6645f1630e",
+      "repository": "turbot/steampipe-mod-aws-perimeter",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L272"
+    }
+  },
+  "aws-perimeter.control.dlm_ebs_snapshot_policy_shared_with_trusted_accounts": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.dlm.snapshot_sharing_review"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/dlm/latest/APIReference/API_Schedule.html"
+    ],
+    "reason": "Full EBS_SNAPSHOT_MANAGEMENT filter, disabled skip and schedules0..3 ShareRules0 target list minus configured trusted_accounts. Current native schedule<=4/shareRules<=1 limits verify first-rule equivalence; untrusted target sourceINFO staysMANUAL, known no-sharing passes; missing detail unknown. Existing metadata trusted_scope_ids binds explicit source parameter; illustrative source account defaults are not silently trusted.",
+    "review_notes": "Full control/query/helper statically independently reviewed; PASS/MANUAL where sourcehasnoFAIL plus relevantFAIL/UNKNOWN/denied/malformed/purity/defaultparameter/case/join/optionalomission fixtures. Full native function computes real source outcomes, not an alwaysUNKNOWN stub; read-only declaredConfig/DLM/log-policy facts and normalcache/budgets. Lead imports/parameter-review/conservation stillpending.",
+    "reviewed_parameters": {
+      "trusted_accounts": {
+        "native_default": [],
+        "requires_declared_configuration": true,
+        "snapshot_binding": "context.metadata.trusted_scope_ids",
+        "source_illustrative_default": [
+          "123456781234",
+          "123456781200"
+        ]
+      }
+    },
+    "reviewed_source": {
+      "evaluator_sha256": "c568211f73b699aa6c92d18c0bb0e2469e49a460facb8b1c2b6ceff911aa92f9",
+      "repository": "turbot/steampipe-mod-aws-perimeter",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L392"
+    }
+  }
+}

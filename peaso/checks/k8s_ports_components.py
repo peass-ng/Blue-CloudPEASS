@@ -6,8 +6,9 @@ Captured declarations do not prove that a running host uses those parameters.
 from __future__ import annotations
 import copy
 import re
+from decimal import Decimal
 from . import register, result, unknown
-from .facts import get, guard, Unavailable
+from .facts import MemoIndex, get, guard, memoized, optional, Unavailable
 from .fixtures import CASES, nest
 from .k8s_ports_workloads import KIND_PATHS, PREFIXES, pod_spec
 
@@ -84,11 +85,48 @@ SPECS = {
 }
 
 LEGACY_MAX = {"insecure-port": (1, 19), "insecure-bind-address": (1, 19), "basic-auth-file": (1, 18)}
+KNOWN_COMPONENTS = frozenset(("kube-apiserver", "kubelet", "kube-controller-manager", "kube-scheduler", "etcd"))
+_TITLE_SCOPE = {
+    "container_argument_audit_log_maxage_greater_than_30": "declares kube-apiserver audit-log-maxage at least 30 days",
+    "container_argument_audit_log_maxbackup_greater_than_10": "declares kube-apiserver audit-log-maxbackup at least 10 files",
+    "container_argument_audit_log_maxsize_greater_than_100": "declares kube-apiserver audit-log-maxsize at least 100 MB",
+    "container_argument_event_qps_less_than_5": "declares kubelet event-qps at most 5",
+    "container_argument_security_context_deny_enabled": "declares a legacy PSP or SecurityContextDeny admission plugin",
+}
+
+
+def component_hints(item, kind):
+    metadata = get(item, "metadata", dict) if "metadata" in item else {}
+    labels = get(metadata, "labels", dict) if "labels" in metadata else {}
+    path = KIND_PATHS[kind].rsplit(".", 1)[0] + ".metadata" if kind != "pod" else "metadata"
+    try:
+        template = get(item, path, dict)
+    except Unavailable:
+        template = {}
+    template_labels = get(template, "labels", dict) if "labels" in template else {}
+    hints = {value for key, value in {**labels, **template_labels}.items() if key in ("component", "k8s-app", "app.kubernetes.io/name") and isinstance(value, str) and value in KNOWN_COMPONENTS}
+    static = item.get("_static_pod_metadata") is True and metadata.get("namespace") == "kube-system"
+    return hints, static
 
 
 def compare(flags, fields, operation, expected):
+    guard(flags)
+    coverage = flags.get("_coverage", {})
+    for field in fields:
+        if field in coverage:
+            state = coverage[field]
+            # A complete projection may confirm an empty or omitted flag.
+            # A collected marker, unlike an empty marker, requires a value.
+            if not isinstance(state, dict) or state.get("status") not in ("collected", "empty"):
+                raise Unavailable("component flag availability unknown: " + field)
+            if state["status"] == "collected" and field not in flags:
+                raise Unavailable("collected component flag missing: " + field)
     if operation == "absent":
-        return all(field not in flags for field in fields)
+        for field in fields:
+            if field in flags:
+                get(flags, field, str)
+                return False
+        return True
     if any(field not in flags for field in fields):
         # A field omitted from projected declarations is not a captured effective
         # default; no running component configuration is inferred.
@@ -114,35 +152,81 @@ def compare(flags, fields, operation, expected):
             return expected not in members
         return bool(value) and members <= expected
     if operation in ("duration", "nonzero_duration"):
-        valid = bool(re.fullmatch(r"(?:[0-9]+(?:\.[0-9]+)?[hms])+|0", value))
+        valid = bool(re.fullmatch(r"[-+]?(?:[0-9]+(?:\.[0-9]+)?(?:ns|us|µs|ms|h|m|s))+|[-+]?0", value))
         if not valid:
             raise Unavailable("malformed component duration")
-        return operation == "duration" or value not in ("0", "0s", "0m", "0h")
+        if value.startswith("-") and any(Decimal(number) != 0 for number in re.findall(r"[0-9]+(?:\.[0-9]+)?", value)):
+            raise Unavailable("negative component timeout declaration")
+        return operation == "duration" or any(Decimal(number) != 0 for number in re.findall(r"[0-9]+(?:\.[0-9]+)?", value))
     raise ValueError("unreviewed component comparison")
 
 
-def evaluate_component(item, kind, spec):
-    _, containers = pod_spec(item, kind)
+def _memo_prework(index, item, kind, stage, compute):
+    """Cache one spec-independent read, retaining item even on Unavailable."""
+    if type(index) is not MemoIndex:
+        return compute()
+
+    def captured():
+        try:
+            return item, True, compute()
+        except Unavailable as exc:
+            return item, False, (type(exc), exc.args)
+
+    owner, available, value = memoized(index, ("k8s_component_prework", kind, stage, id(item)), captured)
+    if owner is not item:
+        # Defensive against an externally populated memo; never reuse another
+        # resource's facts. Normal entries keep owner alive, preventing id reuse.
+        return compute()
+    if not available:
+        error_type, args = value
+        raise error_type(*args)
+    return value
+
+
+def evaluate_component(item, kind, spec, index=None):
+    _, containers = _memo_prework(index, item, kind, "pod_spec", lambda: pod_spec(item, kind))
     component, fields, operation, expected, _ = spec
     components = (component,) if isinstance(component, str) else component
+    hints, static = _memo_prework(index, item, kind, "component_hints", lambda: component_hints(item, kind))
     observations, bad, gaps = [], [], []
     for container in containers:
         if "_component_config" not in container:
-            gaps.append(container["name"])
+            if "metadata" not in item or static or hints.intersection(components) or container["name"] in components:
+                gaps.append(container["name"])
             continue
         configuration = get(container, "_component_config", dict)
-        captured = configuration.get("component")
+        captured = optional(configuration, "component", None)
         if captured is None:
-            gaps.append(container["name"])
+            if configuration.get("component_identification") == "ambiguous_wrapped_component" or static or hints.intersection(components) or container["name"] in components:
+                gaps.append(container["name"])
             continue
+        if not isinstance(captured, str) or captured not in KNOWN_COMPONENTS:
+            return unknown("unrecognized component metadata subject")
         if captured not in components:
             continue
         if get(configuration, "flags_complete", bool) is not True:
             raise Unavailable("incomplete component flag projection")
-        version = configuration.get("version")
+        effective_operation, effective_expected = operation, expected
         max_version = next((LEGACY_MAX[field] for field in fields if field in LEGACY_MAX), None)
-        if expected in ("PodSecurityPolicy", ("PodSecurityPolicy", "SecurityContextDeny")):
+        legacy_security_plugins = expected == ("PodSecurityPolicy", "SecurityContextDeny")
+        if expected == "PodSecurityPolicy":
             max_version = (1, 24)
+        # Only version-bounded predicates consume version authority. Unrelated
+        # unavailable version metadata cannot invalidate captured declarations.
+        version = optional(configuration, "version", None) if max_version or legacy_security_plugins else None
+        if legacy_security_plugins:
+            # PSP stopped working in 1.25; SecurityContextDeny survived until
+            # its removal in 1.30. A declared PSP cannot substitute for it.
+            if not isinstance(version, str):
+                return unknown("component version required for legacy admission control")
+            match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.\d+)?(?:\+[A-Za-z0-9_.-]+)?", version)
+            if not match or int(match[1]) != 1:
+                return unknown("component version outside reviewed legacy admission range")
+            minor = int(match[2])
+            if minor >= 30:
+                continue
+            if minor >= 25:
+                effective_operation, effective_expected = "contains", "SecurityContextDeny"
         if max_version:
             if not isinstance(version, str) or not re.match(r"^v?[0-9]+\.[0-9]+", version):
                 return unknown("component version required for removed legacy control")
@@ -150,8 +234,12 @@ def evaluate_component(item, kind, spec):
             if current > max_version:
                 continue
         flags = get(configuration, "flags", dict)
-        safe = compare(flags, fields, operation, expected)
-        observations.append({"container": container["name"], "component": captured, "settings": {field: flags.get(field) for field in fields}})
+        safe = compare(flags, fields, effective_operation, effective_expected)
+        observation = {"container": container["name"], "component": captured,
+                       "settings": {field: flags.get(field) for field in fields}}
+        if legacy_security_plugins:
+            observation["observed_version"] = version
+        observations.append(observation)
         if not safe:
             bad.append(container["name"])
     if bad:
@@ -175,10 +263,10 @@ def register_component(kind, suffix, spec):
     cid = f"k8s.ports.{kind}.{suffix}"
     CANONICAL_SPECS[canonical] = cid
     IDS.append(cid)
-    @register(cid, "k8s", "hardening", kind, kind + " reviewed " + suffix.replace("_", " "), "medium", "CM-6",
+    @register(cid, "k8s", "hardening", kind, kind + " " + _TITLE_SCOPE.get(suffix, "reviewed " + suffix.replace("_", " ")), "medium", "CM-6",
         "Review approved component metadata and the version-specific configuration; do not infer host settings from unrelated workload declarations.")
     def evaluate(item, index):
-        return evaluate_component(item, kind, spec)
+        return evaluate_component(item, kind, spec, index)
     component, fields, operation, expected, bad = spec
     good = "configured" if operation == "present" else str(expected) if operation in ("equal", "ge", "le") else "1"
     if operation in ("contains", "contains_any"):

@@ -1,5 +1,11 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
 # AWS Lambda privilege escalation techniques.
-# Source: hacktricks-cloud aws-lambda-privesc/README.md (rev a53b46392c).
+# Source: hacktricks-cloud aws-lambda-privesc/README.md (rev 171e422299).
 # Conventions used across catalog/aws/*.yaml written for AWS part B (see SCHEMA EXTENSIONS in the agent report):
 #   resource "{target.resource_arn}"  -> ARN of the EXISTING resource (function, instance, job, cluster, ...) that carries the
 #                                        target role; every requirement using it must cover the SAME resource.
@@ -14,7 +20,7 @@
   service: lambda
   title: Create a Lambda function with a passed execution role and invoke it
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#iampassrole-lambdacreatefunction-lambdainvokefunction
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of any passable role trusting lambda.amazonaws.com.
   requires:
     all_of:
@@ -50,7 +56,7 @@
   service: lambda
   title: Create a Lambda function with a passed role and grant itself invoke via the resource policy
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#iampassrole-lambdacreatefunction-lambdaaddpermission
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of any passable role trusting lambda.amazonaws.com without holding lambda:InvokeFunction.
   requires:
     all_of:
@@ -85,7 +91,7 @@
   service: lambda
   title: Create a Lambda function with a passed role and trigger it through an event source mapping
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#iampassrole-lambdacreatefunction-lambdacreateeventsourcemapping
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of any passable role trusting lambda.amazonaws.com via an event-source-triggered function.
   requires:
     all_of:
@@ -114,14 +120,55 @@
   mitigation: Restrict iam:PassRole to specific roles with iam:PassedToService, and restrict lambda:CreateEventSourceMapping to deployment principals.
   references:
     - https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html
-  notes: HackTricks uses DynamoDB as the trigger; any poll-based source the passed role can read works.
+  notes: HackTricks uses DynamoDB as the trigger; any poll-based source the passed role can read works. The self-contained DynamoDB variant (Pacu PassExistingRoleToNewLambdaThenTriggerWithNewDynamo) is aws-lambda-passrole-createfunction-dynamodb-stream-trigger.
+
+- id: aws-lambda-passrole-createfunction-dynamodb-stream-trigger
+  provider: aws
+  service: lambda
+  title: Create a Lambda function with a passed role and trigger it from a new DynamoDB stream
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#iampassrole-lambdacreatefunction-lambdacreateeventsourcemapping
+  source_revision: 171e422299
+  summary: The source can obtain the privileges of any passable role trusting lambda.amazonaws.com by creating a DynamoDB table with a stream, mapping the stream to a function it creates with the role, and writing an item to fire it.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: lambda:CreateFunction
+        resource: "*"
+      - action: lambda:CreateEventSourceMapping
+        resource: "*"
+      - action: dynamodb:CreateTable
+        resource: "arn:aws:dynamodb:*:{target.account}:table/*"
+      - action: dynamodb:PutItem
+        resource: "arn:aws:dynamodb:*:{target.account}:table/*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: lambda.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: "Roles trusting lambda.amazonaws.com passable in {account}"
+  conditions:
+    - id: role_reads_stream
+      description: The passed role must hold dynamodb:DescribeStream / GetRecords / GetShardIterator / ListStreams on the new table's stream (for example via AWSLambdaDynamoDBExecutionRole), or the mapping creation fails.
+    - id: passrole_condition_key
+      description: iam:PassedToService / iam:AssociatedResourceArn conditions may restrict which roles can be passed.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole to specific roles with iam:PassedToService, and restrict lambda:CreateEventSourceMapping and dynamodb:CreateTable to deployment principals.
+  references:
+    - https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html
+    - https://github.com/RhinoSecurityLabs/pacu/tree/master/pacu/modules/iam__privesc_scan
+  notes: Pacu PassExistingRoleToNewLambdaThenTriggerWithNewDynamo. The table is created with StreamSpecification enabled (part of dynamodb:CreateTable); the item write fires the mapping. Removes the event_source_available condition of aws-lambda-passrole-createfunction-createeventsourcemapping.
 
 - id: aws-lambda-updatefunctioncode
   provider: aws
   service: lambda
   title: Replace the code of an existing Lambda function
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdaupdatefunctioncode
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of the execution role of existing Lambda functions whose code it can update.
   requires:
     all_of:
@@ -147,45 +194,12 @@
     - https://docs.aws.amazon.com/lambda/latest/dg/configuration-codesigning.html
   notes: Reaches exactly the execution roles of functions within the Resource of UpdateFunctionCode, not every Lambda-trusting role.
 
-- id: aws-lambda-updatefunctionconfiguration
-  provider: aws
-  service: lambda
-  title: Change environment variables or layers of an existing Lambda to execute code
-  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdaupdatefunctionconfiguration
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the execution role of existing Lambda functions whose configuration it can update.
-  requires:
-    all_of:
-      - action: lambda:UpdateFunctionConfiguration
-        resource: "{target.resource_arn}"
-  target:
-    kind: aws_role
-    selector:
-      attached_to_service: lambda
-      via_resource_type: lambda_function
-    scope: same_account
-    aggregate_as: "Execution roles of Lambda functions reconfigurable in {account}"
-  conditions:
-    - id: runtime_supports_env_injection
-      description: Environment-variable code execution depends on the runtime (interpreter options/wrapper variables); the layer variant requires a layer the source can publish (lambda:PublishLayerVersion) or a readable existing layer.
-    - id: function_invocation
-      description: The function must run after the change (own InvokeFunction permission or existing trigger).
-  blockers:
-    - lambda_code_signing_enforced
-    - scp_or_boundary_deny
-  confidence: conditional
-  severity: high
-  mitigation: Restrict lambda:UpdateFunctionConfiguration to deployment principals and enforce code signing (which also covers layers).
-  references:
-    - https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
-  notes: Code signing validates layers as well as function code; environment-variable injection is not prevented by code signing, so lambda_code_signing_enforced only blocks the layer variant.
-
 - id: aws-lambda-codesigning-bypass-updatefunctioncode
   provider: aws
   service: lambda
   title: Remove or replace a function's code-signing config, then replace its code
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdadeletefunctioncodesigningconfig-or-lambdaputfunctioncodesigningconfig--lambdaupdatefunctioncode--bypass-lambda-code-signing
-  source_revision: a53b46392c
+  source_revision: a66f094ede
   summary: The source can obtain the privileges of the execution role of code-signed Lambda functions whose code-signing config it can remove or replace.
   requires:
     all_of:
@@ -198,6 +212,8 @@
           resource: "*"
         - action: lambda:PutFunctionCodeSigningConfig
           resource: "{target.resource_arn}"
+      - - action: lambda:PutFunctionCodeSigningConfig
+          resource: "{target.resource_arn}"
   target:
     kind: aws_role
     selector:
@@ -206,6 +222,8 @@
     scope: same_account
     aggregate_as: "Execution roles of code-signed Lambda functions in {account}"
   conditions:
+    - id: warn_config_available
+      description: The PutFunctionCodeSigningConfig-only alternative requires an existing code-signing configuration with UntrustedArtifactOnDeployment set to Warn; otherwise the source must also create such a configuration.
     - id: function_invocation
       description: The function must run after the change (own InvokeFunction permission or existing trigger).
     - id: lambda_codesigningconfigarns_condition
@@ -224,7 +242,7 @@
   service: lambda
   title: Sign attacker code with a publisher profile already trusted by a function's code-signing config
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#signerstartsigningjob--lambdaupdatefunctioncode--sign-attacker-code-with-an-already-trusted-publisher
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of the execution role of code-signed Lambda functions whose config trusts a signing profile it can use.
   requires:
     all_of:
@@ -264,3 +282,241 @@
   references:
     - https://docs.aws.amazon.com/signer/latest/developerguide/signing-profiles.html
   notes: The evaluator should check that the signing profile covered by StartSigningJob is trusted by the function's CSC; without that fact the edge is conditional.
+
+- id: aws-lambda-passrole-updatefunctionconfiguration-role-swap
+  provider: aws
+  service: lambda
+  title: Repoint an existing Lambda function's execution role to a passable role
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#iampassrole-lambdaupdatefunctionconfiguration-lambdainvokefunction--repoint-an-existing-functions-execution-role
+  source_revision: 171e422299
+  summary: The source can obtain the privileges of passable roles trusting lambda.amazonaws.com by changing the execution role of an existing function it can reconfigure and invoke.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: lambda:UpdateFunctionConfiguration
+        resource: "*"
+      - action: lambda:InvokeFunction
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: lambda.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: "Roles trusting lambda.amazonaws.com passable in {account}"
+  conditions:
+    - id: same_function
+      description: lambda:UpdateFunctionConfiguration and lambda:InvokeFunction must cover the same existing function.
+    - id: code_uses_role
+      description: The new role's privileges are only exercised by the function's code; the gain needs existing code that performs the desired actions, environment/wrapper injection under the same UpdateFunctionConfiguration, or a separate code update.
+    - id: passrole_condition_key
+      description: iam:PassedToService conditions may restrict which roles can be passed.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict iam:PassRole on Lambda execution roles with iam:PassedToService and exact role ARNs, and restrict lambda:UpdateFunctionConfiguration to deployment principals.
+  references:
+    - https://docs.aws.amazon.com/lambda/latest/api/API_UpdateFunctionConfiguration.html
+    - https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
+  notes: Differs from aws-lambda-updatefunctionconfiguration, which keeps the function's current role; here the reachable roles are any passable Lambda-trusting role, not only roles already attached to functions.
+
+- id: aws-lambda-putresourcepolicy-grant-updatefunctioncode
+  provider: aws
+  service: lambda
+  title: Grant code updates to oneself through a Lambda function resource policy
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdaputresourcepolicy--lambdaaddpermission--lambdaremovepermission--grant-code-updates-through-a-function-policy
+  source_revision: 171e422299
+  summary: The source can obtain the privileges of the execution role of existing Lambda functions whose resource policy it can replace, by granting itself lambda:UpdateFunctionCode there.
+  requires:
+    all_of:
+      - action: lambda:PutResourcePolicy
+        resource: "{target.resource_arn}"
+      - action: lambda:AddPermission
+        resource: "{target.resource_arn}"
+      - action: lambda:RemovePermission
+        resource: "{target.resource_arn}"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: lambda
+      via_resource_type: lambda_function
+    scope: same_account
+    aggregate_as: "Execution roles of Lambda functions whose policy is writable in {account}"
+  conditions:
+    - id: function_invocation
+      description: The modified function must run, either through an invoke permission the source also grants itself or an existing trigger.
+    - id: no_identity_deny
+      description: A resource-policy grant to a same-account principal is effective unless an identity-policy, boundary or SCP deny applies.
+  blockers:
+    - lambda_code_signing_enforced
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict lambda:PutResourcePolicy, lambda:AddPermission and lambda:RemovePermission to deployment principals on exact function ARNs, and enforce code signing.
+  references:
+    - https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html
+  notes: PutResourcePolicy requires all three permissions per the Lambda documentation, and UpdateFunctionCode is among the actions a function resource policy can grant. lambda:AddPermission alone is covered by the existing AddPermission entries.
+
+- id: aws-lambda-passrole-createfunction-functionurl
+  provider: aws
+  service: lambda
+  title: Create a Lambda with a passed role and invoke it through a Function URL
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#iampassrole-lambdacreatefunction-lambdacreatefunctionurlconfig-lambdainvokefunctionurl
+  source_revision: 171e422299
+  summary: The source can obtain the privileges of passable roles trusting lambda.amazonaws.com by creating a function with that execution role, adding a Function URL to it and invoking the URL instead of calling InvokeFunction.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: lambda:CreateFunction
+        resource: "*"
+      - action: lambda:CreateFunctionUrlConfig
+        resource: "*"
+      - action: lambda:InvokeFunctionUrl
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: lambda.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: "Roles trusting lambda.amazonaws.com in {account}"
+  conditions:
+    - id: url_auth_type
+      description: With AuthType AWS_IAM the same-account caller's identity-based lambda:InvokeFunctionUrl allow is enough; AuthType NONE additionally needs a function resource policy allowing public invocation (lambda:AddPermission, covered by aws-lambda-passrole-createfunction-addpermission).
+    - id: invoke_permission_pairing
+      description: Newer Lambda authorization may also require lambda:InvokeFunction for Function URL invocation; where it does, the source effectively also matches aws-lambda-passrole-createfunction-invokefunction.
+    - id: passrole_condition_key
+      description: iam:PassedToService conditions may restrict this.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole on Lambda execution roles and lambda:CreateFunctionUrlConfig to deployment principals.
+  references:
+    - https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html
+  notes: HackTricks marks this combination as untested; the edge is conditional on the Function URL authorization behaviour described in the AWS documentation.
+
+- id: aws-lambda-microvm-passrole-runmicrovm-shell
+  provider: aws
+  service: lambda
+  title: Launch a Lambda MicroVM with a passed execution role and open a shell into it
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambda-microvms
+  source_revision: b587e6bd26
+  summary: The source can obtain the privileges of passable roles usable as Lambda MicroVM execution roles by launching a MicroVM runtime with that role and the shell-ingress connector and then opening an interactive shell in the guest, which receives the role credentials through IMDSv2.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: lambda:RunMicrovm
+        resource: "*"
+      - action: lambda:CreateMicrovmShellAuthToken
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: lambda.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: "Roles passable as Lambda MicroVM execution roles in {account}"
+    outcome: workload_execution
+  conditions:
+    - id: passrole_condition_key
+      description: iam:PassedToService / iam:AssociatedResourceArn conditions on the PassRole grant may restrict which roles can be attached to a MicroVM.
+    - id: same_image_scope
+      description: RunMicrovm and CreateMicrovmShellAuthToken are authorized on the MicroVM image ARN; both grants must cover the same usable image (customer or AWS-managed) for the edge to hold.
+    - id: shell_ingress_connector
+      description: The runtime must be launched with the AWS-managed SHELL_INGRESS connector; it cannot be added to a running MicroVM.
+    - id: alternative_attacker_image
+      description: A source able to build its own MicroVM image could instead run arbitrary application code with the passed role without a shell token; that variant is not modelled separately.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole for MicroVM execution roles to exact role ARNs with iam:PassedToService, scope lambda:RunMicrovm and lambda:CreateMicrovmShellAuthToken to exact image ARNs for operators only, and avoid the SHELL_INGRESS connector on images that run with privileged roles.
+  references:
+    - https://docs.aws.amazon.com/lambda/latest/dg/microvms-how-it-works.html
+    - https://docs.aws.amazon.com/lambda/latest/dg/microvms-security.html
+    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_lambda.html
+  notes: The enum page documents that RunMicrovm attaches an optional execution role whose credentials the guest receives through IMDSv2; the shell-token half follows the existing aws-lambda-microvm-createmicrovmshellauthtoken entry. The execution-role trust principal is assumed to be lambda.amazonaws.com, as in the existing MicroVM entry; verify against the MicroVM execution-role documentation. Resources are "*" because the image may be AWS-managed or customer-owned.
+
+- id: aws-lambda-passrole-createfunction-eventbridge-trigger
+  provider: aws
+  service: lambda
+  title: Run a newly created Lambda with a passable role through EventBridge
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#cronevent-actuator
+  source_revision: b587e6bd26
+  summary: The source can run chosen code under a stronger Lambda-trusting role by creating a function and a scheduled EventBridge rule that invokes it.
+  requires:
+    all_of:
+    - action: iam:PassRole
+      resource: '{target.arn}'
+    - action: lambda:CreateFunction
+      resource: arn:aws:lambda:*:{source.account}:function:*
+      bind: new_function
+    - action: events:PutRule
+      resource: arn:aws:events:*:{source.account}:rule/*
+      bind: scheduled_rule
+    - action: events:PutTargets
+      resource: arn:aws:events:*:{source.account}:rule/*
+      bind: scheduled_rule
+    - action: lambda:AddPermission
+      resource: arn:aws:lambda:*:{source.account}:function:*
+      bind: new_function
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: lambda.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: Passable Lambda roles reachable via EventBridge in {account}
+  conditions:
+  - id: scheduled_rule_invokes_function
+    description: The source must create an enabled scheduled rule targeting the newly created function and grant events.amazonaws.com invoke permission on that function; function and rule must be creatable in a common Region.
+  - id: passrole_condition_key
+    description: iam:PassedToService and iam:AssociatedResourceArn conditions must allow passing the role to this new Lambda function.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole, lambda:CreateFunction, events:PutRule, events:PutTargets, and lambda:AddPermission to approved deployment principals.
+  references: []
+  notes: The two page examples, creating IAM user keys and granting assume-role permissions, are payload effects of this one role-execution path. EventBridge schedule can supply the trigger without an external event source.
+- id: aws-lambda-getconfig-secret-identity
+  provider: aws
+  service: lambda
+  title: Recover a distinct identity credential from GetFunctionConfiguration environment
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#enumeration
+  source_revision: b587e6bd26
+  summary: Recover a distinct identity credential from GetFunctionConfiguration environment when the exact
+    target and prerequisites are verified.
+  requires:
+    all_of:
+    - action: lambda:GetFunctionConfiguration
+      resource: '*'
+  target:
+    kind: aws_user
+    selector:
+      aws_challenge_fact: aws-lambda-getconfig-secret-identity
+    scope: same_account
+    aggregate_as: Verified Recover a distinct identity credential from GetFunctionConfiguration environment
+      targets in {account}
+    grants:
+    - Exact IAM user authenticated by a reviewed usable access key in the named resource
+    outcome: credentials
+  conditions:
+  - id: exact_credential_subject_resource
+    description: A reviewed evidence record must bind the source IAM principal, exact readable resource
+      and action, credential subject IAM user, usable access key and evidence reference; the source must
+      hold effective permission on that resource.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the exact read or mutation permission and remove exposed credentials.
+  references:
+  - https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
+  notes: Only a direct IAM user access key is modeled. STS and application sessions remain held because
+    their effective rights may be narrower than the role or application identity.

@@ -44,6 +44,13 @@ test("live privesc map: readable view, admin query, shortest path and principal 
   expect(graph.nodes.length).toBeGreaterThan(0);
   const admins = await api<{ items: AdminRow[]; total: number }>(page, "/privesc/admins?limit=500");
   expect(admins.total).toBeGreaterThan(0);
+  const provenAdmins = await api<{ items: AdminRow[]; total: number }>(
+    page,
+    "/privesc/admins?limit=500&include_unknown=false",
+  );
+  const provenIds = new Set(provenAdmins.items.map((r) => r.principal));
+  const unknownCount = admins.items.filter((r) => !provenIds.has(r.principal)).length;
+  const unresolved = graph.nodes.filter((n) => (n as { unresolved?: boolean }).unresolved);
   const nodeIds = new Set(graph.nodes.map((n) => n.id));
 
   await page.goto("/#Settings");
@@ -83,15 +90,30 @@ test("live privesc map: readable view, admin query, shortest path and principal 
 
   // Who can reach admin: every principal the API reports, then trace one.
   await sidebar.getByRole("button", { name: "Who can reach admin" }).click();
-  const results = page.getByRole("list", { name: "Principals reaching admin" });
-  await expect(results.getByRole("button")).toHaveCount(admins.items.length);
-  await expect(page.locator(".pe-chip.hl")).toContainText(`${admins.total} principals reach admin`);
+  const potentialList = page.getByRole("list", { name: "Principals with potential admin paths", exact: true });
+  const unknownList = page.getByRole("list", { name: "Principals reaching admin over unknown edges" });
+  await expect(
+    sidebar.locator(".pe-admin-potential .pe-group-title"),
+  ).toContainText(`Potential paths · ${provenAdmins.items.length}`);
+  await expect(
+    sidebar.locator(".pe-admin-unknown .pe-group-title"),
+  ).toContainText(`Unknown paths · ${unknownCount}`);
+  if (provenAdmins.items.length)
+    await expect(potentialList.getByRole("button")).toHaveCount(provenAdmins.items.length);
+  if (unknownCount) await expect(unknownList.getByRole("button")).toHaveCount(unknownCount);
+  await expect(page.locator(".pe-chip.hl")).toContainText(
+    `${provenAdmins.items.length} potential · ${unknownCount} unknown reach admin`,
+  );
+  test.info().annotations.push({
+    type: "admin-split",
+    description: `${provenAdmins.items.length} potential, ${unknownCount} unknown-only`,
+  });
   const deep = [...admins.items]
     .filter((r) => nodeIds.has(r.principal))
     .sort((a, b) => b.distance - a.distance)[0];
   expect(deep).toBeTruthy();
   const pathResponse = page.waitForResponse((r) => r.url().includes("/privesc/paths"));
-  await results
+  await (provenIds.has(deep.principal) ? potentialList : unknownList)
     .getByRole("listitem")
     .filter({ has: page.locator(`.pe-result-title`, { hasText: deep.label || deep.principal }) })
     .first()
@@ -123,5 +145,34 @@ test("live privesc map: readable view, admin query, shortest path and principal 
   await expect(dialog).toContainText(/Outgoing escalation · [1-9]/);
   await expect(dialog.locator(".pe-edge-row").first()).toBeVisible();
   await page.screenshot({ path: "evidence/privesc-map-live-card.png" });
+  await dialog.getByRole("button", { name: "Close inspector" }).click();
+
+  // Unresolved placeholders: auto-hidden when numerous, with an explanatory card.
+  if (unresolved.length) {
+    const toggle = page.getByLabel(`Show unresolved (${unresolved.length})`);
+    if (unresolved.length > 20) {
+      await expect(toggle).not.toBeChecked();
+      await expect(page.locator(".pe-unresolved-notice")).toContainText(
+        `${unresolved.length} unresolved target sets`,
+      );
+      await expect(page.locator(".pe-canvas .pe-unresolved")).toHaveCount(0);
+      await toggle.check();
+    }
+    await page.getByRole("combobox", { name: "Search principals" }).fill(unresolved[0].id);
+    await page.getByRole("listbox", { name: "Search principals" }).getByRole("option").first().click();
+    const ph = page.locator(`.pe-canvas .react-flow__node[data-id="${unresolved[0].id}"]`);
+    await expect(ph.locator(".pe-unresolved")).toBeVisible({ timeout: 30000 });
+    await ph.click();
+    const card = page.getByRole("dialog");
+    await expect(card.getByRole("heading", { name: "Unresolved target set" })).toBeVisible();
+    await expect(card).toContainText("What to collect");
+    await expect(card).toContainText(/Principals pointing here · [1-9]/);
+    await page.screenshot({ path: "evidence/privesc-map-live-unresolved.png" });
+    await card.getByRole("button", { name: "Close inspector" }).click();
+    await page.getByLabel("Hide unknown").check();
+    await expect(page.locator(".pe-canvas .pe-unresolved")).toHaveCount(0);
+    await page.getByLabel("Hide unknown").uncheck();
+  }
+
   expect(errors).toEqual([]);
 });

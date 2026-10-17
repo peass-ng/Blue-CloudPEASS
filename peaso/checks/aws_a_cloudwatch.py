@@ -30,6 +30,18 @@ CASES["aws.a.cloudwatch.alarm_state_actions"] = {"pass": {"AlarmActions": ["arn:
 NATIVE_IDS.append("aws.a.cloudwatch.alarm_state_actions")
 
 
+@register("aws.a.cloudwatch.any_state_actions", "aws", "hardening", "cloudwatch_alarm", "CloudWatch alarm has at least one action in any state",
+    "medium", "SI-4", "Configure appropriate ALARM, OK or INSUFFICIENT_DATA actions.")
+def any_actions(item, index):
+    arrays = {field: get(item, field, list) for field in ("AlarmActions", "OKActions", "InsufficientDataActions")}
+    if any(not isinstance(value, str) or not value for array in arrays.values() for value in array):
+        return unknown("malformed alarm state actions")
+    return result(not any(arrays.values()), state_actions=arrays)
+CASES["aws.a.cloudwatch.any_state_actions"] = {"pass": {"AlarmActions": [], "OKActions": ["arn:aws:sns:us-east-1:123456789012:alerts"], "InsufficientDataActions": []},
+    "fail": {"AlarmActions": [], "OKActions": [], "InsufficientDataActions": []}, "missing": {}, "malformed": None}
+NATIVE_IDS.append("aws.a.cloudwatch.any_state_actions")
+
+
 @register("aws.a.cloudwatch.log_kms_encryption", "aws", "hardening", "log_group", "CloudWatch log group has a KMS key associated",
     "medium", "SC-13", "Associate an appropriate KMS key with the log group where required.")
 def log_kms(item, index):

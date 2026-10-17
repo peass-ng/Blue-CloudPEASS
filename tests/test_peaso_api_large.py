@@ -75,3 +75,33 @@ def test_large_downloads_pages_details_facets_and_graph_envelopes(tmp_path):
         for path in ("report", "summary", "findings", "findings/finding-00000", "graphs/iam", "coverage"):
             assert client.get(f"/api/scans/{ident}/{path}").status_code == 404
     assert len(original_get("alice", bundle["report_json"])["findings"]) == 620
+
+
+def test_signed_large_finding_envelope_carries_only_bounded_defensive_template(tmp_path):
+    from peaso.remediation import report_templates
+    settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity", local_token="large-test-token-0123456789")
+    store = SQLiteStore(settings.state_dir)
+    artifacts = SignedFiles(settings.state_dir / "artifacts")
+    check_id = "aws.gap.vpc.sg_world_any_common_ports"
+    finding = {"id": "finding-large", "category": "exposure", "check_id": check_id,
+               "service": "ec2", "provider": "aws", "title": "Broad ingress", "severity": "high",
+               "status": "FAIL", "resource_id": "resource-1", "native_resource_id": "sg-12345678",
+               "scope": "123456789012/us-east-1", "frameworks": [],
+               "evidence": {"payload": "sensitive-evidence-marker" + "x" * (2 * 1024 * 1024)},
+               "remediation": "Legacy review"}
+    report = {"schema_version": "1.0", "provider": "aws", "snapshot_id": "fixture-large",
+              "created_at": "2026-01-01T00:00:00Z", "scopes": ["123456789012/us-east-1"],
+              "resources": [], "findings": [finding], "coverage": [], "stats": {}, "graphs": {},
+              "remediation_templates": report_templates([check_id], "aws")}
+    ident, bundle = completed_job(store, artifacts, report)
+    with TestClient(create_app(settings, store=store, artifacts=artifacts, authenticator=Identities()), base_url="http://127.0.0.1") as client:
+        envelope = client.get(f"/api/scans/{ident}/findings/finding-large").json()
+        assert envelope["download_url"].startswith("https://private.example.invalid/")
+        assert len(json.dumps(envelope).encode()) < 64 * 1024
+        assert "payload" not in envelope and "sensitive-evidence-marker" not in json.dumps(envelope)
+        detail = envelope["remediation_details"]
+        assert detail["steps"] and detail["references"]
+        assert "sg-12345678" in detail["cli"][0]["code"]
+        assert "<APPROVED_CIDR>" in detail["cli"][1]["code"]
+        assert "<RULE_ID>" in detail["cli"][2]["code"]
+        assert "Authorization" not in json.dumps(envelope)

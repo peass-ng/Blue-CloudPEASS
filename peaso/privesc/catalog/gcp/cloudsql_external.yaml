@@ -1,0 +1,30 @@
+# Managed rotation is an exact database-principal pivot only after the target
+# user, usable new password, and newly allowed database action are reviewed.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
+- id: gcp-secretmanager-managed-rotation-exact-cloudsql-user
+  provider: gcp
+  service: secretmanager
+  title: Reset one Cloud SQL user's password through managed secret rotation
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secretmanager-privesc.md#secretmanagersecretsenablemanagedrotation--reset-a-cloud-sql-users-password-through-the-secret-identity
+  source_revision: f0f683242a
+  summary: The source can enable managed rotation on an eligible Cloud SQL credential secret and supply a new password for one named database user, reaching that user's database permissions when the secret identity can perform the update and a reviewed login succeeds.
+  requires:
+    all_of:
+    - action: secretmanager.secrets.enableManagedRotation
+      resource: '{target.resource}'
+  target:
+    kind: gcp_external_principal
+    selector:
+      gcp_external_principal_evidence: true
+      gcp_external_plane: cloudsql_database
+    scope: same_project
+    outcome: credentials
+    aggregate_as: Exact Cloud SQL database user with reviewed new access
+  conditions:
+  - id: exact_cloudsql_rotation_and_login
+    description: The reviewed record must bind the eligible secret, authorized secret identity, target instance and username, accepted password rotation, network path, and a newly allowed database action after using the supplied password.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Limit managed rotation enablement and the Cloud SQL rights of secret identities.
+  notes: TargetPlane must be cloudsql_database; ActionResource names the regional secret, TargetServiceResource names the exact Cloud SQL instance and user, and TargetPrincipalId is that database username. The record must prove the secret identity's password update and a fresh successful login; the enablement response alone is insufficient.

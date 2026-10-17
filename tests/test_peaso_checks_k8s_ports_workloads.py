@@ -69,6 +69,22 @@ def test_seccomp_scope_is_not_collapsed_between_pod_and_controller_sources():
     assert REGISTRY["k8s.ports.deployment.container_runtime_default_seccomp"].evaluate(deployment, {})[0] == "PASS"
 
 
+def test_digest_pin_satisfies_immutable_intent_but_preserves_literal_source_alternative():
+    item = {"spec": {"containers": [{"name": "app", "image": "repo/app@sha256:" + "a" * 64, "imagePullPolicy": "IfNotPresent"}]}}
+    assert REGISTRY[ports.native_id("pod", "content_digest_or_always_pull")].evaluate(item, {})[0] == "PASS"
+    # Pinned SQL alarms whenever imagePullPolicy <> Always and has no digest exception. The native
+    # deliberately deviates (recorded in the reviewed row reason): a valid content digest is immutable,
+    # so IfNotPresent cannot run a stale or substituted image. Never still fails.
+    assert REGISTRY[ports.native_id("pod", "always_pull")].evaluate(item, {})[0] == "PASS"
+    assert item["spec"]["containers"][0]["imagePullPolicy"] != "Always"
+    item["spec"]["containers"][0]["imagePullPolicy"] = "Never"
+    assert REGISTRY[ports.native_id("pod", "always_pull")].evaluate(item, {})[0] == "FAIL"
+    item["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
+    item["spec"]["containers"][0]["image"] = "repo/app@sha256:invalid"
+    assert REGISTRY[ports.native_id("pod", "content_digest_or_always_pull")].evaluate(item, {})[0] == "UNKNOWN"
+    assert REGISTRY[ports.native_id("pod", "always_pull")].evaluate(item, {})[0] == "UNKNOWN"
+
+
 def test_known_denied_property_does_not_use_optional_boolean_default():
     item = {"spec": {"containers": [{"name": "app", "securityContext": {"_coverage": {"privileged": {"status": "denied"}}}}]}}
     assert REGISTRY[ports.native_id("pod", "privileged")].evaluate(item, {})[0] == "UNKNOWN"

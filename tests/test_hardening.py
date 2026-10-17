@@ -89,3 +89,58 @@ def test_native_bridge_preserves_selected_aws_auth(monkeypatch):
     assert result["engine"] == "peaso-native"
     assert seen[0]["connector"]["auth"]["aws_access_key_id"] == "selected"
     assert "selected-secret" not in str(result)
+
+
+@pytest.mark.parametrize("complete", [False, True])
+def test_native_bridge_preserves_mixed_observations_and_coverage(monkeypatch, complete):
+    from peaso import engine
+    observations = [
+        {"check_id": "check-b", "resource_id": "resource-b", "status": "fail"},
+        {"check_id": "check-a", "resource_id": "resource-a", "status": "pass"},
+        {"check_id": "check-b", "resource_id": "resource-b", "status": "fail"},
+        {"check_id": "check-b", "resource_id": "resource-c", "status": "unknown"},
+    ]
+    findings = [{**row, "scope": "selected-project", "service": "storage", "provider": "gcp",
+        "evidence": {"z": 2, "a": 1}, "remediation": "Review fixture configuration."} for row in observations]
+    coverage = [
+        {"level": "service", "type": "inventory", "status": "denied"},
+        {"level": "check", "check_id": "check-b", "status": "unknown", "reason": "Fixture uncertainty"},
+        {"level": "check", "check_id": "check-zero", "status": "pass"},
+        {"level": "check", "check_id": "check-a", "status": "pass"},
+        {"level": "check", "check_id": "check-b", "status": "partial"},
+    ]
+    report = {"findings": findings, "coverage": coverage, "stats": {"coverage_complete": complete}, "snapshot_id": "fixture"}
+    seen = []
+    monkeypatch.setattr(engine, "run_scan", lambda request: seen.append(request) or report)
+    refreshes = []
+    def selected_token():
+        refreshes.append("selected-source")
+        return "refreshed-fixture-token"
+    adapter = hardening.GcpCredentials("old-fixture-token", "selected-project", "selected-quota", selected_token)
+    result = hardening.run_hardening(SimpleNamespace(hardening="on"), adapter, "display-target")
+
+    expected_findings = [{**row, "control_id": row["check_id"], "resource": row["resource_id"],
+        "reason": '{"a": 1, "z": 2}', "dimensions": {"scope": "selected-project", "service": "storage"},
+        "suites": ["peaso-native"], "reference_urls": [], "description": "Review fixture configuration."} for row in findings]
+    assert result == {
+        "engine": "peaso-native", "status": "completed" if complete else "partial",
+        "findings": expected_findings,
+        "controls": [
+            {"control_id": "check-b", "title": "check-b", "suite": "peaso-native", "rows": 3},
+            {"control_id": "check-zero", "title": "check-zero", "suite": "peaso-native", "rows": 0},
+            {"control_id": "check-a", "title": "check-a", "suite": "peaso-native", "rows": 1},
+            {"control_id": "check-b", "title": "check-b", "suite": "peaso-native", "rows": 3},
+        ],
+        "errors": [
+            {"control_id": "inventory", "error": "denied"},
+            {"control_id": "check-b", "error": "Fixture uncertainty"},
+            {"control_id": "check-b", "error": "partial"},
+        ],
+        "coverage": {"complete": complete, "native": coverage},
+        "summary": {"findings": 4, "controls": 4, "execution_errors": 3, "by_status": {"fail": 2, "pass": 1, "unknown": 1}},
+        "snapshot_id": "fixture", "versions": {"peaso-native": "0.1.0"},
+    }
+    assert list(result["summary"]["by_status"]) == ["fail", "pass", "unknown"]
+    assert refreshes == ["selected-source"]
+    assert seen == [{"connector": {"provider": "gcp", "name": "display-target", "scopes": ["selected-project"],
+        "auth": {"token": "refreshed-fixture-token", "quota_project": "selected-quota"}, "options": {}}, "embed_snapshot": False}]

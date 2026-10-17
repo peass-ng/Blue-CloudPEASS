@@ -1,0 +1,156 @@
+{
+  "aws_fedramp_emr_master_no_public_ip": {
+    "id": "aws_fedramp_emr_master_no_public_ip",
+    "provider": "aws",
+    "resource_kind": "emr_cluster",
+    "data_source": "EMR DescribeCluster Ec2InstanceAttributes; EC2 DescribeInstances for the cluster primary node NetworkInterfaces.Association.PublicIp and Ipv6Addresses",
+    "predicate": "FAIL if a running or waiting EMR cluster primary EC2 instance has any associated public IPv4 or globally routable IPv6 address; PASS when none do; UNKNOWN when the primary instance or its interfaces cannot be resolved.",
+    "severity": "medium",
+    "category": "compliance",
+    "title": "EMR primary nodes have no public IP",
+    "description": "Tests the primary node interface addresses directly.",
+    "remediation_hint": "Configure the named AWS resource to satisfy the predicate and verify all in-scope resources.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.fedramp_low_rev_4",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.fedramp_moderate_rev_4",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws.nist.emr_master_nodes_no_public_ip": {
+    "id": "aws.nist.emr_master_nodes_no_public_ip",
+    "provider": "aws",
+    "resource_kind": "emr_cluster",
+    "data_source": "emr:ListInstances InstanceGroupTypes=MASTER and Ec2InstanceId; ec2:DescribeInstances networkInterfaces[].association.publicIp and ipv6Addresses",
+    "predicate": "For each running or waiting EMR cluster, FAIL iff any MASTER instance ENI has a public IPv4 address or globally routable IPv6 address; PASS iff every MASTER instance is resolved and none has either address; UNKNOWN if instance or ENI inventory is incomplete.",
+    "severity": "medium",
+    "category": "hardening",
+    "title": "EMR master instances have no public IP addresses",
+    "description": "Detects failure of emr master instances have no public ip addresses.",
+    "remediation_hint": "Move EMR master instances to private subnets and remove public address assignments.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.ffiec",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_171_rev_2",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_172",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws_nist_emr_cluster_master_nodes_no_public_ip": {
+    "id": "aws_nist_emr_cluster_master_nodes_no_public_ip",
+    "provider": "aws",
+    "resource_kind": "emr_cluster",
+    "data_source": "emr:DescribeCluster master instance group or fleet; ec2:DescribeInstances/PublicIpAddress and network interface IPv6 addresses",
+    "predicate": "For every master-node EC2 instance in each EMR cluster, PASS only if no public IPv4 or IPv6 address is associated; UNKNOWN when master instance inventory is incomplete.",
+    "severity": "medium",
+    "category": "compliance",
+    "title": "EMR cluster master nodes should not have public IP addresses",
+    "description": "Subnet auto-assignment policy does not prove an existing master node has no public address.",
+    "remediation_hint": "Configure the resource to satisfy the stated predicate and review missing inventory or policy inputs.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_53_rev_4",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_53_rev_5",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_csf",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws_nist_efs_access_point_enforce_root_directory": {
+    "id": "aws_nist_efs_access_point_enforce_root_directory",
+    "provider": "aws",
+    "resource_kind": "efs_access_point",
+    "data_source": "elasticfilesystem:DescribeAccessPoints RootDirectory.Path",
+    "predicate": "For each access point, PASS only if RootDirectory.Path is a nonempty absolute path other than /; FAIL for missing, empty or /.",
+    "severity": "medium",
+    "category": "compliance",
+    "title": "EFS access points should enforce a root directory",
+    "description": "The evaluator treats an empty path as enforcing a root directory.",
+    "remediation_hint": "Configure the resource to satisfy the stated predicate and review missing inventory or policy inputs.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.nist_csf",
+        "requirement_id": "aws-compliance.control.efs_access_point_enforce_root_directory"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws_g6_emr_master_nodes_no_public_address": {
+    "id": "aws_g6_emr_master_nodes_no_public_address",
+    "provider": "aws",
+    "resource_kind": "emr_cluster",
+    "data_source": "emr:ListInstances InstanceGroupTypes=MASTER and ec2:DescribeInstances instanceId,PublicIpAddress,NetworkInterfaces[].association.publicIp,NetworkInterfaces[].ipv6Addresses[].ipv6Address",
+    "predicate": "For every RUNNING or WAITING EMR cluster, FAIL iff any current MASTER instance has an assigned public IPv4 or globally routable IPv6 address; PASS iff all master instances resolve and have no public address; UNKNOWN if EMR or EC2 instance inventory is incomplete.",
+    "severity": "high",
+    "category": "exposure",
+    "title": "EMR master nodes have no public address",
+    "description": "Read-only assessment of eMR master nodes have no public address.",
+    "remediation_hint": "Run EMR master nodes with private network interfaces and no public address.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.nydfs_23",
+        "requirement_id": "aws-compliance.control.emr_cluster_master_nodes_no_public_ip"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5": {
+    "id": "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5",
+    "provider": "azure",
+    "resource_kind": "sql_database",
+    "data_source": "Collected sql_tde.items[] Microsoft.Sql/servers/databases/transparentDataEncryption/current GET 2023-08-01: properties.state; new Microsoft.Sql/managedInstances/databases LIST plus /transparentDataEncryption/current GET 2021-11-01: properties.state",
+    "predicate": "FAIL if a complete transparentDataEncryption/current GET for any in-scope SQL or managed-instance database has properties.state=\"Disabled\". PASS if every database has state=\"Enabled\" and both inventories are complete. UNKNOWN if a TDE GET or state is missing, unreadable or neither recognized enum.",
+    "severity": "high",
+    "category": "encryption",
+    "title": "SQL databases and managed-instance databases have TDE enabled",
+    "description": "Checks transparent data encryption state for Azure SQL Database and SQL Managed Instance databases.",
+    "remediation_hint": "Azure SQL Database or Managed Instance > Transparent data encryption: enable TDE on each database and verify state Enabled.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "pci_4.0_azure",
+        "requirement_id": "3.5.1.25"
+      },
+      {
+        "framework_id": "pci_4.0_azure",
+        "requirement_id": "8.3.2.42"
+      }
+    ],
+    "needs_new_collection": true,
+    "api_ref": {
+      "url": "https://learn.microsoft.com/en-us/rest/api/sql/transparent-data-encryptions/get?view=rest-sql-2023-08-01",
+      "api_version": "2023-08-01"
+    },
+    "collector": "peaso/collectors/azure.py",
+    "evidence_rule": "Evaluate FAIL on conclusive adverse evidence; PASS only with complete paged inventory and all required reads; otherwise UNKNOWN. Empty scope is PASS only when completeness proves no applicable resources.",
+    "api_schema": "TDE current.properties.state: string enum Enabled/Disabled.",
+    "collection_plan": "Existing sql_tde.items[] for SQL Database via 2023-08-01; add paged ARM managedInstances/databases LIST and GET {managedDatabaseId}/transparentDataEncryption/current?api-version=2021-11-01.",
+    "review_status": "fixed",
+    "verify_note": "SQL/MI TDE state must come from each database child encryption GET; missing state is UNKNOWN."
+  }
+}

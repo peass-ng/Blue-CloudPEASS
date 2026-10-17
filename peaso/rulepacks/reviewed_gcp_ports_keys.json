@@ -1,0 +1,1342 @@
+{
+  "gcp-compliance.control.bigquery_dataset_encrypted_with_cmk": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 155,
+      "source_query_sha256": "e72445daba483508b31e7f183958d919767ead4f7baab26b0b2d0914ad6c6f7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_dataset"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.bigquery_dataset_encrypted_with_cmk",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/bigquery.pp#L47"
+    }
+  },
+  "gcp-compliance.control.bigquery_table_encrypted_with_cmk": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_table_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 175,
+      "source_query_sha256": "c96bc250e70403480ebe420e511faadb8812115aac9f8fca5f8e34d209fe9c84",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_table"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.bigquery_table_encrypted_with_cmk",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/bigquery.pp#L60"
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_rotated_within_90_day"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_rotated_within_90_day",
+      "source_path": "policy_bundle/kms.pp",
+      "source_line": 126,
+      "source_query_sha256": "3723fa12f8a706ca6212cfe695c96ce59301f366964a8eb2b7b31af08d6ca098",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kms_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L159"
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps; native port(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes empty caller allowlists and ignores the IPv6 all-address ::/0 CIDR, incorrectly classifying unrestricted callers as specific restrictions. Reject the enumeration gaps and preserve strict metadata-only caller restriction review."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_websites_hosts_apps",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 307,
+      "source_query_sha256": "df609c8729f9ab09d02842e6353f790d32c1ed2f78e46b8b083255b968894ca4",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L201"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_websites_hosts_apps",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.{server,browser,android,ios}KeyRestrictions allowlists",
+      "pass_condition": "PASS iff exactly one caller restriction mode declares a non-empty allowlist without 0.0.0.0(/0), ::(/0), * or *.[TLD] wildcards",
+      "upstream_defect_only": "Source passes empty allowlists and misses ::/0.",
+      "native_deviations": "Multiple caller modes are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_apis; native port(s) gcp.ports.iam_api_key_restricts_apis authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source only tests apiTargets field existence, so an empty API target array passes without any real API restriction. Reject this false-clean predicate and preserve a real nonempty restriction declaration."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_apis",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 289,
+      "source_query_sha256": "37c744f3677d37f86b3ea7a1edd1827a94d2b1046545636adb9b74645172393e",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L215"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_apis",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_apis"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.apiTargets[].service",
+      "pass_condition": "PASS iff apiTargets is non-empty and does not include cloudapis.googleapis.com",
+      "upstream_defect_only": "Source tests only apiTargets field existence (an empty target list passes) / Prowler passes any non-empty restrictions object without API targets.",
+      "native_deviations": "An empty service name is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_api_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 272,
+      "source_query_sha256": "3acb0b8c3cfe3498e7e929533552326f031cc5f33eef3a72810ea7724818c5bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L229"
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_gcp_managed_key"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_gcp_managed_key",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 226,
+      "source_query_sha256": "9e3b41875d78d67b8ca8f550813756dcb1ac144c758d7038ff18d319cadd1d04",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account",
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L75"
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 253,
+      "source_query_sha256": "242f5cf2fc70045d041b2395963acb2a0ac762626f78838ea74425d9fb49c310",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L117"
+    }
+  },
+  "gcp-compliance.control.cis_v120_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_table_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 175,
+      "source_query_sha256": "c96bc250e70403480ebe420e511faadb8812115aac9f8fca5f8e34d209fe9c84",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_table"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_7_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_7.pp#L36"
+    }
+  },
+  "gcp-compliance.control.cis_v120_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 155,
+      "source_query_sha256": "e72445daba483508b31e7f183958d919767ead4f7baab26b0b2d0914ad6c6f7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_dataset"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_7_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_7.pp#L50"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_rotated_within_90_day"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_rotated_within_90_day",
+      "source_path": "policy_bundle/kms.pp",
+      "source_line": 126,
+      "source_query_sha256": "3723fa12f8a706ca6212cfe695c96ce59301f366964a8eb2b7b31af08d6ca098",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kms_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L162"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps; native port(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes empty caller allowlists and ignores the IPv6 all-address ::/0 CIDR, incorrectly classifying unrestricted callers as specific restrictions. Reject the enumeration gaps and preserve strict metadata-only caller restriction review."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_websites_hosts_apps",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 307,
+      "source_query_sha256": "df609c8729f9ab09d02842e6353f790d32c1ed2f78e46b8b083255b968894ca4",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L204"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_websites_hosts_apps",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.{server,browser,android,ios}KeyRestrictions allowlists",
+      "pass_condition": "PASS iff exactly one caller restriction mode declares a non-empty allowlist without 0.0.0.0(/0), ::(/0), * or *.[TLD] wildcards",
+      "upstream_defect_only": "Source passes empty allowlists and misses ::/0.",
+      "native_deviations": "Multiple caller modes are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_apis; native port(s) gcp.ports.iam_api_key_restricts_apis authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source only tests apiTargets field existence, so an empty API target array passes without any real API restriction. Reject this false-clean predicate and preserve a real nonempty restriction declaration."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_apis",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 289,
+      "source_query_sha256": "37c744f3677d37f86b3ea7a1edd1827a94d2b1046545636adb9b74645172393e",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L218"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_apis",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_apis"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.apiTargets[].service",
+      "pass_condition": "PASS iff apiTargets is non-empty and does not include cloudapis.googleapis.com",
+      "upstream_defect_only": "Source tests only apiTargets field existence (an empty target list passes) / Prowler passes any non-empty restrictions object without API targets.",
+      "native_deviations": "An empty service name is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_api_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 272,
+      "source_query_sha256": "3acb0b8c3cfe3498e7e929533552326f031cc5f33eef3a72810ea7724818c5bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L232"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_17": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dataproc_cluster_encryption_with_cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "dataproc_cluster_encryption_with_cmek",
+      "source_path": "policy_bundle/dataproc.pp",
+      "source_line": 21,
+      "source_query_sha256": "e17f5089790128ccf26406da9db2527de37b1cfb861f69f884b0ecb7be8fc1f1",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_dataproc_cluster"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_17",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L260"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_gcp_managed_key"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_gcp_managed_key",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 226,
+      "source_query_sha256": "9e3b41875d78d67b8ca8f550813756dcb1ac144c758d7038ff18d319cadd1d04",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account",
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L78"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 253,
+      "source_query_sha256": "242f5cf2fc70045d041b2395963acb2a0ac762626f78838ea74425d9fb49c310",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L120"
+    }
+  },
+  "gcp-compliance.control.cis_v130_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_table_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 175,
+      "source_query_sha256": "c96bc250e70403480ebe420e511faadb8812115aac9f8fca5f8e34d209fe9c84",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_table"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_7_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_7.pp#L36"
+    }
+  },
+  "gcp-compliance.control.cis_v130_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 155,
+      "source_query_sha256": "e72445daba483508b31e7f183958d919767ead4f7baab26b0b2d0914ad6c6f7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_dataset"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_7_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_7.pp#L50"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_rotated_within_90_day"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_rotated_within_90_day",
+      "source_path": "policy_bundle/kms.pp",
+      "source_line": 126,
+      "source_query_sha256": "3723fa12f8a706ca6212cfe695c96ce59301f366964a8eb2b7b31af08d6ca098",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kms_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L162"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps; native port(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes empty caller allowlists and ignores the IPv6 all-address ::/0 CIDR, incorrectly classifying unrestricted callers as specific restrictions. Reject the enumeration gaps and preserve strict metadata-only caller restriction review."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_websites_hosts_apps",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 307,
+      "source_query_sha256": "df609c8729f9ab09d02842e6353f790d32c1ed2f78e46b8b083255b968894ca4",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L204"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_websites_hosts_apps",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.{server,browser,android,ios}KeyRestrictions allowlists",
+      "pass_condition": "PASS iff exactly one caller restriction mode declares a non-empty allowlist without 0.0.0.0(/0), ::(/0), * or *.[TLD] wildcards",
+      "upstream_defect_only": "Source passes empty allowlists and misses ::/0.",
+      "native_deviations": "Multiple caller modes are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_apis; native port(s) gcp.ports.iam_api_key_restricts_apis authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source only tests apiTargets field existence, so an empty API target array passes without any real API restriction. Reject this false-clean predicate and preserve a real nonempty restriction declaration."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_apis",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 289,
+      "source_query_sha256": "37c744f3677d37f86b3ea7a1edd1827a94d2b1046545636adb9b74645172393e",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L218"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_apis",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_apis"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.apiTargets[].service",
+      "pass_condition": "PASS iff apiTargets is non-empty and does not include cloudapis.googleapis.com",
+      "upstream_defect_only": "Source tests only apiTargets field existence (an empty target list passes) / Prowler passes any non-empty restrictions object without API targets.",
+      "native_deviations": "An empty service name is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_api_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 272,
+      "source_query_sha256": "3acb0b8c3cfe3498e7e929533552326f031cc5f33eef3a72810ea7724818c5bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L232"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_17": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dataproc_cluster_encryption_with_cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "dataproc_cluster_encryption_with_cmek",
+      "source_path": "policy_bundle/dataproc.pp",
+      "source_line": 21,
+      "source_query_sha256": "e17f5089790128ccf26406da9db2527de37b1cfb861f69f884b0ecb7be8fc1f1",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_dataproc_cluster"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_17",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L260"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_gcp_managed_key"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_gcp_managed_key",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 226,
+      "source_query_sha256": "9e3b41875d78d67b8ca8f550813756dcb1ac144c758d7038ff18d319cadd1d04",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account",
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L78"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 253,
+      "source_query_sha256": "242f5cf2fc70045d041b2395963acb2a0ac762626f78838ea74425d9fb49c310",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L120"
+    }
+  },
+  "gcp-compliance.control.cis_v200_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_table_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 175,
+      "source_query_sha256": "c96bc250e70403480ebe420e511faadb8812115aac9f8fca5f8e34d209fe9c84",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_table"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_7_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_7.pp#L36"
+    }
+  },
+  "gcp-compliance.control.cis_v200_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 155,
+      "source_query_sha256": "e72445daba483508b31e7f183958d919767ead4f7baab26b0b2d0914ad6c6f7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_dataset"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_7_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_7.pp#L50"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_rotated_within_90_day"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_rotated_within_90_day",
+      "source_path": "policy_bundle/kms.pp",
+      "source_line": 126,
+      "source_query_sha256": "3723fa12f8a706ca6212cfe695c96ce59301f366964a8eb2b7b31af08d6ca098",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kms_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L161"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps; native port(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes empty caller allowlists and ignores the IPv6 all-address ::/0 CIDR, incorrectly classifying unrestricted callers as specific restrictions. Reject the enumeration gaps and preserve strict metadata-only caller restriction review."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_websites_hosts_apps",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 307,
+      "source_query_sha256": "df609c8729f9ab09d02842e6353f790d32c1ed2f78e46b8b083255b968894ca4",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L203"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_websites_hosts_apps",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.{server,browser,android,ios}KeyRestrictions allowlists",
+      "pass_condition": "PASS iff exactly one caller restriction mode declares a non-empty allowlist without 0.0.0.0(/0), ::(/0), * or *.[TLD] wildcards",
+      "upstream_defect_only": "Source passes empty allowlists and misses ::/0.",
+      "native_deviations": "Multiple caller modes are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_apis; native port(s) gcp.ports.iam_api_key_restricts_apis authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source only tests apiTargets field existence, so an empty API target array passes without any real API restriction. Reject this false-clean predicate and preserve a real nonempty restriction declaration."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_apis",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 289,
+      "source_query_sha256": "37c744f3677d37f86b3ea7a1edd1827a94d2b1046545636adb9b74645172393e",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L217"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_apis",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_apis"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.apiTargets[].service",
+      "pass_condition": "PASS iff apiTargets is non-empty and does not include cloudapis.googleapis.com",
+      "upstream_defect_only": "Source tests only apiTargets field existence (an empty target list passes) / Prowler passes any non-empty restrictions object without API targets.",
+      "native_deviations": "An empty service name is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_api_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 272,
+      "source_query_sha256": "3acb0b8c3cfe3498e7e929533552326f031cc5f33eef3a72810ea7724818c5bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L231"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_gcp_managed_key"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_gcp_managed_key",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 226,
+      "source_query_sha256": "9e3b41875d78d67b8ca8f550813756dcb1ac144c758d7038ff18d319cadd1d04",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account",
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L77"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 253,
+      "source_query_sha256": "242f5cf2fc70045d041b2395963acb2a0ac762626f78838ea74425d9fb49c310",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L119"
+    }
+  },
+  "gcp-compliance.control.cis_v300_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_table_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 175,
+      "source_query_sha256": "c96bc250e70403480ebe420e511faadb8812115aac9f8fca5f8e34d209fe9c84",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_table"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_7_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_7.pp#L37"
+    }
+  },
+  "gcp-compliance.control.cis_v300_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 155,
+      "source_query_sha256": "e72445daba483508b31e7f183958d919767ead4f7baab26b0b2d0914ad6c6f7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_dataset"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_7_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_7.pp#L51"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_rotated_within_90_day"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_rotated_within_90_day",
+      "source_path": "policy_bundle/kms.pp",
+      "source_line": 126,
+      "source_query_sha256": "3723fa12f8a706ca6212cfe695c96ce59301f366964a8eb2b7b31af08d6ca098",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_kms_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L161"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps; native port(s) gcp.ports.iam_api_key_restricts_websites_hosts_apps authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes empty caller allowlists and ignores the IPv6 all-address ::/0 CIDR, incorrectly classifying unrestricted callers as specific restrictions. Reject the enumeration gaps and preserve strict metadata-only caller restriction review."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_websites_hosts_apps",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 307,
+      "source_query_sha256": "df609c8729f9ab09d02842e6353f790d32c1ed2f78e46b8b083255b968894ca4",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L203"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_websites_hosts_apps",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_websites_hosts_apps"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.{server,browser,android,ios}KeyRestrictions allowlists",
+      "pass_condition": "PASS iff exactly one caller restriction mode declares a non-empty allowlist without 0.0.0.0(/0), ::(/0), * or *.[TLD] wildcards",
+      "upstream_defect_only": "Source passes empty allowlists and misses ::/0.",
+      "native_deviations": "Multiple caller modes are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_api_key_restricts_apis; native port(s) gcp.ports.iam_api_key_restricts_apis authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source only tests apiTargets field existence, so an empty API target array passes without any real API restriction. Reject this false-clean predicate and preserve a real nonempty restriction declaration."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_restricts_apis",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 289,
+      "source_query_sha256": "37c744f3677d37f86b3ea7a1edd1827a94d2b1046545636adb9b74645172393e",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L217"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_api_key_restricts_apis",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_apis"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.apiTargets[].service",
+      "pass_condition": "PASS iff apiTargets is non-empty and does not include cloudapis.googleapis.com",
+      "upstream_defect_only": "Source tests only apiTargets field existence (an empty target list passes) / Prowler passes any non-empty restrictions object without API targets.",
+      "native_deviations": "An empty service name is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_api_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_api_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 272,
+      "source_query_sha256": "3acb0b8c3cfe3498e7e929533552326f031cc5f33eef3a72810ea7724818c5bb",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_apikeys_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_15",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L231"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_gcp_managed_key"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_gcp_managed_key",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 226,
+      "source_query_sha256": "9e3b41875d78d67b8ca8f550813756dcb1ac144c758d7038ff18d319cadd1d04",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account",
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L77"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_service_account_key_age_90"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_key_age_90",
+      "source_path": "policy_bundle/iam.pp",
+      "source_line": 253,
+      "source_query_sha256": "242f5cf2fc70045d041b2395963acb2a0ac762626f78838ea74425d9fb49c310",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_service_account_key"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L119"
+    }
+  },
+  "gcp-compliance.control.cis_v400_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_table_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 175,
+      "source_query_sha256": "c96bc250e70403480ebe420e511faadb8812115aac9f8fca5f8e34d209fe9c84",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_table"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_7_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_7.pp#L37"
+    }
+  },
+  "gcp-compliance.control.cis_v400_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_encrypted_with_cmk",
+      "source_path": "policy_bundle/bigquery.pp",
+      "source_line": 155,
+      "source_query_sha256": "e72445daba483508b31e7f183958d919767ead4f7baab26b0b2d0914ad6c6f7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_bigquery_dataset"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_7_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_7.pp#L51"
+    }
+  },
+  "gcp-compliance.control.cis_v400_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dataproc_cluster_encryption_with_cmek"
+    ],
+    "reason": "Reviewed exact metadata field, entity/key-type applicability, view/primary-state exclusions and declared encryption/rotation criterion. Key age evaluates the same captured UTC calendar-date cutoff rather than live wall time; account-key absence is gated by complete scoped key inventory, without reading secret material or claiming inactivity.",
+    "official_docs": [
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys/list",
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/tables"
+    ],
+    "review_notes": {
+      "predicate": "dataproc_cluster_encryption_with_cmek",
+      "source_path": "policy_bundle/dataproc.pp",
+      "source_line": 21,
+      "source_query_sha256": "e17f5089790128ccf26406da9db2527de37b1cfb861f69f884b0ecb7be8fc1f1",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "dependencies": [
+        "gcp_dataproc_cluster"
+      ],
+      "semantics": "metadata and captured date; no values, usage inference or effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_8_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_8.pp#L20"
+    }
+  }
+}

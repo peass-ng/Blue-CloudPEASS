@@ -1,5 +1,18 @@
 import type { Graph, GraphEdge, GraphNode } from "./types";
-export type GroupLevel = "scope" | "network" | "subnet" | "service" | "assets";
+export type GroupLevel =
+  | "scope"
+  | "network"
+  | "subnet"
+  | "service"
+  | "prefix"
+  | "assets";
+// Name prefix used to split very large groups (e.g. 4000 roles) into
+// meaningful buckets: first token of the label ("payments-svc-12" -> "payments").
+export function namePrefix(n: GraphNode): string {
+  const label = String(n.label || n.name || n.id);
+  const token = label.split(/[-_./:@ ]+/).find(Boolean) || label;
+  return token.length > 24 ? `${token.slice(0, 24)}…` : token;
+}
 export type ProjectedNode = GraphNode & {
   group?: boolean;
   member_ids?: string[];
@@ -39,14 +52,24 @@ export function structuralIndex(graph: Graph) {
     )
       parent(source.id, target.id);
   }
+  // Memoised per (node, kind): matching and projection call this for every
+  // node on each filter change, so repeated BFS walks dominate at 5k nodes.
+  const memo = { network: new Map<string, GraphNode | null>(), subnet: new Map<string, GraphNode | null>() };
+  function cached(node: GraphNode, kind: "network" | "subnet") {
+    const store = memo[kind];
+    if (store.has(node.id)) return store.get(node.id) || undefined;
+    const found = ancestor(node, kind === "network" ? networkTypes : subnetTypes);
+    store.set(node.id, found || null);
+    return found;
+  }
   function ancestor(
     node: GraphNode,
     types: Set<string>,
   ): GraphNode | undefined {
     const pending = [node.id];
     const seen = new Set<string>();
-    while (pending.length && seen.size < graph.nodes.length) {
-      const id = pending.shift()!;
+    for (let head = 0; head < pending.length && seen.size < graph.nodes.length; head++) {
+      const id = pending[head];
       if (seen.has(id)) continue;
       seen.add(id);
       const current = byId.get(id);
@@ -60,8 +83,8 @@ export function structuralIndex(graph: Graph) {
     return undefined;
   }
   return {
-    network: (n: GraphNode) => ancestor(n, networkTypes),
-    subnet: (n: GraphNode) => ancestor(n, subnetTypes),
+    network: (n: GraphNode) => cached(n, "network"),
+    subnet: (n: GraphNode) => cached(n, "subnet"),
   };
 }
 export function projectView(
@@ -71,8 +94,9 @@ export function projectView(
   page: number,
   maxNodes = 120,
   maxEdges = 400,
+  structural: ReturnType<typeof structuralIndex> = structuralIndex(graph),
+  insideNetwork = false,
 ) {
-  const structural = structuralIndex(graph);
   const lookup = new Map<string, string>();
   const display: ProjectedNode[] = [];
   const groups = new Map<string, ProjectedNode>();
@@ -88,6 +112,10 @@ export function projectView(
       key = String(n.service || n.type || n.kind || "Other");
       label = key;
     }
+    if (level === "prefix") {
+      key = namePrefix(n);
+      label = key;
+    }
     if (level === "network" || level === "subnet") {
       const parent =
         level === "network" ? structural.network(n) : structural.subnet(n);
@@ -96,7 +124,9 @@ export function projectView(
         ? String(parent.label || parent.name || parent.id)
         : level === "network"
           ? "Outside collected networks"
-          : "Shared / unassigned network resources";
+          : insideNetwork
+            ? "VPC-level resources (not in a subnet)"
+            : "Shared / unassigned network resources";
       groupScope = String(parent?.scope || groupScope);
     }
     const id = key ? `group:${level}:${key}` : n.id;

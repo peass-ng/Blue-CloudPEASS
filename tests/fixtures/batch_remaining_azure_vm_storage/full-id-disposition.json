@@ -1,0 +1,2296 @@
+{
+  "counts": {
+    "candidate_collector_gap_hold": 25,
+    "candidate_fact_gap_hold": 11,
+    "implemented_native_ready": 7,
+    "semantic_hold": 1,
+    "source_correction_hold": 6
+  },
+  "ids": [
+    {
+      "declared_dependencies": [
+        "vm",
+        "storage_account"
+      ],
+      "disposition": "implemented_native_ready",
+      "id": "azure.cis.legacy_vhds_encrypted",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "uses native full VM/storage GET and complete scoped inventories; no added producer required",
+      "requirements": [
+        {
+          "control_id": "7.7",
+          "decision": "NEW_CHECK",
+          "framework_id": "cis_2.0_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v2.0.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "7.7",
+          "decision": "NEW_CHECK",
+          "framework_id": "cis_2.1_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v2.1.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "8.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "cis_3.0_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v3.0.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v130_7_7",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v130",
+          "framework_name": "Azure CIS v1.3.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v140_7_7",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v140",
+          "framework_name": "Azure CIS v1.4.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v150_7_6",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v150",
+          "framework_name": "Azure CIS v1.5.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v200_7_7",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v200",
+          "framework_name": "Azure CIS v2.0.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v210_7_7",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v210",
+          "framework_name": "Azure CIS v2.1.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v300_8_9",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v300",
+          "framework_name": "Azure CIS v3.0.0",
+          "signed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+          "slice": "azure-cis.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Collector azure.py vm items and storage_account items; VM properties.storageProfile.osDisk.vhd.uri and dataDisks[].vhd.uri are string URLs. Resolve against storage account properties.primaryEndpoints.blob (not guessed account names); GET storageAccounts 2023-05-01 for properties.encryption.services.blob.enabled boolean. Paginate VM and account inventories.",
+      "source_family": "compliance_new_sw03.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each in-scope unmanaged VHD URI, FAIL if its uniquely resolved storage account explicitly has blob encryption disabled; PASS if every VHD uniquely resolves and each account has blob encryption enabled; UNKNOWN for ambiguous/unresolved URL, missing encryption field or incomplete VM/account inventory. If complete inventory has no unmanaged VHD, NOT_APPLICABLE.",
+      "source_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account"
+      ],
+      "disposition": "implemented_native_ready",
+      "id": "azure.cis.resource_manager_delete_locks_applied_storage_accounts",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "native azure_swc reads paged locks on storage account, resource group, subscription and verified management-group ancestors into effectiveLockChain; no added producer required",
+      "requirements": [
+        {
+          "control_id": "10.3.10",
+          "decision": "NEW_CHECK",
+          "framework_id": "cis_4.0_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v4.0.0",
+          "signed_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "9.3.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "cis_5.0_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v5.0.0",
+          "signed_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "9.3.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "cis_6.0_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v6.0.0",
+          "signed_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v400_10_3_10",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v400",
+          "framework_name": "Azure CIS v4.0.0",
+          "signed_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v500_9_3_9",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.cis_v500",
+          "framework_name": "Azure CIS v5.0.0",
+          "signed_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3",
+          "slice": "azure-cis.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Existing azure.py storage_account.items[] plus new paged Microsoft.Authorization/locks listByScope ?api-version=2016-09-01 at each account, resource group and subscription (and management-group ancestors when applicable); properties.level enum CanNotDelete/ReadOnly.",
+      "source_family": "compliance_new_sw03.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each storage account, PASS if a complete chain of lock lists shows an effective CanNotDelete or ReadOnly lock on the account or ancestor. FAIL if all scope lists are complete and none applies. UNKNOWN if any scope list or ancestor mapping is unreadable; empty complete account inventory is not applicable.",
+      "source_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "storage_sas_issuance"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.cis.shared_access_signature_tokens_expire_within_hour",
+      "missing_collector_kinds": [
+        "storage_sas_issuance"
+      ],
+      "provider": "azure",
+      "reason": "account SAS policy can show non-enforcement, but a PASS requires complete active SAS issuance, stored-policy and exception inventory absent from ARM",
+      "requirements": [
+        {
+          "control_id": "3.6",
+          "decision": "PARTIAL",
+          "framework_id": "cis_2.0_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v2.0.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "3.6",
+          "decision": "PARTIAL",
+          "framework_id": "cis_2.1_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v2.1.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "4.5",
+          "decision": "PARTIAL",
+          "framework_id": "cis_3.0_azure",
+          "framework_name": "CIS Microsoft Azure Foundations Benchmark v3.0.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v130_3_4",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.cis_v130",
+          "framework_name": "Azure CIS v1.3.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v140_3_4",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.cis_v140",
+          "framework_name": "Azure CIS v1.4.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v150_3_6",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.cis_v150",
+          "framework_name": "Azure CIS v1.5.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v200_3_6",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.cis_v200",
+          "framework_name": "Azure CIS v2.0.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v210_3_6",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.cis_v210",
+          "framework_name": "Azure CIS v2.1.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        },
+        {
+          "control_id": "azure-compliance.control.cis_v300_4_5",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.cis_v300",
+          "framework_name": "Azure CIS v3.0.0",
+          "signed_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390",
+          "slice": "azure-cis.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Paged Microsoft.Storage/storageAccounts GET 2023-05-01: properties.sasPolicy.sasExpirationPeriod string in DD.HH:MM:SS format and expirationAction enum Log/Block. Collect issuer-side inventory or retained issuance records for active user-delegation, service and account SAS tokens, including st/se or stored-access-policy expiry; validate any applicable service-specific exception.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each storage account, FAIL if a known active SAS has an actual validity interval over one hour or complete policy evidence shows no enforcing account limit (absent policy, interval over one hour, or expirationAction=Log, its documented default). PASS for the token-expiry requirement only when the account policy parses to at most 00.01:00:00 with effective Block AND complete active-token issuance evidence shows every applicable SAS expires within one hour; resolve stored-access-policy SAS separately. UNKNOWN when token inventory is unavailable, period malformed, action unknown or account inventory incomplete. The account policy alone is a configuration signal, not proof of every issued token.",
+      "source_spec_sha256": "fa4ae0f9eb68ee394e2b2e0de6f5ca27a285739d8013dfbe403c9b364165a390"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "security_assessment",
+        "vm_compliance_applicability",
+        "application_whitelisting"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.compute_vm_adaptive_application_controls_enabled",
+      "missing_collector_kinds": [
+        "application_whitelisting",
+        "vm_compliance_applicability"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Paged ARM Microsoft.Security/assessments LIST 2020-01-01 and Microsoft.Security/locations/{location}/applicationWhitelistings group inventory; properties.resourceDetails.id/status.code for assessment, group VM recommendations and allowlist policy details; paged VM inventory and stable assessment key. Join by full VM ARM ID.; current collector lacks complete fact kind(s) application_whitelisting, vm_compliance_applicability and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_adaptive_application_controls_enabled",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "1872760f3f139ac7dc07e71f35163badd905542faca6030271ba686af26dffad",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_adaptive_application_controls_enabled",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "1872760f3f139ac7dc07e71f35163badd905542faca6030271ba686af26dffad",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged ARM Microsoft.Security/assessments LIST 2020-01-01 and Microsoft.Security/locations/{location}/applicationWhitelistings group inventory; properties.resourceDetails.id/status.code for assessment, group VM recommendations and allowlist policy details; paged VM inventory and stable assessment key. Join by full VM ARM ID.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each in-scope VM, join a configured stable assessment key and properties.resourceDetails.id, then verify membership in a current Microsoft.Security/applicationWhitelistings group with a configured active allowlist/audit policy and evidence that unknown applications generate alerts. Healthy assessment alone is insufficient. FAIL on a measured Unhealthy assessment or a complete group inventory proving no active applicable policy. PASS only with measured policy, alert behavior and Healthy assessment. UNKNOWN if group applicability, group schema/availability, alert evidence, assessment key, inventory, status or policy details cannot be resolved; NotApplicable requires independently established inapplicability.",
+      "source_spec_sha256": "1872760f3f139ac7dc07e71f35163badd905542faca6030271ba686af26dffad"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "security_assessment",
+        "vm_compliance_applicability",
+        "adaptive_network_hardening",
+        "nic",
+        "subnet",
+        "nsg"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.compute_vm_adaptive_network_hardening_recommendation_applied",
+      "missing_collector_kinds": [
+        "adaptive_network_hardening",
+        "vm_compliance_applicability"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Paged VM and Microsoft.Security/assessments LIST 2020-01-01 plus Microsoft.Security/adaptiveNetworkHardenings GET/LIST recommendations and effective NSG rules; stable assessment key policy. Join on full VM ARM ID.; current collector lacks complete fact kind(s) adaptive_network_hardening, vm_compliance_applicability and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_adaptive_network_hardening_recommendation_applied",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "6354fdd5eb6555cdf88abddbd89eade5f16208919aa3d84e62861d93fafab8e7",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_adaptive_network_hardening_recommendation_applied",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "6354fdd5eb6555cdf88abddbd89eade5f16208919aa3d84e62861d93fafab8e7",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged VM and Microsoft.Security/assessments LIST 2020-01-01 plus Microsoft.Security/adaptiveNetworkHardenings GET/LIST recommendations and effective NSG rules; stable assessment key policy. Join on full VM ARM ID.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each Internet-facing applicable VM, join a current adaptive network hardening assessment by stable key and properties.resourceDetails.id. Healthy is recommendation-health evidence; PASS for applied recommendations requires the corresponding approved NSG rule recommendation to be applied and effective for that VM. FAIL on a measured Unhealthy recommendation or unapplied required rule. UNKNOWN for missing assessment, recommendation rule details, VM applicability, NSG join, freshness or inventory. NotApplicable is NOT_APPLICABLE only when applicability is established.",
+      "source_spec_sha256": "6354fdd5eb6555cdf88abddbd89eade5f16208919aa3d84e62861d93fafab8e7"
+    },
+    {
+      "candidate_collector_hook": ".cache/cspm-batch-azure-vm-storage/azure-collector-hook.patch",
+      "declared_dependencies": [
+        "vm",
+        "guest_configuration_report"
+      ],
+      "disposition": "source_correction_hold",
+      "id": "azure.gap.compute_vm_administrators_group_with_extra_accounts_windows",
+      "missing_collector_kinds": [
+        "guest_configuration_report"
+      ],
+      "provider": "azure",
+      "reason": "The standard Guest Configuration report GET 2024-04-05 documents properties.reportId, complianceStatus, endTime and details.operationType, without the draft evaluator's properties.operationStatus. Resource-level properties bag content depends on the exact guest package and version, and resourceId may be absent; no signed package contract proves the required observed setting fields. The owned read-only helper can safely collect the standard report but the draft evaluator remains UNKNOWN on it. Source correction and package/version evidence are required before native admission. Signed source: Collector azure.py embeds VM guestConfigurationAssignments, but no reports. NEW: for each Windows VM and matching named assignment GET {assignment-id}/reports?api-version=2024-04-05, follow nextLink; join the report by its parent assignment ARM ID, properties.assignment.name, properties.vm.id, and properties.assignment.configuration name/version. Inspect properties.details.resources and effective assignment parameters against the approved member set.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_administrators_group_with_extra_accounts_windows",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "9e9ff64872733346b39cecedfd14b0ecf17603c12d6344fb0a107c005e701039",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Collector azure.py embeds VM guestConfigurationAssignments, but no reports. NEW: for each Windows VM and matching named assignment GET {assignment-id}/reports?api-version=2024-04-05, follow nextLink; join the report by its parent assignment ARM ID, properties.assignment.name, properties.vm.id, and properties.assignment.configuration name/version. Inspect properties.details.resources and effective assignment parameters against the approved member set.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each Windows VM, PASS only if a latest fresh successful report for that exact VM and approved Administrators baseline/version has the approved member parameter set, a complete nonempty set of relevant properties.details.resources, and each relevant resource is Compliant with no unapproved member. FAIL on a fresh report identifying an unapproved member or relevant NonCompliant resource, or a complete inventory proving the required baseline absent. UNKNOWN if approved set, assignment parameters, report, freshness, result detail, or inventory is incomplete. Assignment summary alone never proves PASS.",
+      "source_spec_sha256": "9e9ff64872733346b39cecedfd14b0ecf17603c12d6344fb0a107c005e701039"
+    },
+    {
+      "candidate_collector_hook": ".cache/cspm-batch-azure-vm-storage/azure-collector-hook.patch",
+      "declared_dependencies": [
+        "vm",
+        "guest_configuration_report"
+      ],
+      "disposition": "source_correction_hold",
+      "id": "azure.gap.compute_vm_administrators_group_with_no_specified_members_windows",
+      "missing_collector_kinds": [
+        "guest_configuration_report"
+      ],
+      "provider": "azure",
+      "reason": "The standard Guest Configuration report GET 2024-04-05 documents properties.reportId, complianceStatus, endTime and details.operationType, without the draft evaluator's properties.operationStatus. Resource-level properties bag content depends on the exact guest package and version, and resourceId may be absent; no signed package contract proves the required observed setting fields. The owned read-only helper can safely collect the standard report but the draft evaluator remains UNKNOWN on it. Source correction and package/version evidence are required before native admission. Signed source: Paged per-VM Guest Configuration assignment GET/LIST 2024-04-05: properties.latestReportId and assignment parameters for approved local Administrators members; GET {assignmentId}/reports/{latestReportId}: properties.details.resources[].complianceStatus/reasons. Include complete Windows VM inventory and report-age policy.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_administrators_group_with_no_specified_members_windows",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "c2142abd320e4871f5f3d5a87bf4becae9297174d4d11976035164b928f911bf",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged per-VM Guest Configuration assignment GET/LIST 2024-04-05: properties.latestReportId and assignment parameters for approved local Administrators members; GET {assignmentId}/reports/{latestReportId}: properties.details.resources[].complianceStatus/reasons. Include complete Windows VM inventory and report-age policy.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each in-scope Windows VM, PASS only if the current report for the exact membership assignment demonstrates every policy-specified required member is present. FAIL only when specific current report detail proves a required member absent. UNKNOWN for missing policy parameter, assignment, latestReportId, report detail, freshness or VM/assignment paging. Assignment-level complianceStatus alone is insufficient.",
+      "source_spec_sha256": "c2142abd320e4871f5f3d5a87bf4becae9297174d4d11976035164b928f911bf"
+    },
+    {
+      "candidate_collector_hook": ".cache/cspm-batch-azure-vm-storage/azure-collector-hook.patch",
+      "declared_dependencies": [
+        "vm",
+        "guest_configuration_report"
+      ],
+      "disposition": "source_correction_hold",
+      "id": "azure.gap.compute_vm_administrators_group_with_specified_members_windows",
+      "missing_collector_kinds": [
+        "guest_configuration_report"
+      ],
+      "provider": "azure",
+      "reason": "The standard Guest Configuration report GET 2024-04-05 documents properties.reportId, complianceStatus, endTime and details.operationType, without the draft evaluator's properties.operationStatus. Resource-level properties bag content depends on the exact guest package and version, and resourceId may be absent; no signed package contract proves the required observed setting fields. The owned read-only helper can safely collect the standard report but the draft evaluator remains UNKNOWN on it. Source correction and package/version evidence are required before native admission. Signed source: Existing azure.py Windows vm.items[] and guest_configuration_assignment.items[]; new paged assignment report GET /guestConfigurationAssignments/{name}/reports?api-version=2022-01-25 for purpose-built local Administrators membership baseline. Report must contain observed membership and assigned parameter values.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_administrators_group_with_specified_members_windows",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "7e0a8fade49b857e31582a84ea75951adabf8fd3c8b0cd68f09fbe4d80c59783",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Existing azure.py Windows vm.items[] and guest_configuration_assignment.items[]; new paged assignment report GET /guestConfigurationAssignments/{name}/reports?api-version=2022-01-25 for purpose-built local Administrators membership baseline. Report must contain observed membership and assigned parameter values.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each Windows VM, FAIL if a current report identifies a prohibited Administrators member. PASS only if the assigned baseline is Compliant, report confirms evaluated group membership against the exact prohibitedAdministrators input, and report freshness is within policy. UNKNOWN if list, assignment, report, parameter binding or freshness is absent; never infer clean membership from missing assignment.",
+      "source_spec_sha256": "7e0a8fade49b857e31582a84ea75951adabf8fd3c8b0cd68f09fbe4d80c59783"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "nic",
+        "vnet"
+      ],
+      "disposition": "implemented_native_ready",
+      "id": "azure.gap.compute_vm_attached_with_network",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "uses native full VM/NIC/VNet inventory and approvedVnetIds sw02 policy; no added producer required",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_attached_with_network",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "0a3b74aa472b7e331bb0230fbbef71b5e61e9f659c35d6a16f2e16b0bb2c6bda",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Existing vm and nic collections. Collected vm.items[].properties.networkProfile.networkInterfaces[].id; nic.items[].properties.ipConfigurations[].properties.subnet.id; approvedVnetIds policy",
+      "source_family": "compliance_new_sw02.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each VM connected to a VNet, FAIL on a proven unapproved VNet; PASS only if every attached NIC and IP configuration resolves to an approved VNet. UNKNOWN for missing approvedVnetIds, NIC, subnet, parent or incomplete inventory. A fully observed VM without VNet attachment is NOT_APPLICABLE to this specific source rule.",
+      "source_spec_sha256": "0a3b74aa472b7e331bb0230fbbef71b5e61e9f659c35d6a16f2e16b0bb2c6bda"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "security_assessment",
+        "vm_compliance_applicability"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.compute_vm_container_security_configurations_vulnerabilities_remediated",
+      "missing_collector_kinds": [
+        "vm_compliance_applicability"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Collector peaso/collectors/azure.py: vm and security_assessment are collected; assessment fields are properties.resourceDetails.id, properties.status.code (Healthy/Unhealthy/NotApplicable), name (stable assessment key). Require policy set of Docker-host assessment keys, and a complete assessment page for each VM.; current collector lacks complete fact kind(s) vm_compliance_applicability and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_container_security_configurations_vulnerabilities_remediated",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "0706f1f8e7c9877f9a79c0ea9fce38774bc8ca3a663be8bd49692c5af148f8d6",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_container_security_configurations_vulnerabilities_remediated",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "0706f1f8e7c9877f9a79c0ea9fce38774bc8ca3a663be8bd49692c5af148f8d6",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Collector peaso/collectors/azure.py: vm and security_assessment are collected; assessment fields are properties.resourceDetails.id, properties.status.code (Healthy/Unhealthy/NotApplicable), name (stable assessment key). Require policy set of Docker-host assessment keys, and a complete assessment page for each VM.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "PASS if every VM proven to host containers has a Healthy result for every required Docker-host assessment key at that VM resource ID. FAIL if any required assessment is Unhealthy. UNKNOWN if host applicability, assessment keys, complete assessment results or VM inventory are unknown; NotApplicable is not PASS.",
+      "source_spec_sha256": "0706f1f8e7c9877f9a79c0ea9fce38774bc8ca3a663be8bd49692c5af148f8d6"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "vm_antimalware_policy"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.compute_vm_malware_agent_automatic_upgrade_enabled",
+      "missing_collector_kinds": [
+        "vm_antimalware_policy"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Paged Windows VM and antimalware-extension inventory; guest Run Command executes Get-MpComputerStatus and Get-MpPreference, and reads effective Defender signature-update policy/registry including SignatureScheduleDay and SignatureUpdateInterval. Determine whether Microsoft Defender or the Microsoft Antimalware extension is the applicable protection agent; vendor evidence is required for other agents.; current collector lacks complete fact kind(s) vm_antimalware_policy and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_malware_agent_automatic_upgrade_enabled",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "1827828f0938da1ef402f4021742a789ed27eca0a49e5ae629292ec234773437",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_malware_agent_automatic_upgrade_enabled",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_171_rev_2",
+          "framework_name": "Azure NIST SP 800-171 Revision 2",
+          "signed_spec_sha256": "1827828f0938da1ef402f4021742a789ed27eca0a49e5ae629292ec234773437",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged Windows VM and antimalware-extension inventory; guest Run Command executes Get-MpComputerStatus and Get-MpPreference, and reads effective Defender signature-update policy/registry including SignatureScheduleDay and SignatureUpdateInterval. Determine whether Microsoft Defender or the Microsoft Antimalware extension is the applicable protection agent; vendor evidence is required for other agents.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each scoped Windows VM using Microsoft Defender/Microsoft Antimalware, PASS only when automatic signature updates are enabled by effective guest policy and the protection service is operational. FAIL when a complete guest read proves automatic signature updates disabled or the required agent absent/disabled. UNKNOWN for unreadable guest policy, ambiguous agent applicability, incomplete VM inventory, or a third-party agent without vendor evidence. Signature age is a health signal and must not by itself turn a configured automatic-update control into FAIL or PASS.",
+      "source_spec_sha256": "1827828f0938da1ef402f4021742a789ed27eca0a49e5ae629292ec234773437"
+    },
+    {
+      "candidate_collector_hook": ".cache/cspm-batch-azure-vm-storage/azure-collector-hook.patch",
+      "declared_dependencies": [
+        "vm",
+        "guest_configuration_report"
+      ],
+      "disposition": "source_correction_hold",
+      "id": "azure.gap.compute_vm_meet_firewall_properties_windows",
+      "missing_collector_kinds": [
+        "guest_configuration_report"
+      ],
+      "provider": "azure",
+      "reason": "The standard Guest Configuration report GET 2024-04-05 documents properties.reportId, complianceStatus, endTime and details.operationType, without the draft evaluator's properties.operationStatus. Resource-level properties bag content depends on the exact guest package and version, and resourceId may be absent; no signed package contract proves the required observed setting fields. The owned read-only helper can safely collect the standard report but the draft evaluator remains UNKNOWN on it. Source correction and package/version evidence are required before native admission. Signed source: Paged Windows VM and guestConfigurationAssignments inventory plus GET {assignment-id}/reports?api-version=2024-04-05; report properties.details.resources[].resourceId, complianceStatus, properties and reasons; policy names the required Windows Firewall Properties baseline, expected settings, assignment and report freshness.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_meet_firewall_properties_windows",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "3d02fa713fa458e171a7907628ccbe74e43cd24a5d84b76d1e23fa1a8da4d5b7",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged Windows VM and guestConfigurationAssignments inventory plus GET {assignment-id}/reports?api-version=2024-04-05; report properties.details.resources[].resourceId, complianceStatus, properties and reasons; policy names the required Windows Firewall Properties baseline, expected settings, assignment and report freshness.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each applicable Windows VM, compare every named Group Policy setting in the Windows Firewall Properties baseline, including firewall state, inbound/outbound connections, rule management and notifications, with the latest fresh report for that VM. PASS only when all required setting results are Compliant. FAIL if any required setting is explicitly NonCompliant. UNKNOWN for missing assignment/report, unmeasured settings, ambiguous resource IDs, stale report or incomplete pages. Three profile states alone cannot pass.",
+      "source_spec_sha256": "3d02fa713fa458e171a7907628ccbe74e43cd24a5d84b76d1e23fa1a8da4d5b7"
+    },
+    {
+      "candidate_collector_hook": ".cache/cspm-batch-azure-vm-storage/azure-collector-hook.patch",
+      "declared_dependencies": [
+        "vm",
+        "guest_configuration_report"
+      ],
+      "disposition": "source_correction_hold",
+      "id": "azure.gap.compute_vm_password_file_permissions_0644_linux",
+      "missing_collector_kinds": [
+        "guest_configuration_report"
+      ],
+      "provider": "azure",
+      "reason": "The standard Guest Configuration report GET 2024-04-05 documents properties.reportId, complianceStatus, endTime and details.operationType, without the draft evaluator's properties.operationStatus. Resource-level properties bag content depends on the exact guest package and version, and resourceId may be absent; no signed package contract proves the required observed setting fields. The owned read-only helper can safely collect the standard report but the draft evaluator remains UNKNOWN on it. Source correction and package/version evidence are required before native admission. Signed source: Microsoft.GuestConfiguration/guestConfigurationAssignments GET for each Linux VM: properties.complianceStatus,properties.latestReportId; GET or LIST /guestConfigurationAssignments/{assignmentName}/reports using latestReportId: properties.details.resources[].resourceId,complianceStatus,reasons. Require an assignment whose configuration explicitly checks /etc/passwd mode 0644. Read assignment/report timestamps and an approved maxReportAge; correlate latestReportId to the exact report and VM. Read assignment/report timestamps and an approved maxReportAge; correlate latestReportId to the exact report and VM.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_password_file_permissions_0644_linux",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "ce2ff19ec5f8125021978c554a903f15d0888fe631228dc97e96bb021e492929",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Microsoft.GuestConfiguration/guestConfigurationAssignments GET for each Linux VM: properties.complianceStatus,properties.latestReportId; GET or LIST /guestConfigurationAssignments/{assignmentName}/reports using latestReportId: properties.details.resources[].resourceId,complianceStatus,reasons. Require an assignment whose configuration explicitly checks /etc/passwd mode 0644. Read assignment/report timestamps and an approved maxReportAge; correlate latestReportId to the exact report and VM. Read assignment/report timestamps and an approved maxReportAge; correlate latestReportId to the exact report and VM.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each inventoried Linux VM, PASS only if the latest report matching its exact assignment and latestReportId has a file-level Compliant result explicitly proving /etc/passwd mode 0644 and is within approved maxReportAge. FAIL if a current matching report proves a different mode, or a complete current assignment inventory proves the required assignment absent. UNKNOWN if policy age, assignment identity, latestReportId, report timestamp, file-level evidence, pagination or Linux VM inventory is missing or stale. Aggregate FAIL before UNKNOWN.",
+      "source_spec_sha256": "ce2ff19ec5f8125021978c554a903f15d0888fe631228dc97e96bb021e492929"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "guest_configuration_report",
+        "vm_rdp_exception",
+        "vm_remote_access_monitoring"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.compute_vm_rdp_service_disabled",
+      "missing_collector_kinds": [
+        "guest_configuration_report",
+        "vm_rdp_exception",
+        "vm_remote_access_monitoring"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Windows VM inventory; Guest Configuration assignment reports for TermService; time-bounded officer approval register keyed by VM ID; Windows RDP sign-in/session log routing and monitored-alert evidence for approved enabled instances.; current collector lacks complete fact kind(s) guest_configuration_report, vm_rdp_exception, vm_remote_access_monitoring and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "annex_i_7_3",
+          "decision": "PARTIAL",
+          "framework_id": "rbi_cyber_security_framework_azure",
+          "framework_name": "Reserve Bank of India (RBI) Cyber Security Framework",
+          "signed_spec_sha256": "71586a89013dcd5493e762ccd3c5179957b0829dffe8edc78d48be8594dc8757",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Windows VM inventory; Guest Configuration assignment reports for TermService; time-bounded officer approval register keyed by VM ID; Windows RDP sign-in/session log routing and monitored-alert evidence for approved enabled instances.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For every Windows VM, require a current guest report proving TermService disabled or a VM-specific current approved exception for enabled RDP. For any approved enabled RDP path, also require enabled and monitored remote-access logs as the frozen requirement states. FAIL for proved enabled RDP without approval or proved missing required logging; PASS only when all applicable service, approval and monitoring evidence is complete. UNKNOWN for absent assignment/report, stale report, exception, log-routing or monitoring evidence.",
+      "source_spec_sha256": "71586a89013dcd5493e762ccd3c5179957b0829dffe8edc78d48be8594dc8757"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "nic",
+        "subnet",
+        "nsg"
+      ],
+      "disposition": "implemented_native_ready",
+      "id": "azure.gap.compute_vm_remote_access_restricted_all_ports",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "uses native VM/NIC/subnet/NSG rule inventories and source evaluator checks associated public Allow rules; no added producer required",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_remote_access_restricted_all_ports",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.fedramp_high",
+          "framework_name": "Azure FedRAMP High",
+          "signed_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_remote_access_restricted_all_ports",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_remote_access_restricted_all_ports",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_171_rev_2",
+          "framework_name": "Azure NIST SP 800-171 Revision 2",
+          "signed_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_remote_access_restricted_all_ports",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_remote_access_restricted_all_ports",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.rbi_itf_nbfc_v2017",
+          "framework_name": "Azure Reserve Bank of India - IT Framework for NBFC Regulatory Compliance",
+          "signed_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_remote_access_restricted_all_ports",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.pci_dss_v321",
+          "framework_name": "Azure PCI DSS 3.2.1",
+          "signed_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Collected vm, nic, subnet and nsg items: NIC/subnet networkSecurityGroup.id and each associated NSG properties.securityRules/defaultSecurityRules (sourceAddressPrefix(es), destinationPortRange(s), protocol, access, priority).",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each VM-associated NIC and subnet NSG independently, evaluate inbound securityRules and defaultSecurityRules in priority order. FAIL if a complete effective rule path within either associated NSG permits any inbound traffic from Any, Internet, 0.0.0.0/0 or ::/0; a deny in the other NSG does not excuse the permissive associated NSG under the frozen rule. PASS only when every associated NSG is fully resolved and none has such an effective public allow. UNKNOWN for missing associations, unresolved service tags/ASGs, rule priorities, VM/NIC/subnet joins or incomplete inventories. If a VM has no associated NSG, report that as a separate unprotected-path signal and UNKNOWN for this NSG-rule control unless the source explicitly includes absence.",
+      "source_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831"
+    },
+    {
+      "declared_dependencies": [
+        "vm_scale_set"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure.gap.compute_vm_scale_set_automatic_upgrade_enabled",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires platform image and upgrade-mode eligibility evidence tied to each VMSS model; native VMSS GET flag alone cannot establish applicability",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_scale_set_automatic_upgrade_enabled",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_csf_v2",
+          "framework_name": "Azure NIST CSF v2.0",
+          "signed_spec_sha256": "2ee41fd24fe2116b27f2b3104c58dcccb08cb23a82233e9e5a699e8403206720",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm_scale_set",
+      "source_data_source": "Existing vm_scale_set collection. Collected vm_scale_set.items[].properties.upgradePolicy.automaticOSUpgradePolicy.enableAutomaticOSUpgrade",
+      "source_family": "compliance_new_sw20.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each VMSS using a supported platform image and upgrade mode, PASS on upgradePolicy.automaticOSUpgradePolicy.enableAutomaticOSUpgrade=true; FAIL on explicit false; UNKNOWN if model eligibility or field cannot be established. Aggregate FAIL before UNKNOWN.",
+      "source_spec_sha256": "2ee41fd24fe2116b27f2b3104c58dcccb08cb23a82233e9e5a699e8403206720"
+    },
+    {
+      "declared_dependencies": [
+        "vm_scale_set",
+        "security_assessment"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure.gap.compute_vm_scale_set_endpoint_protection_solution_installed",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires per-instance endpoint agent health or documented parent assessment coverage contract; VMSS instance inventory alone does not prove installed protection",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_scale_set_endpoint_protection_solution_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "e4bc588679a51be447555c63031a8663f46dd3832321d71ed46b153b33a10527",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_scale_set_endpoint_protection_solution_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "e4bc588679a51be447555c63031a8663f46dd3832321d71ed46b153b33a10527",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm_scale_set",
+      "source_data_source": "Paged VMSS parent inventory, VMSS instance LIST 2024-07-01 and Microsoft.Security/assessments LIST 2020-01-01. Resolve stable endpoint-protection assessment key and join properties.resourceDetails.id to either the parent VMSS or an instance according to the assessment resource type. Obtain per-instance endpoint agent/health evidence when parent assessment does not prove installation on every current instance.",
+      "source_family": "compliance_new_sw20.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each VMSS, evaluate its current instances and the stable endpoint-protection assessment at its documented resource scope. A parent Healthy assessment is recommendation-health evidence, not an instance-ID join or standalone proof of every agent installation. PASS only when current per-instance endpoint-protection evidence or a documented assessment contract proving full instance coverage confirms installation for all applicable instances. FAIL on measured missing protection or Unhealthy applicable assessment. UNKNOWN when assessment scope, instance inventory, agent evidence, status, assessment key or applicability cannot be resolved; NotApplicable requires independent justification.",
+      "source_spec_sha256": "e4bc588679a51be447555c63031a8663f46dd3832321d71ed46b153b33a10527"
+    },
+    {
+      "declared_dependencies": [
+        "vm_scale_set",
+        "security_assessment"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure.gap.compute_vm_scale_set_security_configuration_vulnerabilities_remediated",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires assessment metadata GET category and resource-type contract plus owner assessment key policy; existing assessment LIST alone does not prove OS-vulnerability coverage",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_scale_set_security_configuration_vulnerabilities_remediated",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "55a5a27eb638e2bc0ffebf7fa73f557985180fd4f245313bf1f31ba95a7b8f9b",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_scale_set_security_configuration_vulnerabilities_remediated",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "55a5a27eb638e2bc0ffebf7fa73f557985180fd4f245313bf1f31ba95a7b8f9b",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm_scale_set",
+      "source_data_source": "Paged Defender for Cloud Assessments LIST 2020-01-01; VMSS id; assessment.properties.resourceDetails.id and properties.status.code. Policy requiredOsVulnerabilityAssessmentKeys must identify the Defender OS-vulnerability assessments for VMSS, not security-configuration assessments.",
+      "source_family": "compliance_new_sw20.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each VMSS and each explicitly configured OS-vulnerability assessment key, join exact normalized assessed-resource ID and assessment key. FAIL on a current Unhealthy OS-vulnerability assessment; PASS only when every required OS-vulnerability assessment is current and Healthy. UNKNOWN for absent/NotApplicable/stale/conflicting assessments, unrecognized status, missing keys or freshness policy, incomplete VMSS/assessment pages, or an assessment that only measures security configuration. A complete empty VMSS inventory is NOT_APPLICABLE.",
+      "source_spec_sha256": "55a5a27eb638e2bc0ffebf7fa73f557985180fd4f245313bf1f31ba95a7b8f9b"
+    },
+    {
+      "declared_dependencies": [
+        "vm_scale_set"
+      ],
+      "disposition": "implemented_native_ready",
+      "id": "azure.gap.compute_vm_scale_set_system_updates_installed",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "native azure_swc embeds paged VMSS instances and ARG patch summaries, and existing sw02 owner metadata projects maxAssessmentAgeSeconds; no added producer required",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_scale_set_system_updates_installed",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "b46b78955982732e1d6101a8719f54328c85202e00b63ec2c86cdf7a3c77a69e",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_scale_set_system_updates_installed",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "b46b78955982732e1d6101a8719f54328c85202e00b63ec2c86cdf7a3c77a69e",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm_scale_set",
+      "source_data_source": "Azure Resource Graph POST /providers/Microsoft.ResourceGraph/resources?api-version=2024-04-01: paged patchassessmentresources summary rows (exclude softwarepatches), id, properties.lastModifiedDateTime, properties.availablePatchCountByClassification.critical/security/updateRollup/other, properties.errorDetails; paged Microsoft.Compute/virtualMachineScaleSets/virtualMachines LIST 2024-07-01; policy maxAssessmentAge.",
+      "source_family": "compliance_new_sw02.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For every VMSS instance, use its exact normalized resource ID and latest patch-assessment summary. FAIL on a current successful assessment with critical>0 or security>0. PASS only if every instance has a current successful assessment with numeric critical=0 and security=0 and no unresolved classification or error that could conceal required updates. UNKNOWN for missing or stale summary, absent count, errors, ID ambiguity, missing maxAssessmentAge, incomplete Resource Graph or instance paging. Empty complete instance inventory is NOT_APPLICABLE.",
+      "source_spec_sha256": "b46b78955982732e1d6101a8719f54328c85202e00b63ec2c86cdf7a3c77a69e"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "vm_patch_installation_compliance"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.compute_vm_system_updates_installed",
+      "missing_collector_kinds": [
+        "vm_patch_installation_compliance"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Paged VM inventory and each VM GET 2023-09-01 with $expand=instanceView: properties.instanceView.patchStatus.availablePatchSummary.status,lastModifiedTime,criticalAndSecurityPatchCount. For PCI references, collect Azure Update Manager patch-installation compliance state and correlate the exact VM and operation.; current collector lacks complete fact kind(s) vm_patch_installation_compliance and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_system_updates_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.fedramp_high",
+          "framework_name": "Azure FedRAMP High",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_system_updates_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_system_updates_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_csf_v2",
+          "framework_name": "Azure NIST CSF v2.0",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_system_updates_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_171_rev_2",
+          "framework_name": "Azure NIST SP 800-171 Revision 2",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_system_updates_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_system_updates_installed",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.rbi_itf_nbfc_v2017",
+          "framework_name": "Azure Reserve Bank of India - IT Framework for NBFC Regulatory Compliance",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "11.3.1.1.2",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "11.3.1.3.2",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "11.3.1.2",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "6.3.3.2",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged VM inventory and each VM GET 2023-09-01 with $expand=instanceView: properties.instanceView.patchStatus.availablePatchSummary.status,lastModifiedTime,criticalAndSecurityPatchCount. For PCI references, collect Azure Update Manager patch-installation compliance state and correlate the exact VM and operation.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For the missing-security-updates references, PASS only on a fresh successful assessment with criticalAndSecurityPatchCount=0; FAIL on a fresh successful assessment with count>0. For PCI references, also require an exact VM post-installation COMPLIANT status; NON_COMPLIANT is FAIL. UNKNOWN if freshness threshold, status, count, PCI compliance record, VM join or inventory is missing; a zero available count alone cannot establish post-installation PCI compliance.",
+      "source_spec_sha256": "b3a73217dc27723294918c2b17562f1950c81832ced40eb691c8350adebc030a"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "nic",
+        "subnet",
+        "nsg",
+        "public_ip",
+        "load_balancer"
+      ],
+      "disposition": "implemented_native_ready",
+      "id": "azure.gap.compute_vm_tcp_udp_access_restricted_internet",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "uses native VM/NIC/subnet/NSG/public-IP/LB inventory and complete association joins; no added producer required",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_tcp_udp_access_restricted_internet",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.fedramp_high",
+          "framework_name": "Azure FedRAMP High",
+          "signed_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_tcp_udp_access_restricted_internet",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_tcp_udp_access_restricted_internet",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_171_rev_2",
+          "framework_name": "Azure NIST SP 800-171 Revision 2",
+          "signed_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_tcp_udp_access_restricted_internet",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.compute_vm_tcp_udp_access_restricted_internet",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.rbi_itf_nbfc_v2017",
+          "framework_name": "Azure Reserve Bank of India - IT Framework for NBFC Regulatory Compliance",
+          "signed_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged VM, NIC, subnet, public-IP, NSG, load-balancer and effective security rule reads; join by full ARM IDs. NSG association on NIC or subnet is the frozen requirement signal; policy prohibitedPorts is optional extra reachability analysis.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each internet-facing VM NIC, PASS only if a valid NSG is attached to that NIC or its subnet, as required by the frozen rule. FAIL if complete NIC, public-IP and subnet evidence proves neither association. UNKNOWN if inventory or joins are incomplete. If policy additionally requires prohibited port analysis, evaluate effective rules and NAT separately; do not use that stricter test to change this source-rule result.",
+      "source_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "security_assessment",
+        "sql_vm",
+        "security_subassessment"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.compute_vm_vulnerability_findings_resolved_for_sql_server",
+      "missing_collector_kinds": [
+        "security_subassessment",
+        "sql_vm"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Paged Microsoft.SqlVirtualMachine/sqlVirtualMachines LIST with properties.virtualMachineResourceId; paged Microsoft.Security/assessments LIST 2020-01-01 with properties.resourceDetails.id and properties.status.code; policy stable SQL VM assessment names plus all applicable finding/subassessment identifiers; complete VM join and assessment freshness.; current collector lacks complete fact kind(s) security_subassessment, sql_vm and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_vulnerability_findings_resolved_for_sql_server",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "991d582b97b79361e6ada4dc290b9d5086143e5746b127fdcc1664f04d0aa696",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged Microsoft.SqlVirtualMachine/sqlVirtualMachines LIST with properties.virtualMachineResourceId; paged Microsoft.Security/assessments LIST 2020-01-01 with properties.resourceDetails.id and properties.status.code; policy stable SQL VM assessment names plus all applicable finding/subassessment identifiers; complete VM join and assessment freshness.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each SQL VM, FAIL if a current applicable SQL vulnerability finding or assessment joined by normalized properties.resourceDetails.id is Unhealthy. PASS only when the complete applicable finding set is resolved and current Healthy evidence covers the VM; UNKNOWN for NotApplicable, missing or stale findings, assessment-key ambiguity, SQL VM join or incomplete paging. One healthy umbrella assessment cannot prove all findings resolved.",
+      "source_spec_sha256": "991d582b97b79361e6ada4dc290b9d5086143e5746b127fdcc1664f04d0aa696"
+    },
+    {
+      "candidate_collector_hook": ".cache/cspm-batch-azure-vm-storage/azure-collector-hook.patch",
+      "declared_dependencies": [
+        "vm",
+        "guest_configuration_report"
+      ],
+      "disposition": "source_correction_hold",
+      "id": "azure.gap.compute_vm_with_no_specified_certificates_in_trusted_root_windows",
+      "missing_collector_kinds": [
+        "guest_configuration_report"
+      ],
+      "provider": "azure",
+      "reason": "The standard Guest Configuration report GET 2024-04-05 documents properties.reportId, complianceStatus, endTime and details.operationType, without the draft evaluator's properties.operationStatus. Resource-level properties bag content depends on the exact guest package and version, and resourceId may be absent; no signed package contract proves the required observed setting fields. The owned read-only helper can safely collect the standard report but the draft evaluator remains UNKNOWN on it. Source correction and package/version evidence are required before native admission. Signed source: Paged Windows VM and Guest Configuration assignment LIST 2024-04-05; read assignment parameter containing required trusted-root certificate thumbprints, properties.latestReportId, then GET the corresponding assignment report with evaluated certificate-store resources and freshness. Policy requiredThumbprints and maximum report age.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.compute_vm_with_no_specified_certificates_in_trusted_root_windows",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "4b5ebbbdab959dc9d8b2dbae98866a5aa589f3cf8502e11765143d8f1ea21039",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged Windows VM and Guest Configuration assignment LIST 2024-04-05; read assignment parameter containing required trusted-root certificate thumbprints, properties.latestReportId, then GET the corresponding assignment report with evaluated certificate-store resources and freshness. Policy requiredThumbprints and maximum report age.",
+      "source_family": "compliance_new_sw17_specs.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each scoped Windows VM, FAIL when a current complete trusted-root report proves one or more policy-required certificates absent from LocalMachine\\Root. PASS only when the exact required thumbprint set is bound to the assignment and a current complete report proves every required certificate present. UNKNOWN when assignment, parameter binding, report, freshness, required set or pages are incomplete. Empty required set is UNKNOWN without an explicit policy decision.",
+      "source_spec_sha256": "4b5ebbbdab959dc9d8b2dbae98866a5aa589f3cf8502e11765143d8f1ea21039"
+    },
+    {
+      "declared_dependencies": [
+        "aks_cluster"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure.gap.kubernetes_cluster_https_enabled",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires authenticated HTTPS and rejected plaintext HTTP API probes from one authorized vantage; ARM managedCluster metadata alone cannot prove endpoint behavior",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.kubernetes_cluster_https_enabled",
+          "decision": "NEW_CHECK",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "01960fa562f1ae8a1d95d59696cc26e749da8d75873fd56e59fd84a37585d2d5",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "aks_cluster",
+      "source_data_source": "Existing aks_cluster collection; add authorized endpoint probes. ARM GET Microsoft.ContainerService/managedClusters: properties.fqdn,properties.privateFQDN; authorized HTTPS and HTTP probes of the resolved API server FQDN on port 443/80.",
+      "source_family": "compliance_new_sw04.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each in-scope AKS endpoint, FAIL if an authorized plaintext HTTP probe accepts a Kubernetes API request; PASS if an authenticated HTTPS probe succeeds and HTTP probe demonstrably rejects API requests from the same vantage. UNKNOWN for unreachable/private endpoints, missing authorization, DNS/proxy ambiguity or either probe failure.",
+      "source_spec_sha256": "01960fa562f1ae8a1d95d59696cc26e749da8d75873fd56e59fd84a37585d2d5"
+    },
+    {
+      "declared_dependencies": [
+        "aks_cluster"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure.gap.kubernetes_cluster_upgraded_with_non_vulnerable_version",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires dated complete AKS security advisory feed and supportedBranches owner policy; current owner_metadata does not project either",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.kubernetes_cluster_upgraded_with_non_vulnerable_version",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.fedramp_high",
+          "framework_name": "Azure FedRAMP High",
+          "signed_spec_sha256": "a88d4ed4247b6071112b6de33048c7bd96d6d5671f54c95cacc8af953337471e",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.kubernetes_cluster_upgraded_with_non_vulnerable_version",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_171_rev_2",
+          "framework_name": "Azure NIST SP 800-171 Revision 2",
+          "signed_spec_sha256": "a88d4ed4247b6071112b6de33048c7bd96d6d5671f54c95cacc8af953337471e",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.kubernetes_cluster_upgraded_with_non_vulnerable_version",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+          "framework_name": "Azure NIST SP 800-53 Revision 5",
+          "signed_spec_sha256": "a88d4ed4247b6071112b6de33048c7bd96d6d5671f54c95cacc8af953337471e",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        },
+        {
+          "control_id": "azure-compliance.control.kubernetes_cluster_upgraded_with_non_vulnerable_version",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.rbi_itf_nbfc_v2017",
+          "framework_name": "Azure Reserve Bank of India - IT Framework for NBFC Regulatory Compliance",
+          "signed_spec_sha256": "a88d4ed4247b6071112b6de33048c7bd96d6d5671f54c95cacc8af953337471e",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "aks_cluster",
+      "source_data_source": "Collected aks_cluster.items[].properties.kubernetesVersion; dated Microsoft AKS supported-version/security advisory feed supplied as policy input vulnerableVersions; frozen CVE-2019-9946 patched floors 1.11.9, 1.12.7, 1.13.5, 1.14.0 and later supported branches",
+      "source_family": "compliance_new_sw30.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each AKS cluster, compare the exact Kubernetes version with the frozen CVE-2019-9946 patched floor for its minor branch and a dated, complete Microsoft AKS advisory set. FAIL if below that floor or identified vulnerable by a current advisory. PASS only if the version is at or above the applicable patched floor and the advisory set affirms no currently known unpatched vulnerability. UNKNOWN if version/build, branch mapping, advisory completeness or freshness is unresolved.",
+      "source_spec_sha256": "a88d4ed4247b6071112b6de33048c7bd96d6d5671f54c95cacc8af953337471e"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "azure_sw18_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.gap.network_security_group_rdp_access_restricted",
+      "missing_collector_kinds": [
+        "azure_sw18_evidence"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Existing azure.py Windows vm.items[]; new Guest Configuration assignment reports 2022-01-25 with exact organization User Rights Assignment baseline ID, parameter set, complianceStatus and latest report ID. Resolve effective assignment parameter values and report VM/assignment identity; a generic Compliant summary from another parameter set cannot prove this policy.; current collector lacks complete fact kind(s) azure_sw18_evidence and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "azure-compliance.control.network_security_group_rdp_access_restricted",
+          "decision": "PARTIAL",
+          "framework_id": "azure-compliance.benchmark.hipaa_hitrust_v92",
+          "framework_name": "Azure HIPAA HITRUST 9.2",
+          "signed_spec_sha256": "9d9b5d50de6801be67cea9c3052883e0722b8e4e29b51721dda4941dc5ec8608",
+          "slice": "azure-nist-hipaa-rbi-soc2.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Existing azure.py Windows vm.items[]; new Guest Configuration assignment reports 2022-01-25 with exact organization User Rights Assignment baseline ID, parameter set, complianceStatus and latest report ID. Resolve effective assignment parameter values and report VM/assignment identity; a generic Compliant summary from another parameter set cannot prove this policy.",
+      "source_family": "compliance_new_sw18.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each Windows VM, PASS only when a fresh report for the exact baseline, version and approved User Rights Assignment parameter set is Compliant; FAIL when that report is NonCompliant; UNKNOWN when assignment, baseline version or parameters, report, status or VM inventory is unavailable. No Windows VMs is not applicable.",
+      "source_spec_sha256": "9d9b5d50de6801be67cea9c3052883e0722b8e4e29b51721dda4941dc5ec8608"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "audit_storage_access_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.audit_storage_access_logging",
+      "missing_collector_kinds": [
+        "audit_storage_access_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires diagnostic delivery to separate approved sink and measured access events; ARM storage configuration alone cannot prove delivery",
+      "requirements": [
+        {
+          "control_id": "CCC.AuditLog.CN04.AR01",
+          "decision": "NEW_CHECK",
+          "framework_id": "ccc_azure",
+          "framework_name": "Common Cloud Controls Catalog (CCC)",
+          "signed_spec_sha256": "2e8c90d43c9b5a5704d67f40b4497ca3bee2f4c9cdf837a80696d562dfbc8f3f",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Azure Monitor diagnostic settings LIST at each blob service, with properties.logs[].category/categoryGroup, enabled and setting-level destination IDs; destination/account identity. Separate data-plane blob-read, blob-write and blob-delete audit log evidence and a policy-approved independent secure logging sink are required to assess bucket-style server access logging.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each policy-identified audit log storage account, PASS only if complete evidence shows access events for that account are captured and delivered to a separate approved secure logging account/sink with verified retention and access controls. FAIL only on complete evidence proving access logging absent or same-account delivery. UNKNOWN if audit-log-account scope, actual event delivery, sink separation/security, category support or inventory is unmeasured. A diagnostic setting alone does not prove delivery or secure sink.",
+      "source_spec_sha256": "2e8c90d43c9b5a5704d67f40b4497ca3bee2f4c9cdf837a80696d562dfbc8f3f"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "blob_access_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.blob_uniform_access",
+      "missing_collector_kinds": [
+        "blob_access_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires effective container/HNS/object ACL and SAS grant inventory; container ARM list cannot prove data-plane effective permissions",
+      "requirements": [
+        {
+          "control_id": "CCC.ObjStor.CN02.AR01",
+          "decision": "NEW_CHECK",
+          "framework_id": "ccc_azure",
+          "framework_name": "Common Cloud Controls Catalog (CCC)",
+          "signed_spec_sha256": "5daea22fe3ccae690a528cb39581ca631a666c7106c183ea93b561dc8b28a3cf",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Paged storage account/container inventory; Get Container ACL (x-ms-version=2023-11-03) for stored access policies, paged HNS List Paths/Get Path ACL for object ACLs; account and user-delegation SAS issuance plus per-blob permissions require external authoritative evidence because Azure cannot enumerate all issued SAS tokens.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each container, compare the effective allowed permission set of every object with the permission set allowed for that container, including HNS ACLs and all applicable SAS grants. FAIL when measured permissions differ. PASS only with complete object enumeration and authoritative evidence covering non-enumerable SAS grants; UNKNOWN when issued SAS, object ACLs, policy semantics or paging cannot be fully observed. Public access level and stored policies alone cannot prove uniformity.",
+      "source_spec_sha256": "5daea22fe3ccae690a528cb39581ca631a666c7106c183ea93b561dc8b28a3cf"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "azure_sw18_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.clock_sync",
+      "missing_collector_kinds": [
+        "azure_sw18_evidence"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires azure.py VM guestConfigurationAssignments child LIST 2024-04-05: properties.complianceStatus and properties.guestConfiguration.name; add GET assignment reports using properties.latestReportId for current evidence. Policy approvedTimeSyncAssignmentNames.; GET /guestConfigurationAssignments/{name}/reports/{latestReportId} properties.endTime,complianceStatus,details; approved source IDs and maximum report age; current collector lacks complete fact kind(s) azure_sw18_evidence and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "op.exp8.r2.az.wc.1",
+          "decision": "PARTIAL",
+          "framework_id": "ens_rd2022_azure",
+          "framework_name": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "signed_spec_sha256": "5b40d1078c91a115e69a287a0ea7ebb6b1d3b02d9f827312d94cd719d37c6c08",
+          "slice": "azure-other.json"
+        },
+        {
+          "control_id": "A.8.17",
+          "decision": "NEW_CHECK",
+          "framework_id": "iso27001_2022_azure",
+          "framework_name": "ISO/IEC 27001 Information Security Management Standard 2022",
+          "signed_spec_sha256": "5b40d1078c91a115e69a287a0ea7ebb6b1d3b02d9f827312d94cd719d37c6c08",
+          "slice": "azure-other.json"
+        },
+        {
+          "control_id": "12.8",
+          "decision": "PARTIAL",
+          "framework_id": "secnumcloud_3.2_azure",
+          "framework_name": "SecNumCloud Referentiel d'Exigences v3.2",
+          "signed_spec_sha256": "5b40d1078c91a115e69a287a0ea7ebb6b1d3b02d9f827312d94cd719d37c6c08",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "azure.py VM guestConfigurationAssignments child LIST 2024-04-05: properties.complianceStatus and properties.guestConfiguration.name; add GET assignment reports using properties.latestReportId for current evidence. Policy approvedTimeSyncAssignmentNames.; GET /guestConfigurationAssignments/{name}/reports/{latestReportId} properties.endTime,complianceStatus,details; approved source IDs and maximum report age",
+      "source_family": "compliance_new_sw18.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each scoped VM, PASS only if an approved time-sync assignment has a recent report whose detailed result measures the actual source and synchronization state, shows that source is approved, and is Compliant. FAIL for a current report proving drift or unapproved source. UNKNOWN if assignment is absent, report is stale/unreadable, source identity is missing, or policy inputs are unresolved.",
+      "source_spec_sha256": "5b40d1078c91a115e69a287a0ea7ebb6b1d3b02d9f827312d94cd719d37c6c08"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "configuration_backup_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.infrastructure_configuration_backup",
+      "missing_collector_kinds": [
+        "configuration_backup_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires authoritative configuration-resource manifest, successful export artifact read and retention evidence outside storage account ARM metadata",
+      "requirements": [
+        {
+          "control_id": "17.5",
+          "decision": "PARTIAL",
+          "framework_id": "secnumcloud_3.2_azure",
+          "framework_name": "SecNumCloud Referentiel d'Exigences v3.2",
+          "signed_spec_sha256": "7bec07368a73f6c3ba122280f0790f24a58245a1057012ee068aa429f477497d",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Authoritative inventory of infrastructure configuration resources and backup policy (maximum age and retention); export manifest with resource ARM ID, export completion time, artifact URI and integrity hash; read artifact and a dated restore-validation record. Automation runbook publishContentLink alone is not backup evidence.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For every required infrastructure configuration resource, PASS only when a complete manifest shows a successful export within the approved maximum age, the artifact is readable and integrity-checked, retained for the required period, and a restore validation within the approved interval demonstrates that configuration can be recovered. FAIL on a fully measured missing/stale/corrupt export or failed restore. UNKNOWN if resource inventory, age/retention policy, artifact, or restoration evidence is missing; an empty required inventory without an authoritative scope decision is UNKNOWN.",
+      "source_spec_sha256": "7bec07368a73f6c3ba122280f0790f24a58245a1057012ee068aa429f477497d"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "signed_log_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.signed_log_completeness",
+      "missing_collector_kinds": [
+        "signed_log_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires complete versioned blob listing, independently established expected sequence baseline and trusted signed manifest",
+      "requirements": [
+        {
+          "control_id": "CCC.AuditLog.CN01.AR02",
+          "decision": "NEW_CHECK",
+          "framework_id": "ccc_azure",
+          "framework_name": "Common Cloud Controls Catalog (CCC)",
+          "signed_spec_sha256": "eef2575f85acc4deae799853f67b3fcb2397db6d87f3e9a9a7db172e768d2e9f",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "New paged Blob List Blobs using marker, manifest GET and signature verification. Storage Blob data plane GET https://{account}.blob.core.windows.net/{container}?restype=container&comp=list: Blobs.Blob.Name,Properties.Content-MD5; GET /{manifestBlob}: declared sequence,blobName,digest.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "PASS only when a trusted signature over a complete log manifest verifies, an independently established expected sequence baseline and policy time window are known, all expected sequence numbers and named blobs exist after complete marker pagination, and downloaded bytes match signed digests. FAIL on a verified missing expected sequence/blob or digest mismatch. UNKNOWN when the trusted key, independent baseline, time window, manifest generation completeness, pages or blob reads are unavailable. A signed manifest containing only surviving blobs cannot prove deletion detection; Blob Content-MD5 is not signing evidence.",
+      "source_spec_sha256": "eef2575f85acc4deae799853f67b3fcb2397db6d87f3e9a9a7db172e768d2e9f"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "signed_log_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.signed_log_integrity",
+      "missing_collector_kinds": [
+        "signed_log_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires full retained blob bytes and trusted signature verification against a versioned manifest",
+      "requirements": [
+        {
+          "control_id": "CCC.AuditLog.CN01.AR01",
+          "decision": "NEW_CHECK",
+          "framework_id": "ccc_azure",
+          "framework_name": "Common Cloud Controls Catalog (CCC)",
+          "signed_spec_sha256": "0d39f71966121d2765ccffe3a45d711f41e5683bef9f57080a5f10585ab8c64a",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "New paged Azure Blob List Blobs (x-ms-version=2023-11-03, marker continuation) and GET blob bytes for the protected container; read complete signed manifest with blobName, versionId, SHA-256 and signature. New Key Vault data-plane GET /keys/{name}/{version}?api-version=7.4 for trusted public JWK; verify signature locally over canonical manifest payload. Collector has no blob-content or manifest collection.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "PASS only if a complete point-in-time versioned listing of every retained log blob matches a manifest entry by name and version, its full-content SHA-256 matches, and the manifest signature verifies under the pinned trusted key/version. FAIL for a known missing, changed, extra or invalidly signed item. UNKNOWN if enumeration, version consistency, key trust, manifest format, bytes or signature algorithm cannot be established.",
+      "source_spec_sha256": "0d39f71966121d2765ccffe3a45d711f41e5683bef9f57080a5f10585ab8c64a"
+    },
+    {
+      "declared_dependencies": [
+        "snapshot"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure.other.snapshot_sharing_scope",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires complete effective RBAC/deny/share-scope proof or controlled unauthorized attempt; snapshot networkAccessPolicy alone cannot prove actual sharing",
+      "requirements": [
+        {
+          "control_id": "CCC.RDMS.CN05.AR01",
+          "decision": "NEW_CHECK",
+          "framework_id": "ccc_azure",
+          "framework_name": "Common Cloud Controls Catalog (CCC)",
+          "signed_spec_sha256": "0dd5b7e17a2632f5f0fc53307dc5977f54155b617a23322fa409cb796ba9883f",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "disk",
+      "source_data_source": "ARM GET Microsoft.Compute/snapshots: properties.networkAccessPolicy,publicNetworkAccess,diskAccessId; GET Microsoft.Authorization/roleAssignments/roleDefinitions for snapshot scope; policy input approvedRecipientIds. Include current authorized negative sharing test or equivalent deny evidence for an unauthorized recipient; inventory active SAS grants where available.",
+      "source_family": "compliance_new_sw27.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each snapshot, FAIL when an unauthorized recipient actually obtains access or a controlled unauthorized grantAccess/sharing attempt succeeds. PASS only when complete effective grant-capable RBAC and outstanding grants are approved and a current authorized negative test or equivalent deny evidence proves unauthorized sharing requests are rejected. UNKNOWN if networkAccessPolicy=AllowAll/publicNetworkAccess=Enabled is merely permissive without proof that an unauthorized principal can grant or receive access, or if network defaults, diskAccess association, inherited RBAC/groups, issued SAS grants, recipient policy, test evidence or pagination is unresolved. No snapshots is NOT_APPLICABLE.",
+      "source_spec_sha256": "0dd5b7e17a2632f5f0fc53307dc5977f54155b617a23322fa409cb796ba9883f"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "azure_sw18_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.sshv2_guest_configuration",
+      "missing_collector_kinds": [
+        "azure_sw18_evidence"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Per exposed Linux VM: paged Guest Configuration assignment LIST/GET 2024-04-05, properties.latestReportId, then GET {assignmentId}/reports/{latestReportId} and inspect properties.details.resources[] and reasons; approved SSHv2 assignment definition and report freshness policy; complete exposure inventory.; current collector lacks complete fact kind(s) azure_sw18_evidence and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "CCC.Core.CN01.AR02",
+          "decision": "PARTIAL",
+          "framework_id": "ccc_azure",
+          "framework_name": "Common Cloud Controls Catalog (CCC)",
+          "signed_spec_sha256": "06c1a517fa3e969e449c8c3eff06c19be44d4d82ee9a7b547c1ce68627b6ffe6",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Per exposed Linux VM: paged Guest Configuration assignment LIST/GET 2024-04-05, properties.latestReportId, then GET {assignmentId}/reports/{latestReportId} and inspect properties.details.resources[] and reasons; approved SSHv2 assignment definition and report freshness policy; complete exposure inventory.",
+      "source_family": "compliance_new_sw18.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each exposed Linux VM, PASS only if the exact approved SSHv2 assignment has a current completed report whose specific Protocol setting shows SSHv2 or higher and no SSHv1. FAIL only when the current report explicitly proves SSHv1 is allowed. UNKNOWN for missing assignment/report, stale report, ambiguous details, exposure, or incomplete paging. An assignment-level Compliant flag alone is insufficient.",
+      "source_spec_sha256": "06c1a517fa3e969e449c8c3eff06c19be44d4d82ee9a7b547c1ce68627b6ffe6"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "customer_data_region_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.storage_geo",
+      "missing_collector_kinds": [
+        "customer_data_region_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires classified customer-data resource inventory and approved EU-region policy beyond storage account location",
+      "requirements": [
+        {
+          "control_id": "19.2",
+          "decision": "PARTIAL",
+          "framework_id": "secnumcloud_3.2_azure",
+          "framework_name": "SecNumCloud Referentiel d'Exigences v3.2",
+          "signed_spec_sha256": "3e2ecf52eca006476e44f16441185f3888d95e107499417f3ed29e9427ee3105",
+          "slice": "azure-other.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "existing collected storage_account location, sku.name, properties.secondaryLocation; organization-approved EU-region list; authoritative customer-data storage/processing inventory, all applicable service region metadata, and Azure Policy assignments plus compliance results for approved EU locations",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each customer-data storage or processing resource in a complete classified inventory, PASS only if every known primary, replica and processing location is within the approved EU region set and an effective region-restriction policy is assigned and compliant at its scope. FAIL on a fully measured non-EU location or absent/noncompliant restriction policy. UNKNOWN when inventory, region mapping, secondary location, processing location, policy inheritance or compliance result is unresolved. A storage-account-only scan cannot PASS the whole requirement.",
+      "source_spec_sha256": "3e2ecf52eca006476e44f16441185f3888d95e107499417f3ed29e9427ee3105"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "storage_management_policy_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure.other.storage_lifecycle",
+      "missing_collector_kinds": [
+        "storage_management_policy_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires managementPolicies/default GET and approved per-prefix minimum/maximum retention policy with overlap resolution",
+      "requirements": [
+        {
+          "control_id": "CCC.AuditLog.CN06.AR01",
+          "decision": "NEW_CHECK",
+          "framework_id": "ccc_azure",
+          "framework_name": "Common Cloud Controls Catalog (CCC)",
+          "signed_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5",
+          "slice": "azure-other.json"
+        },
+        {
+          "control_id": "10.5.1.12",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.2.1.8",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.1.1.8",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.1.3.8",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.2.8",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.3.8",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Existing azure.py storage_account.items[]; new managementPolicies/default GET 2023-05-01 per account. properties.policy.rules[].enabled boolean, type=Lifecycle, definition.filters.blobTypes/prefixMatch/blobIndexMatch, definition.actions.baseBlob.delete.daysAfterModificationGreaterThan; policy protected prefixes, minimum retention and maximum deletion days.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For every protected blockBlob prefix, PASS only if every applicable enabled delete rule respects minimum retention and at least one rule guarantees deletion by approved maximum. FAIL if an applicable rule can delete earlier or complete policy has no timely deletion. UNKNOWN if overlap, filters, creation/last-access predicates, version/snapshot protection, bounds or policy read cannot be resolved; a broad safe rule cannot mask an earlier overlapping rule.",
+      "source_spec_sha256": "8d5d0e0cdcc8081bc31b2d0e83222cc073eea423da8e8c8aae45a08f722798a5"
+    },
+    {
+      "declared_dependencies": [
+        "aks_cluster"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure_aks_cluster_10_2_1_1_17_885658f",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires complete AKS diagnostic category/settings and destination capability evidence on each cluster, not only native managedCluster GET",
+      "requirements": [
+        {
+          "control_id": "10.2.1.1.17",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.1.2.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.1.3.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.1.4.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.1.5.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.1.6.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.1.7.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.1.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.2.2.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.3.1.14",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.6.3.18",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "5.3.4.16",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "A1.2.1.18",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "aks_cluster",
+      "source_data_source": "ARM GET Microsoft.ContainerService/managedClusters; GET {clusterId}/providers/Microsoft.Insights/diagnosticSettingsCategories and /diagnosticSettings: properties.logs[].category/categoryGroup/enabled and destination IDs.",
+      "source_family": "compliance_new_sw30.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each AKS cluster, enumerate the complete supported diagnostic log categories. PASS only if every supported log category is enabled in a diagnostic setting (directly or through allLogs) and routed to a valid workspace, Event Hub, or storage destination. FAIL if complete category and setting lists prove any supported log category is not exported. UNKNOWN if category support, settings, destination or enumeration is unresolved. No clusters is NOT_APPLICABLE.",
+      "source_spec_sha256": "815b503949e3ceab9efc00bddbd4b1efd032d2d6cf2ac65ebc4522dbeebb774c"
+    },
+    {
+      "declared_dependencies": [
+        "aks_cluster"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure_aks_cluster_6_3_3_4_98a0b2c",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires dated regional AKS support feed and oldestVersionSupported policy, absent from current owner_metadata projection",
+      "requirements": [
+        {
+          "control_id": "6.3.3.4",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1114fd52566d9df2936bb2aefb0d88427ed33cd20226cf3a58bb06c24ac88d8f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "6.3.3.5",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1114fd52566d9df2936bb2aefb0d88427ed33cd20226cf3a58bb06c24ac88d8f",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "aks_cluster",
+      "source_data_source": "ARM managedClusters GET 2024-05-01 properties.kubernetesVersion and properties.supportPlan; ARM managedClusters availableOrchestratorVersions for cluster location; policy oldestVersionSupported and scan time.",
+      "source_family": "compliance_new_sw30.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "Evaluate the two frozen PCI requirements separately for each AKS cluster using a dated regional support feed and policy oldestVersionSupported. For 6.3.3.4, FAIL when kubernetesVersion is equal to or older than oldestVersionSupported; PASS only when newer and current regional support for its support plan is verified. For 6.3.3.5, FAIL when kubernetesVersion is older than oldestVersionSupported; equality can PASS only when the regional feed confirms support. UNKNOWN for either result if policy threshold, complete version, region, support plan or current feed is unavailable.",
+      "source_spec_sha256": "1114fd52566d9df2936bb2aefb0d88427ed33cd20226cf3a58bb06c24ac88d8f"
+    },
+    {
+      "declared_dependencies": [
+        "aks_cluster"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure_aks_cluster_7_2_1_6_93c4fab",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires authenticated, consistent all-namespace paged Pods from each AKS API endpoint",
+      "requirements": [
+        {
+          "control_id": "7.2.1.6",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "73c7215c9dcdd4ea93d17bf29353c8a02e57cfef668bd60e61e20e825cd32003",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "7.2.2.6",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "73c7215c9dcdd4ea93d17bf29353c8a02e57cfef668bd60e61e20e825cd32003",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "7.2.3.3",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "73c7215c9dcdd4ea93d17bf29353c8a02e57cfef668bd60e61e20e825cd32003",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "aks_cluster",
+      "source_data_source": "New paged Kubernetes core/v1 Pods list across all namespaces of every AKS cluster; spec.containers[],initContainers[],ephemeralContainers[].securityContext.privileged boolean (omitted defaults false). Include RBAC/watch completeness and cluster association.",
+      "source_family": "compliance_new_sw30.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For every current AKS Pod container, including regular, init and ephemeral containers, FAIL if securityContext.privileged=true. PASS only with complete, consistent paged pod inventory showing false or omitted for every container; omitted defaults false. UNKNOWN for RBAC denial, missing namespace/pod pages, stale resourceVersion or incomplete cluster inventory. Empty complete present-pod set is PASS only for present pods; admission/template enforcement is unmeasured.",
+      "source_spec_sha256": "73c7215c9dcdd4ea93d17bf29353c8a02e57cfef668bd60e61e20e825cd32003"
+    },
+    {
+      "declared_dependencies": [
+        "aks_cluster"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure_aks_cluster_aks_cluster_rbac_enabled_db12524",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires authenticated, consistent all-namespace paged Pods including OS and securityContext fields",
+      "requirements": [
+        {
+          "control_id": "7.2.1.8",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "bdabfa2293eaa7c88cc0c6069e44f1d21f79a204501af7ecbf05582650dfbb60",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "7.2.2.8",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "bdabfa2293eaa7c88cc0c6069e44f1d21f79a204501af7ecbf05582650dfbb60",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "7.2.3.4",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "bdabfa2293eaa7c88cc0c6069e44f1d21f79a204501af7ecbf05582650dfbb60",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "aks_cluster",
+      "source_data_source": "Existing aks_cluster inventory; add paged Kubernetes /api/v1/pods list across all namespaces using resourceVersion/continue. Kubernetes Pod v1 schema: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pod-v1-core. Kubernetes core/v1 list_namespaced_pod (all namespaces): items[].spec.containers[].securityContext.runAsUser,pod.securityContext.runAsUser.",
+      "source_family": "compliance_new_sw30.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each in-scope Linux AKS pod, inspect initContainers, containers and ephemeralContainers. Effective runAsUser is container override then pod securityContext; PASS only if every applicable container has an explicit effective nonzero integer UID. FAIL on explicit UID 0 or missing effective UID in a complete pod record. UNKNOWN on incomplete pod/namespace pages, unresolved node OS/applicability or invalid security context. Windows containers require separate user-name semantics and remain UNKNOWN until assessed; no applicable Linux pods is NOT_APPLICABLE. Aggregate FAIL before UNKNOWN.",
+      "source_spec_sha256": "bdabfa2293eaa7c88cc0c6069e44f1d21f79a204501af7ecbf05582650dfbb60"
+    },
+    {
+      "declared_dependencies": [
+        "aks_cluster"
+      ],
+      "disposition": "candidate_fact_gap_hold",
+      "id": "azure_aks_cluster_aks_cluster_rbac_enabled_fc209e3",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires exact Key Vault key state, cluster identity authorization and KMS version support beyond managedCluster enabled flag",
+      "requirements": [
+        {
+          "control_id": "3.5.1.16",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f082c9187e12b7beb05f4f2eeb508aa633806c7187e9f8f08dee7fc25b6b032a",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.5.1.17",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f082c9187e12b7beb05f4f2eeb508aa633806c7187e9f8f08dee7fc25b6b032a",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "8.3.2.23",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f082c9187e12b7beb05f4f2eeb508aa633806c7187e9f8f08dee7fc25b6b032a",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "8.3.2.24",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f082c9187e12b7beb05f4f2eeb508aa633806c7187e9f8f08dee7fc25b6b032a",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "aks_cluster",
+      "source_data_source": "Collector peaso/collectors/azure.py: aks_cluster GET 2024-05-01: properties.securityProfile.azureKeyVaultKms.enabled Boolean and keyId string; resolve keyVaultNetworkAccess enum if relevant to usability. Complete cluster inventory required. New Key Vault data-plane GET {keyId}?api-version=7.4 and effective key permission evaluation for the AKS identity are required to prove the configured key is usable; missing key or access evidence is UNKNOWN.",
+      "source_family": "compliance_new_sw30.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each applicable AKS cluster, PASS only if properties.securityProfile.azureKeyVaultKms.enabled=true, keyId resolves to an enabled existing Key Vault key and the cluster identity has effective key permissions and network access. FAIL for explicitly disabled KMS, absent keyId on a complete applicable resource or authoritative unusable key/access evidence. UNKNOWN for incomplete cluster/key inventories, key state, identity, access or network reachability. An enabled KMS flag alone is insufficient.",
+      "source_spec_sha256": "f082c9187e12b7beb05f4f2eeb508aa633806c7187e9f8f08dee7fc25b6b032a"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "azure_sw18_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure_c5_am_04_01b",
+      "missing_collector_kinds": [
+        "azure_sw18_evidence"
+      ],
+      "provider": "azure",
+      "reason": "Signed source requires Paged Azure VM inventory and per-VM Microsoft.Security/softwareInventories ListByExtendedResource 2021-05-01-preview; item.id embeds the exact VM ARM ID and properties.softwareName,version,deviceId are strings. Policy defines covered VMs, required inventory fields and maximum age; confirm Defender software-inventory coverage for every VM.; current collector lacks complete fact kind(s) azure_sw18_evidence and cannot prove PASS or FAIL in a normal scan.",
+      "requirements": [
+        {
+          "control_id": "AM-04.01B",
+          "decision": "PARTIAL",
+          "framework_id": "c5_azure",
+          "framework_name": "Cloud Computing Compliance Criteria Catalogue C5",
+          "signed_spec_sha256": "3934f1625c2681d2b2a94eb0e2bdaa242963be62587dd30543ed8145f6cb4cc5",
+          "slice": "azure-c5.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged Azure VM inventory and per-VM Microsoft.Security/softwareInventories ListByExtendedResource 2021-05-01-preview; item.id embeds the exact VM ARM ID and properties.softwareName,version,deviceId are strings. Policy defines covered VMs, required inventory fields and maximum age; confirm Defender software-inventory coverage for every VM.",
+      "source_family": "compliance_new_sw18.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each in-scope VM, PASS only if an authoritative, current, complete guest software inventory lists every installed software asset with identity and version and joins each record to the exact VM; FAIL only for a proven missing required asset or required inventory field. UNKNOWN where guest inventory, completeness, age, VM join or policy is unmeasured. Endpoint-protection Healthy does not establish this C5 requirement.",
+      "source_spec_sha256": "3934f1625c2681d2b2a94eb0e2bdaa242963be62587dd30543ed8145f6cb4cc5"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "siem_archive_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure_c5_ops_13_03b",
+      "missing_collector_kinds": [
+        "siem_archive_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires Locked archive container immutability plus separately verified SIEM delivery and retention",
+      "requirements": [
+        {
+          "control_id": "OPS-13.03B",
+          "decision": "PARTIAL",
+          "framework_id": "c5_azure",
+          "framework_name": "Cloud Computing Compliance Criteria Catalogue C5",
+          "signed_spec_sha256": "da02770f9eca8f0276574f4a9e7d80385b117fc3c06d2d1bab969db80699a782",
+          "slice": "azure-c5.json"
+        },
+        {
+          "control_id": "OPS-15.02AC",
+          "decision": "PARTIAL",
+          "framework_id": "c5_azure",
+          "framework_name": "Cloud Computing Compliance Criteria Catalogue C5",
+          "signed_spec_sha256": "da02770f9eca8f0276574f4a9e7d80385b117fc3c06d2d1bab969db80699a782",
+          "slice": "azure-c5.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "GET each scoped container child immutabilityPolicies/default 2023-05-01, properties.state and immutabilityPeriodSinceCreationInDays; SIEM ingestion inventory, source/destination counts, clock synchronization evidence and original/copy hash records for approved observation window.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each policy-listed SIEM archive container, require a Locked immutability policy with at least the approved retention days and independently verify complete SIEM-log delivery, timestamp synchronization and evidence integrity/copy hashes for the observation window. FAIL for a proven tamperable/unprotected archive or failed integrity check; PASS only when all C5 OPS-13.03B and OPS-15.02AC evidence is complete. UNKNOWN when archive scope, retention threshold, child policy GET, log completeness, synchronization or hashes are unmeasured. A locked container alone cannot satisfy both frozen requirements.",
+      "source_spec_sha256": "da02770f9eca8f0276574f4a9e7d80385b117fc3c06d2d1bab969db80699a782"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "azure_sw18_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure_c5_ops_30_01ac",
+      "missing_collector_kinds": [
+        "azure_sw18_evidence"
+      ],
+      "provider": "azure",
+      "reason": "native securityType/vTPM can prove technical absence; complete C5 PASS additionally needs dated attestation, review and process obligation records",
+      "requirements": [
+        {
+          "control_id": "OPS-30.01AC",
+          "decision": "PARTIAL",
+          "framework_id": "c5_azure",
+          "framework_name": "Cloud Computing Compliance Criteria Catalogue C5",
+          "signed_spec_sha256": "e72ee6c82fd9a51aa8fd4d716d9b21a5bc694bffe11579f8da512053eb8f46c7",
+          "slice": "azure-c5.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "azure.py VM ARM LIST/GET 2023-09-01: id string, properties.securityProfile.securityType enum ConfidentialVM, properties.securityProfile.uefiSettings.vTpmEnabled boolean; classification comes from explicit confidentialVmIds policy, not an unverified tag.",
+      "source_family": "compliance_new_sw18.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each VM in policy confidentialVmIds, FAIL for a fully read explicit non-ConfidentialVM securityType or false vTpmEnabled. Mark the VM technical signal PRESENT when ConfidentialVM and vTpmEnabled=true. Overall C5 OPS-30.01AC remains UNKNOWN until documentation of interfaces, TEE/key management, attestation, monitoring and dated annual/event-driven security reviews is verified; missing VM classification/profile is UNKNOWN.",
+      "source_spec_sha256": "e72ee6c82fd9a51aa8fd4d716d9b21a5bc694bffe11579f8da512053eb8f46c7"
+    },
+    {
+      "declared_dependencies": [
+        "vm",
+        "azure_sw18_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure_c5_ops_33_03b",
+      "missing_collector_kinds": [
+        "azure_sw18_evidence"
+      ],
+      "provider": "azure",
+      "reason": "native Windows patch mode is only technical signal; C5 PASS additionally needs dated third-party patch process records",
+      "requirements": [
+        {
+          "control_id": "OPS-33.03B",
+          "decision": "PARTIAL",
+          "framework_id": "c5_azure",
+          "framework_name": "Cloud Computing Compliance Criteria Catalogue C5",
+          "signed_spec_sha256": "2dc74608896ab02fce04c3909e33f36593ce72d2196cccf86a5da615d8737cdc",
+          "slice": "azure-c5.json"
+        },
+        {
+          "control_id": "PSS-03.01AC",
+          "decision": "PARTIAL",
+          "framework_id": "c5_azure",
+          "framework_name": "Cloud Computing Compliance Criteria Catalogue C5",
+          "signed_spec_sha256": "2dc74608896ab02fce04c3909e33f36593ce72d2196cccf86a5da615d8737cdc",
+          "slice": "azure-c5.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged Microsoft.Compute/virtualMachines GET 2023-09-01: id, properties.storageProfile.osDisk.osType and properties.osProfile.windowsConfiguration.patchSettings.patchMode. Dated third-party patch identification/test/deployment records and customer approval/update-rollout records for the mapped C5 requirements.",
+      "source_family": "compliance_new_sw18.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each Windows VM, AutomaticByOS or AutomaticByPlatform proves only automatic patch configuration; Manual disproves that technical subcondition. An absent or unrecognized mode, OS type, or incomplete inventory yields UNKNOWN. For the mapped C5 requirements, PASS only if the applicable third-party patch identification, testing, deployment, customer approval and provider rollout records are also complete and satisfactory. FAIL when complete evidence proves a required obligation unmet. Otherwise UNKNOWN, including a VM with automatic patch mode but no process records. Linux VMs are NOT_APPLICABLE to the Windows configuration aspect.",
+      "source_spec_sha256": "2dc74608896ab02fce04c3909e33f36593ce72d2196cccf86a5da615d8737cdc"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "storage_immutability_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure_storage_account_10_3_4_7_02943e9",
+      "missing_collector_kinds": [
+        "storage_immutability_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires per-container immutability policy GET and resolved new-write inheritance for account/version defaults",
+      "requirements": [
+        {
+          "control_id": "10.3.4.7",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "65cb7aa5bb8aef9ab6bf9e180ff39b8c2ff67ecbc364c28a83bbcd4cb2085d7c",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Paged Microsoft.Storage/storageAccounts/blobServices/default/containers LIST 2023-05-01, each container GET and immutabilityPolicies/default GET, plus storage-account GET 2023-05-01: container properties.immutableStorageWithVersioning.enabled, properties.immutabilityPolicy, account properties.immutabilityPolicy. Resolve effective container-level or inherited account/container default version-level retention policy and its period/state.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For every in-scope Blob container, PASS only if a complete read proves that newly written blobs or versions inherit an effective default immutability policy with a positive retention period, either at container scope or via a supported account/container default version-level policy. immutableStorageWithVersioning.enabled alone cannot PASS. FAIL if complete account/container/policy reads prove no effective default immutability policy. UNKNOWN if container inventory, policy inheritance, policy state, period or child reads are unresolved. Complete empty container inventory is NOT_APPLICABLE.",
+      "source_spec_sha256": "65cb7aa5bb8aef9ab6bf9e180ff39b8c2ff67ecbc364c28a83bbcd4cb2085d7c"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "storage_version_lifecycle_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure_storage_account_10_5_1_13_2f5d4f6",
+      "missing_collector_kinds": [
+        "storage_version_lifecycle_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires Blob service versioning GET plus complete lifecycle prefix/index matching and snapshot/version actions",
+      "requirements": [
+        {
+          "control_id": "10.5.1.13",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1faa0e3239f2285dcd3e59abef6e5698cde9e008392dd5143d73601aecf2c05c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.2.1.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1faa0e3239f2285dcd3e59abef6e5698cde9e008392dd5143d73601aecf2c05c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.1.1.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1faa0e3239f2285dcd3e59abef6e5698cde9e008392dd5143d73601aecf2c05c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.1.3.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1faa0e3239f2285dcd3e59abef6e5698cde9e008392dd5143d73601aecf2c05c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.2.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1faa0e3239f2285dcd3e59abef6e5698cde9e008392dd5143d73601aecf2c05c",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.3.3.9",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "1faa0e3239f2285dcd3e59abef6e5698cde9e008392dd5143d73601aecf2c05c",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Paged ARM storageAccounts and blobServices/default GET 2023-05-01: blob service properties.isVersioningEnabled; paged blobContainers LIST for applicable containers; managementPolicies/default GET 2023-05-01: properties.policy.rules[].enabled/type/definition.filters and definition.actions.baseBlob/snapshot/version.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each container in a versioning-enabled account, PASS only when an enabled Lifecycle rule has a supported action and its blobTypes, case-sensitive prefixMatch and blobIndexMatch filters are proven to cover the required blobs/versions in that container. A prefix for a different container, or a narrower path, is not full-container coverage; a tag filter needs blob-tag evidence. FAIL when complete policy and applicable-blob evidence prove no rule applies. UNKNOWN when blob population/tags, filters, action validity, versioning, or inventories are unresolved. No versioned containers is NOT_APPLICABLE.",
+      "source_spec_sha256": "1faa0e3239f2285dcd3e59abef6e5698cde9e008392dd5143d73601aecf2c05c"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account",
+        "storage_blob_key_evidence"
+      ],
+      "disposition": "candidate_collector_gap_hold",
+      "id": "azure_storage_account_defender_ensure_defender_for_keyvault_is_on_2cabbc3",
+      "missing_collector_kinds": [
+        "storage_blob_key_evidence"
+      ],
+      "provider": "azure",
+      "reason": "requires every existing blob/version encryption scope and Key Vault key resolution, not just account default encryption",
+      "requirements": [
+        {
+          "control_id": "3.5.1.31",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "990e994c7c43e23ac03e3e3e6678c0c9fec040d75d3747f5be4dcb2c5dbd17b3",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "8.3.2.50",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "990e994c7c43e23ac03e3e3e6678c0c9fec040d75d3747f5be4dcb2c5dbd17b3",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Paged Blob container LIST/GET and storage account GET 2023-05-01; container properties.defaultEncryptionScope and denyEncryptionScopeOverride; account properties.encryption.keySource/keyVaultProperties; account encryptionScopes child LIST/GET with source and keyVaultProperties; resolve effective scope for each container and any permitted per-blob override.",
+      "source_family": "compliance_new_sw23.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For every scoped container, prove that every existing blob is encrypted with an Azure Key Vault key. Resolve the container default encryption scope, account default key, and any per-blob encryption-scope override; defaults alone cannot prove the keys of pre-existing objects. PASS only when complete blob-level scope/key evidence or an authoritative equivalent proves all existing objects use Key Vault keys and new writes cannot use a platform-managed key. FAIL on a measured blob with a Microsoft.Storage key or an effective mandatory platform-managed scope. UNKNOWN when override use, historical blob scope, scope source, key reference or container/account inventory is unresolved.",
+      "source_spec_sha256": "990e994c7c43e23ac03e3e3e6678c0c9fec040d75d3747f5be4dcb2c5dbd17b3"
+    },
+    {
+      "declared_dependencies": [
+        "storage_account"
+      ],
+      "disposition": "implemented_native_ready",
+      "id": "azure_storage_account_storage_blob_public_access_level_is_disabled_4211794",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "requires explicit expectedSettings owner policy; azure_swc projects this existing sw03 input",
+      "requirements": [
+        {
+          "control_id": "1.2.8.31",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.2.8.32",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.3.1.35",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.3.1.36",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.3.2.35",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.3.2.36",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.4.2.33",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.4.2.34",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.5.1.31",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "1.5.1.32",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.3.2.19",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "10.3.2.20",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.5.1.3.24",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "3.5.1.3.25",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "A1.1.2.15",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "A1.1.2.16",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "A1.1.3.31",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "A1.1.3.32",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "A3.4.1.17",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "A3.4.1.18",
+          "decision": "PARTIAL",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "storage_account",
+      "source_data_source": "Collected storage_account.items[]: Microsoft.Storage/storageAccounts.properties.allowBlobPublicAccess,publicNetworkAccess,networkAcls.defaultAction; policy input expectedSettings for each named field.",
+      "source_family": "compliance_new_sw03.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each storage account, compare every applicable policy-named field in expectedSettings against the typed API value: allowBlobPublicAccess boolean, publicNetworkAccess enum Enabled/Disabled/SecuredByPerimeter, networkAcls.defaultAction Allow/Deny. Apply documented API defaults where fields are omitted; never treat omission as inherently secure. FAIL on a measured mismatch, PASS only for complete field and inventory coverage, UNKNOWN for missing policy, unsupported enum, unknown applicability or incomplete inventory.",
+      "source_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f"
+    },
+    {
+      "declared_dependencies": [],
+      "disposition": "semantic_hold",
+      "id": "azure_vm_8_2_1_1_712e1ad",
+      "missing_collector_kinds": [],
+      "provider": "azure",
+      "reason": "The signed predicate expressly returns UNKNOWN for the overall mapped SSH-key requirement even after reading running Linux VM password-authentication and key fields; the frozen requirement is contradictory and a native PASS/FAIL would invent a resolution. Signed source: For each running Linux VM, observe storageProfile.osDisk.osType, linuxConfiguration.disablePasswordAuthentication and ssh.publicKeys, but return UNKNOWN for the overall mapped requirement until the contradictory frozen rule is resolved: its text marks a VM launched with a public SSH key NON_COMPLIANT while its title asks for SSH keys. A key-bearing VM and a password-enabled VM cannot safely receive PASS or FAIL from this contradictory requirement. Missing state or incomplete paging is also UNKNOWN. No applicable running Linux VMs is NOT_APPLICABLE.",
+      "requirements": [
+        {
+          "control_id": "8.2.1.1",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f3577db5974d92481250f1d8a59f82e389a143febc41e4b0784c40ea343f5886",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "8.2.2.2",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f3577db5974d92481250f1d8a59f82e389a143febc41e4b0784c40ea343f5886",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "8.2.4.1",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f3577db5974d92481250f1d8a59f82e389a143febc41e4b0784c40ea343f5886",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "8.2.5.1",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f3577db5974d92481250f1d8a59f82e389a143febc41e4b0784c40ea343f5886",
+          "slice": "azure-pci.json"
+        },
+        {
+          "control_id": "8.3.11.1",
+          "decision": "NEW_CHECK",
+          "framework_id": "pci_4.0_azure",
+          "framework_name": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+          "signed_spec_sha256": "f3577db5974d92481250f1d8a59f82e389a143febc41e4b0784c40ea343f5886",
+          "slice": "azure-pci.json"
+        }
+      ],
+      "resource_kind": "vm",
+      "source_data_source": "Paged Microsoft.Compute/virtualMachines GET and instanceView 2023-09-01: properties.storageProfile.osDisk.osType, osProfile.linuxConfiguration.disablePasswordAuthentication, ssh.publicKeys[] and running state.",
+      "source_family": "compliance_new_sw18.py",
+      "source_file": "docs/compliance-ledgers/new-checks-azure.json",
+      "source_predicate": "For each running Linux VM, observe storageProfile.osDisk.osType, linuxConfiguration.disablePasswordAuthentication and ssh.publicKeys, but return UNKNOWN for the overall mapped requirement until the contradictory frozen rule is resolved: its text marks a VM launched with a public SSH key NON_COMPLIANT while its title asks for SSH keys. A key-bearing VM and a password-enabled VM cannot safely receive PASS or FAIL from this contradictory requirement. Missing state or incomplete paging is also UNKNOWN. No applicable running Linux VMs is NOT_APPLICABLE.",
+      "source_spec_sha256": "f3577db5974d92481250f1d8a59f82e389a143febc41e4b0784c40ea343f5886"
+    }
+  ],
+  "partition_sha256": "a8094f301d45d37d6e849f6fd55ae4c0c00cb7ad7a5628ab4810bb5d3df53d0d",
+  "schema": "peaso-azure-vm-storage-disposition-v1"
+}

@@ -1,0 +1,22 @@
+{
+  "gcp_gke_cluster_endpoint_publicly_accessible_ea8dcc0ec97d": {
+    "summary": "Disable the GKE cluster's public IP control-plane endpoint after confirming a working alternative administration path.",
+    "steps": [
+      "Inspect controlPlaneEndpointsConfig.ipEndpointsConfig.enablePublicEndpoint on the affected cluster and identify the administrators and automation that currently use its public IP endpoint.",
+      "Plan and test an alternative path for cluster administration, such as internal IP access or a secured DNS endpoint, before disabling the public IP endpoint.",
+      "Apply the owner-approved endpoint configuration change, verify that administration still works, read back enablePublicEndpoint, then recollect and rerun the check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Disabling the public IP endpoint can interrupt kubectl, CI jobs, and other control-plane clients until an alternative access path is ready.",
+      "This check measures only the public IP endpoint Boolean. The DNS endpoint has separate external-traffic controls and needs its own review."
+    ],
+    "references": [
+      {"title": "GKE Cluster resource and endpoint fields", "url": "https://docs.cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters"},
+      {"title": "GKE control plane network isolation", "url": "https://docs.cloud.google.com/kubernetes-engine/docs/concepts/network-isolation"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_gcp_gke", "kind": "gke_cluster", "target": "scope", "path": "collections.gke_cluster; gke_cluster[].name; gke_cluster[].controlPlaneEndpointsConfig.ipEndpointsConfig.enablePublicEndpoint", "observed_fail_evidence": "cluster_count; public_ip_endpoint_clusters; field"},
+    "proposed_spec_sha256": "3cea5632d00f9c7710cd0694529d1d75e5bc5791d7024901f6ce21ad8458d05d",
+    "review_status": "source_bound_pending_review"
+  }
+}

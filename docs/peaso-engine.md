@@ -22,6 +22,8 @@ peaso scan --provider k8s --demo --format markdown -o /tmp/k8s-report.md
 
 The offline demos contain authored synthetic data and denied/missing coverage; they are not live cloud assessment evidence. [AWS sample snapshot](../examples/aws-demo-snapshot.json), [JSON report](../examples/aws-demo-report.json), and [full Markdown report](../examples/aws-demo-report.md) are durable examples.
 
+`scan`, `collect` and `evaluate` emit progress to stderr by default; redirected JSON/Markdown stdout remains machine-readable. Updates show phase, provider, selected scope, settled inventory/check count, resource count and elapsed time. ETA is estimated only when a fixed total is known; discovery and expanding child inventories report unknown ETA. A background heartbeat continues during blocked provider reads. Use `--quiet` to suppress progress. The callback is runtime-only and is absent from connectors, snapshots and reports. Existing processes load their prior code; the new behavior applies to new invocations.
+
 For live operation, select `--provider`, `--scopes`, and provider authentication through `--profile`, `--context`, or a private JSON/YAML `--auth-file`. Full JSON/YAML requests can be supplied with `--request`. An existing JSON snapshot can be evaluated through `--snapshot` without cloud calls. Supported auth field names and scope formats are documented in the [AWS](peaso-aws-collector.md), [GCP](peaso-gcp-collector.md), and [Azure/Kubernetes](peaso-azure-k8s-collectors.md) collector guides; hosted availability depends on those portable credential contracts.
 
 A complete request has this shape:
@@ -58,6 +60,8 @@ Snapshots are canonical JSON addressed by a SHA-256 content digest. Validation r
 Reports have `schema_version`, `snapshot_id`, `provider`, `scopes`, `created_at`, `resources`, `findings`, `coverage`, `graphs`, and `stats`. Findings include stable IDs, category/check/title, service/resource/scope, severity/status, framework names, structured evidence and remediation. Native statuses are PASS, FAIL, UNKNOWN, DENIED, EMPTY, MANUAL and NOT_APPLICABLE. EMPTY is an inventory result, never a security pass. Framework tags identify reviewed reference relationships and are not compliance certification.
 
 `stats.coverage_complete` describes the selected check assessments, including unknown and manual prerequisites. `stats.inventory_complete` describes the broader declared collection envelopes, including deliberately uncollected inventory. Neither field establishes that an entire upstream catalog or compliance framework has been implemented. The catalog's `upstream_coverage` counts actual reference dispositions, and pending references do not count as supported. Native per-check fixtures and semantic scope define implemented behavior; see the native rules tests and generated manifest in `peaso/rulepacks/` for the current count.
+
+Registered check definitions and framework mappings are distinct from evidence that a live collector can produce. `catalog_summary.json` reports `inventory_coverage` with native types, reviewed aliases and unavailable projections separately. A scan records requested unavailable projections under `snapshot.metadata.bulk_evidence.unavailable_projections`; their collections have `status=not_collected` and error code `native_evidence_projection_unavailable`. Checks that need those facts remain UNKNOWN. A declared evidence type, a positive unit fixture, or a complete framework mapping does not establish live collection coverage.
 
 Network graph edges describe observed topology references and separately identified modeled rule relationships. They do not establish end-to-end reachability, route priority, ACL/CNI enforcement, or active service exposure. IAM graph edges describe declared policy, trust, membership and binding evidence with confidence and preserved constraints. They do not resolve all AWS SCP/boundary/session-policy intersections, GCP deny/inherited/conditional access, Azure PIM/deny inheritance, or Kubernetes external authorizers. Reference-only principals are labeled as such. Defensive review annotations provide mitigation/manual-review metadata; there are no exploit actions or executable escalation chains.
 
@@ -106,3 +110,79 @@ Exact pinned source checklist/version IDs are exposed as `catalog.framework_vers
 The final installed-wheel smoke also blocks imports of cloud SDKs and request transports, establishing that native evaluation and bundled risk classification work without provider clients. An explicit `offline=True` classifier mode and engine-scoped context reject missing/corrupt/wrong-provider YAML without downloading fallback data. Legacy scanner classification keeps its original default fallback behavior.
 
 Final full shared-suite checkpoint: **2,386 passed, one skipped in 46.53 seconds** using `.venv/bin/python -m pytest -q`. [Sanitized core validation summary](../examples/peaso-core-validation-summary.json) records native/reference counts, installed-wheel verification and live-smoke limits. The release wheel was built with `.venv/bin/python -m pip wheel --no-deps --wheel-dir /tmp/peaso-core-release-wheel .`, installed into `/tmp/peaso-core-release-installed`, and verified with `.venv/bin/python -I examples/verify_installed_peaso.py /tmp/peaso-core-release-installed`.
+
+### Owner-declared AWS cost alert recipients
+
+The three Cost Explorer anomaly checks read monitors and subscriptions using the
+native AWS collector. Their notification and environment requirements must come
+from the owner; configured subscription addresses are not treated as approvals.
+Without these declarations the checks report `UNKNOWN`.
+
+Set this connector option in CLI options JSON or the web connector's advanced
+options JSON, replacing the example recipients and tag values with your policy:
+
+```json
+{
+  "compliance_parameters": {
+    "cost_anomaly_alerts": {
+      "approved_recipients": ["security@example.com"],
+      "cost_allocation_tag_key": "Environment",
+      "prod_tag_value": "Production",
+      "qa_tag_value": "QA"
+    }
+  }
+}
+```
+
+Only `approved_recipients` is required. Environment-specific checks also need the
+corresponding tag value and tag key. The snapshot records this as an
+`owner_declared_policy`; it establishes configuration intent, not successful
+alert delivery. These scans do not send notifications or create monitors,
+subscriptions or restore jobs.
+
+### Owner-declared Azure guest baselines
+
+The six Guest Configuration checks for administrator membership, Windows
+firewall properties, trusted root certificates and Linux `/etc/passwd` permissions
+read the latest report of an existing assignment. They do not install an agent,
+create an assignment, execute guest code or fetch DSC credentials. The configured
+baseline must publish the resource observations required by the selected check;
+a generic `Compliant` flag without those details remains `UNKNOWN`.
+
+Declare the approved assignment identity and freshness limit in the CLI options
+JSON or the web connector's advanced options JSON. For example:
+
+```json
+{
+  "compliance_parameters": {
+    "azure_guest_configuration": {
+      "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+      "checks": {
+        "azure.gap.compute_vm_administrators_group_with_extra_accounts_windows": {
+          "assignmentName": "baseline",
+          "configurationName": "approved-windows-baseline",
+          "configurationVersion": "1.0",
+          "maxReportAgeSeconds": 3600,
+          "approvedAdministrators": ["CONTOSO\\security-admins"]
+        }
+      }
+    }
+  }
+}
+```
+
+Replace the example subscription and baseline values with your actual policy.
+Other administrator checks require `requiredAdministrators` or
+`prohibitedAdministrators`; the certificate check requires `requiredThumbprints`.
+The firewall check requires `requiredSettings`, with each setting declaring its
+`category` and `expected` value and covering all five categories: `firewallState`,
+`inboundConnections`, `outboundConnections`, `ruleManagement`, and `notifications`.
+The Linux permissions check uses the four common identity/freshness fields and
+requires the assignment parameters `filePaths=["/etc/passwd"]` and
+`requiredModes=["0644"]`, encoded as JSON strings in the assignment. An empty
+certificate requirement additionally needs explicit `emptyRequiredSetApproved`.
+
+Owner policy is recorded as `owner_declared_policy`. Report identity, VM binding,
+baseline version, completion times, field coverage and measured resources are
+validated independently against the native read. Pending, denied, stale,
+incomplete or foreign reports cannot produce a pass.

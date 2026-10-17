@@ -1,0 +1,146 @@
+{
+  "aws-compliance.control.cis_v130_1_13": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L208"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_13": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L207"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_13": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L207"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_13": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L208"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_13": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L208"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_13": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L208"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L193"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-aws/main/aws/table_aws_iam_access_key.go",
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html"
+    ],
+    "reason": "Full pinned LEFT JOIN uses k.akas::text LIKE %||u.arn||%, not exact user identity. Verified provider AKA constructs user/UserName/accesskey/key without IAM path. Valid user path team/reviewer with2active keys has no matching AKA and source count0PASS; users reviewer and reviewer-extra with1key each falsely count2 for reviewer and alarm. SDK user paths and unique usernames are distinct identities. These are substantive falsePASS/falseFAIL join defects; existing correct per-user keycount cannot be falsely claimed equivalent and missing facts are not rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Individually inspected full query and each alias; inert username-prefix and path/AKA counterexamples in owned source_counterexamples test. Native collector explicitly preserves correct UserArn while fingerprinting key IDs. Lead audit pending; fullsource/framework/control versions retained.",
+    "reviewed_query_id": "iam_user_one_active_key",
+    "reviewed_source": {
+      "evaluator_sha256": "cc31f68fe7550a3219d7477522ab3ec77e0df10127f502c7580f0a23764c9bc1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L193"
+    }
+  }
+}

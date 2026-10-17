@@ -89,3 +89,47 @@ def test_ecr_missing_field_successful_collected_detail_hydrates_raw_mode():
     assert result[0]["imageTagMutability"] == "IMMUTABLE_WITH_EXCLUSION"
     assert result[0]["_coverage"]["imageTagMutability"]["status"] == "collected"
     assert len(reads.calls) == 1
+
+
+def test_stage_fetcher_preserves_parent_identity_and_partial_child_coverage():
+    class StageReads(Reads):
+        def pages(self, session, service, region, operation, expression, **arguments):
+            self.calls.append((service, operation, arguments))
+            if operation == "get_rest_apis":
+                return SimpleNamespace(items=[{"id": "api-good"}, {"id": "api-denied"}], status="collected", error=None)
+            if arguments["restApiId"] == "api-denied":
+                return SimpleNamespace(items=[], status="denied", error={"code": "AccessDenied"})
+            return SimpleNamespace(items=[{"stageName": "prod", "tracingEnabled": True}], status="collected", error=None)
+    reads = StageReads()
+    result = plugin.FETCHERS["rest_api_stage"](reads, object(), "us-east-1", "111111111111")
+    assert result.status == "partial"
+    assert result.items[0]["ParentApiId"] == "api-good"
+    assert result.items[0]["id"].endswith("/restapis/api-good/stages/prod")
+    assert result.items[0]["tracingEnabled"] is True
+    assert result.error["code"] == "AccessDenied"
+
+
+def test_each_global_plugin_inventory_has_explicit_cached_fetch_dispatch():
+    reads = Reads()
+    for kind in ("cloudfront_distribution", "route53_zone", "route53_health_check"):
+        read = plugin.FETCHERS[kind](reads, object(), "ap-northeast-1", "111111111111")
+        service, operation, expression = plugin.SPECS[kind]
+        assert read.status == "empty"
+        assert reads.calls[-1] == (service, operation, {})
+    assert set(plugin.GLOBAL_TYPES).issubset(plugin.FETCHERS)
+
+
+def test_cloudfront_list_is_enriched_only_after_global_list_dispatch():
+    class GlobalReads(Reads):
+        def pages(self, session, service, region, operation, expression, **arguments):
+            self.calls.append((service, operation, arguments))
+            return SimpleNamespace(items=[{"Id": "distribution", "ARN": "arn:aws:cloudfront::111111111111:distribution/distribution"}], status="collected", error=None)
+        def detail(self, session, service, region, operation, **arguments):
+            self.calls.append((service, operation, arguments))
+            return {"DistributionConfig": {"DefaultCacheBehavior": {"ViewerProtocolPolicy": "https-only"}}}
+    reads = GlobalReads()
+    read = plugin.FETCHERS["cloudfront_distribution"](reads, object(), "ap-northeast-1", "111111111111")
+    assert len(reads.calls) == 1
+    result = plugin.ENRICHERS["cloudfront_distribution"](reads, object(), "ap-northeast-1", read.items)
+    assert result[0]["Config"]["DistributionConfig"]["DefaultCacheBehavior"]["ViewerProtocolPolicy"] == "https-only"
+    assert reads.calls == [("cloudfront", "list_distributions", {}), ("cloudfront", "get_distribution_config", {"Id": "distribution"})]

@@ -1,356 +1,85 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, KeyRound, ShieldCheck, Code2 } from "lucide-react";
-import { tokenKey, useApi } from "./api";
-import type { Catalog, Me } from "./types";
-import { Badge, Evidence, Panel, State, sourceHref } from "./ui";
-export function Settings({ demo }: { demo: boolean }) {
+import { ExternalLink, KeyRound, ShieldCheck } from "lucide-react";
+import { ApiError, tokenKey, useApi } from "./api";
+import type { Me } from "./types";
+import { Badge, Inspector, Panel, State } from "./ui";
+import { ApiKeys } from "./ApiKeys";
+import { Workspaces } from "./Workspaces";
+
+const quotaValue = (value: unknown) => typeof value === "number" ? value : undefined;
+
+export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = () => {} }: { demo: boolean; workspaceId?: string; onWorkspaceCreated?: (id: string) => void }) {
   const me = useApi<Me>("/me", demo);
-  const health = useApi<{ source_url?: string; source_version?: string }>(
-    "/health",
-    demo,
-  );
-  const releaseSource = sourceHref(health.data?.source_url);
-  const catalog = useApi<Catalog>("/catalog", demo);
+  const health = useApi<{ auth_mode?: string }>("/health", demo);
   const client = useQueryClient();
   const [token, setToken] = useState("");
-  const [saved, setSaved] = useState(false);
-  const [catalogSearch, setCatalogSearch] = useState("");
+  const [tokenDialog, setTokenDialog] = useState(false);
+  const authRequired = !demo && me.error instanceof ApiError && me.error.status === 401;
+  const localMode = health.data?.auth_mode === "local";
+  useEffect(() => { if (authRequired && localMode) setTokenDialog(true); }, [authRequired, localMode]);
+  const quota = me.data?.quota && typeof me.data.quota === "object" ? me.data.quota as Record<string, unknown> : {};
+  const used = quotaValue(me.data?.weekly_used) ?? quotaValue(quota.weekly_used);
+  const limit = quotaValue(me.data?.weekly_limit) ?? quotaValue(quota.weekly_limit);
+  const expiryEpoch = me.data?.plan_expires_at;
+  const grantExpiry = typeof expiryEpoch === "number" && Number.isFinite(expiryEpoch)
+    ? new Date(expiryEpoch * 1000) : null;
+  const currentPlan = me.data?.plan;
+  const expiryValid = expiryEpoch == null || (grantExpiry !== null && !Number.isNaN(grantExpiry.getTime()));
+  const activeAdminGrant = me.data?.plan_source === "administrator_comped_qa" &&
+    typeof currentPlan === "string" && currentPlan.toLowerCase() !== "free" &&
+    expiryValid && (!grantExpiry || grantExpiry.getTime() > Date.now());
+  function refresh() {
+    void client.resetQueries({ queryKey: ["live"] });
+  }
   function save() {
     if (!token.trim()) return;
     sessionStorage.setItem(tokenKey, token.trim());
     setToken("");
-    setSaved(true);
-    void client.resetQueries({ queryKey: ["live"] });
+    setTokenDialog(false);
+    refresh();
   }
   function clear() {
     sessionStorage.removeItem(tokenKey);
-    setSaved(false);
-    void client.resetQueries({ queryKey: ["live"] });
+    setTokenDialog(false);
+    refresh();
   }
-  const checks = Array.isArray(catalog.data?.checks) ? catalog.data.checks : [];
   return (
     <>
-      <div className="section-top">
-        <p>Your account, assessment coverage and workspace controls.</p>
-        <span className="count-pill">Native engine</span>
-      </div>
-      <div className="dashboard-grid">
-        <Panel title="Account & quota" kicker="WORKSPACE">
-          <State
-            loading={me.isPending}
-            error={me.error}
-            onRetry={() => void me.refetch()}
-          >
-            <div className="account-details">
-              <ShieldCheck size={30} />
-              <h3>
-                {String(
-                  me.data?.email ||
-                    me.data?.tenant_id ||
-                    me.data?.name ||
-                    "PEASO workspace",
-                )}
-              </h3>
-              <Badge
-                value={String(me.data?.plan || me.data?.mode || "Account")}
-              />
-              {typeof me.data?.weekly_limit === "number" && (
-                <>
-                  <p className="quota-value">
-                    {String(me.data.weekly_used ?? 0)}{" "}
-                    <span>/ {me.data.weekly_limit}</span>
-                  </p>
-                  <p className="muted">Assessments used this week</p>
-                </>
-              )}
-              {me.data?.quota !== undefined && (
-                <Evidence data={me.data.quota} />
-              )}
-            </div>
-          </State>
-          <div className="button-row">
-            <a
-              className="button"
-              href="https://tools.hacktricks.wiki/login.html"
-            >
-              Sign in
-              <ExternalLink size={13} />
-            </a>
-            <a
-              className="button"
-              href="https://tools.hacktricks.wiki/register.html"
-            >
-              Create account
-              <ExternalLink size={13} />
-            </a>
-          </div>
-          <a
-            className="text-button small"
-            href="https://tools.hacktricks.wiki/forgot-password.html"
-          >
-            Forgot password
-          </a>
-          <p className="muted small">
-            Hosted account authentication uses the existing HackTricks identity
-            flow. Your API verifies account access and quota.
-          </p>
-        </Panel>
-        <Panel title="Local API authentication" kicker="THIS BROWSER SESSION">
-          <form
-            className="form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              save();
-            }}
-          >
-            <label>
-              API bearer token
-              <input
-                aria-label="API bearer token"
-                type="password"
-                value={token}
-                autoComplete="off"
-                onChange={(e) => {
-                  setToken(e.target.value);
-                  setSaved(false);
-                }}
-                placeholder="Enter the token from your local server"
-                disabled={demo}
-              />
-            </label>
-            <p className="muted small">
-              Stored in sessionStorage for this tab. Cloud connector credentials
-              are never saved in browser storage.
-            </p>
+      <Panel title="Account & quota" kicker="WORKSPACE" className="account-panel">
+        {me.isPending ? <State loading /> : authRequired ? (
+          <div className="account-details">
+            <p>Sign in to view your account and assessment quota.</p>
             <div className="button-row">
-              <button
-                className="button primary"
-                type="submit"
-                disabled={demo || !token.trim()}
-              >
-                <KeyRound size={15} />
-                Use token
-              </button>
-              <button
-                className="button"
-                type="button"
-                disabled={demo}
-                onClick={clear}
-              >
-                Clear token
-              </button>
+              <a className="button primary" href="https://tools.hacktricks.wiki/login.html">Sign in <ExternalLink size={13} /></a>
+              <a className="button" href="https://tools.hacktricks.wiki/register.html">Create account <ExternalLink size={13} /></a>
             </div>
-            {saved && (
-              <p role="status" className="mint">
-                Token saved for this session.
-              </p>
-            )}
-          </form>
-        </Panel>
-      </div>
-      <Panel title="Native check catalog" kicker="SUPPORTED SCOPE">
-        <p className="muted">
-          The live API catalog is the source of truth for supported checks.
-          Upstream checks that have not been ported are coverage gaps and never
-          run in this app.
-        </p>
-        <input
-          className="catalog-search"
-          aria-label="Search check catalog"
-          placeholder="Search checks, providers and coverage status…"
-          value={catalogSearch}
-          onChange={(e) => setCatalogSearch(e.target.value)}
-        />
-        <State
-          loading={catalog.isPending}
-          error={catalog.error}
-          onRetry={() => void catalog.refetch()}
-        >
-          {checks.length ? (
-            <div className="catalog-list">
-              {checks
-                .filter((c) =>
-                  JSON.stringify(c)
-                    .toLowerCase()
-                    .includes(catalogSearch.toLowerCase()),
-                )
-                .map((c, i) => (
-                  <div className="catalog-row" key={String(c.id || i)}>
-                    <div>
-                      <strong>
-                        {String(c.title || c.id || c.check_id || "Check")}
-                      </strong>
-                      <p>
-                        {String(c.provider || "")} · {String(c.service || "")} ·{" "}
-                        {String(c.id || c.check_id || "")}
-                      </p>
-                    </div>
-                    <Badge
-                      value={String(
-                        c.status ||
-                          (c.supported === false ? "unported" : "supported"),
-                      )}
-                    />
-                  </div>
-                ))}
-            </div>
-          ) : (
-            <p>No supported-check list supplied by the API.</p>
-          )}
-          <div className="notice">
-            <p>
-              Unported upstream coverage: only checks listed as supported in
-              this native catalog are available. No upstream runtime is
-              integrated. Framework mappings are review guidance, not
-              certification.
-            </p>
+            <a className="text-button small" href="https://tools.hacktricks.wiki/forgot-password.html">Forgot password</a>
+            {localMode && <button className="button" onClick={() => setTokenDialog(true)}>Use local API token</button>}
           </div>
-          <details>
-            <summary>Full catalog and coverage metadata</summary>
-            <Evidence data={catalog.data} />
-          </details>
-        </State>
-      </Panel>
-      <Panel
-        title="Exact framework and checklist coverage"
-        kicker="REVIEWED SOURCE VERSIONS"
-      >
-        <p className="muted small">
-          A family label does not establish coverage of every version. Pending
-          source checks remain unimplemented; choosing a pending checklist
-          records an unknown coverage result.
-        </p>
-        {catalog.isPending && <State loading />}
-        {catalog.error && (
-          <State error={catalog.error} onRetry={() => void catalog.refetch()} />
-        )}
-        {catalog.data?.upstream_coverage && (
-          <div className="catalog-totals">
-            <span>
-              Native checks:{" "}
-              {String(
-                catalog.data.upstream_coverage.native_checks ?? "Unavailable",
-              )}
-            </span>
-            <span>
-              Supported upstream references:{" "}
-              {String(
-                catalog.data.upstream_coverage.supported_upstream ??
-                  "Unavailable",
-              )}
-            </span>
-            <span>
-              Pending references:{" "}
-              {String(
-                (
-                  catalog.data.upstream_coverage.upstream as
-                    | Record<string, unknown>
-                    | undefined
-                )?.pending ?? "Unavailable",
-              )}
-            </span>
-            <span>
-              Outside runtime provider scope:{" "}
-              {String(
-                catalog.data.upstream_coverage.outside_runtime_provider_scope ??
-                  "Unavailable",
-              )}
-            </span>
+        ) : me.error ? <State error={me.error} onRetry={() => void me.refetch()} /> : (
+          <div className="account-details">
+            <div className="account-summary">
+              <ShieldCheck size={20} aria-hidden="true" />
+              <h3>{String(me.data?.email || me.data?.name || me.data?.tenant_id || "Workspace account")}</h3>
+              {(me.data?.plan || me.data?.mode) && <Badge value={String(me.data.plan || me.data.mode)} />}
+            </div>
+            {me.data?.email && me.data.email_verified === false && <p className="muted small">Email address is not verified with the identity provider.</p>}
+            {activeAdminGrant && <p className="muted small">Temporary paid access (administrator grant){grantExpiry ? ` · Expires ${grantExpiry.toLocaleString()}` : ""}</p>}
+            {used !== undefined && limit !== undefined ? <div className="quota-summary"><p className="muted">Assessments used this week</p><p className="quota-value">{used} <span>/ {limit}</span></p></div> : <p className="muted">Weekly assessment quota was not supplied by this API.</p>}
+            {localMode && !demo && <button className="text-button small" onClick={() => setTokenDialog(true)}>Manage local API token</button>}
           </div>
         )}
-        <div className="framework-list">
-          {(catalog.data?.framework_versions || [])
-            .filter((row) =>
-              JSON.stringify(row)
-                .toLowerCase()
-                .includes(catalogSearch.toLowerCase()),
-            )
-            .map((row, i) => (
-              <div className="framework-row" key={String(row.id || i)}>
-                <div className="grow">
-                  <strong>{String(row.name || row.id)}</strong>
-                  <p>
-                    {String(row.provider)} · Version{" "}
-                    {String(
-                      row.version || row.declared_version || "not specified",
-                    )}{" "}
-                    · {String(row.id)}
-                  </p>
-                  <span>
-                    Source: {String(row.repository || "reviewed catalog")} @{" "}
-                    {String(row.source_revision || "not specified").slice(
-                      0,
-                      12,
-                    )}
-                  </span>
-                </div>
-                <div className="framework-coverage">
-                  <Badge value={String(row.status || "unknown")} />
-                  <span>
-                    {String(row.supported_native_checks ?? 0)} native /{" "}
-                    {String(row.source_checks ?? "unknown")} source checks
-                  </span>
-                  <span>
-                    {String(row.pending_source_checks ?? "unknown")} pending
-                  </span>
-                </div>
-              </div>
-            ))}
-        </div>
-        {!catalog.isPending &&
-          !catalog.error &&
-          !catalog.data?.framework_versions?.length && (
-            <p className="muted small">
-              The API has not supplied checklist version coverage.
-            </p>
-          )}
       </Panel>
-      <div className="dashboard-grid">
-        <Panel title="Help & evidence">
-          <p className="muted">
-            Start with a read-only connector, launch a scan, then review
-            findings alongside collector coverage. Graphs show observed
-            configuration relationships; effective access may require additional
-            evidence.
-          </p>
-          <a
-            className="button"
-            href="https://cloud.hacktricks.wiki/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            HackTricks Cloud
-            <ExternalLink size={14} />
-          </a>
-        </Panel>
-        <Panel title="Source & license" kicker="TRANSPARENT BY DESIGN">
-          <Code2 size={25} className="mint" />
-          <p className="muted">
-            PEASO is built on Blue-CloudPEASS. Source code and license terms are
-            available with the project, including the source corresponding to
-            this UI.
-          </p>
-          <a
-            className="button"
-            href={
-              releaseSource || "https://github.com/carlospolop/Blue-CloudPEASS"
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {releaseSource
-              ? "Download deployment source"
-              : "View source repository"}
-            <ExternalLink size={14} />
-          </a>
-          {health.data?.source_version && (
-            <p className="muted small">
-              Source release: {health.data.source_version}
-            </p>
-          )}
-        </Panel>
-      </div>
+      {!demo && me.data && !me.error && (me.data as Me & { auth_kind?: string }).auth_kind !== "api_key" && <Workspaces me={me.data} workspaceId={workspaceId} onWorkspaceCreated={onWorkspaceCreated} />}
+      {!demo && me.data && !me.error && (me.data as Me & { auth_kind?: string }).auth_kind !== "api_key" && <ApiKeys />}
+      {tokenDialog && localMode && !demo && <Inspector title="Local API authentication" onClose={() => setTokenDialog(false)}>
+        <form className="form" onSubmit={(event) => { event.preventDefault(); save(); }}>
+          <p className="muted small">Enter a token issued by your local API. It is kept in this browser tab only.</p>
+          <label>API bearer token<input aria-label="API bearer token" type="password" autoComplete="off" value={token} onChange={(event) => setToken(event.target.value)} /></label>
+          <div className="button-row"><button className="button primary" type="submit" disabled={!token.trim()}><KeyRound size={15} /> Use token</button><button className="button" type="button" onClick={clear}>Clear token</button></div>
+        </form>
+      </Inspector>}
     </>
   );
 }

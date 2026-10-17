@@ -1,0 +1,468 @@
+{
+  "azure-compliance.control.ad_account_duration_min_60_seconds": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_account_duration_min_60_seconds",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 592,
+      "query_sha256": "e8aea0b8aed79e068d709dc39673d35fae67c45fa5bf34ba76ccd323ae34d978",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 105,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (value)::int >= 60 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (value)::int >= 60 then t.display_name || ' lockout duration is at least 60 seconds.'\n        else\n          t.display_name || ' lockout duration is less than 60 seconds.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'LockoutDurationInSeconds';",
+      "status_case_sql": [
+        "case\n        when (value)::int >= 60 then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_account_duration_min_60_seconds"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "5bcb866c604c75a1fbd3ab0cdcf8e1c18c537bbacff2b1f4a44a4180297629f8",
+      "upstream_evaluator_sha256": "e8aea0b8aed79e068d709dc39673d35fae67c45fa5bf34ba76ccd323ae34d978",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_account_lockout_threshold_max_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_account_lockout_threshold_max_10",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 624,
+      "query_sha256": "fb71891418dd0286bfe4fed94536ed7e694cdc60070515b1edb221104b6a1c61",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 113,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (value)::int <= 10 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when value is null then t.display_name || ' lockout threshold not configured.'\n        else t.display_name || ' lockout threshold set to ' ||  value || '.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'LockoutThreshold';",
+      "status_case_sql": [
+        "case\n        when (value)::int <= 10 then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_account_lockout_threshold_max_10"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "6c8856e80648593da59f20fb6903f77a7fcf63fc04a7e998f1f2eecd92043b86",
+      "upstream_evaluator_sha256": "fb71891418dd0286bfe4fed94536ed7e694cdc60070515b1edb221104b6a1c61",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_custom_banned_password_enforced": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_custom_banned_password_enforced",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 560,
+      "query_sha256": "b4f6ac5ae7e9e283eebcd483277c9ec13b89ebae37b3e37c0dca94312500d60e",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 97,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (value)::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (value)::bool then t.display_name || ' custom banned password list is enforced.'\n        else\n          t.display_name || ' custom banned password list is not enforced'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'EnableBannedPasswordCheck';",
+      "status_case_sql": [
+        "case\n        when (value)::bool then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_custom_banned_password_enforced"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "28c07977fb15edaa1f671ac04dc21c5791d2ac4fe0686419e12d7cd60e78499c",
+      "upstream_evaluator_sha256": "b4f6ac5ae7e9e283eebcd483277c9ec13b89ebae37b3e37c0dca94312500d60e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_m365_group_creation_disabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_m365_group_creation_disabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 529,
+      "query_sha256": "27c269c096e9f37a1202f79ac51a49800033a2216e0883f40d45e33f34138a5b",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 89,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when not (value)::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when not (value)::bool then t.display_name || ' Microsoft 365 group creation is disabled.'\n        else t.display_name || ' Microsoft 365 group creation is enabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'EnableGroupCreation';",
+      "status_case_sql": [
+        "case\n        when not (value)::bool then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_m365_group_creation_disabled"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "985b35e13f9ce7b1d39dccaf7493622a731702ed5316cff3e4d116c84741cded",
+      "upstream_evaluator_sha256": "27c269c096e9f37a1202f79ac51a49800033a2216e0883f40d45e33f34138a5b",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.ad_user_mfa_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.ad_user_mfa_registered"
+    ],
+    "reason": "Inspected full source named-policy/value condition and tenant scope. Exact boolean/integer baseline requires a unique explicit matching value in complete same-tenant directory settings; missing/admin-native-policy context UNKNOWN, never required scalarEMPTYsuccess. DefaultTenantCreate flag and registrationisMfaRegistered/UPNscope separate; no substitution with capability or MFAenforcement.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0"
+    ],
+    "review_notes": "Admin/password-native settings maynotbeexposed by currenttenant/API/license; this is capturedasUNKNOWN missingcontext, notunsupported source rejection or fabricatedfield. Purepredicate passes/fails only explicit knownvalues. No policy/license/consent updates, secretvalues or authmethod operations.",
+    "source_review": {
+      "query_id": "ad_user_mfa_enabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 260,
+      "query_sha256": "726962930b3a2973ceca752e446c964b99195df32efd8869fffa56f12fa0a92c",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 137,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      r.user_principal_name as resource,\n      case\n        when not (r.is_mfa_registered = true) then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (r.is_mfa_registered = true) then r.user_display_name || ' (' || r.user_principal_name || ') does not have multifactor authentication enabled.'\n        else r.user_display_name || ' (' || r.user_principal_name || ') has multifactor authentication enabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      azuread_user_registration_details_report as r\n      left join distinct_tenant as t on t.tenant_id = r.tenant_id\n    where\n      r.user_principal_name is not null;",
+      "status_case_sql": [
+        "case\n        when not (r.is_mfa_registered = true) then 'alarm'\n        else 'ok'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_5_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.ad_user_mfa_registered"
+    ],
+    "reason": "Inspected full source named-policy/value condition and tenant scope. Exact boolean/integer baseline requires a unique explicit matching value in complete same-tenant directory settings; missing/admin-native-policy context UNKNOWN, never required scalarEMPTYsuccess. DefaultTenantCreate flag and registrationisMfaRegistered/UPNscope separate; no substitution with capability or MFAenforcement.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0"
+    ],
+    "review_notes": "Admin/password-native settings maynotbeexposed by currenttenant/API/license; this is capturedasUNKNOWN missingcontext, notunsupported source rejection or fabricatedfield. Purepredicate passes/fails only explicit knownvalues. No policy/license/consent updates, secretvalues or authmethod operations.",
+    "source_review": {
+      "query_id": "ad_user_mfa_enabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 260,
+      "query_sha256": "726962930b3a2973ceca752e446c964b99195df32efd8869fffa56f12fa0a92c",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 85,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      r.user_principal_name as resource,\n      case\n        when not (r.is_mfa_registered = true) then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when not (r.is_mfa_registered = true) then r.user_display_name || ' (' || r.user_principal_name || ') does not have multifactor authentication enabled.'\n        else r.user_display_name || ' (' || r.user_principal_name || ') has multifactor authentication enabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      azuread_user_registration_details_report as r\n      left join distinct_tenant as t on t.tenant_id = r.tenant_id\n    where\n      r.user_principal_name is not null;",
+      "status_case_sql": [
+        "case\n        when not (r.is_mfa_registered = true) then 'alarm'\n        else 'ok'\n      end"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_5_21": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_m365_group_creation_disabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 529,
+      "query_sha256": "27c269c096e9f37a1202f79ac51a49800033a2216e0883f40d45e33f34138a5b",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 565,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when not (value)::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when not (value)::bool then t.display_name || ' Microsoft 365 group creation is disabled.'\n        else t.display_name || ' Microsoft 365 group creation is enabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'EnableGroupCreation';",
+      "status_case_sql": [
+        "case\n        when not (value)::bool then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_m365_group_creation_disabled"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "985b35e13f9ce7b1d39dccaf7493622a731702ed5316cff3e4d116c84741cded",
+      "upstream_evaluator_sha256": "27c269c096e9f37a1202f79ac51a49800033a2216e0883f40d45e33f34138a5b",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "iam_user_not_allowed_to_create_tenants",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 679,
+      "query_sha256": "92897d90aa164c07ff2c04eab3b721577ec02bf7acfce3b41f0878b277b800c5",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 344,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      a.id as resource,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateTenants' = 'true' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when a.default_user_role_permissions ->> 'allowedToCreateTenants' = 'true' then a.display_name || ' allows user to create tenants.'\n        else a.display_name || ' restricts the user to create tenants.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_authorization_policy as a;",
+      "status_case_sql": [
+        "case\n        when a.default_user_role_permissions ->> 'allowedToCreateTenants' = 'true' then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.iam_user_not_allowed_to_create_tenants"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "85c35bdd9ebc3f3992ed8df3e3bc63f5b7b9697d7a2f7ce7a07f5cb42b2f466d",
+      "upstream_evaluator_sha256": "92897d90aa164c07ff2c04eab3b721577ec02bf7acfce3b41f0878b277b800c5",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_account_lockout_threshold_max_10",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 624,
+      "query_sha256": "fb71891418dd0286bfe4fed94536ed7e694cdc60070515b1edb221104b6a1c61",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 370,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (value)::int <= 10 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when value is null then t.display_name || ' lockout threshold not configured.'\n        else t.display_name || ' lockout threshold set to ' ||  value || '.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'LockoutThreshold';",
+      "status_case_sql": [
+        "case\n        when (value)::int <= 10 then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_account_lockout_threshold_max_10"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "6c8856e80648593da59f20fb6903f77a7fcf63fc04a7e998f1f2eecd92043b86",
+      "upstream_evaluator_sha256": "fb71891418dd0286bfe4fed94536ed7e694cdc60070515b1edb221104b6a1c61",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_account_duration_min_60_seconds",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 592,
+      "query_sha256": "e8aea0b8aed79e068d709dc39673d35fae67c45fa5bf34ba76ccd323ae34d978",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 383,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (value)::int >= 60 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (value)::int >= 60 then t.display_name || ' lockout duration is at least 60 seconds.'\n        else\n          t.display_name || ' lockout duration is less than 60 seconds.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'LockoutDurationInSeconds';",
+      "status_case_sql": [
+        "case\n        when (value)::int >= 60 then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_account_duration_min_60_seconds"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "5bcb866c604c75a1fbd3ab0cdcf8e1c18c537bbacff2b1f4a44a4180297629f8",
+      "upstream_evaluator_sha256": "e8aea0b8aed79e068d709dc39673d35fae67c45fa5bf34ba76ccd323ae34d978",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  },
+  "azure-compliance.control.cis_v500_5_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Corrective actual-scope review: ARM azure_tenant uses Tenants.List and can expose A and B, while the directory/security singleton belongs only to authenticated Graph tenant A. Source cross product has no tenant join and reports A policy as B configuration. The transfer-policy hydrate similarly ignores the tenant item and calls credential-tenant GetPolicyForTenant. Scoping to the proven tenant changes these source scopes, so previous native association was not exact.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/groupsetting?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/defaultuserrolepermissions?view=graph-rest-1.0",
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go"
+    ],
+    "review_notes": "Known foreign-tenant attribution counterexample, not unavailable-facts rejection. Original native baselines remain independently valid and tenant-bound; lead must re-adjudicate accepted source mappings/history before release. Source IDs, framework references and revisions conserved.",
+    "source_review": {
+      "query_id": "ad_custom_banned_password_enforced",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 560,
+      "query_sha256": "b4f6ac5ae7e9e283eebcd483277c9ec13b89ebae37b3e37c0dca94312500d60e",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 396,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (value)::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (value)::bool then t.display_name || ' custom banned password list is enforced.'\n        else\n          t.display_name || ' custom banned password list is not enforced'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_setting\n    where\n      name = 'EnableBannedPasswordCheck';",
+      "status_case_sql": [
+        "case\n        when (value)::bool then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "counterexample": {
+        "accessible_arm_tenants": [
+          "A",
+          "B"
+        ],
+        "directory_policy_authenticated_tenant": "A",
+        "source_reports_policy_for": [
+          "A",
+          "B"
+        ],
+        "authoritative_scope": "A only; B configuration unobserved"
+      },
+      "former_native_checks": [
+        "azure.port.ad_custom_banned_password_enforced"
+      ],
+      "adapter_evidence": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "pinned_sql_sha256": "28c07977fb15edaa1f671ac04dc21c5791d2ac4fe0686419e12d7cd60e78499c",
+      "upstream_evaluator_sha256": "b4f6ac5ae7e9e283eebcd483277c9ec13b89ebae37b3e37c0dca94312500d60e",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_classification": "invalid_predicate",
+    "accepted_history_re_adjudication_required": true
+  }
+}

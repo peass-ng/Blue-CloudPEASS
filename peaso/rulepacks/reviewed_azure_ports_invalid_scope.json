@@ -1,0 +1,1322 @@
+{
+  "azure-compliance.control.cis_v130_2_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 202,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_2_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 216,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_2_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 230,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_2_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 202,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_2_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 216,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_2_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 230,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_2_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 320,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_2_3_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 334,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_2_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 348,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 307,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 321,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_20": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 335,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_17": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 288,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 302,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 316,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_12": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 455,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 469,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 483,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_12": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 407,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 421,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 435,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_12": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alerts_to_owner"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alerts_to_owner implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "target_native_checks": [
+        "azure.claude.defender_alerts_to_owner"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.{state,roles}",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and roles containing Owner",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_security_alerts_to_owner_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 333,
+      "query_sha256": "3045621683677b43cc1244b68f8f256c88b71ed5ca9b0d6634b1952eb474334e",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 481,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) as admin_alert_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      where\n        notifications_by_role @> '{\"roles\": [\"Owner\"]}' and notifications_by_role @> '{\"state\": \"On\"}'\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when admin_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when admin_alert_count > 0 then '\"All users with the following roles\" set to Owner'\n        else '\"All users with the following roles\" not set to Owner.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_security_contact_email_configured"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_security_contact_email_configured implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_additional_email_configured",
+      "target_native_checks": [
+        "azure.claude.defender_security_contact_email_configured"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "name, properties.emails",
+      "pass_condition": "PASS iff a non-default contact exists, or exactly one 'default' contact has a non-empty email",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "none"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_additional_email_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 421,
+      "query_sha256": "190b035317f9281d13a704ea8e81526b7b4ecefe289772d3a5e68c20ed399a37",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 495,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        jsonb_agg(email) filter (where name = 'default' and email != '') as default_email,\n        count(*) filter (where name != 'default') as non_default_count,\n        count(*) filter (where name = 'default') as default_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when non_default_count > 0 then 'ok'\n        when default_count = 1 and jsonb_array_length(default_email) != 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when non_default_count > 0 then 'Additional email addresses configured.'\n        when default_count = 1 and default_email is not null then'Additional email addresses configured.'\n        else 'Additional email addresses not configured.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_alert_notifications_high"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_alert_notifications_high implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Full pinned source applies an unordered global LIMIT1 after grouping contacts by subscription, then joins all subscriptions. Two independently compliant subscriptions produce one arbitrary false alarm; this cannot implement the per-subscription requirement. Rejecting a demonstrated wrong scope predicate, not missing metadata or runtime implementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_notify_alerts_configured",
+      "target_native_checks": [
+        "azure.claude.defender_alert_notifications_high"
+      ],
+      "resource": "Subscription scope; Microsoft.Security/securityContacts of that subscription (collector kind security_contact)",
+      "property": "properties.notificationsByRole.state, properties.notificationsSources",
+      "pass_condition": "PASS iff some contact has notificationsByRole.state On and some contact has an Alert source with minimalSeverity High",
+      "upstream_defect_only": "Unordered global LIMIT 1 in the CTE keeps one subscription; other compliant subscriptions join NULL and alarm (scope defect only).",
+      "native_deviations": "unrecognized state is UNKNOWN"
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/security-contacts/list?view=rest-defenderforcloud-2023-12-01-preview"
+    ],
+    "review_notes": "Native per-contact role/severity checks remain separately valid; this source is not merged with them because aggregate scope/High exact/minimum semantics differ. All original framework associations remain in source catalog.",
+    "source_review": {
+      "query_id": "securitycenter_notify_alerts_configured",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 301,
+      "query_sha256": "63a895160f89614b3c16c30f036a976563b599d7e72733b9570c133deb90f8e8",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 509,
+      "arguments": [],
+      "pinned_sql": "with contact_info as (\n      select\n        count(*) filter (where notifications_by_role @> '{\"state\": \"On\"}') as notifications_on_count,\n        count(*) filter (where notifications_sources @> '[{\"sourceType\": \"Alert\", \"minimalSeverity\": \"High\"}]') as alert_severity_count,\n        subscription_id\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when notifications_on_count > 0 and alert_severity_count > 0 then '\"Notify about alerts with the following severity\" set to High.'\n        when notifications_on_count > 0 then '\"Notify about alerts with the following severity\" not set to High.'\n        else 'Notification state not set to \"On\".'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join contact_info ci on sub.subscription_id = ci.subscription_id;",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "both_contacts_valid": true,
+        "source_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ],
+        "fault": "Unordered global LIMIT1 after grouping retains only one subscription; second compliant subscription joins NULL and alarms."
+      }
+    }
+  }
+}

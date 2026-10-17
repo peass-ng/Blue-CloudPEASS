@@ -265,7 +265,93 @@ def test_reachability_uses_owned_scoped_facts_and_rejects_invalid_ports(client, 
     assert response.json()["modeled_configuration"] is True
     report = client.get(f"/api/scans/{job['id']}/report").json()
     assert response.json()["snapshot_id"] == report["snapshot_id"]
+    batch = {"source_resource_id": "missing-source", "destination_resource_ids": ["missing-one", "missing-two"],
+        "protocol": "tcp", "destination_port": 443}
+    assessed = client.post(f"/api/scans/{job['id']}/reachability/batch", json=batch)
+    assert assessed.status_code == 200
+    assert assessed.json()["snapshot_id"] == report["snapshot_id"]
+    assert len(assessed.json()["results"]) == 2
+    assert all(item["decision"] == "unknown" for item in assessed.json()["results"])
+    matrix = {"endpoint_resource_ids": ["missing-source", "missing-destination"],
+        "protocol": "tcp", "destination_port": 443}
+    assessed_matrix = client.post(f"/api/scans/{job['id']}/reachability/matrix", json=matrix)
+    assert assessed_matrix.status_code == 200
+    assert assessed_matrix.json()["snapshot_id"] == report["snapshot_id"]
+    assert [(item["query"]["source_resource_id"], item["query"]["destination_resource_id"])
+        for item in assessed_matrix.json()["results"]] == [
+        ("missing-source", "missing-destination"), ("missing-destination", "missing-source")]
+    assert client.post(f"/api/scans/{job['id']}/reachability/matrix", json={**matrix,
+        "endpoint_resource_ids": ["duplicate", "duplicate"]}).status_code == 422
+    assert client.post(f"/api/scans/{job['id']}/reachability/matrix", json={**matrix,
+        "endpoint_resource_ids": [str(index) for index in range(13)]}).status_code == 422
+    grid = {"first_endpoint_resource_ids": ["missing-source"],
+        "second_endpoint_resource_ids": ["missing-destination"], "protocol": "tcp", "destination_port": 443}
+    assessed_grid = client.post(f"/api/scans/{job['id']}/reachability/grid", json=grid)
+    assert assessed_grid.status_code == 200
+    assert assessed_grid.json()["snapshot_id"] == report["snapshot_id"]
+    assert len(assessed_grid.json()["results"]) == 2
+    assert client.post(f"/api/scans/{job['id']}/reachability/grid", json={**grid,
+        "second_endpoint_resource_ids": ["missing-source"]}).status_code == 422
+    assert client.post(f"/api/scans/{job['id']}/reachability/batch", json={**batch,
+        "destination_resource_ids": ["duplicate", "duplicate"]}).status_code == 422
+    assert client.post(f"/api/scans/{job['id']}/reachability/batch", json={**batch,
+        "destination_resource_ids": [str(index) for index in range(25)]}).status_code == 422
     for port in (0, 65536, True):
         assert client.post(f"/api/scans/{job['id']}/reachability", json={**query, "destination_port": port}).status_code == 422
     client.headers["Authorization"] = "Bearer bob"
     assert client.post(f"/api/scans/{job['id']}/reachability", json=query).status_code == 404
+    assert client.post(f"/api/scans/{job['id']}/reachability/batch", json=batch).status_code == 404
+    assert client.post(f"/api/scans/{job['id']}/reachability/matrix", json=matrix).status_code == 404
+    assert client.post(f"/api/scans/{job['id']}/reachability/grid", json=grid).status_code == 404
+
+
+def test_reachability_batch_route_uses_owned_report_snapshot_without_worker_catalog(client, monkeypatch):
+    from peaso.analysis.reachability import network_snapshot
+    source = snapshot()
+    scoped = network_snapshot(source)
+    connector = add_connector(client)
+    job = client.post("/api/scans", json={"connector_id": connector["id"]}).json()
+    store, artifacts = client.app.state.store, client.app.state.artifacts
+    claimed = store.claim("collector", tenant="alice", ident=job["id"])
+    assert claimed and store.finish(job["id"], claimed["owner"], "collected",
+        artifacts.put("alice", job["id"], "snapshot", source))
+    claimed = store.claim("analyzer", tenant="alice", ident=job["id"])
+    assert claimed
+    network_ref = artifacts.put("alice", job["id"], "network-snapshot", scoped)
+    manifest = {"summary": {"snapshot_id": source["snapshot_id"]}, "network_snapshot": network_ref}
+    report_ref = artifacts.put("alice", job["id"], "manifest", manifest)
+    assert store.finish(job["id"], claimed["owner"], "completed", report_ref)
+    query = {"source_resource_id": "absent-source", "destination_resource_ids": ["absent-one", "absent-two"],
+        "protocol": "tcp", "destination_port": 443}
+    response = client.post(f"/api/scans/{job['id']}/reachability/batch", json=query)
+    assert response.status_code == 200, response.text
+    assert response.json()["snapshot_id"] == source["snapshot_id"]
+    assert [item["query"]["destination_resource_id"] for item in response.json()["results"]] == query["destination_resource_ids"]
+    assert all(item["decision"] == "unknown" for item in response.json()["results"])
+    matrix_query = {"endpoint_resource_ids": ["absent-source", "absent-one"],
+        "protocol": "tcp", "destination_port": 443}
+    matrix_response = client.post(f"/api/scans/{job['id']}/reachability/matrix", json=matrix_query)
+    assert matrix_response.status_code == 200, matrix_response.text
+    assert matrix_response.json()["snapshot_id"] == source["snapshot_id"]
+    assert len(matrix_response.json()["results"]) == 2
+    grid_query = {"first_endpoint_resource_ids": ["absent-source"],
+        "second_endpoint_resource_ids": ["absent-one"], "protocol": "tcp", "destination_port": 443}
+    grid_response = client.post(f"/api/scans/{job['id']}/reachability/grid", json=grid_query)
+    assert grid_response.status_code == 200, grid_response.text
+    assert grid_response.json()["snapshot_id"] == source["snapshot_id"]
+    assert len(grid_response.json()["results"]) == 2
+    assert client.post(f"/api/scans/{job['id']}/reachability/batch", json={**query,
+        "destination_resource_ids": ["same", "same"]}).status_code == 422
+    original_get = artifacts.get
+    def mismatched_report(tenant, reference):
+        value = original_get(tenant, reference)
+        return {**value, "summary": {"snapshot_id": "sha256:wrong-source"}} if reference == report_ref else value
+    monkeypatch.setattr(artifacts, "get", mismatched_report)
+    assert client.post(f"/api/scans/{job['id']}/reachability/batch", json=query).status_code == 409
+    assert client.post(f"/api/scans/{job['id']}/reachability/matrix", json=matrix_query).status_code == 409
+    assert client.post(f"/api/scans/{job['id']}/reachability/grid", json=grid_query).status_code == 409
+    monkeypatch.setattr(artifacts, "get", original_get)
+    client.headers["Authorization"] = "Bearer bob"
+    assert client.post(f"/api/scans/{job['id']}/reachability/batch", json=query).status_code == 404
+    assert client.post(f"/api/scans/{job['id']}/reachability/matrix", json=matrix_query).status_code == 404
+    assert client.post(f"/api/scans/{job['id']}/reachability/grid", json=grid_query).status_code == 404

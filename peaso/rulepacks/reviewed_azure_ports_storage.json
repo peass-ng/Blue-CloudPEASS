@@ -1,0 +1,1096 @@
+{
+  "azure-compliance.control.cis_v130_3_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 889,
+      "query_sha256": "ce0b349377f94f458915b39188e84d199e408a6b8e63dbde648d621566b4ccd8",
+      "status_case_sql": "case\n        when not blob_soft_delete_enabled then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 128,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v130_3_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_encryption_at_rest_using_cmk"
+    ],
+    "reason": "Inspected complete pinned query storage_account_encryption_at_rest_using_cmk and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_encryption_at_rest_using_cmk",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 564,
+      "query_sha256": "c2c0d03f2f03a65aec9f1493578a964dac7ea6624bfddd9b1667b914426388e0",
+      "status_case_sql": "case\n        when sa.encryption_key_source = 'Microsoft.Storage' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 142,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v140_3_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 889,
+      "query_sha256": "ce0b349377f94f458915b39188e84d199e408a6b8e63dbde648d621566b4ccd8",
+      "status_case_sql": "case\n        when not blob_soft_delete_enabled then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 129,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v140_3_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_encryption_at_rest_using_cmk"
+    ],
+    "reason": "Inspected complete pinned query storage_account_encryption_at_rest_using_cmk and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_encryption_at_rest_using_cmk",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 564,
+      "query_sha256": "c2c0d03f2f03a65aec9f1493578a964dac7ea6624bfddd9b1667b914426388e0",
+      "status_case_sql": "case\n        when sa.encryption_key_source = 'Microsoft.Storage' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 143,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v150_3_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_and_container_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_and_container_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_and_container_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1292,
+      "query_sha256": "784682d20fda326df0b58520e6537e172b3696a4e2d02519c03031bea70e75ba",
+      "status_case_sql": "case\n        when\n          blob_soft_delete_enabled and blob_container_soft_delete_enabled\n          and blob_soft_delete_retention_days between 7 and 365\n          and blob_container_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 174,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v150_3_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_encryption_at_rest_using_cmk"
+    ],
+    "reason": "Inspected complete pinned query storage_account_encryption_at_rest_using_cmk and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_encryption_at_rest_using_cmk",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 564,
+      "query_sha256": "c2c0d03f2f03a65aec9f1493578a964dac7ea6624bfddd9b1667b914426388e0",
+      "status_case_sql": "case\n        when sa.encryption_key_source = 'Microsoft.Storage' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 188,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v150_3_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.infrastructure_encryption"
+    ],
+    "reason": "Inspected complete pinned query storage_account_infrastructure_encryption_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 480,
+      "query_sha256": "56679204d2af38f96b3e15bd5f6c420ded9ad237a9f6940cf0b45619070a690c",
+      "status_case_sql": "case\n        when require_infrastructure_encryption then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 48,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v150_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_key_rotation_reminder_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_key_rotation_reminder_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_key_rotation_reminder_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1229,
+      "query_sha256": "22170eb541a32b3f75f3e83ff74a3c0cdaf86cb024820d77fc46922d90498f19",
+      "status_case_sql": "case\n        when key_policy is null then 'alarm'\n        when key_policy ->> 'keyExpirationPeriodInDays' = '90' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 62,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v200_3_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_and_container_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_and_container_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_and_container_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1292,
+      "query_sha256": "784682d20fda326df0b58520e6537e172b3696a4e2d02519c03031bea70e75ba",
+      "status_case_sql": "case\n        when\n          blob_soft_delete_enabled and blob_container_soft_delete_enabled\n          and blob_soft_delete_retention_days between 7 and 365\n          and blob_container_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 174,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v200_3_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_encryption_at_rest_using_cmk"
+    ],
+    "reason": "Inspected complete pinned query storage_account_encryption_at_rest_using_cmk and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_encryption_at_rest_using_cmk",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 564,
+      "query_sha256": "c2c0d03f2f03a65aec9f1493578a964dac7ea6624bfddd9b1667b914426388e0",
+      "status_case_sql": "case\n        when sa.encryption_key_source = 'Microsoft.Storage' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 188,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v200_3_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.infrastructure_encryption"
+    ],
+    "reason": "Inspected complete pinned query storage_account_infrastructure_encryption_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 480,
+      "query_sha256": "56679204d2af38f96b3e15bd5f6c420ded9ad237a9f6940cf0b45619070a690c",
+      "status_case_sql": "case\n        when require_infrastructure_encryption then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 48,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v200_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_key_rotation_reminder_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_key_rotation_reminder_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_key_rotation_reminder_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1229,
+      "query_sha256": "22170eb541a32b3f75f3e83ff74a3c0cdaf86cb024820d77fc46922d90498f19",
+      "status_case_sql": "case\n        when key_policy is null then 'alarm'\n        when key_policy ->> 'keyExpirationPeriodInDays' = '90' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 62,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v210_3_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_and_container_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_and_container_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_and_container_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1292,
+      "query_sha256": "784682d20fda326df0b58520e6537e172b3696a4e2d02519c03031bea70e75ba",
+      "status_case_sql": "case\n        when\n          blob_soft_delete_enabled and blob_container_soft_delete_enabled\n          and blob_soft_delete_retention_days between 7 and 365\n          and blob_container_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 176,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v210_3_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_encryption_at_rest_using_cmk"
+    ],
+    "reason": "Inspected complete pinned query storage_account_encryption_at_rest_using_cmk and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_encryption_at_rest_using_cmk",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 564,
+      "query_sha256": "c2c0d03f2f03a65aec9f1493578a964dac7ea6624bfddd9b1667b914426388e0",
+      "status_case_sql": "case\n        when sa.encryption_key_source = 'Microsoft.Storage' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 190,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v210_3_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.infrastructure_encryption"
+    ],
+    "reason": "Inspected complete pinned query storage_account_infrastructure_encryption_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 480,
+      "query_sha256": "56679204d2af38f96b3e15bd5f6c420ded9ad237a9f6940cf0b45619070a690c",
+      "status_case_sql": "case\n        when require_infrastructure_encryption then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 50,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v210_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.no_public_network"
+    ],
+    "reason": "Inspected complete pinned query storage_account_block_public_access and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_block_public_access",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 501,
+      "query_sha256": "43eb3bfb5b6fa8d952bc72f0bd7937501f47ed13c7a6ae0c5b3217beabf67be1",
+      "status_case_sql": "case\n        when lower(sa.public_network_access) = 'disabled' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 120,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v300_4_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_and_container_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_and_container_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_and_container_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1292,
+      "query_sha256": "784682d20fda326df0b58520e6537e172b3696a4e2d02519c03031bea70e75ba",
+      "status_case_sql": "case\n        when\n          blob_soft_delete_enabled and blob_container_soft_delete_enabled\n          and blob_soft_delete_retention_days between 7 and 365\n          and blob_container_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 162,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v300_4_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_encryption_at_rest_using_cmk"
+    ],
+    "reason": "Inspected complete pinned query storage_account_encryption_at_rest_using_cmk and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_encryption_at_rest_using_cmk",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 564,
+      "query_sha256": "c2c0d03f2f03a65aec9f1493578a964dac7ea6624bfddd9b1667b914426388e0",
+      "status_case_sql": "case\n        when sa.encryption_key_source = 'Microsoft.Storage' then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 176,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v300_4_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.cross_tenant_replication"
+    ],
+    "reason": "Inspected complete pinned query storage_account_cross_tenant_replication_disabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_cross_tenant_replication_disabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1097,
+      "query_sha256": "fa787986f174b4986ac9b4c1f841fa4493b4f90871b49d1bdad7f60d23fc89bb",
+      "status_case_sql": "case\n        when allow_cross_tenant_replication then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 246,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v300_4_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.infrastructure_encryption"
+    ],
+    "reason": "Inspected complete pinned query storage_account_infrastructure_encryption_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_infrastructure_encryption_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 480,
+      "query_sha256": "56679204d2af38f96b3e15bd5f6c420ded9ad237a9f6940cf0b45619070a690c",
+      "status_case_sql": "case\n        when require_infrastructure_encryption then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 50,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v300_4_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_key_rotation_reminder_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_key_rotation_reminder_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_key_rotation_reminder_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1229,
+      "query_sha256": "22170eb541a32b3f75f3e83ff74a3c0cdaf86cb024820d77fc46922d90498f19",
+      "status_case_sql": "case\n        when key_policy is null then 'alarm'\n        when key_policy ->> 'keyExpirationPeriodInDays' = '90' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 64,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v300_4_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.no_public_network"
+    ],
+    "reason": "Inspected complete pinned query storage_account_block_public_access and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_block_public_access",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 501,
+      "query_sha256": "43eb3bfb5b6fa8d952bc72f0bd7937501f47ed13c7a6ae0c5b3217beabf67be1",
+      "status_case_sql": "case\n        when lower(sa.public_network_access) = 'disabled' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 106,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_file_share_smb_protocol_version_3_1_1"
+    ],
+    "reason": "Inspected complete pinned query storage_account_file_share_smb_protocol_version_3_1_1 and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_file_share_smb_protocol_version_3_1_1",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1330,
+      "query_sha256": "c22ea06cffb068ba1646ba123afd91275f0ec8400f842d21de53e0ad123bf89f",
+      "status_case_sql": "case\n        when f -> 'properties' -> 'protocolSettings' -> 'smb' ->> 'versions' = 'SMB3.1.1;' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 72,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_file_share_smb_channel_encryption_aes_256_gcm"
+    ],
+    "reason": "Inspected complete pinned query storage_account_file_share_smb_channel_encryption_aes_256_gcm and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_file_share_smb_channel_encryption_aes_256_gcm",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1352,
+      "query_sha256": "db931d0c7e19f116eb695a799822ba077717c9ede6bab29bc84f8f0b44231126",
+      "status_case_sql": "case\n        when f -> 'properties' -> 'protocolSettings' -> 'smb' ->> 'channelEncryption' = 'AES-256-GCM;' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 86,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1011,
+      "query_sha256": "0b9d51b693bdbf93e32351ff0576892ee39407a11222e568d6be4150f8b5fbe7",
+      "status_case_sql": "case\n        when blob_soft_delete_enabled and blob_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 114,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_2_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_versioning_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_versioning_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_versioning_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 955,
+      "query_sha256": "149d51ac1ed259f84cb4f3a012c34e519a46d5556c3471e0f6502073a6c69c07",
+      "status_case_sql": "case\n        when bs.is_versioning_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 128,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_storage_blob_service",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_geo_redundant_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_geo_redundant_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_geo_redundant_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 543,
+      "query_sha256": "e8bd84f5fbac326499c108bdcf488186826cce35fcdde127a87457499c4e4ad2",
+      "status_case_sql": "case\n        when sku_name = any(ARRAY ['Standard_GRS', 'Standard_RAGRS', 'Standard_GZRS', 'Standard_RAGZRS']) then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 417,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_1_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_key_rotation_reminder_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_key_rotation_reminder_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_key_rotation_reminder_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1229,
+      "query_sha256": "22170eb541a32b3f75f3e83ff74a3c0cdaf86cb024820d77fc46922d90498f19",
+      "status_case_sql": "case\n        when key_policy is null then 'alarm'\n        when key_policy ->> 'keyExpirationPeriodInDays' = '90' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 181,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected complete pinned query storage_account_default_network_access_deny and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_deny",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1055,
+      "query_sha256": "adf98849e8d801789424543d0b14d23a762fb96194f1e4ee80ec39bdcb570d66",
+      "status_case_sql": "case\n        when network_rule_default_action = 'Deny' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 265,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_and_container_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_and_container_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_and_container_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1292,
+      "query_sha256": "784682d20fda326df0b58520e6537e172b3696a4e2d02519c03031bea70e75ba",
+      "status_case_sql": "case\n        when\n          blob_soft_delete_enabled and blob_container_soft_delete_enabled\n          and blob_soft_delete_retention_days between 7 and 365\n          and blob_container_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 333,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.cross_tenant_replication"
+    ],
+    "reason": "Inspected complete pinned query storage_account_cross_tenant_replication_disabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_cross_tenant_replication_disabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1097,
+      "query_sha256": "fa787986f174b4986ac9b4c1f841fa4493b4f90871b49d1bdad7f60d23fc89bb",
+      "status_case_sql": "case\n        when allow_cross_tenant_replication then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 361,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_file_share_smb_protocol_version_3_1_1"
+    ],
+    "reason": "Inspected complete pinned query storage_account_file_share_smb_protocol_version_3_1_1 and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_file_share_smb_protocol_version_3_1_1",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1330,
+      "query_sha256": "c22ea06cffb068ba1646ba123afd91275f0ec8400f842d21de53e0ad123bf89f",
+      "status_case_sql": "case\n        when f -> 'properties' -> 'protocolSettings' -> 'smb' ->> 'versions' = 'SMB3.1.1;' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 75,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_file_share_smb_channel_encryption_aes_256_gcm"
+    ],
+    "reason": "Inspected complete pinned query storage_account_file_share_smb_channel_encryption_aes_256_gcm and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_file_share_smb_channel_encryption_aes_256_gcm",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1352,
+      "query_sha256": "db931d0c7e19f116eb695a799822ba077717c9ede6bab29bc84f8f0b44231126",
+      "status_case_sql": "case\n        when f -> 'properties' -> 'protocolSettings' -> 'smb' ->> 'channelEncryption' = 'AES-256-GCM;' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 89,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1011,
+      "query_sha256": "0b9d51b693bdbf93e32351ff0576892ee39407a11222e568d6be4150f8b5fbe7",
+      "status_case_sql": "case\n        when blob_soft_delete_enabled and blob_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 118,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_2_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_container_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_container_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_container_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1374,
+      "query_sha256": "41baa53d9acbe0de73069b40e2304e4fbcbf7b8d0ff5f9a14751db9b23dda79f",
+      "status_case_sql": "case\n        when\n          blob_container_soft_delete_enabled\n          and blob_container_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 132,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_versioning_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_blob_versioning_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_blob_versioning_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 955,
+      "query_sha256": "149d51ac1ed259f84cb4f3a012c34e519a46d5556c3471e0f6502073a6c69c07",
+      "status_case_sql": "case\n        when bs.is_versioning_enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 146,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_storage_blob_service",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_geo_redundant_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_geo_redundant_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_geo_redundant_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 543,
+      "query_sha256": "e8bd84f5fbac326499c108bdcf488186826cce35fcdde127a87457499c4e4ad2",
+      "status_case_sql": "case\n        when sku_name = any(ARRAY ['Standard_GRS', 'Standard_RAGRS', 'Standard_GZRS', 'Standard_RAGZRS']) then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 418,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_1_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_key_rotation_reminder_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_key_rotation_reminder_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_key_rotation_reminder_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1229,
+      "query_sha256": "22170eb541a32b3f75f3e83ff74a3c0cdaf86cb024820d77fc46922d90498f19",
+      "status_case_sql": "case\n        when key_policy is null then 'alarm'\n        when key_policy ->> 'keyExpirationPeriodInDays' = '90' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 197,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_access_keys_periodically_regenerated"
+    ],
+    "reason": "Inspected complete pinned query storage_account_access_keys_periodically_regenerated and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_access_keys_periodically_regenerated",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1251,
+      "query_sha256": "86c2f9cf708d0f98449c60f1a691ca9803119cf52ac24bd2641a3b21edb92624",
+      "status_case_sql": "case\n        when saks.key_name is null then 'skip'\n        when saks.days_since_rotation > 90 then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 211,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.default_deny"
+    ],
+    "reason": "Inspected complete pinned query storage_account_default_network_access_deny and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_default_network_access_deny",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1055,
+      "query_sha256": "adf98849e8d801789424543d0b14d23a762fb96194f1e4ee80ec39bdcb570d66",
+      "status_case_sql": "case\n        when network_rule_default_action = 'Deny' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 281,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.storage.cross_tenant_replication"
+    ],
+    "reason": "Inspected complete pinned query storage_account_cross_tenant_replication_disabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/get-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_cross_tenant_replication_disabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1097,
+      "query_sha256": "fa787986f174b4986ac9b4c1f841fa4493b4f90871b49d1bdad7f60d23fc89bb",
+      "status_case_sql": "case\n        when allow_cross_tenant_replication then 'alarm'\n        else 'ok'\n      end",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 362,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  },
+  "azure-compliance.control.storage_account_container_soft_delete_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_container_soft_delete_enabled"
+    ],
+    "reason": "Inspected complete pinned query storage_account_container_soft_delete_enabled and no-argument source delegation; preserve exact boolean/range/SKU/semicolon conditions. Account-target service checks require complete dependency collection and unique full ARM-ID child join; absent or denied required detail is UNKNOWN. Key age uses authoritative nonsecret ARM keyCreationTime at snapshot capture, preserving >90 days without ListKeys.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-services/get-service-properties?view=rest-storagerp-2025-06-01"
+    ],
+    "review_notes": "Source null defaults cannot certify unreadable data. Enabled-only soft delete differs from range-qualified and conjunctive rules. SMB exact trailing semicolon is conserved; key reminder precisely90 differs from actual regeneration age. No secret/key contents or runtime probes.",
+    "source_review": {
+      "query_id": "storage_account_container_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1374,
+      "query_sha256": "41baa53d9acbe0de73069b40e2304e4fbcbf7b8d0ff5f9a14751db9b23dda79f",
+      "status_case_sql": "case\n        when\n          blob_container_soft_delete_enabled\n          and blob_container_soft_delete_retention_days between 7 and 365 then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/storage.pp",
+      "control_line": 338,
+      "arguments": [],
+      "scope": "native account ARM identity; complete uniquely joined child service where needed",
+      "source_dependencies": [
+        "azure_storage_account",
+        "azure_subscription"
+      ]
+    }
+  }
+}

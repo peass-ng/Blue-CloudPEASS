@@ -1,3 +1,9 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
 # AWS Data Pipeline privilege escalation techniques.
 # Source: hacktricks-cloud aws-datapipeline-privesc/README.md.
 
@@ -6,7 +12,7 @@
   service: datapipeline
   title: Create and activate a Data Pipeline with passed roles
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-datapipeline-privesc/README.md#iampassrole-datapipelinecreatepipeline-datapipelineputpipelinedefinition-datapipelineactivatepipeline
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of passable EC2 instance-profile roles used as the pipeline resource role by running commands it defines on pipeline-launched instances.
   requires:
     all_of:

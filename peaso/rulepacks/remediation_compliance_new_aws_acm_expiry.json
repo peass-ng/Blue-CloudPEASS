@@ -1,0 +1,42 @@
+{
+  "aws_fedramp_acm_all_certificates_30_day_expiry": {
+    "summary": "Renew or replace every in-scope ACM certificate before it reaches the 30-day expiry threshold.",
+    "steps": ["Inspect the named certificate's status, expiry instant, origin, and consuming resources in ACM.", "Coordinate renewal or replacement with the certificate owner, including validation and an approved cutover for services using it.", "Read back the replacement's status and NotAfter value; verify each consuming service uses the intended certificate before retiring any old certificate."],
+    "cli": [],
+    "caveats": ["This control covers all listed certificate statuses when NotAfter is available; a pending or otherwise undated certificate is UNKNOWN, not safe.", "ACM-managed and imported certificates have different renewal procedures. Do not delete or disassociate an in-use certificate without an approved migration."],
+    "references": [{"title": "ACM DescribeCertificate API", "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_DescribeCertificate.html"}, {"title": "ACM managed certificate renewal", "url": "https://docs.aws.amazon.com/acm/latest/userguide/managed-renewal.html"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_acm_expiry", "kind": "acm_certificate", "target": "resource", "path": "Certificate.Certificate.Status; Certificate.Certificate.NotAfter; context.created_at; complete regional acm_certificate inventory", "observed_fail_evidence": "certificate_arn; status; not_after; threshold"},
+    "proposed_spec_sha256": "cb0989a36d224bf90b0aee0d506d4fb604ce3b3772dce5b567453f7cef286e01",
+    "review_status": "source_bound_pending_review"
+  },
+  "aws.nist.acm_all_certificates_expiry_30_days": {
+    "summary": "Renew or replace the named issued ACM certificate before its expiry is 30 days away.",
+    "steps": ["Confirm the named certificate is ISSUED and compare its NotAfter instant with the scan capture time.", "Review the certificate origin and dependent services, then arrange the appropriate validation, renewal, or replacement with the owner.", "Verify the issued replacement and each dependent service after the approved cutover."],
+    "cli": [],
+    "caveats": ["The threshold is inclusive: expiry exactly 30 days after capture fails. RenewalEligibility does not waive this condition.", "Nonissued certificates are not applicable to this specific issued-certificate control; other controls may still cover them."],
+    "references": [{"title": "ACM CertificateDetail API", "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html"}, {"title": "ACM managed certificate renewal", "url": "https://docs.aws.amazon.com/acm/latest/userguide/managed-renewal.html"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_acm_expiry", "kind": "acm_certificate", "target": "resource", "path": "Certificate.Certificate.Status=ISSUED; Certificate.Certificate.NotAfter; context.created_at; complete regional acm_certificate inventory", "observed_fail_evidence": "certificate_arn; status; not_after; threshold"},
+    "proposed_spec_sha256": "fc9beba778f553a3cb4e02a899bd8bf06a87e8817d37ea5cf23a95adb6ddb16e",
+    "review_status": "source_bound_pending_review"
+  },
+  "aws_nist_acm_certificate_expires_30_days": {
+    "summary": "Resolve issued ACM certificates whose remaining lifetime is less than 30 days.",
+    "steps": ["Inspect the certificate ARN, ISSUED status, exact NotAfter instant, and service associations.", "Schedule owner-approved renewal or replacement before the certificate crosses the strict 30-day window.", "Read back the new certificate expiry and confirm service associations after cutover."],
+    "cli": [],
+    "caveats": ["Expiry exactly 30 days after capture passes this strict-boundary control; the separate inclusive controls can still fail.", "A renewal-eligible certificate is still a finding when its current expiry is inside the threshold."],
+    "references": [{"title": "ACM DescribeCertificate API", "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_DescribeCertificate.html"}, {"title": "ACM managed certificate renewal", "url": "https://docs.aws.amazon.com/acm/latest/userguide/managed-renewal.html"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_acm_expiry", "kind": "acm_certificate", "target": "resource", "path": "Certificate.Certificate.Status=ISSUED; Certificate.Certificate.NotAfter; context.created_at; complete regional acm_certificate inventory", "observed_fail_evidence": "certificate_arn; status; not_after; threshold"},
+    "proposed_spec_sha256": "4eeaaa0954b742fea06684483ca1b30a6179ae32d75df353e31189923ad074ea",
+    "review_status": "source_bound_pending_review"
+  },
+  "aws_g6_acm_all_certificates_30_day_expiry": {
+    "summary": "Keep every ACM certificate at least 30 calendar days from expiry.",
+    "steps": ["Inspect the named certificate's status and NotAfter UTC date, including certificates not currently in use.", "Plan an owner-approved renewal or replacement appropriate to its certificate origin and validate any dependent service cutover.", "Verify the resulting UTC expiry date is at least 30 calendar days after the next scan capture date."],
+    "cli": [],
+    "caveats": ["The comparison uses UTC calendar dates, so an expiry on the threshold date passes this control even if its remaining hours are fewer than 720.", "A missing NotAfter value or incomplete certificate listing remains UNKNOWN; do not infer safety from ACM renewal eligibility."],
+    "references": [{"title": "ACM ListCertificates API", "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_ListCertificates.html"}, {"title": "ACM certificate renewal", "url": "https://docs.aws.amazon.com/acm/latest/userguide/managed-renewal.html"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_acm_expiry", "kind": "acm_certificate", "target": "resource", "path": "Certificate.Certificate.NotAfter UTC date; context.created_at UTC date; complete regional acm_certificate inventory", "observed_fail_evidence": "certificate_arn; status; not_after; threshold"},
+    "proposed_spec_sha256": "7686d69d7b857d3921454ac0e50698982004d8d98bc768864bf529fcb0b692e2",
+    "review_status": "source_bound_pending_review"
+  }
+}

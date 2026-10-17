@@ -1,5 +1,6 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
 # GCP Dataform privilege escalation techniques (run-as service account limited to BigQuery jobs).
-# Source: hacktricks-cloud gcp-privilege-escalation/gcp-dataform-privesc.md (rev a53b46392c).
+# Source: hacktricks-cloud gcp-privilege-escalation/gcp-dataform-privesc.md (rev 171e422).
 # Placeholder / selector conventions: see the header of catalog/gcp/iam.yaml.
 # Google enforces "strict act-as mode" on all repositories: the caller needs iam.serviceAccounts.actAs on the effective
 # service account for repository serviceAccount changes, manual workflow invocations, workflow configs and release configs.
@@ -10,8 +11,8 @@
   provider: gcp
   service: dataform
   title: Run a Dataform workflow invocation as a chosen service account
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataform-privesc.md#dataformrepositoriescreate--dataformrepositoriesupdate--iamserviceaccountsactas
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataform-privesc.md#dataformrepositoriescreate--iamserviceaccountsactas--create-an-attacker-controlled-run-as-repository
+  source_revision: 171e422
   summary: The source can obtain the BigQuery privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
   requires:
     all_of:
@@ -59,45 +60,4 @@
   references:
     - https://docs.cloud.google.com/dataform/docs/strict-act-as-mode
     - https://docs.cloud.google.com/dataform/docs/required-access
-  notes: Covers the repository serviceAccount, per-invocation invocationConfig.serviceAccount, repo setIamPolicy and direct-commit variants. HackTricks states running as a repository's pinned SA needs no caller actAs; Google's strict act-as mode (enforced for all repositories) requires actAs on the effective SA for manual invocations, so actAs is required here.
-
-- id: gcp-dataform-scheduled-workflow-code-tamper
-  provider: gcp
-  service: dataform
-  title: Change the code an existing scheduled Dataform workflow compiles from
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataform-privesc.md#dataformrepositoriescommit--direct-code-injection-onto-the-default-branch-no-workspace
-  source_revision: a53b46392c
-  summary: The source can obtain the BigQuery privileges of the service account of scheduled workflow configs of every Dataform repository whose default-branch code or git remote it can change.
-  requires:
-    any_of:
-      - - action: dataform.repositories.commit
-          resource: "{target.host_resource}"
-      - - action: dataform.repositories.update
-          resource: "{target.host_resource}"
-      - - action: dataform.workspaces.writeFile
-          resource: "{target.host_resource}"
-        - action: dataform.workspaces.commit
-          resource: "{target.host_resource}"
-        - action: dataform.workspaces.push
-          resource: "{target.host_resource}"
-  target:
-    kind: gcp_service_account
-    selector:
-      attached_to_service: dataform_repository
-    scope: same_project
-    aggregate_as: "SAs of scheduled Dataform workflows whose repository code the source can change"
-  conditions:
-    - id: scheduled_workflow
-      description: The repository must have a release config compiling from the default branch and a scheduled workflow config; the next scheduled run (started by the Dataform service agent) executes the changed code as the effective SA.
-    - id: git_remote_update
-      description: The repositories.update path repoints gitRemoteSettings to source-controlled git; whether strict act-as re-checks actAs on update of a repository with a serviceAccount set is not stated.
-    - id: bigquery_only
-      description: The SA identity is used only for BigQuery jobs.
-  blockers:
-    - gcp_deny_policy
-  confidence: conditional
-  severity: medium
-  mitigation: Restrict dataform.repositories.commit/update and workspace commit/push on repositories with scheduled workflows, and protect the connected git default branch.
-  references:
-    - https://docs.cloud.google.com/dataform/docs/workflow-configurations
-  notes: Creating new release/workflow configs needs caller actAs under strict act-as mode and is covered by gcp-dataform-workflow-invocation-actas.
+  notes: Covers the repository serviceAccount, per-invocation invocationConfig.serviceAccount, repo setIamPolicy and direct-commit variants. Google's strict act-as mode (enforced for all repositories) requires actAs on the effective SA for repository/workflow-config creation and updates, release-config updates and manual invocations, so actAs is always required here (HackTricks at 171e422 agrees).

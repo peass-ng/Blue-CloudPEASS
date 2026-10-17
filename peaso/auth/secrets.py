@@ -6,7 +6,7 @@ import re
 import uuid
 from cryptography.fernet import Fernet
 
-SENSITIVE = re.compile(r"(?i)^(?:.*password|.*passwd|.*clientsecret|.*secretaccesskey|.*secret|secretvalue|(?:access|refresh|id|session|aws.?session|bearer|oauth|api|subject|federated)?token|authorization|privatekey|clientkey(?:data)?|apikey|keystring|(?:aws)?accesskeyid|credentials|credential|connectionstring|kubeconfig)$")
+SENSITIVE = re.compile(r"(?i)^(?:.*password|.*passwd|.*clientsecret|.*secretaccesskey|.*secret|secretvalue|(?:access|refresh|id|session|aws.?session|bearer|oauth|api|subject|federated|vault|storage|databricksaccount)?token|authorization|privatekey|clientkey(?:data)?|apikey|keystring|(?:aws)?accesskeyid|credentials|credential|connectionstring|kubeconfig)$")
 
 
 def private_file(path: Path, factory) -> bytes:

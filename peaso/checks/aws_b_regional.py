@@ -44,6 +44,14 @@ for _service, _field in (("ec2", "ec2"), ("ecr", "ecr"), ("lambda", "lambda"), (
         def evaluate(item, index):
             scope = get(item, "scope", str)
             facts = complete_items(index, "inspector_organization_configuration")
+            envelopes = index.get("collections", {}).get("inspector_organization_configuration") or []
+            states = {(e.get("error") or {}).get("code") for e in envelopes if isinstance(e, dict) and e.get("status") == "empty"}
+            if not facts and "not_delegated_administrator" in states:
+                # DescribeOrganizationConfiguration documented reply for an account that is not the Inspector delegated administrator.
+                return "NOT_APPLICABLE", {"scope": scope, "service": service, "reason": "Caller is not the Inspector delegated administrator; organization auto-enable is not readable or configurable here."}
+            if not facts and "region_operation_unsupported" in states:
+                # Exact UnknownOperationException reply: the Region does not offer the operation, so nothing is configurable.
+                return "NOT_APPLICABLE", {"scope": scope, "service": service, "reason": "Inspector organization configuration is not offered in this Region."}
             if not facts:
                 return result(True, scope=scope, service=service, reason="Complete empty organization configuration inventory.")
             if len(facts) != 1:
@@ -72,7 +80,7 @@ def document_sharing(item, index):
     return result("all" in accounts, shared_accounts=accounts, semantics="Sharing metadata only; document content and server execution are not requested.")
 
 
-@install("aws.b.dynamodb.kms_description", "dynamodb_table", "DynamoDB table declares a KMS SSE description", {"Table": {"Table": {"TableName": "table", "SSEDescription": {"SSEType": "KMS"}}}}, {"Table": {"Table": {"TableName": "table"}}}, query="dynamodb_table_encrypted_with_kms")
+@install("aws.b.dynamodb.kms_description", "dynamodb_table", "DynamoDB table has an SSEDescription object", {"Table": {"Table": {"TableName": "table", "SSEDescription": {"SSEType": "KMS"}}}}, {"Table": {"Table": {"TableName": "table"}}}, query="dynamodb_table_encrypted_with_kms")
 def dynamo_kms(item, index):
     table = get(item, "Table.Table", dict)
     get(table, "TableName", str)
@@ -93,3 +101,6 @@ def dynamo_default(item, index):
     if kind not in {"KMS", "AES256"}:
         return unknown("unknown SSE type")
     return result(kind != "KMS", sse_type=kind)
+
+
+scalar("aws.b.dynamodb.deletion_protection", "dynamodb_table", "Table.Table.DeletionProtectionEnabled", True, False, "DynamoDB table deletion protection is enabled", "dynamodb_table_deletion_protection_enabled")

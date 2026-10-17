@@ -1,26 +1,28 @@
 locals {
   runtime_env = {
-    PEASO_AUTH_MODE             = "cognito"
-    PEASO_COGNITO_ISSUER        = local.issuer
-    PEASO_COGNITO_CLIENT_ID     = local.client_id
-    PEASO_STORAGE               = "dynamodb"
-    PEASO_DYNAMODB_TABLE        = aws_dynamodb_table.metadata.name
-    PEASO_ARTIFACT_BUCKET       = aws_s3_bucket.artifacts.id
-    PEASO_CREDENTIAL_SECRET_ARN = aws_secretsmanager_secret.credentials.arn
-    PEASO_STRIPE_SECRET_ARN     = local.stripe_arn
-    PEASO_STRIPE_PRICE_ID       = local.stripe_price
-    PEASO_WORKFLOW_ARN          = local.workflow_arn
-    PEASO_ALLOWED_ORIGINS       = "https://${local.domain}"
-    PEASO_CUSTOMER_ROLE_ARNS    = jsonencode(var.customer_role_arns)
-    PEASO_SOURCE_VERSION        = var.source_version
-    PEASO_SOURCE_URL            = "https://${local.domain}/source/peaso-source-${var.source_version}.zip"
-    PEASO_SCAN_TIMEOUT_SECONDS  = "900"
-    PEASO_COLLECTOR_VCPU        = "0.25"
-    PEASO_COLLECTOR_MEMORY_GIB  = "1"
-    PEASO_ANALYZER_VCPU         = "0.5"
-    PEASO_ANALYZER_MEMORY_GIB   = "2"
-    PEASO_STATE_DIR             = "/tmp/peaso/state"
-    PEASO_IDENTITY_DIR          = "/tmp/peaso/identity"
+    PEASO_AUTH_MODE                         = "cognito"
+    PEASO_COGNITO_ISSUER                    = local.issuer
+    PEASO_COGNITO_CLIENT_ID                 = local.client_id
+    PEASO_STORAGE                           = "dynamodb"
+    PEASO_DYNAMODB_TABLE                    = aws_dynamodb_table.metadata.name
+    PEASO_ARTIFACT_BUCKET                   = aws_s3_bucket.artifacts.id
+    PEASO_CREDENTIAL_SECRET_ARN             = aws_secretsmanager_secret.credentials.arn
+    PEASO_GCP_PLATFORM_SA_SECRET_ARN        = var.gcp_platform_sa_secret_arn
+    PEASO_REQUIRE_CONNECTOR_ACCESS_CHECK    = "true"
+    PEASO_STRIPE_SECRET_ARN                 = local.stripe_arn
+    PEASO_STRIPE_PRICE_ID                   = local.stripe_price
+    PEASO_WORKFLOW_ARN                      = local.workflow_arn
+    PEASO_ALLOWED_ORIGINS                   = "https://${local.domain}"
+    PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL = var.enable_public_customer_role_template ? "https://${aws_s3_bucket.templates[0].bucket}.s3.${var.region}.amazonaws.com/${aws_s3_object.customer_role_template[local.customer_role_template_sha256].key}" : ""
+    PEASO_SOURCE_VERSION                    = var.source_version
+    PEASO_SOURCE_URL                        = "https://${local.domain}/source/peaso-source-${var.source_version}.zip"
+    PEASO_SCAN_TIMEOUT_SECONDS              = tostring(var.scan_runtime_limits.workflow_seconds)
+    PEASO_COLLECTOR_VCPU                    = tostring(var.worker_resources.collector.cpu / 1024)
+    PEASO_COLLECTOR_MEMORY_GIB              = tostring(var.worker_resources.collector.memory / 1024)
+    PEASO_ANALYZER_VCPU                     = tostring(var.worker_resources.analyzer.cpu / 1024)
+    PEASO_ANALYZER_MEMORY_GIB               = tostring(var.worker_resources.analyzer.memory / 1024)
+    PEASO_STATE_DIR                         = "/tmp/peaso/state"
+    PEASO_IDENTITY_DIR                      = "/tmp/peaso/identity"
   }
 }
 resource "aws_cloudwatch_log_group" "api" {
@@ -41,7 +43,7 @@ resource "aws_lambda_function" "api" {
   source_code_hash               = filebase64sha256(var.api_zip)
   memory_size                    = 512
   timeout                        = 28
-  reserved_concurrent_executions = 3
+  reserved_concurrent_executions = 10
   environment { variables = local.runtime_env }
   depends_on = [aws_iam_role_policy.api, aws_cloudwatch_log_group.api, aws_secretsmanager_secret_version.credentials]
 }

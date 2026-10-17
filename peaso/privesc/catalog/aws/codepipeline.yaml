@@ -1,3 +1,9 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
 # AWS CodePipeline privilege escalation techniques.
 # Source: hacktricks-cloud aws-codepipeline-privesc/README.md.
 
@@ -6,7 +12,7 @@
   service: codepipeline
   title: Create a pipeline and CodeBuild project with passed roles and start it
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#iampassrole-codepipelinecreatepipeline-codebuildcreateproject-codepipelinestartpipelineexecution
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of passable roles trusting codebuild.amazonaws.com by running a build it controls from a pipeline it creates.
   requires:
     all_of:
@@ -42,7 +48,7 @@
   service: codepipeline
   title: Alter a pipeline's CodeBuild project and run the pipeline
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#codebuildupdateproject-codepipelineupdatepipeline-codepipelinestartpipelineexecution
-  source_revision: a53b46392c
+  source_revision: 171e422299
   summary: The source can obtain the privileges of the service role of a CodeBuild project used by a pipeline by changing the project/action configuration and starting the pipeline.
   requires:
     all_of:
@@ -69,34 +75,3 @@
   mitigation: Restrict codebuild:UpdateProject and codepipeline:UpdatePipeline to administrators.
   references: []
   notes: Pipelines cannot be assigned a different service role after creation.
-
-- id: aws-codepipeline-s3-source-poisoning
-  provider: aws
-  service: codepipeline
-  title: Replace the S3 source object of a pipeline
-  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#s3putobject-on-a-configured-s3-source-codepipelinestartpipelineexecution-optional
-  source_revision: a53b46392c
-  summary: The source can obtain (at the next execution) the privileges of the roles of downstream actions (CodeBuild projects, CloudFormation deploy roles) of a pipeline whose S3 source object it can overwrite.
-  requires:
-    all_of:
-      - action: s3:PutObject
-        resource: "{target.consumer_input_arn}"
-  target:
-    kind: aws_role
-    selector:
-      attached_to_service: codepipeline
-      consumer_input_writable_via: s3:PutObject
-    scope: same_account
-    aggregate_as: "Roles of downstream actions of pipelines with writable S3 sources in {account}"
-  conditions:
-    - id: delayed_trigger
-      description: An execution must start afterwards (S3 change detection, schedule or source-held StartPipelineExecution).
-    - id: source_executed
-      description: A downstream action must execute content from the artifact (buildspec, template).
-  blockers:
-    - scp_or_boundary_deny
-  confidence: conditional
-  severity: high
-  mitigation: Use versioned, immutable source objects and restrict s3:PutObject on pipeline source keys.
-  references: []
-  notes: attached_to_service codepipeline here means roles used by the pipeline's executing actions (CodeBuild project roles, CloudFormation action roles), not the pipeline role itself.

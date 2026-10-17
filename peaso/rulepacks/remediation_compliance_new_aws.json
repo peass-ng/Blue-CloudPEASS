@@ -1,0 +1,158 @@
+{
+  "aws_cloudfront_origin_failover_configured": {
+    "summary": "Configure a valid two-origin CloudFront failover group for this distribution.",
+    "steps": [
+      "Inspect Config.DistributionConfig.Origins and OriginGroups on the exact distribution; identify any missing or duplicate origin IDs and missing or unsupported failover status codes.",
+      "Choose a tested secondary origin and status-code criteria with the application owner, then update the reviewed complete distribution configuration without dropping existing behaviors or origins.",
+      "Test primary and secondary response paths, read back both origin members and status codes, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Changing a CloudFront distribution can alter production routing and incur secondary-origin costs; review cache behavior targeting the group and rollback before deployment.",
+      "The predicate verifies declared origin-group metadata, not live failover availability or origin health."
+    ],
+    "references": [
+      {
+        "title": "CloudFront OriginGroup API",
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_OriginGroup.html"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws",
+      "kind": "cloudfront_distribution",
+      "target": "resource",
+      "path": "Config.DistributionConfig.Origins.Items[].Id; OriginGroups.Items[].Members.Items[].OriginId and FailoverCriteria.StatusCodes.Items",
+      "observed_fail_evidence": "origin_group_count; invalid_origin_groups"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "28977cc5a02598c9cf4f8feda35f9b316d0cde0e3ede1bae28897b2d94b83393"
+  },
+  "aws_config_continuous_inventory": {
+    "summary": "Restore continuous, all-supported AWS Config recording in this Region.",
+    "steps": [
+      "Inspect the matching config_recorder.name, recordingGroup.allSupported, default recordingMode.recordingFrequency, every recordingModeOverride frequency and Status.ConfigurationRecordersStatus[].recording.",
+      "Review resource type coverage, recording charges, delivery channel and approved exclusions with the account owner, then configure this recorder for all-supported continuous recording and start it if paused.",
+      "Confirm the matching recorder reports recording=true, allSupported=true and CONTINUOUS as both default and every override frequency, then recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Continuous all-supported recording can materially increase Config configuration-item and rule-evaluation costs, particularly for ephemeral resources; confirm the owner policy before changing scope.",
+      "This predicate checks the recorder declaration and status only; it does not verify delivery-channel health or all account Regions."
+    ],
+    "references": [
+      {
+        "title": "AWS Config resource recording with CLI",
+        "url": "https://docs.aws.amazon.com/config/latest/developerguide/select-resources-cli.html"
+      },
+      {
+        "title": "AWS Config recording behavior",
+        "url": "https://docs.aws.amazon.com/config/latest/developerguide/select-resources.html"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws",
+      "kind": "config_recorder",
+      "target": "resource",
+      "path": "name; recordingGroup.allSupported; recordingMode.recordingFrequency; recordingMode.recordingModeOverrides[].recordingFrequency/resourceTypes[]; Status.ConfigurationRecordersStatus[].name/recording",
+      "observed_fail_evidence": "recording; all_supported; frequency; override_frequencies"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "d837c7ab05610502a24cf8445b33a1918e9961f49e946b2eefe7a38682f0b07a"
+  },
+  "aws_acm_certificate_lifecycle": {
+    "summary": "Renew or replace this in-use ACM certificate before it becomes unusable.",
+    "steps": [
+      "Inspect Certificate.Certificate.InUseBy, Status, NotAfter and RenewalEligibility against the snapshot time for the exact certificate.",
+      "If the certificate is expired, non-ISSUED, or within 30 days and INELIGIBLE, restore its validation/renewal path or replace it through an owner-reviewed certificate and listener migration.",
+      "Validate the certificate actually served by each listed consumer and its new expiry, then recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Renewal eligibility is not proof renewal has completed or the new certificate was deployed; inspect consumer endpoints before declaring recovery.",
+      "Replacing a certificate can break TLS clients, names or trust chains; stage and test the replacement before cutover."
+    ],
+    "references": [
+      {
+        "title": "ACM managed certificate renewal",
+        "url": "https://docs.aws.amazon.com/acm/latest/userguide/managed-renewal.html"
+      },
+      {
+        "title": "ACM renewal troubleshooting",
+        "url": "https://docs.aws.amazon.com/acm/latest/userguide/troubleshooting-renewal.html"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws",
+      "kind": "acm_certificate",
+      "target": "resource",
+      "path": "Certificate.Certificate.InUseBy/Status/NotAfter/RenewalEligibility; context.created_at",
+      "observed_fail_evidence": "status; expiry; renewal_eligibility; in_use_by_count"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "a3d40d8173eab1a091586a362533305d000b4211e3bdce6519b294734838b2ff"
+  },
+  "aws_nist_cloudwatch_alarm_action_enabled": {
+    "summary": "Enable CloudWatch actions and configure an approved state action on this alarm.",
+    "steps": [
+      "Inspect ActionsEnabled and all three AlarmActions, OKActions and InsufficientDataActions lists on the exact metric alarm.",
+      "Choose an owner-approved SNS, Auto Scaling or other supported target and state transition, then configure its action and enable actions without discarding existing destinations.",
+      "Trigger or simulate an approved alarm transition, confirm delivery, read back the switch and action lists, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Alarm actions can invoke scaling or automation with cost and availability impact; review the selected action and test it safely.",
+      "The predicate verifies a configured action and enabled switch, not that the destination is healthy or receives notifications."
+    ],
+    "references": [
+      {
+        "title": "CloudWatch alarm actions",
+        "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html"
+      },
+      {
+        "title": "CloudWatch DescribeAlarms fields",
+        "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_DescribeAlarms.html"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws",
+      "kind": "cloudwatch_alarm",
+      "target": "resource",
+      "path": "ActionsEnabled; AlarmActions[]; OKActions[]; InsufficientDataActions[]",
+      "observed_fail_evidence": "actions_enabled; state_actions"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "783fe9b27bdf7b94debdeb71c88366aa43ce12925738907376867dfc8d6e3e0e"
+  },
+  "aws_config_recorder_all_supported_resources": {
+    "summary": "Expand this Config recorder to all supported resource types without exclusions.",
+    "steps": [
+      "Inspect recordingGroup.allSupported, recordingStrategy.useOnly and exclusionByResourceTypes.resourceTypes[] on the exact recorder.",
+      "Review Config recording charges and approved regional scope, then update the owner-reviewed recorder declaration to all-supported recording with no exclusions; start the recorder through its normal change process if needed.",
+      "Read back the recording group and exclusions, verify sample resource configuration items and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Recording all supported resource types can materially increase Config charges and downstream evaluations; review ephemeral workloads before changing policy.",
+      "This predicate checks only the recorder's type selection, not whether recording is started, continuous or delivering successfully; aws_config_continuous_inventory covers separate fields."
+    ],
+    "references": [
+      {
+        "title": "AWS Config RecordingGroup API",
+        "url": "https://docs.aws.amazon.com/config/latest/APIReference/API_RecordingGroup.html"
+      },
+      {
+        "title": "AWS Config RecordingStrategy API",
+        "url": "https://docs.aws.amazon.com/config/latest/APIReference/API_RecordingStrategy.html"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws",
+      "kind": "config_recorder",
+      "target": "resource",
+      "path": "recordingGroup.allSupported; recordingGroup.recordingStrategy.useOnly; recordingGroup.exclusionByResourceTypes.resourceTypes[]",
+      "observed_fail_evidence": "all_supported; strategy; excluded_resource_types"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "4c6864c9aa04cd9e654c5c5116df8cdc9e0f7653843ea67fe4aa89f33f540a80"
+  }
+}

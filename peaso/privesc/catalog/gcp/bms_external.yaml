@@ -1,0 +1,30 @@
+# A BMS initial password is not a path merely because a secret was read. The
+# exact server user, live password, and newly allowed OS action require review.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
+- id: gcp-bms-direct-initial-secret-exact-server-user
+  provider: gcp
+  service: baremetalsolution
+  title: Reach one BMS server user through its still-valid initial password secret
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bare-metal-solution-privesc.md#retrieve-a-still-valid-initial-server-password
+  source_revision: f0f683242a
+  summary: Direct access to the exact Secret Manager version containing a BMS server's initial password may reach the named OS user if the password is still valid and a reviewed login proves a new allowed action.
+  requires:
+    all_of:
+    - action: secretmanager.versions.access
+      resource: '{target.resource}'
+  target:
+    kind: gcp_external_principal
+    selector:
+      gcp_external_principal_evidence: true
+      gcp_external_plane: bms_os
+    scope: same_project
+    outcome: credentials
+    aggregate_as: Exact BMS server OS user with reviewed new access
+  conditions:
+  - id: exact_bms_secret_subject_and_live_login
+    description: The reviewed record must prove the exact secret version contains the named BMS server user's initial password, the value has not been rotated, and the source gains a new OS action after authenticating to that server.
+  blockers: []
+  confidence: conditional
+  severity: high
+  mitigation: Restrict initial credential secrets, rotate BMS passwords, and block unauthorized network access to the servers.
+  notes: TargetPlane must be bms_os; ActionResource is the exact secret version and TargetServiceResource the exact BMS server/user. TargetPrincipalId and ObservedPrincipalId must match that OS user. The secret-name pattern or readable payload alone never proves a path. The SA-impersonation and Preview CMEK variants require separate exact joins and remain unmodeled.

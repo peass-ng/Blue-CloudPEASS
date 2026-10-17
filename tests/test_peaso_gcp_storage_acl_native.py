@@ -1,0 +1,101 @@
+"""Native complete GCP IAM/ACL metadata through collect_live and the engine."""
+import copy,json,threading
+from urllib.parse import urlsplit
+import pytest
+from peaso.collectors import collect_live,gcp
+from peaso.engine import evaluate_snapshot,plan_collection
+SCOPE='projects/demo-project';BUCKET='private-bucket';NUMBER='1234567890'
+ACCESS='gcp_pci_bucket_7dc6cb8c2e05';WRITE='gcp_pci_bucket_56c6b1b7f813';CHECKS=[ACCESS,WRITE]
+class API:
+ def __init__(self,mode):self.mode=mode;self.calls=0;self.evidence=[];self.requests=[];self.lock=threading.Lock()
+ def close(self):pass
+ def request(self,method,url,**kw):
+  with self.lock:self.calls+=1;rid='request-'+str(self.calls);self.requests.append((method,url,copy.deepcopy(kw)))
+  path=urlsplit(url).path;params=kw.get('params',{})
+  mode=self.mode;nonuniform=mode.startswith('acl_') or mode in ('object_partial','missing_object_acl','duplicate_object','foreign_acl','multi_bucket','unknown_acl_bucket','metadata_private','embedded_acl_parents_omitted','object_writer_invalid','object_second_page_public','object_page_limit','empty_objects')
+  if path=='/storage/v1/b':
+   bucket={'name':BUCKET,'iamConfiguration':{'uniformBucketLevelAccess':{'enabled':not nonuniform},'publicAccessPrevention':'enforced' if mode.startswith('pap_') else 'inherited'}}
+   if mode=='hns':bucket['hierarchicalNamespace']={'enabled':True}
+   if mode=='malformed_uniform':bucket['iamConfiguration']=None
+   data={'items':[bucket]}
+   if mode=='multi_bucket':data['items'].append({**bucket,'name':'other-bucket'})
+  elif path.endswith('/iam') and '/storage/v1/b/' in path:
+   if mode=='denied_bucket_iam':raise gcp.ReadError('denied','forbidden')
+   bindings=[]
+   if mode in ('pap_write','public_write'):bindings=[{'role':'roles/storage.objectCreator','members':['allUsers']}]
+   if mode in ('pap_read','public_read'):bindings=[{'role':'roles/storage.objectViewer','members':['allUsers']}]
+   if mode=='bucket_custom':bindings=[{'role':'projects/demo-project/roles/custom','members':['allUsers']}]
+   data={'bindings':bindings,'version':3}
+  elif path=='/v3/'+SCOPE:data={'name':'projects/'+NUMBER,'projectId':'demo-project'}
+  elif path=='/v1/'+SCOPE+':getAncestry':
+   if mode=='denied_ancestry':raise gcp.ReadError('denied','forbidden')
+   data={'ancestor':[{'resourceId':{'type':'project','id':'wrong' if mode=='foreign_ancestry' else NUMBER}}]}
+   if mode.startswith('ancestor_'):data['ancestor'].append({'resourceId':{'type':'organization','id':'999'}})
+  elif path.endswith(':getIamPolicy'):
+   if mode=='denied_root_iam':raise gcp.ReadError('denied','forbidden')
+   data={'bindings':[]}
+   if path.startswith('/v3/organizations/'):
+    if mode=='ancestor_public':data['bindings']=[{'role':'roles/storage.objectViewer','members':['allUsers']}]
+    if mode=='ancestor_custom':data['bindings']=[{'role':'organizations/999/roles/custom','members':['allUsers']}]
+    if mode=='ancestor_conditional':data['bindings']=[{'role':'roles/storage.objectViewer','members':['allUsers'],'condition':{'expression':'true'}}]
+  elif path.startswith('/v3/organizations/'):data={'name':'organizations/999'}
+  elif path.endswith('/managedFolders'):
+   if mode=='denied_managed':raise gcp.ReadError('denied','forbidden')
+   data={'items':[{'name':'managed/'}] if mode=='managed' else []}
+  elif path.endswith('/acl'):
+   if mode=='acl_denied':raise gcp.ReadError('denied','forbidden')
+   bucket=path.split('/')[4]
+   entity='allUsers' if mode in ('acl_public_read','acl_public_write') or mode=='multi_bucket' and bucket=='other-bucket' else 'user-private-marker@example.com'
+   role='WRITER' if mode=='acl_public_write' else 'READER' if entity=='allUsers' else 'OWNER'
+   data={'items':[{'bucket':'foreign-bucket' if mode=='foreign_acl' else bucket,'entity':entity,'role':role}]}
+  elif path.endswith('/o'):
+   if mode=='object_partial' and params.get('pageToken'):raise gcp.ReadError('denied','forbidden')
+   bucket=path.split('/')[4];name='private-marker/document.csv';generation='1234'
+   if mode in ('object_second_page_public','object_page_limit') and params.get('pageToken'):
+    name='another-private-marker';generation='5678'
+   entry={'bucket':bucket,'object':name,'generation':generation,'entity':'allUsers' if mode=='acl_object_owner' or mode in ('object_second_page_public','object_page_limit') and params.get('pageToken') else 'user-private-marker@example.com','role':'OWNER'}
+   if mode=='embedded_acl_parents_omitted':entry={'entity':entry['entity'],'role':entry['role']}
+   if mode=='object_writer_invalid':entry['role']='WRITER'
+   obj={'bucket':bucket,'name':name,'generation':generation,'acl':[entry]}
+   if mode=='missing_object_acl':obj.pop('acl')
+   data={'items':[] if mode=='empty_objects' else [obj,obj] if mode=='duplicate_object' else [obj]}
+   if mode=='object_partial' or mode in ('object_second_page_public','object_page_limit') and not params.get('pageToken'):data['nextPageToken']='next'
+  elif path.startswith('/compute/v1/'):data={}
+  else:data={}
+  self.evidence.append({'id':rid,'url':url,'method':method,'status':'collected'})
+  return copy.deepcopy(data),rid
+
+@pytest.mark.parametrize('mode,expected',[
+ ('malformed_uniform',['UNKNOWN','UNKNOWN']),('embedded_acl_parents_omitted',['PASS','PASS']),('object_writer_invalid',['PASS','UNKNOWN']),
+ ('object_second_page_public',['PASS','FAIL']),('object_page_limit',['PASS','UNKNOWN']),('empty_objects',['PASS','PASS']),
+ ('no_inherited',['UNKNOWN','UNKNOWN']),('complete',['PASS','PASS']),('pap_write',['FAIL','FAIL']),('pap_read',['FAIL','PASS']),
+ ('public_write',['FAIL','FAIL']),('public_read',['FAIL','PASS']),('bucket_custom',['FAIL','UNKNOWN']),
+ ('ancestor_public',['FAIL','PASS']),('ancestor_custom',['UNKNOWN','UNKNOWN']),('ancestor_conditional',['UNKNOWN','UNKNOWN']),
+ ('denied_ancestry',['UNKNOWN','UNKNOWN']),('foreign_ancestry',['UNKNOWN','UNKNOWN']),('denied_root_iam',['UNKNOWN','UNKNOWN']),
+ ('hns',['UNKNOWN','UNKNOWN']),('managed',['UNKNOWN','UNKNOWN']),('denied_managed',['UNKNOWN','UNKNOWN']),
+ ('denied_bucket_iam',['UNKNOWN','UNKNOWN']),('acl_private',['PASS','PASS']),('metadata_private',['PASS','PASS']),
+ ('acl_public_read',['FAIL','PASS']),('acl_public_write',['FAIL','FAIL']),('acl_object_owner',['PASS','FAIL']),
+ ('acl_denied',['UNKNOWN','UNKNOWN']),('object_partial',['PASS','UNKNOWN']),('missing_object_acl',['PASS','UNKNOWN']),
+ ('duplicate_object',['PASS','UNKNOWN']),('foreign_acl',['UNKNOWN','UNKNOWN'])])
+def test_actual_storage_public_grant_and_acl_pipeline(mode,expected,monkeypatch):
+ api=API(mode);monkeypatch.setattr(gcp,'Credentials',lambda *a,**kw:None);monkeypatch.setattr(gcp,'Transport',lambda *a,**kw:api)
+ connector={'provider':'gcp','scopes':[SCOPE],'options':{'resource_iam':False,'metrics_scopes':False,'include_inherited':True,
+ 'sw51_policy':{'status':'collected','scope':SCOPE,'excludedPublicBuckets':[]}}}
+ if mode=='object_page_limit':connector['options']['max_pages']=1
+ if mode=='no_inherited':connector['options']['include_inherited']=False
+ snap=collect_live(connector,plan_collection({'connector':connector,'checks':CHECKS}))
+ report=evaluate_snapshot(snap,checks=CHECKS,include_not_applicable=True)
+ actual={cid:[f['status'] for f in report['findings'] if f['check_id']==cid] for cid in CHECKS}
+ assert all(actual[cid] and set(actual[cid])=={value} for cid,value in zip(CHECKS,expected)),actual
+ assert 'private-marker' not in json.dumps(snap)
+ assert all('/download/' not in url and (kw.get('params') or {}).get('alt')!='media' for method,url,kw in api.requests)
+ for method,url,kw in api.requests:
+  if url.endswith('/o'):assert kw['params']['projection']=='full' and kw['params']['versions']=='true'
+
+def test_multiple_native_bucket_acl_owners_are_joined_without_poisoning_neighbors(monkeypatch):
+ api=API('multi_bucket');monkeypatch.setattr(gcp,'Credentials',lambda *a,**kw:None);monkeypatch.setattr(gcp,'Transport',lambda *a,**kw:api)
+ connector={'provider':'gcp','scopes':[SCOPE],'options':{'resource_iam':False,'metrics_scopes':False,'include_inherited':True,'sw51_policy':{'status':'collected','scope':SCOPE,'excludedPublicBuckets':[]}}}
+ snap=collect_live(connector,plan_collection({'connector':connector,'checks':CHECKS}))
+ report=evaluate_snapshot(snap,checks=CHECKS,include_not_applicable=True)
+ actual={(f['check_id'],f['evidence']['bucket']):f['status'] for f in report['findings']}
+ assert actual=={(ACCESS,BUCKET):'PASS',(ACCESS,'other-bucket'):'FAIL',(WRITE,BUCKET):'PASS',(WRITE,'other-bucket'):'PASS'}

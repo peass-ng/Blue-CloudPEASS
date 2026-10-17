@@ -80,10 +80,29 @@
     }
   },
   "azure-compliance.control.cis_v130_2_12": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "review_classification": "invalid_predicate",
-    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_default_initiative_no_disabled_effects"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_default_initiative_no_disabled_effects implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "target_native_checks": [
+        "azure.claude.defender_default_initiative_no_disabled_effects"
+      ],
+      "resource": "Subscription scope; policy assignment SecurityCenterBuiltIn (collector kind policy_assignment)",
+      "property": "properties.parameters.*.value",
+      "pass_condition": "FAIL iff any SecurityCenterBuiltIn parameter value is 'Disabled'",
+      "upstream_defect_only": "count(value = 'Disabled') counts every non-null comparison, so any parameter alarms (aggregate defect only)",
+      "native_deviations": "missing SecurityCenterBuiltIn assignment is MANUAL (management-group inheritance) instead of ok"
+    },
     "official_docs": [
       "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
     ],
@@ -161,10 +180,29 @@
     }
   },
   "azure-compliance.control.cis_v140_2_12": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "review_classification": "invalid_predicate",
-    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_default_initiative_no_disabled_effects"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_default_initiative_no_disabled_effects implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "target_native_checks": [
+        "azure.claude.defender_default_initiative_no_disabled_effects"
+      ],
+      "resource": "Subscription scope; policy assignment SecurityCenterBuiltIn (collector kind policy_assignment)",
+      "property": "properties.parameters.*.value",
+      "pass_condition": "FAIL iff any SecurityCenterBuiltIn parameter value is 'Disabled'",
+      "upstream_defect_only": "count(value = 'Disabled') counts every non-null comparison, so any parameter alarms (aggregate defect only)",
+      "native_deviations": "missing SecurityCenterBuiltIn assignment is MANUAL (management-group inheritance) instead of ok"
+    },
     "official_docs": [
       "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
     ],
@@ -242,10 +280,29 @@
     }
   },
   "azure-compliance.control.cis_v150_2_6": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "review_classification": "invalid_predicate",
-    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_default_initiative_no_disabled_effects"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_default_initiative_no_disabled_effects implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "target_native_checks": [
+        "azure.claude.defender_default_initiative_no_disabled_effects"
+      ],
+      "resource": "Subscription scope; policy assignment SecurityCenterBuiltIn (collector kind policy_assignment)",
+      "property": "properties.parameters.*.value",
+      "pass_condition": "FAIL iff any SecurityCenterBuiltIn parameter value is 'Disabled'",
+      "upstream_defect_only": "count(value = 'Disabled') counts every non-null comparison, so any parameter alarms (aggregate defect only)",
+      "native_deviations": "missing SecurityCenterBuiltIn assignment is MANUAL (management-group inheritance) instead of ok"
+    },
     "official_docs": [
       "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
     ],
@@ -297,10 +354,29 @@
     }
   },
   "azure-compliance.control.cis_v200_2_1_14": {
-    "disposition": "rejected",
-    "native_checks": [],
-    "review_classification": "invalid_predicate",
-    "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation.",
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.defender_default_initiative_no_disabled_effects"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.claude.defender_default_initiative_no_disabled_effects implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL count(value=Disabled) counts every non-null boolean including FALSE, so a parameter Audit incorrectly alarms and is counted as disabled. Correct filtered cardinality is count(*) FILTER (WHERE value=Disabled). Counterexample proves arithmeticwrong, not missingimplementation."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "securitycenter_asc_default_setting_not_disabled",
+      "target_native_checks": [
+        "azure.claude.defender_default_initiative_no_disabled_effects"
+      ],
+      "resource": "Subscription scope; policy assignment SecurityCenterBuiltIn (collector kind policy_assignment)",
+      "property": "properties.parameters.*.value",
+      "pass_condition": "FAIL iff any SecurityCenterBuiltIn parameter value is 'Disabled'",
+      "upstream_defect_only": "count(value = 'Disabled') counts every non-null comparison, so any parameter alarms (aggregate defect only)",
+      "native_deviations": "missing SecurityCenterBuiltIn assignment is MANUAL (management-group inheritance) instead of ok"
+    },
     "official_docs": [
       "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/2024-04-01/policyassignments"
     ],

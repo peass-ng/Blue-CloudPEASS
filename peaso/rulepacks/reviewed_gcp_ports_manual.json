@@ -12,7 +12,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L187"
     },
     "manual_requirement": {
       "question": "1.12 Ensure API keys are not created for a project",
@@ -57,7 +59,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L47"
     },
     "manual_requirement": {
       "question": "1.2 Ensure that multi-factor authentication is enabled for all non-service accounts",
@@ -102,7 +106,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L61"
     },
     "manual_requirement": {
       "question": "1.3 Ensure that Security Key Enforcement is enabled for all admin accounts",
@@ -147,7 +153,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L155"
     },
     "manual_requirement": {
       "question": "4.10 Ensure that App Engine applications enforce HTTPS connections",
@@ -192,7 +200,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L59"
     },
     "manual_requirement": {
       "question": "6.1.1 Ensure that a MySQL database instance does not allow anyone to connect with administrative privileges",
@@ -238,7 +248,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L297"
     },
     "manual_requirement": {
       "question": "6.2.13 Ensure that the 'log_min_messages' database flag for Cloud SQL PostgreSQL instance is set appropriately",
@@ -284,7 +296,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L143"
     },
     "manual_requirement": {
       "question": "6.2.2 Ensure 'log_error_verbosity' database flag for Cloud SQL PostgreSQL instance is set to 'DEFAULT' or stricter",
@@ -330,7 +344,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L213"
     },
     "manual_requirement": {
       "question": "6.2.7 Ensure 'log_statement' database flag for Cloud SQL PostgreSQL instance is set appropriately",
@@ -376,7 +392,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L190"
     },
     "manual_requirement": {
       "question": "1.12 Ensure API keys are not created for a project",
@@ -421,7 +439,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_18",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L274"
     },
     "manual_requirement": {
       "question": "1.18 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
@@ -466,7 +486,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L50"
     },
     "manual_requirement": {
       "question": "1.2 Ensure that multi-factor authentication is enabled for all non-service accounts",
@@ -511,7 +533,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L64"
     },
     "manual_requirement": {
       "question": "1.3 Ensure that Security Key Enforcement is enabled for all admin accounts",
@@ -556,7 +580,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L215"
     },
     "manual_requirement": {
       "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
@@ -601,7 +627,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L156"
     },
     "manual_requirement": {
       "question": "4.10 Ensure that App Engine applications enforce HTTPS connections",
@@ -646,7 +674,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L184"
     },
     "manual_requirement": {
       "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Projects",
@@ -691,7 +721,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L59"
     },
     "manual_requirement": {
       "question": "6.1.1 Ensure that a MySQL database instance does not allow anyone to connect with administrative privileges",
@@ -737,7 +769,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L122"
     },
     "manual_requirement": {
       "question": "6.2.1 Ensure 'log_error_verbosity' database flag for Cloud SQL PostgreSQL instance is set to 'DEFAULT' or stricter",
@@ -783,7 +817,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L164"
     },
     "manual_requirement": {
       "question": "6.2.4 Ensure 'log_statement' database flag for Cloud SQL PostgreSQL instance is set appropriately",
@@ -829,7 +865,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L192"
     },
     "manual_requirement": {
       "question": "6.2.6 Ensure that the 'log_min_messages' database flag for Cloud SQL PostgreSQL instance is set appropriately",
@@ -875,7 +913,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L190"
     },
     "manual_requirement": {
       "question": "1.12 Ensure API Keys Only Exist for Active Services",
@@ -920,7 +960,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_18",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L274"
     },
     "manual_requirement": {
       "question": "1.18 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
@@ -965,7 +1007,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L50"
     },
     "manual_requirement": {
       "question": "1.2 Ensure that multi-factor authentication is enabled for all non-service accounts",
@@ -1010,7 +1054,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L64"
     },
     "manual_requirement": {
       "question": "1.3 Ensure that Security Key Enforcement is enabled for all admin accounts",
@@ -1055,7 +1101,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L216"
     },
     "manual_requirement": {
       "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
@@ -1100,7 +1148,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L156"
     },
     "manual_requirement": {
       "question": "4.10 Ensure that App Engine applications enforce HTTPS connections",
@@ -1145,7 +1195,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L184"
     },
     "manual_requirement": {
       "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Projects",
@@ -1190,7 +1242,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L59"
     },
     "manual_requirement": {
       "question": "6.1.1 Ensure that a MySQL database instance does not allow anyone to connect with administrative privileges",
@@ -1236,7 +1290,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_17",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L259"
     },
     "manual_requirement": {
       "question": "1.17 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
@@ -1281,7 +1337,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L49"
     },
     "manual_requirement": {
       "question": "1.2 Ensure that Multi-Factor Authentication is 'Enabled' for All Non-Service Accounts",
@@ -1326,7 +1384,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L63"
     },
     "manual_requirement": {
       "question": "1.3 Ensure that Security Key Enforcement is Enabled for All Admin Accounts",
@@ -1371,7 +1431,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L216"
     },
     "manual_requirement": {
       "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
@@ -1416,7 +1478,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L156"
     },
     "manual_requirement": {
       "question": "4.10 Ensure That App Engine Applications Enforce HTTPS Connections",
@@ -1461,7 +1525,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L184"
     },
     "manual_requirement": {
       "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Project",
@@ -1506,7 +1572,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L59"
     },
     "manual_requirement": {
       "question": "6.1.1 Ensure That a MySQL Database Instance Does Not Allow Anyone To Connect With Administrative Privileges",
@@ -1552,7 +1620,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_7_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_7.pp#L65"
     },
     "manual_requirement": {
       "question": "7.4 Ensure all data in BigQuery has been classified",
@@ -1597,7 +1667,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_17",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L259"
     },
     "manual_requirement": {
       "question": "1.17 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
@@ -1642,7 +1714,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L49"
     },
     "manual_requirement": {
       "question": "1.2 Ensure that Multi-Factor Authentication is 'Enabled' for All Non-Service Accounts",
@@ -1687,7 +1761,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L63"
     },
     "manual_requirement": {
       "question": "1.3 Ensure that Security Key Enforcement is Enabled for All Admin Accounts",
@@ -1732,7 +1808,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L216"
     },
     "manual_requirement": {
       "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
@@ -1777,7 +1855,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L156"
     },
     "manual_requirement": {
       "question": "4.10 Ensure That App Engine Applications Enforce HTTPS Connections",
@@ -1822,7 +1902,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L184"
     },
     "manual_requirement": {
       "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Projects",
@@ -1867,7 +1949,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L59"
     },
     "manual_requirement": {
       "question": "6.1.1 Ensure That a MySQL Database Instance Does Not Allow Anyone To Connect With Administrative Privileges",
@@ -1913,7 +1997,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_7_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_7.pp#L65"
     },
     "manual_requirement": {
       "question": "7.4 Ensure all data in BigQuery has been classified",
@@ -1958,7 +2044,9 @@
       "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
       "source_path": "policy_bundle/manual.pp",
       "source_line": 1,
-      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665"
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.service_versions",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/appengine.pp#L7"
     },
     "manual_requirement": {
       "question": "Limit the number of App Engine application versions simultaneously running or installed",

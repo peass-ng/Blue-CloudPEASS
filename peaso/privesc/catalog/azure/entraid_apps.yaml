@@ -1,7 +1,12 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Entra ID application / service-principal takeover (credential injection, ownership,
 # Graph app-role self-grant, Agent ID blueprints).
 # Source: hacktricks-cloud az-entraid-privesc/README.md, az-persistence/README.md,
-# az-unauthenticated-enum-and-initial-entry/az-oauth-apps-phishing.md (rev a53b46392c).
+# az-unauthenticated-enum-and-initial-entry/az-oauth-apps-phishing.md (rev 171e422; all entries re-verified against the page text at that revision).
 #
 # Requirement keys: see header of entraid_roles.yaml. Additionally:
 #   entra_owner_of: "{target.application_id}" | "{target.id}"   with object_type:
@@ -19,7 +24,7 @@
   service: entraid
   title: Add credentials to any application registration
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryapplicationscredentialsupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal allowed to update application credentials (e.g. Application Administrator, Cloud Application Administrator) can obtain the privileges of the service principal of any app registration in its scope.
   requires:
     any_of:
@@ -52,7 +57,7 @@
   service: entraid
   title: Add credentials to single-tenant application registrations
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryapplicationsmyorganizationallpropertiesupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal holding applications.myOrganization credential/allProperties update can obtain the privileges of the service principal of any single-tenant app registration in its scope.
   requires:
     any_of:
@@ -84,7 +89,7 @@
   service: entraid
   title: Make yourself owner of any application registration
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryapplicationsownersupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal allowed to update application owners can obtain the privileges of the service principal of any app registration in its scope.
   requires:
     all_of:
@@ -112,8 +117,8 @@
   provider: azure
   service: entraid
   title: Application owner adds credentials to the owned app
-  source: src/pentesting-cloud/azure-security/az-unauthenticated-enum-and-initial-entry/az-oauth-apps-phishing.md#entra-id-applications-admin
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryapplicationsownersupdate
+  source_revision: a66f094ede
   summary: A registered owner of an application can obtain the privileges of that application's service principal.
   requires:
     all_of:
@@ -127,6 +132,8 @@
     scope: tenant
     aggregate_as: "Service principals of app registrations owned by {source}"
   conditions:
+    - id: service_principal_owner_needs_ownedby
+      description: When the owner is a service principal acting app-only, adding the credential through Graph also needs Application.ReadWrite.OwnedBy (or Application.ReadWrite.All) on that owner; user owners need no extra permission.
     - id: app_management_policy
       description: Application management policies can block password credentials or restrict credential lifetimes for the owned app.
     - id: service_principal_conditional_access
@@ -137,14 +144,14 @@
   mitigation: Do not make non-Tier-0 users or service principals owners of apps whose service principals hold privileged roles or app permissions; review app owners regularly.
   references:
     - https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/custom-available-permissions
-  notes: Owners also include service principals that own other apps (e.g. via Application.ReadWrite.OwnedBy). Severity should be raised to critical when the owned app's SP holds privileged roles / Graph app roles.
+  notes: Owners also include service principals that own other apps (e.g. via Application.ReadWrite.OwnedBy). Severity should be raised to critical when the owned app's SP holds privileged roles / Graph app roles. Source is the owners/update section, which states that ownership gives control of the app's credentials; az-oauth-apps-phishing.md#entra-id-applications-admin (the previous source) only covers redirect-URI and requested-permission changes, which stay excluded.
 
 - id: azure-entraid-sp-credentials-update
   provider: azure
   service: entraid
   title: Add credentials to any service principal
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryserviceprincipalscredentialsupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal allowed to update service-principal credentials can obtain the privileges of any application-type service principal in its scope.
   requires:
     any_of:
@@ -179,7 +186,7 @@
   service: entraid
   title: Make yourself owner of any service principal
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryserviceprincipalsownersupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal allowed to update service-principal owners can obtain the privileges of any application-type service principal in its scope.
   requires:
     all_of:
@@ -209,7 +216,7 @@
   service: entraid
   title: Service principal owner adds credentials to the owned service principal
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectoryserviceprincipalsownersupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A registered owner of a service principal can obtain the privileges of that service principal.
   requires:
     all_of:
@@ -239,7 +246,7 @@
   service: entraid
   title: Graph Application.ReadWrite.All adds credentials to any app or service principal
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#applicationreadwriteall
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A service principal holding the Graph Application.ReadWrite.All application permission can obtain the privileges of any application-type service principal in the tenant.
   requires:
     all_of:
@@ -269,7 +276,7 @@
   service: entraid
   title: Graph AppRoleAssignment.ReadWrite.All self-grants Graph application roles
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#approleassignmentreadwriteall
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A service principal holding the Graph AppRoleAssignment.ReadWrite.All application permission can obtain the privileges of any Graph application permission and, through it, of any Entra directory role.
   requires:
     all_of:
@@ -297,7 +304,7 @@
   service: entraid
   title: Add credentials to an Entra Agent ID blueprint and act as its agents
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#entra-agent-id-blueprint-credential-abuse-agentidentityblueprintaddremovecredsall
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal holding AgentIdentityBlueprint.AddRemoveCreds.All can obtain the privileges of any agent identity blueprint principal and of its child agent identities.
   requires:
     any_of:
@@ -320,30 +327,3 @@
     - https://learn.microsoft.com/en-us/entra/agent-id/agent-blueprint
     - https://learn.microsoft.com/en-us/entra/agent-id/autonomous-agent-authentication-authorization-flow
   notes: The directory permission agentIdentityBlueprints/credentials/update is held by Agent ID Administrator, AI Administrator and Global Administrator (built-in role definitions, checked 2026-10). Blueprint owners who can manage the blueprint application are covered by the generic application owner entries; the extra child-agent reach applies to them as well. Entra Agent ID is a newer (preview-era) feature; validate behaviour per tenant.
-
-- id: azure-entraid-graph-delegatedpermissiongrant-allprincipals
-  provider: azure
-  service: entraid
-  title: Graph DelegatedPermissionGrant.ReadWrite.All creates tenant-wide delegated consent
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#delegatedpermissiongrantreadwriteall
-  source_revision: a53b46392c
-  summary: A service principal holding DelegatedPermissionGrant.ReadWrite.All can obtain delegated privileges of users who sign in to a client it controls, for any delegated scope.
-  requires:
-    all_of:
-      - graph_app_permission: DelegatedPermissionGrant.ReadWrite.All
-  target:
-    kind: azure_user
-    selector:
-      any_principal_in_scope: true
-    scope: tenant
-    aggregate_as: "Users of {scope} who sign in to an attacker-controlled client (delegated scopes)"
-  conditions:
-    - id: requires_victim_sign_in
-      description: A target user must still authenticate to the attacker-controlled client; the token is bounded by the delegated scopes and the user's own permissions (and Conditional Access).
-  blockers: []
-  confidence: conditional
-  severity: medium
-  mitigation: Restrict DelegatedPermissionGrant.ReadWrite.All to Tier-0 apps and alert on AllPrincipals oauth2PermissionGrant creation.
-  references:
-    - https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-post?view=graph-rest-1.0
-  notes: Bypasses the admin-consent boundary but not user authentication; edges are conditional on user interaction and should not be treated as silent takeover.

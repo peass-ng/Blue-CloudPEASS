@@ -355,3 +355,29 @@ def test_managed_identity_federation_complete_empty_and_denied_are_distinct(mode
     if mode == "denied":
         assert collection["error"]["code"] == "403"
     assert all(not any(operation in url.lower() for operation in ("create", "update", "listkeys", "secrets")) for url, _ in calls)
+
+
+@pytest.mark.parametrize("denied", [False, True])
+def test_service_principal_observed_first_party_fields_selected_and_retained_without_inference(denied):
+    calls = []
+    class Principals:
+        tenant = "tenant"
+        def request(self, url, body=None, audience=None):
+            calls.append(url)
+            assert audience == "https://graph.microsoft.com"
+            selected = url.split("$select=", 1)[1].split(",")
+            assert {"appOwnerOrganizationId", "servicePrincipalType", "appId"} <= set(selected)
+            if denied:
+                raise AzureReadError("403", 403)
+            return {"value": [{"id": "principal", "appId": "observed-app", "appOwnerOrganizationId": "observed-owner-org", "servicePrincipalType": "Application"}]}
+    snapshot = collect({"scopes": ["sub"]}, ["directory_service_principal"], transport=Principals())
+    row = next(item for item in snapshot["collections"] if item["type"] == "directory_service_principal")
+    assert len(calls) == 1
+    if denied:
+        assert row["status"] == "denied" and row["items"] == []
+    else:
+        assert row["status"] == "collected"
+        assert {key: row["items"][0][key] for key in ("id", "appId", "appOwnerOrganizationId", "servicePrincipalType")} == {"id": "principal", "appId": "observed-app", "appOwnerOrganizationId": "observed-owner-org", "servicePrincipalType": "Application"}
+        assert row["items"][0]["_provenance"]["tenant_id"] == "tenant"
+        assert row["items"][0]["_provenance"]["tenant_verified"] is False
+        assert "first_party" not in row["items"][0]

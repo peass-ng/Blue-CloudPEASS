@@ -14,6 +14,56 @@ ADMIN_TYPES = ("aws_account_admin", "gcp_scope_owner", "azure_scope_owner", "k8s
 GLOBAL_ADMIN_TEMPLATE = "62e90394-69f5-4237-9190-012177145e10"
 
 
+def _diagnostic_node(node):
+    if not node:
+        return True
+    return (str(node.get("id", "")).startswith(("unknown:", "unresolved:"))
+            or bool(node.get("unresolved"))
+            or (node.get("kind") == "aggregate" and
+                (node.get("confidence") == "unknown" or not node.get("members"))))
+
+
+def known_target_graph(graph):
+    """Return a public path graph without diagnostic reaches from older reports.
+
+    New scans already omit these reaches. Older stored graphs can contain
+    memberless target placeholders and unknown-confidence source groups. Keep
+    their coverage in the report, while removing the graph paths that do not
+    name a reached principal or proven bounded authority. Return the original
+    object when it is already clean, so hosted clean graphs stay presignable.
+    """
+    nodes = graph.get("nodes") or []
+    edges = graph.get("edges") or []
+    kept = [n for n in nodes if not _diagnostic_node(n)]
+    ids = {n["id"] for n in kept}
+    clean_edges = []
+    changed = len(kept) != len(nodes)
+    for edge in edges:
+        if (edge.get("source") not in ids or edge.get("target") not in ids
+                or edge.get("confidence") == "unknown"):
+            changed = True
+            continue
+        details = edge.get("technique_details")
+        if not isinstance(details, list) or not any(d.get("confidence") == "unknown" for d in details):
+            clean_edges.append(edge)
+            continue
+        changed = True
+        known = [d for d in details if d.get("confidence") != "unknown"]
+        if not known:
+            continue
+        names = {d.get("id") for d in known}
+        refs = []
+        for detail in known:
+            for ref in detail.get("evidence_refs") or []:
+                if ref not in refs:
+                    refs.append(ref)
+        clean_edges.append({**edge, "technique_details": known,
+                            "techniques": [t for t in edge.get("techniques") or [] if t in names],
+                            "findings": [d["finding"] for d in known if d.get("finding")],
+                            "evidence_refs": refs})
+    return {**graph, "nodes": kept, "edges": clean_edges} if changed else graph
+
+
 class GraphIndex:
     def __init__(self, graph):
         self.nodes = {n["id"]: n for n in graph.get("nodes", [])}
@@ -40,25 +90,33 @@ class GraphIndex:
             return True
         return False
 
-    def successors(self, node_id, include_unknown=True):
+    def successors(self, node_id, include_unknown=False):
         """(next node, edge or None, confidence) — edge None means an implicit membership hop."""
         node = self.nodes.get(node_id) or {}
+        if not include_unknown and _diagnostic_node(node):
+            return
         if node.get("kind") == "aggregate" and node.get("type") != "principal_group":
             for member in node.get("members") or []:
-                yield member, None, node.get("confidence", "derived")
+                if include_unknown or not _diagnostic_node(self.nodes.get(member)):
+                    yield member, None, node.get("confidence", "derived")
         for edge in self.out.get(node_id, []):
-            if include_unknown or edge["confidence"] != "unknown":
+            if include_unknown or (edge["confidence"] != "unknown" and
+                                   not _diagnostic_node(self.nodes.get(edge["target"]))):
                 yield edge["target"], edge, edge["confidence"]
         if include_unknown:
             for group in self.member_of_source.get(node_id, []):
                 yield group, None, "unknown"
 
-    def predecessors(self, node_id, include_unknown=True):
+    def predecessors(self, node_id, include_unknown=False):
+        if not include_unknown and _diagnostic_node(self.nodes.get(node_id)):
+            return
         for edge in self.inc.get(node_id, []):
-            if include_unknown or edge["confidence"] != "unknown":
+            if include_unknown or (edge["confidence"] != "unknown" and
+                                   not _diagnostic_node(self.nodes.get(edge["source"]))):
                 yield edge["source"], edge, edge["confidence"]
         for agg in self.member_of_target.get(node_id, []):
-            yield agg, None, (self.nodes.get(agg) or {}).get("confidence", "derived")
+            if include_unknown or not _diagnostic_node(self.nodes.get(agg)):
+                yield agg, None, (self.nodes.get(agg) or {}).get("confidence", "derived")
         node = self.nodes.get(node_id) or {}
         if include_unknown and node.get("type") == "principal_group":
             for member in node.get("members") or []:
@@ -74,7 +132,7 @@ def _is_principal(index, node_id):
     return node is None or node.get("kind") == "principal"
 
 
-def reach_admin(graph, *, max_depth=6, include_unknown=True):
+def reach_admin(graph, *, max_depth=6, include_unknown=False):
     """Principals that reach an admin-equivalent entity, with distance and confidence.
 
     Reverse multi-source BFS from every admin entity; the confidence of a path is
@@ -113,9 +171,12 @@ def reach_admin(graph, *, max_depth=6, include_unknown=True):
     return out
 
 
-def shortest_paths(graph, source, target=None, *, max_depth=6, limit=10, include_unknown=True):
+def shortest_paths(graph, source, target=None, *, max_depth=6, limit=10, include_unknown=False):
     """Shortest bounded paths from source to target (or to every admin entity when target is None)."""
     index = _index(graph)
+    if not include_unknown and (_diagnostic_node(index.nodes.get(source)) or
+                                (target is not None and _diagnostic_node(index.nodes.get(target)))):
+        return []
     goal = (lambda n: n == target) if target else index.is_admin
     parents = {source: None}
     depth = {source: 0}

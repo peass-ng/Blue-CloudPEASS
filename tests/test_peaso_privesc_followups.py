@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 
 from peaso import privesc
+from peaso.privesc.versioned_catalog import _verified_prior
 from peaso.privesc.effective_permissions import ANY, Node
 from peaso.privesc.effective_permissions.aws import AwsModel
 from peaso.privesc.effective_permissions.azure import AzureModel
@@ -28,6 +29,12 @@ def entry(eid, provider, requires, target, **extra):
 
 def catalog_entry(eid):
     return next(e for e in privesc.catalog()["entries"] if e["id"] == eid)
+
+
+def archived_catalog_entry(eid):
+    assert eid not in {e["id"] for e in privesc.catalog()["entries"]}
+    prior, _ = _verified_prior()
+    return prior[eid]
 
 
 def edges(result, source=None, technique=None):
@@ -326,7 +333,7 @@ def _k8s(secrets=None):
 
 def test_gcp_token_secret_targets_without_join_are_unresolved():
     snap = gcp_snap([{"role": "projects/p1/roles/secrets", "members": ["user:alice@x.com"]}], roles=[SECRETS], extra=[CLUSTER])
-    result = privesc.analyze(snap, entries=[TOKEN])
+    result = privesc.analyze(snap, entries=[TOKEN], include_unknown=True)
     got = reached(result, "user:alice@x.com")
     assert len(got) == 1 and next(iter(got)).startswith("unresolved:k8s_service_account:") and list(got.values()) == ["unknown"]
     assert edges(privesc.analyze(gcp_snap([], roles=[SECRETS], extra=[CLUSTER]), entries=[TOKEN])) == []
@@ -336,7 +343,7 @@ def test_gcp_token_secret_targets_joined_with_k8s_snapshot():
     snap = gcp_snap([{"role": "projects/p1/roles/secrets", "members": ["user:alice@x.com"]}], roles=[SECRETS], extra=[CLUSTER])
     result = privesc.analyze(snap, entries=[TOKEN], related_snapshots=[_k8s(secrets=True)])
     assert reached(result, "user:alice@x.com") == {f"k8s:{GKE}:sa:a:builder": "derived"}
-    result = privesc.analyze(snap, entries=[TOKEN], related_snapshots=[_k8s()])
+    result = privesc.analyze(snap, entries=[TOKEN], related_snapshots=[_k8s()], include_unknown=True)
     # Joined snapshot without Secret metadata: not proven, one unresolved placeholder (no members).
     got = reached(result, "user:alice@x.com")
     assert list(got.values()) == ["unknown"] and next(iter(got)).startswith("unresolved:k8s_service_account:")
@@ -344,8 +351,26 @@ def test_gcp_token_secret_targets_joined_with_k8s_snapshot():
     assert node["label"].startswith("Unresolved: ") and node["underlying_count"] == 0 and node["members"] == []
 
 
+def test_gcp_token_secret_join_matches_collector_origin_digest_and_secret_metadata():
+    """Real K8s collector shape: items carry no cluster_id, the snapshot metadata holds
+    `k8s-cluster:<sha256(https://endpoint)>`, and Secrets are collected as `secret_metadata`."""
+    import hashlib
+    cluster = ("gke_cluster", "projects/p1", [{**CLUSTER[2][0], "endpoint": "34.1.2.3"}])
+    cid = "k8s-cluster:" + hashlib.sha256(b"https://34.1.2.3").hexdigest()
+    def obj(kind, name, **body):
+        return {"kind": kind, "metadata": {"name": name, "namespace": "a", **body.pop("meta", {})}, **body}
+    k8s = snapshot("k8s", [
+        ("serviceaccount", "*", [obj("ServiceAccount", n) for n in ("builder", "default")]),
+        ("secret_metadata", "*", [obj("PartialObjectMetadata", "builder-token", type="kubernetes.io/service-account-token",
+                                      meta={"annotations": {"kubernetes.io/service-account.name": "builder"}})])])
+    k8s["metadata"] = {"cluster_id": cid, "context": "gke_p1_us-central1_c1"}
+    snap = gcp_snap([{"role": "projects/p1/roles/secrets", "members": ["user:alice@x.com"]}], roles=[SECRETS], extra=[cluster])
+    result = privesc.analyze(snap, entries=[TOKEN], related_snapshots=[k8s])
+    assert reached(result, "user:alice@x.com") == {f"k8s:{cid}:sa:a:builder": "derived"}
+
+
 def test_gcp_workspace_super_admin_reaches_org_owner_only():
-    ws = catalog_entry("gcp-workspace-super-admin-org-admin")
+    ws = archived_catalog_entry("gcp-workspace-super-admin-org-admin")
     ancestry = [{"resourceId": {"type": "project", "id": "p1"}}, {"resourceId": {"type": "organization", "id": "42"}}]
     users = ("workspace_user", "customers/C1", [{"primaryEmail": "boss@x.com", "id": "1", "isAdmin": True},
                                                 {"primaryEmail": "alice@x.com", "id": "2", "isAdmin": False}])
@@ -372,14 +397,6 @@ def _k8s_cluster(ns_annotations=None, sa_annotations=None):
         ("serviceaccount", "c1", [obj("ServiceAccount", "app", "a", sa_annotations)]),
         ("namespace", "c1", [obj("Namespace", "a", annotations=ns_annotations), obj("Namespace", "b")]),
         ("pod", "c1", []), ("node", "c1", [])])
-
-
-def test_kube2iam_permitted_regex_matches_role_names():
-    k8s = _k8s_cluster(ns_annotations={"iam.amazonaws.com/permitted": "app-.*"})
-    aws = aws_snap([], [role("app-web", trust_service("ec2.amazonaws.com")), role("admin", trust_service("ec2.amazonaws.com"))])
-    result = privesc.analyze(k8s, entries=[catalog_entry("k8s-cloud-kiam-kube2iam-annotation")], related_snapshots=[aws])
-    hit = reached(result, "k8s:c1:user:dev")
-    assert set(hit) == {f"cloud:kube2iam:arn:aws:iam::{ACCOUNT}:role/app-web"}
 
 
 def test_related_snapshot_joins_irsa_identity_to_iam_role():

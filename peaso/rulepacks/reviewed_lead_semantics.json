@@ -1,0 +1,335 @@
+{
+  "aws-compliance.control.cis_v130_1_19": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L292",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v140_1_19": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L291",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v150_1_19": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L291",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v200_1_19": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L292",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v300_1_19": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L292",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v400_1_19": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L292",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v500_1_18": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L277",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v600_2_18": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L277",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.iam_server_certificate_not_expired": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned predicate compares Expiration against current_date minus one second, rather than the captured current timestamp. A certificate expiring at 09:00 UTC today is reported ok at 12:00 UTC today; an expiry at the previous-day 23:59:59 boundary also remains ok. Expiration is an AWS timestamp. This is a concrete falsePASS against the expired-certificate requirement, not a missing-fact or collector limitation; a corrected timestamp evaluator would be a separate native predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L55",
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v120_1_20": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L306",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v130_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L264",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v140_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L263",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v150_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L263",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v200_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L264",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v300_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L264",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v400_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L264",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v500_1_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L249",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.cis_v600_2_16": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L249",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  },
+  "aws-compliance.control.iam_support_role": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "The complete pinned LEFT JOIN filters attached policies before grouping by account. If every role has a non-support nonempty attachment, the account disappears instead of emitting the intended count-zero alarm. In addition, matching only the policy name accepts an account-owned policy called AWSSupportAccess with unrelated permissions. Official AWS policy identity distinguishes AWS-managed and customer-managed policies. These are concrete absence and falsePASS defects, not missing inventories; no automated support is claimed for this source.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "reviewed_query_id": "iam_support_role",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L465",
+      "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420"
+    },
+    "review_notes": "Independent lead review of literal source, calling control, official API semantics and timestamp/absence/identity differential fixtures; all original framework/control/version metadata retained. No unavailable-fact rejection or false support."
+  }
+}

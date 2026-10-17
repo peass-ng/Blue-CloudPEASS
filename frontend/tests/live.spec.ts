@@ -28,7 +28,7 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
     .getByLabel("Connector name", { exact: true })
     .fill("Offline validation fixture");
   await page
-    .getByText("Advanced native configuration", { exact: true })
+    .getByText("Advanced configuration", { exact: true })
     .click();
   await page.getByLabel("Additional collector options JSON").fill(
     JSON.stringify(
@@ -129,23 +129,20 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
     path: "evidence/live-native-findings.png",
     fullPage: true,
   });
-  for (const label of ["Network Map", "IAM Risk Map"]) {
+  for (const label of ["Network Map"]) {
     await page
       .getByRole("navigation")
       .getByRole("button", { name: label, exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "Show assets", exact: true })
-      .click();
     await expect(page.locator(".react-flow__node").first()).toBeVisible();
     await page.screenshot({
-      path: `evidence/live-${label === "Network Map" ? "network" : "iam"}-map.png`,
+      path: "evidence/live-network-map.png",
       fullPage: true,
     });
     await page.getByRole("button", { name: "Table", exact: true }).click();
-    await expect(page.locator(".graph-table-row").first()).toBeVisible();
-    await page.locator(".graph-table-row").first().click();
-    await expect(page.getByRole("dialog")).toContainText("Asset evidence");
+    await expect(page.locator(".network-table-row").first()).toBeVisible();
+    await page.locator(".network-table-main").first().click();
+    await expect(page.getByRole("dialog")).toContainText("Network resource");
     await page.getByRole("button", { name: "Close inspector" }).click();
   }
   if (process.env.PEASO_TEST_REACHABILITY) {

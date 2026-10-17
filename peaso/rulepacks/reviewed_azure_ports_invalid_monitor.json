@@ -1,0 +1,218 @@
+{
+  "azure-compliance.control.cis_v130_5_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Global LIMIT 1 selects one alert across accessible subscriptions before per-subscription existence join; two compliant subscriptions produce one false alarm. SQL firewall variant also targets parent microsoft.sql/servers rather than Microsoft.Sql/servers/firewallRules. Scope/operation corrections are not exact source equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/activity-log-alerts/list-by-subscription-id?view=rest-monitor-2020-10-01"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_create_update_nsg_rule",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 563,
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and (\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"operationName\", \"equals\": \"Microsoft.Network/networksecuritygroups/securityrules/write\"}]'\n          )\n          or\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"resourceType\", \"equals\": \"microsoft.network/networksecuritygroups/securityrules\"}]'\n            and jsonb_array_length(alert.condition -> 'allOf') = 2\n          )\n        )\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for create or update Network Security Group Rule event.'\n        else 'Activity log alert does not exists for create or update Network Security Group Rule event.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "ee18b99aafc0c23935f14f480175b42d2e1889dd9962da8a8704bc79353f533a",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "matching_alerts_each": 1,
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ]
+      },
+      "pinned_sql_sha256": "045431dfb1b03d30c62b994e4aa6ff9423336cac1ca247b5b960685ccbbd6a06",
+      "upstream_evaluator_sha256": "ee18b99aafc0c23935f14f480175b42d2e1889dd9962da8a8704bc79353f533a",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v130_5_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Global LIMIT 1 selects one alert across accessible subscriptions before per-subscription existence join; two compliant subscriptions produce one false alarm. SQL firewall variant also targets parent microsoft.sql/servers rather than Microsoft.Sql/servers/firewallRules. Scope/operation corrections are not exact source equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/activity-log-alerts/list-by-subscription-id?view=rest-monitor-2020-10-01"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_delete_nsg_rule",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 825,
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and (\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"operationName\", \"equals\": \"Microsoft.Network/networksecuritygroups/securityrules/delete\"}]'\n          )\n          or\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"resourceType\", \"equals\": \"microsoft.network/networksecuritygroups/securityrules\"}]'\n            and jsonb_array_length(alert.condition -> 'allOf') = 2\n          )\n        )\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for delete Network Security Group Rule event.'\n        else 'Activity log alert does not exists for delete Network Security Group Rule event.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "10aded719ed9efc9bca054e31491ad56fe85b08a02f5a2e79acc7a07562f5328",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "matching_alerts_each": 1,
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ]
+      },
+      "pinned_sql_sha256": "d526770b1584b0fb8eaf7de0d996ee60caf894ebf7e1fa64d3010209cc6887e1",
+      "upstream_evaluator_sha256": "10aded719ed9efc9bca054e31491ad56fe85b08a02f5a2e79acc7a07562f5328",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v130_5_2_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Global LIMIT 1 selects one alert across accessible subscriptions before per-subscription existence join; two compliant subscriptions produce one false alarm. SQL firewall variant also targets parent microsoft.sql/servers rather than Microsoft.Sql/servers/firewallRules. Scope/operation corrections are not exact source equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/activity-log-alerts/list-by-subscription-id?view=rest-monitor-2020-10-01"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_sql_firewall_rule",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1127,
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n        and alert.condition -> 'allOf' @> '[{\"field\": \"resourceType\", \"equals\": \"microsoft.sql/servers\"}]'\n        and jsonb_array_length(alert.condition -> 'allOf') = 2\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for create, update and delete SQL Server Firewall Rule event.'\n        else 'Activity log alert does not exists for create, update and delete SQL Server Firewall Rule event.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "836a3b5e088b4d863a662526e17e88ef0493b20aa42ff83af23b556c7ac7f2eb",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "matching_alerts_each": 1,
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ]
+      },
+      "pinned_sql_sha256": "bbbe9cd7c380e6c2d2d40505c80ecd2144c04858e39691211ef5d8728dee3e90",
+      "upstream_evaluator_sha256": "836a3b5e088b4d863a662526e17e88ef0493b20aa42ff83af23b556c7ac7f2eb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v140_5_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Global LIMIT 1 selects one alert across accessible subscriptions before per-subscription existence join; two compliant subscriptions produce one false alarm. SQL firewall variant also targets parent microsoft.sql/servers rather than Microsoft.Sql/servers/firewallRules. Scope/operation corrections are not exact source equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/activity-log-alerts/list-by-subscription-id?view=rest-monitor-2020-10-01"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_create_update_nsg_rule",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 563,
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and (\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"operationName\", \"equals\": \"Microsoft.Network/networksecuritygroups/securityrules/write\"}]'\n          )\n          or\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"resourceType\", \"equals\": \"microsoft.network/networksecuritygroups/securityrules\"}]'\n            and jsonb_array_length(alert.condition -> 'allOf') = 2\n          )\n        )\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for create or update Network Security Group Rule event.'\n        else 'Activity log alert does not exists for create or update Network Security Group Rule event.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "ee18b99aafc0c23935f14f480175b42d2e1889dd9962da8a8704bc79353f533a",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "matching_alerts_each": 1,
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ]
+      },
+      "pinned_sql_sha256": "045431dfb1b03d30c62b994e4aa6ff9423336cac1ca247b5b960685ccbbd6a06",
+      "upstream_evaluator_sha256": "ee18b99aafc0c23935f14f480175b42d2e1889dd9962da8a8704bc79353f533a",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v140_5_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Global LIMIT 1 selects one alert across accessible subscriptions before per-subscription existence join; two compliant subscriptions produce one false alarm. SQL firewall variant also targets parent microsoft.sql/servers rather than Microsoft.Sql/servers/firewallRules. Scope/operation corrections are not exact source equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/activity-log-alerts/list-by-subscription-id?view=rest-monitor-2020-10-01"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_delete_nsg_rule",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 825,
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and (\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"operationName\", \"equals\": \"Microsoft.Network/networksecuritygroups/securityrules/delete\"}]'\n          )\n          or\n          (\n            alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n            and alert.condition -> 'allOf' @> '[{\"field\": \"resourceType\", \"equals\": \"microsoft.network/networksecuritygroups/securityrules\"}]'\n            and jsonb_array_length(alert.condition -> 'allOf') = 2\n          )\n        )\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for delete Network Security Group Rule event.'\n        else 'Activity log alert does not exists for delete Network Security Group Rule event.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "10aded719ed9efc9bca054e31491ad56fe85b08a02f5a2e79acc7a07562f5328",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "matching_alerts_each": 1,
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ]
+      },
+      "pinned_sql_sha256": "d526770b1584b0fb8eaf7de0d996ee60caf894ebf7e1fa64d3010209cc6887e1",
+      "upstream_evaluator_sha256": "10aded719ed9efc9bca054e31491ad56fe85b08a02f5a2e79acc7a07562f5328",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v140_5_2_9": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Global LIMIT 1 selects one alert across accessible subscriptions before per-subscription existence join; two compliant subscriptions produce one false alarm. SQL firewall variant also targets parent microsoft.sql/servers rather than Microsoft.Sql/servers/firewallRules. Scope/operation corrections are not exact source equivalence.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/monitor/activity-log-alerts/list-by-subscription-id?view=rest-monitor-2020-10-01"
+    ],
+    "source_review": {
+      "query_id": "monitor_log_alert_sql_firewall_rule",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1127,
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with alert_rule as (\n      select\n        alert.id as alert_id,\n        alert.name as alert_name,\n        alert.enabled,\n        alert.location,\n        alert.subscription_id\n      from\n        azure_log_alert as alert,\n        jsonb_array_elements_text(scopes) as sc\n      where\n        alert.location = 'global'\n        and alert.enabled\n        and sc = '/subscriptions/' || alert.subscription_id\n        and alert.condition -> 'allOf' @> '[{\"equals\":\"Administrative\",\"field\":\"category\"}]'\n        and alert.condition -> 'allOf' @> '[{\"field\": \"resourceType\", \"equals\": \"microsoft.sql/servers\"}]'\n        and jsonb_array_length(alert.condition -> 'allOf') = 2\n      limit 1\n    )\n    select\n      sub.subscription_id as resource,\n      case\n        when count(a.subscription_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when count(a.subscription_id) > 0 then 'Activity log alert exists for create, update and delete SQL Server Firewall Rule event.'\n        else 'Activity log alert does not exists for create, update and delete SQL Server Firewall Rule event.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription sub\n      left join alert_rule a on sub.subscription_id = a.subscription_id\n    group by\n      sub._ctx,\n      sub.subscription_id,\n      sub.display_name;",
+      "query_sha256": "836a3b5e088b4d863a662526e17e88ef0493b20aa42ff83af23b556c7ac7f2eb",
+      "counterexample": {
+        "subscriptions": [
+          "sub-a",
+          "sub-b"
+        ],
+        "matching_alerts_each": 1,
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "required_statuses": [
+          "ok",
+          "ok"
+        ]
+      },
+      "pinned_sql_sha256": "bbbe9cd7c380e6c2d2d40505c80ecd2144c04858e39691211ef5d8728dee3e90",
+      "upstream_evaluator_sha256": "836a3b5e088b4d863a662526e17e88ef0493b20aa42ff83af23b556c7ac7f2eb",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  }
+}

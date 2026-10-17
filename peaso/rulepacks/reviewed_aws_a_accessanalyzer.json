@@ -1,0 +1,163 @@
+{
+  "aws-compliance.control.cis_v130_1_21": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L320"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_20": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L305"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_20": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L305"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_20": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L306"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_20": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L306"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_20": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L306"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L291"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_present"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full source LEFT JOIN account+region absence reviewed: disabled/not-opted-in regions excluded by enabled-region collector selection; successful collected-empty analyzers FAIL, any declared analyzer ARN passes regardless status. Separate from active-state Prowler variant; denied/partial inventory unknown.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_query_id": "iam_access_analyzer_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "0c9382b65836f939f4413ea321540b016b2dbaf2ad663ce4f5ec608481245f23",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L291"
+    }
+  },
+  "prowler.aws.accessanalyzer_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.accessanalyzer.region_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListAnalyzers.html"
+    ],
+    "reason": "Full pinned execute and service reviewed: ACTIVE analyzers pass, other native states alarm; successful analyzer absence produces synthetic NOT_AVAILABLE failure. Native regional outcome aggregates any failing analyzer, with explicit count/status evidence; complete-empty FAIL, denied/partial UNKNOWN; no analyzer creation.",
+    "review_notes": "Individually inspected full pinned query/check and each reference; five independent fixture/SDK tests cover presence-vs-active, mixed failures, missing/denied/malformed/pagination/purity. Default unfiltered enabled-region scan only; HackTricks thematic mapping through lead.",
+    "reviewed_source": {
+      "evaluator_sha256": "8fff91564a8668c4203b08f207823e58878e6bad4ca3a41498ad7303bd87cb79",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/accessanalyzer/accessanalyzer_enabled/accessanalyzer_enabled.metadata.json"
+    }
+  }
+}

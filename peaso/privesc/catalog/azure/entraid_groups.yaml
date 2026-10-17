@@ -1,7 +1,12 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Entra ID group membership escalation (membership/owner write, group ownership,
 # dynamic membership rules and attribute control).
 # Source: hacktricks-cloud az-entraid-privesc/README.md, az-entraid-privesc/dynamic-groups.md,
-# az-services/az-azuread.md (rev a53b46392c).
+# az-services/az-azuread.md (rev 171e422; all entries re-verified against the page text at that revision).
 #
 # Target kind entra_group (SCHEMA EXTENSION): obtaining membership of the group, i.e. the
 # group's Entra role assignments (role-assignable groups only), Azure RBAC assignments,
@@ -21,7 +26,7 @@
   service: entraid
   title: Add yourself to non-role-assignable groups
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectorygroupsmembersupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal allowed to update group membership (e.g. Groups Administrator, User Administrator) can obtain the privileges of any assigned, non-role-assignable group in its scope.
   requires:
     any_of:
@@ -61,7 +66,7 @@
   service: entraid
   title: Graph Group.ReadWrite.All / GroupMember.ReadWrite.All adds members to groups
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#sensitive-graph-permissions
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A service principal holding Group.ReadWrite.All or GroupMember.ReadWrite.All can obtain the privileges of any assigned, non-role-assignable group outside restricted management AUs.
   requires:
     any_of:
@@ -96,7 +101,7 @@
   service: entraid
   title: Make yourself owner of non-role-assignable groups
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectorygroupsownersupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal allowed to update group owners can obtain the privileges of any assigned, non-role-assignable group in its scope.
   requires:
     any_of:
@@ -132,8 +137,8 @@
   provider: azure
   service: entraid
   title: Group owner adds itself to the owned group (incl. role-assignable groups)
-  source: src/pentesting-cloud/azure-security/az-services/az-azuread.md#add-user-to-group
-  source_revision: a53b46392c
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#add-user-to-group
+  source_revision: 658a097d5c
   summary: An owner of an assigned-membership group can obtain the privileges of that group, including directory roles assigned to a role-assignable group.
   requires:
     all_of:
@@ -166,7 +171,7 @@
   service: entraid
   title: Rewrite a dynamic group's membership rule
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/README.md#microsoftdirectorygroupsdynamicmembershipruleupdate
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: A principal allowed to update dynamic membership rules can obtain the privileges of any dynamic group in its scope.
   requires:
     any_of:
@@ -197,76 +202,3 @@
   references:
     - https://learn.microsoft.com/en-us/graph/api/group-update?view=graph-rest-1.0
   notes: Role-assignable groups cannot be dynamic, so directory roles are never reached directly; the gain is the group's Azure RBAC / app access. Group.ReadWrite.All / Directory.ReadWrite.All application permissions can update membershipRule (Update group API) outside restricted management AUs; built-in holders of dynamicMembershipRule/update are Groups Administrator, User Administrator and Directory Writers.
-
-- id: azure-entraid-dynamic-group-attribute-control
-  provider: azure
-  service: entraid
-  title: Change user attributes referenced by a dynamic membership rule
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/dynamic-groups.md#privesc
-  source_revision: a53b46392c
-  summary: A principal able to write user attributes referenced by a dynamic membership rule, on a user it controls, can obtain the privileges of that dynamic group.
-  requires:
-    any_of:
-      - - entra_permission: microsoft.directory/users/basic/update
-          scope: "{source.controlled_user}"
-      - - entra_permission: microsoft.directory/users/manager/update
-          scope: "{source.controlled_user}"
-      - - graph_app_permission: User.ReadWrite.All
-      - - graph_app_permission: User-Mail.ReadWrite.All
-  target:
-    kind: entra_group
-    selector:
-      entra_group_membership_type: dynamic
-      entra_dynamic_rule_attributes_writable_by_source: true
-      entra_target_not_in_restricted_au: true
-    scope: tenant
-    aggregate_as: "Dynamic groups whose rule uses attributes {source} can write"
-  conditions:
-    - id: controlled_user_required
-      description: The source must control a user object to modify, and the permission scope is that user ({source.controlled_user}). For a user source this is the source itself. For any other source the controlled user is not identified and the edge is conditional (controlled_user_not_identified). The controlled user then becomes the group member.
-    - id: sensitive_attribute
-      description: Sensitive attributes (otherMails, mobilePhone, businessPhones, accountEnabled, userPrincipalName) require roles per Microsoft's "who can perform sensitive actions" table, and app-only writes need a supporting directory role.
-    - id: synced_attribute
-      description: Attributes sourced from on-premises AD are overwritten by sync and must be changed at the source directory.
-  blockers:
-    - restricted_management_au
-  confidence: conditional
-  severity: high
-  mitigation: Base dynamic rules on attributes only administrators (or HR-sourced sync) can write, never on self-service or guest-controlled values, and avoid granting privileged access to dynamic groups.
-  references:
-    - https://learn.microsoft.com/en-us/entra/identity/users/groups-dynamic-membership
-    - https://www.mnemonic.io/resources/blog/abusing-dynamic-groups-in-azure-ad-for-privilege-escalation/
-  notes: The evaluator must parse membershipRule and intersect referenced attributes with what the source can write (users/basic/update covers non-sensitive basic properties such as department/jobTitle; manager/update covers user.manager rules). Device rules (device.*) are not modelled here.
-
-- id: azure-entraid-dynamic-group-guest-invite
-  provider: azure
-  service: entraid
-  title: Invite a guest that satisfies a dynamic membership rule
-  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-entraid-privesc/dynamic-groups.md#privesc
-  source_revision: a53b46392c
-  summary: A principal allowed to invite guests can obtain the privileges of dynamic groups whose rule a newly invited guest satisfies.
-  requires:
-    any_of:
-      - - entra_permission: microsoft.directory/users/inviteGuest
-      - - entra_tenant_setting: guest_invites_allowed_for_source
-  target:
-    kind: entra_group
-    selector:
-      entra_group_membership_type: dynamic
-      entra_dynamic_rule_satisfiable_by_invited_guest: true
-      entra_target_not_in_restricted_au: true
-    scope: tenant
-    aggregate_as: "Dynamic groups whose rule a newly invited guest can satisfy"
-  conditions:
-    - id: external_collaboration_settings
-      description: The tenant's allowInvitesFrom setting (default "everyone", including guests) and cross-tenant access / domain allow-deny lists decide whether the source can invite.
-    - id: guest_cannot_edit_sensitive_props
-      description: An ordinary guest cannot later edit sensitive properties such as otherMails; only values set at invitation/redemption are controllable.
-  blockers: []
-  confidence: conditional
-  severity: medium
-  mitigation: Restrict guest invitations to specific admin roles and never use guest-controllable attributes (mail, otherMails, displayName) in dynamic rules that grant access.
-  references:
-    - https://learn.microsoft.com/en-us/entra/external-id/external-collaboration-settings-configure
-    - https://learn.microsoft.com/en-us/entra/fundamentals/users-default-permissions
-  notes: Severity is medium by default; the evaluator should raise it based on the group's access. The source becomes able to act as a new guest principal it creates, not as an existing principal.

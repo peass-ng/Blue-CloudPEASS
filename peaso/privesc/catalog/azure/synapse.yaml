@@ -1,12 +1,17 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
 # Azure Synapse techniques (declarative only).
-# Source: hacktricks-cloud az-synapse-privesc.md (rev a53b46392c; working-tree copy read).
+# Source: hacktricks-cloud az-synapse-privesc.md (rev 171e422).
 
 - id: azure-synapse-entra-admin-write
   provider: azure
   service: synapse
   title: Replace the Synapse workspace Entra administrator
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-synapse-privesc.md#replace-the-workspace-microsoft-entra-administrator
-  source_revision: a53b46392c
+  source_revision: 171e422
   summary: The source can obtain SQL sysadmin on the Synapse workspace dedicated SQL endpoint.
   requires:
     all_of: []

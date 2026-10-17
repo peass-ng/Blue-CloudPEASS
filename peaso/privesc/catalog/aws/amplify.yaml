@@ -1,34 +1,111 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
 # AWS Amplify privilege escalation techniques.
 # Source: hacktricks-cloud aws-amplify-privesc/README.md.
 
-- id: aws-amplify-updateapp-startjob
+- id: aws-amplify-updateapp-passrole
   provider: aws
   service: amplify
-  title: Change an Amplify app build specification and start a build
-  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md#amplifyupdateapp-amplifystartjob
-  source_revision: a53b46392c
-  summary: The source can obtain the privileges of the IAM service role attached to an Amplify app whose build it can reconfigure and run.
+  title: Repoint an Amplify app's service or compute role to a passed role and build it
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md#amplifyupdateapp--iampassrole--repoint-the-app-onto-a-more-privileged-role
+  source_revision: 171e422299
+  summary: The source can obtain the privileges of passable roles trusting amplify.amazonaws.com by assigning them as an app's service (build) or compute role and running code under them.
   requires:
     all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
       - action: amplify:UpdateApp
-        resource: "{target.attached_resource_arn}"
+        resource: "*"
       - action: amplify:StartJob
-        resource: "{target.attached_resource_arn}"
+        resource: "*"
   target:
     kind: aws_role
     selector:
-      attached_to_service: amplify
-      attached_resource_covered_by: amplify:UpdateApp
+      trust_allows_service: amplify.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
     scope: same_account
-    aggregate_as: "Service roles of Amplify apps covered by amplify:UpdateApp in {account}"
+    aggregate_as: "Roles trusting amplify.amazonaws.com passable in {account}"
   conditions:
-    - id: app_has_service_role
-      description: The app must have an IAM service role configured (trusting amplify.amazonaws.com); otherwise builds run without AWS permissions.
+    - id: passrole_condition_key
+      description: iam:PassedToService conditions on the PassRole grant may restrict passing roles to Amplify.
+    - id: code_execution_path
+      description: Code must run under the new role, through a build with a changed buildSpec/environment (service role) or a deployed SSR runtime the source controls (compute role); automatic builds or webhooks can replace StartJob.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
-  severity: high
-  mitigation: Restrict amplify:UpdateApp/UpdateBranch and StartJob; keep Amplify service roles least-privileged.
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole on Amplify roles with iam:PassedToService=amplify.amazonaws.com and specific role ARNs; restrict amplify:UpdateApp.
   references:
-    - https://docs.aws.amazon.com/amplify/latest/userguide/how-to-service-role-amplify-console.html
-  notes: StartJob Resource is the branch ARN (app ARN prefix); the evaluator should treat app-ARN wildcards as covering branches. amplify:UpdateBranch can be an equivalent build-spec change path. Severity critical when the attached role is admin-equivalent.
+    - https://docs.aws.amazon.com/amplify/latest/APIReference/API_UpdateApp.html
+    - https://docs.aws.amazon.com/amplify/latest/userguide/amplify-SSR-compute-role.html
+  notes: The source needs at least one existing app it can update (amplify:UpdateApp on that app). Both iamServiceRoleArn and computeRoleArn require iam:PassRole on the target role.
+
+- id: aws-amplifybackend-createtoken-studio-admin
+  provider: aws
+  service: amplifybackend
+  title: Mint an Amplify Studio administrator login for a Gen 1 backend
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md#amplifygetapp-amplifybackendcreatetoken--mint-an-amplify-studio-login
+  source_revision: 171e422299
+  summary: The source can obtain an Amplify Studio application-administration session over the data model, auth and configuration of Gen 1 backends it can mint Studio logins for.
+  requires:
+    all_of:
+      - action: amplify:GetApp
+        resource: "{target.resource_arn}"
+      - action: amplifybackend:CreateToken
+        resource: "{target.amplifybackend_token_arn}"
+      - action: amplifybackend:CreateToken
+        resource: "{target.amplifybackend_backend_arn}"
+  target:
+    kind: aws_service_plane_admin
+    selector:
+      service_plane: amplifybackend
+    scope: same_account
+    aggregate_as: "Amplify Studio administrators in {account}"
+    grants: [Amplify Studio administrator (aws-amplify-admin)]
+  conditions:
+    - id: gen1_backend_with_studio
+      description: The app must have an existing Amplify Gen 1 backend with Studio (Admin UI) enabled; the backend environment name must be known to open the session.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict amplifybackend:CreateToken/GetToken to Studio administrators and alert on CreateToken from unexpected principals.
+  notes: Application-plane administration only (Studio session as the fixed aws-amplify-admin Cognito user); it does not return IAM credentials. Targets are the collected amplify_app entries with Gen 1 backend environments (amplify:ListBackendEnvironments); accounts whose apps or backend environments were not collected keep one unresolved placeholder. amplify:GetApp is authorized on the app ARN (arn:aws:amplify:<Region>:<account>:apps/<AppId>, {target.resource_arn}); amplifybackend:CreateToken is authorized on the Amplify Admin token resource arn:aws:amplifybackend:<Region>:<account>:/backend/<AppId>/challenge/* ({target.amplifybackend_token_arn}). Source - the Service Authorization Reference JSON (servicereference.us-east-1.amazonaws.com/v1/amplifybackend), verified 2026-10-11; CreateToken/GetToken list both the backend resource arn:<Partition>:amplifybackend:<Region>:<account>:/backend/<AppId>/* ({target.amplifybackend_backend_arn}) and the token resource arn:<Partition>:amplifybackend:<Region>:<account>:/backend/<AppId>/challenge/* ({target.amplifybackend_token_arn}), so both are required.
+
+- id: aws-amplify-updateapp-passrole-ssr
+  provider: aws
+  service: amplify
+  title: Repoint an Amplify SSR compute role and invoke controlled SSR code
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md#amplifyupdateapp--iampassrole--repoint-the-app-onto-a-more-privileged-role
+  source_revision: 171e422299
+  summary: The source can execute controlled SSR code as a passable compute role of an updatable app.
+  requires:
+    all_of:
+    - action: iam:PassRole
+      resource: '{target.arn}'
+    - action: amplify:UpdateApp
+      resource: '*'
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: amplify.amazonaws.com
+      resource_permission_covers_target: iam:PassRole
+    scope: same_account
+    aggregate_as: Roles trusting amplify.amazonaws.com passable in {account}
+    outcome: workload_execution
+  conditions:
+  - id: controlled_ssr
+    description: The existing app must deploy attacker-controlled SSR code and an HTTP request must reach that SSR route under the new compute role.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole on Amplify roles with iam:PassedToService=amplify.amazonaws.com and specific role ARNs; restrict amplify:UpdateApp.
+  references:
+  - https://docs.aws.amazon.com/amplify/latest/APIReference/API_UpdateApp.html
+  - https://docs.aws.amazon.com/amplify/latest/userguide/amplify-SSR-compute-role.html
+  notes: No StartJob is needed for the SSR request; the route, deployed code and app-to-role association must be observed or UNKNOWN.

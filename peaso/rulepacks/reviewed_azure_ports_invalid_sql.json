@@ -1,0 +1,203 @@
+{
+  "azure-compliance.control.cis_v130_4_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source evaluates only security-alert policy state, never assessment configuration or state. Enabled alerts with classic storage unconfigured and express VA Disabled still pass, so it cannot implement VA enablement. Rejecting demonstrated wrong measured condition, not missing facts or runtime implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Full source and no-argument delegation inspected. Security-alert enablement and vulnerability assessment are separate resource/configuration domains, so no broad conjunction reuse; exact SQL truth counterexamples preserved.",
+    "source_review": {
+      "query_id": "sql_server_and_databases_va_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 236,
+      "query_sha256": "4d8d15fd7ebc9443255512894b30db14a439f7c1afd3beae2750f42da9d5bc3f",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 142,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then s.name || ' VA setting disabled.'\n        else s.name || ' VA setting enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s,\n      jsonb_array_elements(server_security_alert_policy) security,\n      jsonb_array_elements(server_vulnerability_assessment) assessment,\n      azure_subscription sub\n    where\n      sub.subscription_id = s.subscription_id;",
+      "counterexample": {
+        "security": {
+          "properties": {
+            "state": "Enabled"
+          }
+        },
+        "assessment": {
+          "properties": {
+            "storageContainerPath": null
+          }
+        },
+        "expressVulnerabilityAssessment": {
+          "properties": {
+            "state": "Disabled"
+          }
+        },
+        "source_status": "ok",
+        "requirement_truth": "vulnerability_assessment_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_4_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source evaluates only security-alert policy state, never assessment configuration or state. Enabled alerts with classic storage unconfigured and express VA Disabled still pass, so it cannot implement VA enablement. Rejecting demonstrated wrong measured condition, not missing facts or runtime implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Full source and no-argument delegation inspected. Security-alert enablement and vulnerability assessment are separate resource/configuration domains, so no broad conjunction reuse; exact SQL truth counterexamples preserved.",
+    "source_review": {
+      "query_id": "sql_server_and_databases_va_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 236,
+      "query_sha256": "4d8d15fd7ebc9443255512894b30db14a439f7c1afd3beae2750f42da9d5bc3f",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 146,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then s.name || ' VA setting disabled.'\n        else s.name || ' VA setting enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s,\n      jsonb_array_elements(server_security_alert_policy) security,\n      jsonb_array_elements(server_vulnerability_assessment) assessment,\n      azure_subscription sub\n    where\n      sub.subscription_id = s.subscription_id;",
+      "counterexample": {
+        "security": {
+          "properties": {
+            "state": "Enabled"
+          }
+        },
+        "assessment": {
+          "properties": {
+            "storageContainerPath": null
+          }
+        },
+        "expressVulnerabilityAssessment": {
+          "properties": {
+            "state": "Disabled"
+          }
+        },
+        "source_status": "ok",
+        "requirement_truth": "vulnerability_assessment_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_4_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source evaluates only security-alert policy state, never assessment configuration or state. Enabled alerts with classic storage unconfigured and express VA Disabled still pass, so it cannot implement VA enablement. Rejecting demonstrated wrong measured condition, not missing facts or runtime implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Full source and no-argument delegation inspected. Security-alert enablement and vulnerability assessment are separate resource/configuration domains, so no broad conjunction reuse; exact SQL truth counterexamples preserved.",
+    "source_review": {
+      "query_id": "sql_server_and_databases_va_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 236,
+      "query_sha256": "4d8d15fd7ebc9443255512894b30db14a439f7c1afd3beae2750f42da9d5bc3f",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 174,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then s.name || ' VA setting disabled.'\n        else s.name || ' VA setting enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s,\n      jsonb_array_elements(server_security_alert_policy) security,\n      jsonb_array_elements(server_vulnerability_assessment) assessment,\n      azure_subscription sub\n    where\n      sub.subscription_id = s.subscription_id;",
+      "counterexample": {
+        "security": {
+          "properties": {
+            "state": "Enabled"
+          }
+        },
+        "assessment": {
+          "properties": {
+            "storageContainerPath": null
+          }
+        },
+        "expressVulnerabilityAssessment": {
+          "properties": {
+            "state": "Disabled"
+          }
+        },
+        "source_status": "ok",
+        "requirement_truth": "vulnerability_assessment_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_4_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source evaluates only security-alert policy state, never assessment configuration or state. Enabled alerts with classic storage unconfigured and express VA Disabled still pass, so it cannot implement VA enablement. Rejecting demonstrated wrong measured condition, not missing facts or runtime implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Full source and no-argument delegation inspected. Security-alert enablement and vulnerability assessment are separate resource/configuration domains, so no broad conjunction reuse; exact SQL truth counterexamples preserved.",
+    "source_review": {
+      "query_id": "sql_server_and_databases_va_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 236,
+      "query_sha256": "4d8d15fd7ebc9443255512894b30db14a439f7c1afd3beae2750f42da9d5bc3f",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 174,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when security -> 'properties' ->> 'state' = 'Disabled' then s.name || ' VA setting disabled.'\n        else s.name || ' VA setting enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s,\n      jsonb_array_elements(server_security_alert_policy) security,\n      jsonb_array_elements(server_vulnerability_assessment) assessment,\n      azure_subscription sub\n    where\n      sub.subscription_id = s.subscription_id;",
+      "counterexample": {
+        "security": {
+          "properties": {
+            "state": "Enabled"
+          }
+        },
+        "assessment": {
+          "properties": {
+            "storageContainerPath": null
+          }
+        },
+        "expressVulnerabilityAssessment": {
+          "properties": {
+            "state": "Disabled"
+          }
+        },
+        "source_status": "ok",
+        "requirement_truth": "vulnerability_assessment_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.sql_server_threat_detection_all_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source treats only [empty-string] disabledAlerts as safe, alarming a legitimate empty disabled-alert list; it also never checks policy state, so Disabled alert policy with [empty-string] passes all-threats-enabled. Rejecting demonstrated wrong measured condition, not missing facts or runtime implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Full source and no-argument delegation inspected. Security-alert enablement and vulnerability assessment are separate resource/configuration domains, so no broad conjunction reuse; exact SQL truth counterexamples preserved.",
+    "source_review": {
+      "query_id": "sql_server_threat_detection_all_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 818,
+      "query_sha256": "502341f4029f88b0f32579e58bef6b4e826c1dd6e216826c2db45c52d7fac2aa",
+      "control_path": "regulatory_compliance/sql.pp",
+      "control_line": 172,
+      "arguments": [],
+      "status_case_sql": "case\n        when t.id is null then 'ok'\n        else 'alarm'\n      end",
+      "pinned_sql": "with threat_detection_disabled as (\n      select\n        distinct id\n      from\n        azure_sql_server s,\n        jsonb_array_elements(server_security_alert_policy) p\n      where\n        not (p -> 'properties' -> 'disabledAlerts' = '[\"\"]')\n    )\n    select\n      s.id as resource,\n      case\n        when t.id is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when t.id is null then name || ' threat detection enabled for all.'\n        else  name || ' threat detection not enabled for all.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      left join threat_detection_disabled as t on t.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;",
+      "counterexample": {
+        "enabled_empty_disabled_alerts": {
+          "state": "Enabled",
+          "disabledAlerts": []
+        },
+        "source_status": "alarm",
+        "requirement_truth": "no_threat_types_disabled",
+        "disabled_policy_empty_string": {
+          "state": "Disabled",
+          "disabledAlerts": [
+            ""
+          ]
+        },
+        "disabled_policy_source_status": "ok"
+      }
+    }
+  }
+}

@@ -3,10 +3,41 @@ from __future__ import annotations
 import html
 import json
 import re
+from urllib.parse import urlsplit
 
 
 def _text(value):
     return html.escape(str(value), quote=False).replace("|", "\\|").replace("\n", "<br>")
+
+
+def _remediation_text(value):
+    escaped = html.escape(str(value), quote=False)
+    return re.sub(r"([\\`*_{}\[\]()#+.!|<>])", r"\\\1", escaped).replace("\n", "<br>")
+
+
+class _RemediationTextMemo:
+    """Render-local escaping memo for exact immutable strings only.
+
+    Bounded admission never limits output. Subclasses and other values retain
+    the original conversion/escaping path, including its errors and side effects.
+    """
+    def __init__(self):
+        self.entries = {}
+        self.bytes = 0
+
+    def __call__(self, value):
+        if type(value) is not str or len(value) > 4096:
+            return _remediation_text(value)
+        cached = self.entries.get(value)
+        if cached is not None:
+            return cached
+        escaped = _remediation_text(value)
+        if len(self.entries) < 1024:
+            size = len(value.encode("utf-8", errors="surrogatepass")) + len(escaped.encode("utf-8", errors="surrogatepass"))
+            if self.bytes + size <= 1024 * 1024:
+                self.entries[value] = escaped
+                self.bytes += size
+        return escaped
 
 
 def _json_block(value):
@@ -16,11 +47,84 @@ def _json_block(value):
     return [fence + "json", text, fence, ""]
 
 
+def _remediation_lines(finding, templates, *, shared=True, bound=True, _escape=None):
+    """Readable guidance from a reviewed template, with legacy string fallback."""
+    from peaso.remediation import bind_command
+    escape = _remediation_text if _escape is None else _escape
+    detail = finding.get("remediation_details")
+    if not isinstance(detail, dict):
+        detail = templates.get(finding.get("check_id")) if isinstance(templates, dict) else None
+    if not isinstance(detail, dict):
+        return ["Remediation: " + _text(finding.get("remediation", "")), ""] if shared else []
+    lines = ["#### Defensive remediation", "", escape(detail.get("summary") or finding.get("remediation", "")), ""] if shared else []
+    steps = detail.get("steps") or []
+    if shared:
+        for index, step in enumerate(steps, 1):
+            lines.append(f"{index}. {escape(step)}")
+        if steps:
+            lines.append("")
+    for command in (detail.get("cli") or []) if bound else []:
+        if not isinstance(command, dict) or not isinstance(command.get("code"), str):
+            continue
+        code = bind_command(command["code"], finding)
+        fence = "`" * max(3, max((len(run) for run in re.findall(r"`+", code)), default=0) + 1)
+        lines.extend(["**" + escape(command.get("label", "Command example")) + "**", "", fence + "bash", code, fence, ""])
+    if shared and isinstance(detail.get("iac"), dict):
+        iac = detail["iac"]
+        code = str(iac.get("code", ""))
+        fence = "`" * max(3, max((len(run) for run in re.findall(r"`+", code)), default=0) + 1)
+        lines.extend(["**Infrastructure as code: " + escape(iac.get("label", "Reviewed declaration")) + "**", "",
+                      fence + str(iac.get("language", "text")), code, fence, ""])
+    if shared and detail.get("caveats"):
+        lines.append("**Before changing this**")
+        lines.extend("- " + escape(caveat) for caveat in detail["caveats"])
+        lines.append("")
+    if shared and detail.get("references"):
+        lines.append("**References**")
+        for reference in detail["references"]:
+            url = reference.get("url", "") if isinstance(reference, dict) else ""
+            if isinstance(url, str) and urlsplit(url).scheme == "https" and urlsplit(url).netloc:
+                lines.append("- [" + escape(reference.get("title", "Official documentation")) + "](" + url + ")")
+        lines.append("")
+    return lines
+
+
+def _guidance_fields(finding, templates):
+    detail = finding.get("remediation_details")
+    if not isinstance(detail, dict):
+        detail = templates.get(finding.get("check_id")) if isinstance(templates, dict) else None
+    return {
+        "check_id": finding.get("check_id"),
+        "description": finding.get("description"),
+        "evaluated": finding.get("evaluated"),
+        "pass_when": finding.get("pass_when"),
+        "fail_when": finding.get("fail_when"),
+        "not_applicable_when": finding.get("not_applicable_when"),
+        "remediation_details": detail if isinstance(detail, dict) else None,
+        "remediation": finding.get("remediation") if isinstance(detail, dict) and not detail.get("summary") else None,
+    }
+
+
+def _description_lines(finding):
+    if not finding.get("description"):
+        return []
+    lines = ["#### What this check evaluates", "", _remediation_text(finding["description"]), ""]
+    if isinstance(finding.get("evaluated"), list):
+        lines.extend(["Fields read:", *["- " + _remediation_text(field) for field in finding["evaluated"]], ""])
+    for key, label in (("pass_when", "Pass"), ("fail_when", "Fail"), ("not_applicable_when", "Not applicable")):
+        if finding.get(key):
+            lines.append(f"- **{label}:** {_remediation_text(finding[key])}")
+    lines.append("")
+    return lines
+
+
 def render_markdown(report):
     if not isinstance(report, dict):
         raise ValueError("report must be an object")
     if "added" in report and "changed" in report:
         return _render_diff(report)
+    from peaso.engine import hydrate_frameworks
+    report = hydrate_frameworks(report)
     if "checks" in report and "findings" not in report:
         return "\n".join(["# Peaso native check catalog", "", *_json_block(report)]).rstrip() + "\n"
     lines = ["# Peaso security snapshot report", "",
@@ -35,24 +139,58 @@ def render_markdown(report):
     lines.extend(["", "Detailed coverage:", ""])
     lines.extend(_json_block(report.get("coverage", [])))
     if report.get("framework_versions"):
-        lines.extend(["## Selected framework checklists", ""])
-        lines.extend(_json_block(report["framework_versions"]))
+        lines.extend(["## Framework checklist versions", ""])
+        lines.extend(_json_block([{k: v for k, v in row.items() if k != "native_check_ids"} if isinstance(row, dict) else row for row in report["framework_versions"]]))
     if report.get("snapshot_metadata"):
         lines.extend(["## Snapshot provenance and collection plan", ""])
         lines.extend(_json_block(report["snapshot_metadata"]))
     if "privesc" in report.get("stats", {}) or (report.get("graphs", {}).get("privesc") or {}).get("nodes"):
         lines.extend(_privesc_section(report))
-    lines.extend(["", "Empty and denied inventory are recorded separately from security passes. Unknown and manual results require further evidence.", "", "## Findings", ""])
+    templates = report.get("remediation_templates")
+    remediation_text = _RemediationTextMemo()
+    guidance = {}
+    finding_guidance = []
     for finding in report.get("findings", []):
+        fields = _guidance_fields(finding, templates)
+        shared = fields["remediation_details"] is None
+        if not fields["description"] and fields["remediation_details"] is None:
+            finding_guidance.append((None, shared))
+            continue
+        key = json.dumps(fields, sort_keys=True, ensure_ascii=False)
+        if key not in guidance:
+            guidance[key] = (f"check-guidance-{len(guidance) + 1}", finding, shared)
+        finding_guidance.append((guidance[key][0], shared))
+    if guidance:
+        lines.extend(["## Check guidance", "", "Reviewed check meaning and shared remediation appear once here. Each finding below links to its exact guidance and keeps its own evidence and bound commands.", ""])
+        for anchor, finding, shared in guidance.values():
+            lines.extend([f'<a id="{anchor}"></a>', f"### {_text(finding.get('check_id'))}", ""])
+            lines.extend(_description_lines(finding))
+            if not shared:
+                lines.extend(_remediation_lines(finding, templates, bound=False, _escape=remediation_text))
+    lines.extend(["", "Empty and denied inventory are recorded separately from security passes. Unknown and manual results require further evidence.", "", "## Findings", ""])
+    for finding, (anchor, shared) in zip(report.get("findings", []), finding_guidance):
         lines.extend([f"### {_text(finding.get('status'))}: {_text(finding.get('title'))}", "",
+            "- Finding ID: " + _text(finding.get("id", "")),
             "- Check: " + _text(finding.get("check_id")), "- Category: " + _text(finding.get("category")),
             "- Severity: " + _text(finding.get("severity")), "- Resource: " + _text(finding.get("resource_name", finding.get("resource_id"))),
             "- Native resource ID: " + _text(finding.get("native_resource_id", finding.get("resource_id"))),
             "- Stable resource ID: " + _text(finding.get("resource_id")),
-            "- Scope: " + _text(finding.get("scope")), "- Frameworks: " + ", ".join(_text(f) for f in finding.get("frameworks", [])), "",
-            "Evidence:", ""])
+            "- Scope: " + _text(finding.get("scope")), "- Frameworks: " + ", ".join(_text(f) for f in finding.get("frameworks", [])),
+            "- Message: " + _text(finding.get("message", "")), ""])
+        if anchor is not None:
+            lines.extend([f"- Check guidance: [reviewed meaning and remediation](#{anchor})", ""])
+        lines.extend(["Evidence:", ""])
         lines.extend(_json_block(finding.get("evidence", {})))
-        lines.extend(["Remediation: " + _text(finding.get("remediation", "")), ""])
+        lines.extend(_remediation_lines(finding, templates, shared=shared, _escape=remediation_text))
+    aggregates = report.get("finding_aggregates") or []
+    if aggregates:
+        lines.extend(["## Aggregated not-applicable and empty results", "",
+                      "Per-resource rows with these statuses are counted per check; rerun with --include-not-applicable to list them.", "",
+                      "| Status | Check | Title | Count | Scopes | Sample resources |", "| --- | --- | --- | --- | --- | --- |"])
+        for row in aggregates:
+            lines.append("| " + " | ".join(_text(v) for v in (row.get("status"), row.get("check_id"), row.get("title"), row.get("count"),
+                         len(row.get("scopes") or {}), ", ".join(str(x) for x in row.get("sample_resource_ids") or []))) + " |")
+        lines.append("")
     lines.extend(["## Resource inventory", "", "Native configuration facts are retained below. No data-plane secrets or object contents are collected.", ""])
     for resource in report.get("resources", []):
         lines.extend(["### " + _text(resource.get("type")) + ": " + _text(resource.get("id")), "", "Scope: " + _text(resource.get("scope")), ""])

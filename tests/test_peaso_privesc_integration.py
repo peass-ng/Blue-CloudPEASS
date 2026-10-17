@@ -14,6 +14,7 @@ from peaso.server.config import Settings
 from peaso.snapshot import make_snapshot
 from peaso.storage.reports import privesc_projection
 from peaso.worker import Worker
+from peaso.engine import hydrate_frameworks
 
 ACCOUNT = "111111111111"
 SCOPE = f"{ACCOUNT}/us-east-1"
@@ -42,7 +43,7 @@ def privesc_snapshot():
 
 @pytest.fixture(scope="module")
 def report():
-    return evaluate_snapshot(privesc_snapshot(), categories=["privesc"])
+    return hydrate_frameworks(evaluate_snapshot(privesc_snapshot(), categories=["privesc"]))
 
 
 def test_engine_produces_privesc_findings_graph_coverage_and_stats(report):
@@ -68,7 +69,7 @@ def test_report_is_json_valid_deterministic_and_diffable(report):
     encoded = json.dumps(report, allow_nan=False)
     assert json.loads(encoded) == report
     again = evaluate_snapshot(privesc_snapshot(), categories=["privesc"])
-    assert again == report
+    assert hydrate_frameworks(again) == report  # the fixture is the hydrated view
     diff = diff_reports(report, again)
     assert diff["stats"] == {"added": 0, "removed": 0, "changed": 0}
     # Principal resource ids never collide with inventory resource ids.
@@ -93,7 +94,7 @@ def test_analyze_exception_becomes_coverage_not_a_crashed_scan(monkeypatch):
     assert entry["status"] == "unknown" and entry["error_kind"] == "RuntimeError"
     assert value["stats"]["privesc"] == {"error": "RuntimeError"}
     assert value["graphs"]["privesc"] == {"nodes": [], "edges": []}
-    assert any(f["category"] == "least_privilege" for f in value["findings"])
+    assert any(f["category"] == "least_privilege" for f in hydrate_frameworks(value)["findings"])
     assert "Evaluation failed" in render_markdown(value)
 
 
@@ -279,4 +280,11 @@ def test_api_principal_card_edges_carry_catalog_technique_details(api):
     assert card["technique_details"]["aws-ec2-passrole-runinstances"]["title"]
     role = client.get(f"/api/scans/{ident}/privesc/principals/{ADMIN_ROLE}").json()
     admin_edge = next(e for e in role["outgoing"] if "admin-equivalent" in e["techniques"])
-    assert admin_edge["technique_details"][0]["mitigation"]
+    # Already-admin is a synthetic assessment label, not an escalation entry
+    # in the strict catalog, so the bound report cannot give it a technique.
+    admin_detail = admin_edge["technique_details"][0]
+    assert admin_detail["id"] == "admin-equivalent"
+    assert admin_detail["unknown"] is True
+    assert admin_detail["catalog_lookup_status"] == "exact_strict_privesc"
+    assert admin_detail["edge_confidence"] == admin_edge["confidence"]
+    assert admin_detail["evidence"] == admin_edge["evidence_refs"]

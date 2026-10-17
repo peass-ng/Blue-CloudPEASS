@@ -1,0 +1,231 @@
+{
+  "check_index_sha256": "b79f5bc4c243e40e462bcd63f1eb0b1e2c8dd5cd12410182a57bccbcb6e71c32",
+  "descriptions": {
+    "desc-all-1": {
+      "checks": 7,
+      "input_sha256": "b7ee7b656687003af1adc74a2c21d27f34876fcd2070fe2560edd075decb76f3",
+      "path": "descriptions/desc-all-1.json",
+      "sha256": "81f6ced46505e40e530df17b037d8265c6d4be63782d4c97ff21cce440b94c10",
+      "verified": true
+    },
+    "desc-aws-1": {
+      "checks": 310,
+      "input_sha256": "e9a97834e34a71c847f68dcacee33e26b33a631cf35a79a7929ff879259f3da0",
+      "path": "descriptions/desc-aws-1.json",
+      "sha256": "e2a820ed23a81e3760089a055e7e08d2c2175b83c3247c5bb2a3d39d06f7d003",
+      "verified": true
+    },
+    "desc-aws-2": {
+      "checks": 310,
+      "input_sha256": "a85962d0a9cf8b9f319dc5a5c920bfc2da610c30011a528ebdd63eb1a6a55663",
+      "path": "descriptions/desc-aws-2.json",
+      "sha256": "2c0b700c45a65ea43bd6fb7e1d87bfbb3dbadba6f39109e80848195c61e16e9f",
+      "verified": true
+    },
+    "desc-aws-3": {
+      "checks": 310,
+      "input_sha256": "474dba3720c95286fd5a1aa8ade28b3509649cd049cf36be68facb83437a8e33",
+      "path": "descriptions/desc-aws-3.json",
+      "sha256": "e2fc8f36aa74dd3a8bb96f76f86281d6c4cc9b4ccf5a54bef900abebd83fb139",
+      "verified": true
+    },
+    "desc-aws-4": {
+      "checks": 308,
+      "input_sha256": "ae209bfecaab6cd02dd82c48f542edf51ef14296b83fdb707a72a1d54db07233",
+      "path": "descriptions/desc-aws-4.json",
+      "sha256": "a8add9cc66df1799ec90e94e47b753e629ec15b1d671cc43a53b2f2a5c805099",
+      "verified": true
+    },
+    "desc-azure-1": {
+      "checks": 302,
+      "input_sha256": "ea2e40c18515c346a922762ab2bf0e6d215b0ebe2565fc7fccc055385b8f7742",
+      "path": "descriptions/desc-azure-1.json",
+      "sha256": "0602ae82e47cbd5e34111948785bd4019e653cfa6535f9cfd003f168a0c50977",
+      "verified": true
+    },
+    "desc-azure-2": {
+      "checks": 302,
+      "input_sha256": "51536d3b0668603ab07b507c18aef46acc2991ab03401531747457458acad6db",
+      "path": "descriptions/desc-azure-2.json",
+      "sha256": "6bb5a5264369e7969d800b67d7d73ee90e420733157e499d0f757ecad72bcf13",
+      "verified": true
+    },
+    "desc-gcp-1": {
+      "checks": 362,
+      "input_sha256": "83e09394360eb045a581b9f895f1ecc1fe068043a564fde9ae0cdd5afbef3b20",
+      "path": "descriptions/desc-gcp-1.json",
+      "sha256": "bda2186ce46002d87c817723a9bc617dd1666bf772e29aac3b71398182ba02de",
+      "verified": true
+    },
+    "desc-k8s-1": {
+      "checks": 301,
+      "input_sha256": "4207439add903d7ce6d02bc50e1a823eb19f64446dae34618294a3a34f93b6cc",
+      "path": "descriptions/desc-k8s-1.json",
+      "sha256": "a4979dd6b985882675ed7ead96083aca95367e413e034fe5a5169e9be91cb0e0",
+      "verified": true
+    },
+    "desc-k8s-2": {
+      "checks": 301,
+      "input_sha256": "007ce7ea79c8e139f98e0461cf17e58d1da80a85745c2f7cacc12f1ee7119541",
+      "path": "descriptions/desc-k8s-2.json",
+      "sha256": "eed9e19a762f37186e872e901cb635bd8f48b85e4fc6a827da0bccf153ca9a58",
+      "verified": true
+    },
+    "desc-k8s-3": {
+      "checks": 299,
+      "input_sha256": "b41a8d017e8a380af03843391f7bf7dc152ab90f17671e6275693bf72f73c4ce",
+      "path": "descriptions/desc-k8s-3.json",
+      "sha256": "dbbbf8ef0f30fab56116250ced3bce9dcdc015dfa67c0bf44852d098151ce71e",
+      "verified": true
+    }
+  },
+  "duplicate_description_allowlist": {
+    "k8s.ports.job.always_pull": {
+      "allowed_ids": [
+        "k8s.ports.job.content_digest_or_always_pull"
+      ],
+      "reason": "Both IDs share one evaluator path in peaso/checks/k8s_ports_workloads.py (digest-pinned images with IfNotPresent or omitted policy pass in both); identical prose is accurate. Native follow-up: always_pull title claims literal Always."
+    },
+    "k8s.ports.pod.always_pull": {
+      "allowed_ids": [
+        "k8s.ports.pod.content_digest_or_always_pull"
+      ],
+      "reason": "Both IDs share one evaluator path in peaso/checks/k8s_ports_workloads.py (digest-pinned images with IfNotPresent or omitted policy pass in both); identical prose is accurate. Native follow-up: always_pull title claims literal Always."
+    }
+  },
+  "new_descriptions": {
+    "checks": 881,
+    "path": "descriptions/implemented-new-checks.json",
+    "sha256": "c59811a355a58e6106875ab6987be8c4ba5bbcefa1b0c67eec3b8e3ee0a94b65",
+    "verified": true
+  },
+  "slices": {
+    "aws-c5": {
+      "input_sha256": "9b433d259eeb3332f7e8332a1d268696064d5efb562c8f68eb7d4ae84bac5635",
+      "path": "aws-c5.json",
+      "requirements_total": 610,
+      "sha256": "6ab09753cd67fc9cd4a234e82731ff12d26fe67fa695c37480a140056a6e7158",
+      "verified": true
+    },
+    "aws-cis": {
+      "input_sha256": "265a8dd29d32bcbc87d9e712a0a7d9b64fc8e356a66d6dafee3b30b3b9ddb9d2",
+      "path": "aws-cis.json",
+      "requirements_total": 1326,
+      "sha256": "dcfb2746517adc245b551ea4d932b37255b034be7ecd56a3b797e4f5eea01e27",
+      "verified": true
+    },
+    "aws-fsbp-wellarch-ftr": {
+      "input_sha256": "8a97370d139d8fb4f953fcbbb1f05975332383855c81a5366ce067ab3549dc50",
+      "path": "aws-fsbp-wellarch-ftr.json",
+      "requirements_total": 903,
+      "sha256": "66ac508e2eb43b947447c425b19a9803ce9406b90abf7462ac671946d47a6419",
+      "verified": true
+    },
+    "aws-kisa-ens-secnum-nis2": {
+      "input_sha256": "6272478f5ba0bf796f596903d399936697fda3d00375b01f609594baf221c763",
+      "path": "aws-kisa-ens-secnum-nis2.json",
+      "requirements_total": 603,
+      "sha256": "6f40d527e4172ec0b7c88130087a15718f8907db699ee40bb5a6c08b71937289",
+      "verified": true
+    },
+    "aws-nist-ffiec-nydfs": {
+      "input_sha256": "61a7d95cd89f16913822928e4cbb5d209e0c96576639e5787599bd393d4ea75a",
+      "path": "aws-nist-ffiec-nydfs.json",
+      "requirements_total": 2041,
+      "sha256": "23b8fe8537843f2ee492217efb600e9d76ac60c9a6ae58329d5162546ef2ea80",
+      "verified": true
+    },
+    "aws-other": {
+      "input_sha256": "abc1b80d1c1383a3c2c303069532699cdedb01e24d3ae9e09d6bb4f32d1480b4",
+      "path": "aws-other.json",
+      "requirements_total": 1744,
+      "sha256": "f9fd0e455fe5dcb22851c004ea5dc1c79a8677ae869d243ee25423f413b7419a",
+      "verified": true
+    },
+    "aws-pci": {
+      "input_sha256": "a0c0f29935f966d0c93ebab1e6784fa2fd8146b4176016e0e22987aa92ec6331",
+      "path": "aws-pci.json",
+      "requirements_total": 2228,
+      "sha256": "ac205ea3d3a638545d07be5c0a6184855812c3511d0e5afdf38002a15e1e8d20",
+      "verified": true
+    },
+    "azure-c5": {
+      "input_sha256": "ee3813b422e5ca07711f6f2bf5e88daeb58f10c3450e7b35a6f586d70c9fb848",
+      "path": "azure-c5.json",
+      "requirements_total": 610,
+      "sha256": "cea9fae656d536709339b02c15e80df10b9adcc8791a95b95c578dae579abeb8",
+      "verified": true
+    },
+    "azure-cis": {
+      "input_sha256": "bb063e00a3aa5018d4a5035478ab19818e264efd53039e28e3413657304182bb",
+      "path": "azure-cis.json",
+      "requirements_total": 2068,
+      "sha256": "40089deed8f0f5ba4694fca15c652a3069fb2b998e06cc106adfd66299bbcc2f",
+      "verified": true
+    },
+    "azure-nist-hipaa-rbi-soc2": {
+      "input_sha256": "29fe9977128726f878fb84473f845223d4fa65c6c6534e20f979136c7733d863",
+      "path": "azure-nist-hipaa-rbi-soc2.json",
+      "requirements_total": 939,
+      "sha256": "1ed5d51e3f51e584a887cfc0c779b8e2ce372ae6de51d12226d0b8b8ee7a2f1d",
+      "verified": true
+    },
+    "azure-other": {
+      "input_sha256": "e165ad87273fd4eb36b2c0c45bf063836245a153309d531a5b36030bd4fd0112",
+      "path": "azure-other.json",
+      "requirements_total": 667,
+      "sha256": "9a45d8fcaff176b5458aed3fb36759b2ff6be6e5667b9aa931c3e0da3e27e98f",
+      "verified": true
+    },
+    "azure-pci": {
+      "input_sha256": "115758a5d1112127838b7c30c672f8c8c3bb1e10984535045f9107e9b8e504fe",
+      "path": "azure-pci.json",
+      "requirements_total": 1705,
+      "sha256": "3e068c447aabc3d1855139bdfc63bca6e8142592c85605d80c073cded0ce55a1",
+      "verified": true
+    },
+    "gcp-c5": {
+      "input_sha256": "623aba153ea7c0781d54f70c777bd9b40933bbb2063c538cb788f2e4097f9595",
+      "path": "gcp-c5.json",
+      "requirements_total": 610,
+      "sha256": "ca55db1bcdbed5c3f6e5a36f9af34411d6225862bc4f931eeefddfa71725ab8f",
+      "verified": true
+    },
+    "gcp-cis-cft": {
+      "input_sha256": "a8d156258c8be1b784f3356f864bc0b850607a24b695c423146480be4b561a2c",
+      "path": "gcp-cis-cft.json",
+      "requirements_total": 799,
+      "sha256": "e1c72923f8249fe55c55b9cf985569eaf8010cae34ea6a8919843a5b56136ec2",
+      "verified": true
+    },
+    "gcp-other": {
+      "input_sha256": "6f889bbf0cc2b5ec9a6bb154268a7c269d5208a09ac8214e454accec31b0fce4",
+      "path": "gcp-other.json",
+      "requirements_total": 1061,
+      "sha256": "eae25af44ea52b0050929b76cdc7175cd245eeac0522249a06d3f1f97f2aea27",
+      "verified": true
+    },
+    "gcp-pci": {
+      "input_sha256": "8c02043f668918183e9afbf1a03810936e0ad29fa838f0ec9c098479136c6492",
+      "path": "gcp-pci.json",
+      "requirements_total": 1730,
+      "sha256": "8ebb75fdd0950e3689d3b531509140b020e4f9fdecca4114ccd8a50f48a686c2",
+      "verified": true
+    },
+    "k8s-cis": {
+      "input_sha256": "b2d4109fcb1dc607d5333dbafb947957fd5c63da96f95191e772a3b53bab1291",
+      "path": "k8s-cis.json",
+      "requirements_total": 720,
+      "sha256": "dc95badf88006730bdb41f992a70af542b512b0ce57c0a27859314bfae4eec79",
+      "verified": true
+    },
+    "k8s-other": {
+      "input_sha256": "6ef679bec5edaf1504e933850707d711e5e288eba29cb7c48086618f0f5aca3b",
+      "path": "k8s-other.json",
+      "requirements_total": 1848,
+      "sha256": "8c7a727986587b5decf718e9003af4e30470a52b5dafaf0e85e6aa75c5d91c99",
+      "verified": true
+    }
+  },
+  "version": 1
+}

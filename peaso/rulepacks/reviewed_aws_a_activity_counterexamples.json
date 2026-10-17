@@ -1,0 +1,95 @@
+{
+  "prowler.aws.cloudtrail_bedrock_logging_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html",
+      "https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html"
+    ],
+    "reason": "Complete pinned _get_bedrock_match_type/_logs_advanced_bedrock_data_events and field helper reviewed, not blanket rejected: Data category plus recognized Bedrock resources.type alone satisfies data branch, while eventName/eventSource/resource constraints are ignored. Valid advanced selector Data+AWS::Bedrock::Model+eventName Equals PutObject emits no Bedrock model events yet reportsPASS. Current provider supports arbitrary data-event eventName constraints, and Bedrock model data APIs such as InvokeModelWithBidirectionalStream do not match PutObject. Concrete all-field-AND falsePASS is substantive invalidity, not collector gap or absence of a runtime; classic/management branches do not repair this falsePASS branch.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Independent inert per-region/first-page exact-threshold and Bedrock all-selector-field counterexamples in owned source_counterexamples test. Every complete pinned source/helper independently read and digest retained; lead audit still needed before active integration. No SDK writes/probes/secret values or source runtime imports, no alwaysUNKNOWN source port.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudtrail/cloudtrail_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "2c0f347c9ff8227783cef9623f6d2fa9508a9699830b5b602c7e1aa05c2d105f"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "4b866c41ac4f090ce37e8d9a6a8125acb504651f05f39bea0a30bb6a5f65296e",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_bedrock_logging_enabled/cloudtrail_bedrock_logging_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_threat_detection_enumeration": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_LookupEvents.html"
+    ],
+    "reason": "Full pinned execute and CloudTrail service reviewed; original denominator92/threshold0.3 preserved in counterexamples. First multi-region trail replaces every trail, but _lookup_events calls only its region. Official LookupEvents is per-region even for multi-region trails: actor above exact threshold in another audited region is falselyPASSed. Helper also drops NextToken after first50 results, allowing actors only on older pages to be missed. These are concrete inherent coverage defects, not missing implementation/facts; safe full-region/full-page projection is implemented but cannot be called source-equivalent.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Independent inert per-region/first-page exact-threshold and Bedrock all-selector-field counterexamples in owned source_counterexamples test. Every complete pinned source/helper independently read and digest retained; lead audit still needed before active integration. No SDK writes/probes/secret values or source runtime imports, no alwaysUNKNOWN source port.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudtrail/cloudtrail_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "2c0f347c9ff8227783cef9623f6d2fa9508a9699830b5b602c7e1aa05c2d105f"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "a2c563567bf66a17e83c2207c00b25a90e95973ecf01d7ef0f26901b6e6a255b",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_threat_detection_enumeration/cloudtrail_threat_detection_enumeration.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_threat_detection_llm_jacking": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_LookupEvents.html"
+    ],
+    "reason": "Full pinned execute and CloudTrail service reviewed; original denominator14/threshold0.4 preserved in counterexamples. First multi-region trail replaces every trail, but _lookup_events calls only its region. Official LookupEvents is per-region even for multi-region trails: actor above exact threshold in another audited region is falselyPASSed. Helper also drops NextToken after first50 results, allowing actors only on older pages to be missed. These are concrete inherent coverage defects, not missing implementation/facts; safe full-region/full-page projection is implemented but cannot be called source-equivalent.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Independent inert per-region/first-page exact-threshold and Bedrock all-selector-field counterexamples in owned source_counterexamples test. Every complete pinned source/helper independently read and digest retained; lead audit still needed before active integration. No SDK writes/probes/secret values or source runtime imports, no alwaysUNKNOWN source port.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudtrail/cloudtrail_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "2c0f347c9ff8227783cef9623f6d2fa9508a9699830b5b602c7e1aa05c2d105f"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "910609fbaa45348f07ebdb42ab3acae361368e683a6d80df49365f6198f8f528",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_threat_detection_llm_jacking/cloudtrail_threat_detection_llm_jacking.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_threat_detection_privilege_escalation": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_LookupEvents.html"
+    ],
+    "reason": "Full pinned execute and CloudTrail service reviewed; original denominator51/threshold0.2 preserved in counterexamples. First multi-region trail replaces every trail, but _lookup_events calls only its region. Official LookupEvents is per-region even for multi-region trails: actor above exact threshold in another audited region is falselyPASSed. Helper also drops NextToken after first50 results, allowing actors only on older pages to be missed. These are concrete inherent coverage defects, not missing implementation/facts; safe full-region/full-page projection is implemented but cannot be called source-equivalent.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Independent inert per-region/first-page exact-threshold and Bedrock all-selector-field counterexamples in owned source_counterexamples test. Every complete pinned source/helper independently read and digest retained; lead audit still needed before active integration. No SDK writes/probes/secret values or source runtime imports, no alwaysUNKNOWN source port.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudtrail/cloudtrail_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "2c0f347c9ff8227783cef9623f6d2fa9508a9699830b5b602c7e1aa05c2d105f"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "6736e8df1a6dde16a21dfaa27cee461a78e427ea6e5165bea1769f2cd7778813",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_threat_detection_privilege_escalation/cloudtrail_threat_detection_privilege_escalation.metadata.json"
+    }
+  }
+}

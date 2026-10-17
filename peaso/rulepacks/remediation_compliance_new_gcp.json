@@ -1,0 +1,186 @@
+{
+  "gcp_pci_bucket_0742bd5dc32c": {
+    "summary": "Add a supported lifecycle rule to the flagged versioned Cloud Storage bucket.",
+    "steps": [
+      "Inspect versioning.enabled and lifecycle.rule on the exact bucket and inventory current/noncurrent object retention requirements.",
+      "Choose a supported action and condition with the data owner, stage a reviewed full lifecycle policy and test its effect on representative object versions.",
+      "Read back the lifecycle rule, verify retention behavior, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Lifecycle actions may delete objects or change storage class, and can increase retrieval cost; review legal holds and retention policies before applying.",
+      "This predicate tests rule presence and syntax, not whether its condition enforces the intended business retention period."
+    ],
+    "references": [
+      {
+        "title": "Cloud Storage Object Lifecycle Management",
+        "url": "https://cloud.google.com/storage/docs/lifecycle"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp",
+      "kind": "bucket",
+      "target": "resource",
+      "path": "_provenance.representation=full; versioning.enabled; lifecycle.rule[].action.type and condition",
+      "observed_fail_evidence": "versioning_enabled; lifecycle_rule_count"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "6a2bdab0c81dc3a316b9749b510f3d5e8928e63beebfd0e4561f1d8e15138347"
+  },
+  "gcp_pci_bucket_3d76b0b0701e": {
+    "summary": "Set an approved positive retention period on the flagged versioned bucket.",
+    "steps": [
+      "Inspect versioning.enabled and retentionPolicy.retentionPeriod for this exact bucket and identify data preservation obligations.",
+      "Choose a positive duration with the data/legal owner, test restore and deletion behavior, then apply the reviewed bucket retention policy.",
+      "Read back the retention period, confirm intended objects remain recoverable, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "A retention policy prevents early deletion and can materially increase storage cost; locking the policy is a distinct irreversible action and is not requested here.",
+      "A positive period passes this predicate without proving that the duration meets an organization's retention requirement."
+    ],
+    "references": [
+      {
+        "title": "Cloud Storage bucket retention policies",
+        "url": "https://cloud.google.com/storage/docs/bucket-lock"
+      },
+      {
+        "title": "Cloud Storage bucket resource fields",
+        "url": "https://cloud.google.com/storage/docs/json_api/v1/buckets"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp",
+      "kind": "bucket",
+      "target": "resource",
+      "path": "_provenance.representation=full; versioning.enabled; retentionPolicy.retentionPeriod",
+      "observed_fail_evidence": "versioning_enabled; retention_seconds"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "90034cfcb00c2d0762ca990e1dbe79013ddca6059fc8465b69339745466875a1"
+  },
+  "gcp_pci_instance_template_2e26bed500fc": {
+    "summary": "Replace the flagged instance template's external access configuration.",
+    "steps": [
+      "Inspect properties.networkInterfaces[].accessConfigs[] on the exact template and identify managed instance groups or deployments that consume it.",
+      "Create a reviewed replacement template without the external access configuration and test private management, egress and deployment paths before migrating consumers.",
+      "Verify the replacement template and resulting instances, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Instance templates are immutable; replacing one can require managed instance group updates and may change client reachability.",
+      "The template predicate does not prove a running VM is currently publicly reachable or that every consumer has migrated."
+    ],
+    "references": [
+      {
+        "title": "Create Compute Engine instance templates",
+        "url": "https://cloud.google.com/compute/docs/instance-templates/create-instance-templates"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp",
+      "kind": "instance_template",
+      "target": "resource",
+      "path": "properties.networkInterfaces[].accessConfigs[]",
+      "observed_fail_evidence": "external_interfaces; interface_count"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "4868669925a247ab952bad9069df5b4782c8be97736883626fbd476d25f56de5"
+  },
+  "gcp_pubsub_topic_cmek": {
+    "summary": "Use an approved customer-managed key for this Pub/Sub topic.",
+    "steps": [
+      "Inspect the exact topic's kmsKeyName and the project/location of an approved Cloud KMS key.",
+      "Review key location, Pub/Sub service-agent permissions and rotation continuity, then configure the topic to use the approved key.",
+      "Publish and consume a test message through the intended path, read back kmsKeyName, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Missing KMS permissions or a disabled key can halt publish/consume operations; verify service-agent access before changing encryption.",
+      "Changing a topic key does not re-encrypt messages already published with the prior key."
+    ],
+    "references": [
+      {
+        "title": "Pub/Sub topic encryption properties",
+        "url": "https://cloud.google.com/pubsub/docs/topic-properties"
+      },
+      {
+        "title": "Configure Pub/Sub message encryption",
+        "url": "https://cloud.google.com/pubsub/docs/encryption"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp",
+      "kind": "pubsub_topic",
+      "target": "resource",
+      "path": "name; _provenance.representation=full for omitted kmsKeyName; kmsKeyName",
+      "observed_fail_evidence": "kms_key_name"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "265ba67c0cb6aa0f14a2d3cd7fe1ac51b774bf1c08b5b8279e170cb039ce70a9"
+  },
+  "gcp_pci_bigquery_dataset_6017267cdf32": {
+    "summary": "Remove public READER or WRITER grants from this BigQuery dataset.",
+    "steps": [
+      "Inspect the complete FULL-view dataset access[] entries and identify READER or WRITER grants to allUsers or allAuthenticatedUsers.",
+      "Have the data owner approve replacement named principals or groups, then update the reviewed complete dataset ACL without dropping required project or authorized-view entries.",
+      "Test intended queries and denied public access, read back the FULL ACL, recollect and rerun this exact check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Changing a dataset ACL can interrupt queries, authorized views and scheduled jobs; preserve all unrelated entries.",
+      "This predicate does not evaluate OWNER grants or effective access inherited from project/folder policies; the separate allUsers predicate has a different scope."
+    ],
+    "references": [
+      {
+        "title": "BigQuery dataset resource ACL fields",
+        "url": "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+      },
+      {
+        "title": "FULL dataset ACL view",
+        "url": "https://cloud.google.com/bigquery/docs/dataset-access-control"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp",
+      "kind": "bigquery_dataset",
+      "target": "resource",
+      "path": "_provenance.representation=full; access[].role in READER/WRITER; specialGroup or iamMember in allUsers/allAuthenticatedUsers",
+      "observed_fail_evidence": "public_read_write_entries"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "86970197b0aaa4c74493e46b2796f41cb0baf1ffbf86f2afad524a586c222db3"
+  },
+  "gcp_pci_bigquery_dataset_fb9fcc01d5b7": {
+    "summary": "Remove allUsers grants from this BigQuery dataset ACL.",
+    "steps": [
+      "Inspect the complete FULL-view dataset access[] entries for allUsers in specialGroup or iamMember at any role.",
+      "Review each flagged grant with the data owner and replace it with approved named principals or groups in the complete ACL declaration.",
+      "Validate required clients and denied public access, read back the FULL ACL, recollect and rerun this exact check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Revoking allUsers access can interrupt clients; stage replacement grants and test authorization before cutover.",
+      "This signed predicate does not flag allAuthenticatedUsers; other public-access checks may have a broader scope."
+    ],
+    "references": [
+      {
+        "title": "BigQuery dataset resource ACL fields",
+        "url": "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+      },
+      {
+        "title": "FULL dataset ACL view",
+        "url": "https://cloud.google.com/bigquery/docs/dataset-access-control"
+      }
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp",
+      "kind": "bigquery_dataset",
+      "target": "resource",
+      "path": "_provenance.representation=full; access[].specialGroup or iamMember=allUsers",
+      "observed_fail_evidence": "all_users_roles"
+    },
+    "review_status": "approved",
+    "proposed_spec_sha256": "7a2aa83a3ccdc871a28217113b49113cd5de5ff5f2759feea666f8ee33e18a68"
+  }
+}

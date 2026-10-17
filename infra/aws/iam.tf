@@ -17,16 +17,19 @@ resource "aws_iam_role" "api" {
 }
 resource "aws_iam_role_policy" "api" {
   role = aws_iam_role.api.id
-  policy = jsonencode({ Version = "2012-10-17", Statement = [
+  policy = jsonencode({ Version = "2012-10-17", Statement = concat([
     { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"], Resource = ["${aws_cloudwatch_log_group.api.arn}:*", "${aws_cloudwatch_log_group.scheduler.arn}:*"] },
-    { Effect = "Allow", Action = ["dynamodb:DescribeTable", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:TransactWriteItems"], Resource = aws_dynamodb_table.metadata.arn },
+    { Effect = "Allow", Action = ["dynamodb:DescribeTable", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:ConditionCheckItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:TransactWriteItems"], Resource = aws_dynamodb_table.metadata.arn },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
-    { Effect = "Allow", Action = ["cognito-idp:AdminGetUser", "cognito-idp:DescribeUserPoolClient"], Resource = local.pool_arn },
+    { Effect = "Allow", Action = ["cognito-idp:AdminGetUser", "cognito-idp:ListUsers", "cognito-idp:ListUserPoolClients", "cognito-idp:DescribeUserPoolClient"], Resource = local.pool_arn },
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn, local.stripe_arn] },
+    { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = aws_iam_role.collector.arn },
     { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn },
     { Effect = "Allow", Action = ["states:StartExecution"], Resource = local.workflow_arn },
     { Effect = "Allow", Action = ["states:DescribeExecution"], Resource = "arn:aws:states:${var.region}:${local.account_id}:execution:${local.name}:*" }
-  ] })
+    ], var.gcp_platform_sa_secret_arn == "" ? [] : [
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.gcp_platform_sa_secret_arn }
+  ]) })
 }
 resource "aws_iam_role" "execution" {
   name               = "${local.name}-task-execution"
@@ -41,20 +44,27 @@ resource "aws_iam_role_policy" "execution" {
   ] })
 }
 resource "aws_iam_role" "collector" {
-  name               = "${local.name}-collector"
-  assume_role_policy = local.task_trust
+  name = "${local.name}-collector"
+  assume_role_policy = jsonencode({ Version = "2012-10-17", Statement = [
+    { Effect = "Allow", Principal = { Service = "ecs-tasks.amazonaws.com" }, Action = "sts:AssumeRole",
+    Condition = { StringEquals = { "aws:SourceAccount" = local.account_id }, ArnLike = { "aws:SourceArn" = "arn:aws:ecs:${var.region}:${local.account_id}:*" } } },
+    { Effect = "Allow", Principal = { AWS = aws_iam_role.api.arn }, Action = "sts:AssumeRole" }
+  ] })
 }
 resource "aws_iam_role_policy" "collector" {
   role = aws_iam_role.collector.id
   policy = jsonencode({ Version = "2012-10-17", Statement = concat([
     { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:Query"], Resource = aws_dynamodb_table.metadata.arn },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
-    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = aws_secretsmanager_secret.credentials.arn },
-    { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn }
-    ], length(var.customer_role_arns) == 0 ? [] : [{
-      Effect    = "Allow", Action = ["sts:AssumeRole"], Resource = var.customer_role_arns,
-      Condition = { StringLike = { "sts:ExternalId" = "peaso-*" } }
-  }]) })
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn] },
+    { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn },
+    { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = "arn:aws:iam::*:role/*" },
+    { Effect = "Deny", Action = ["sts:AssumeRole"], Resource = ["arn:aws:iam::202533532952:role/*", "arn:aws:iam::418720621023:role/*"] },
+    { Effect = "Deny", Action = ["sts:AssumeRole"], Resource = "*",
+    Condition = { StringEquals = { "aws:ResourceAccount" = ["202533532952", "418720621023"] } } }
+    ], var.gcp_platform_sa_secret_arn == "" ? [] : [
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.gcp_platform_sa_secret_arn }
+  ]) })
 }
 resource "aws_iam_role" "analyzer" {
   name               = "${local.name}-analyzer"
@@ -66,7 +76,11 @@ resource "aws_iam_role_policy" "analyzer" {
     { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:Query"], Resource = aws_dynamodb_table.metadata.arn },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
     # Explicit deny prevents future shared permissions from exposing cloud credentials.
-    { Effect = "Deny", Action = ["sts:AssumeRole", "secretsmanager:GetSecretValue", "kms:Decrypt"], Resource = "*" }
+    { Effect = "Deny", Action = ["sts:AssumeRole", "secretsmanager:GetSecretValue"], Resource = "*" },
+    {
+      Effect    = "Deny", Action = ["kms:Decrypt"], Resource = "*",
+      Condition = { StringNotEquals = { "kms:ViaService" = "dynamodb.${var.region}.amazonaws.com" } }
+    }
   ] })
 }
 resource "aws_iam_role" "workflow" {

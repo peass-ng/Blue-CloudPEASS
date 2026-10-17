@@ -1,0 +1,22 @@
+{
+  "gcp_cloudcdn_cookie_ttl": {
+    "summary": "Reduce this backend service's declared cookie-affinity lifetime to 30 minutes or less.",
+    "steps": [
+      "Inspect sessionAffinity and affinityCookieTtlSec on the exact backend service, and check whether consistentHash.httpCookie.ttl separately overrides the effective cookie lifetime.",
+      "Review session persistence needs with the application owner, then set the reviewed backend affinityCookieTtlSec to at most 1800 seconds for GENERATED_COOKIE or HTTP_COOKIE mode.",
+      "Test sign-in and backend routing over the shorter lifetime, read back the field, recollect and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Reducing cookie lifetime may increase rebalancing or disrupt sticky sessions; test the application before changing the backend service.",
+      "The signed predicate measures affinityCookieTtlSec only. It does not prove expiry after inactivity, and a consistentHash.httpCookie.ttl override can determine the effective cookie lifetime."
+    ],
+    "references": [
+      {"title": "Compute BackendService cookie fields and limits", "url": "https://cloud.google.com/compute/docs/reference/rest/v1/backendServices/list"},
+      {"title": "Application Load Balancer cookie affinity behavior", "url": "https://cloud.google.com/load-balancing/docs/https/request-distribution"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_gcp_backend", "kind": "backend_service", "target": "resource", "path": "name; _provenance.representation=full; sessionAffinity; affinityCookieTtlSec", "observed_fail_evidence": "backend_service; session_affinity; affinity_cookie_ttl_sec; maximum_seconds"},
+    "proposed_spec_sha256": "b4af773ec675ad17f99f4085881e60861e83dd77d27dccc053e76be104ec0707",
+    "review_status": "source_bound_pending_review"
+  }
+}

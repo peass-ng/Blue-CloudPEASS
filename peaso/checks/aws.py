@@ -1,6 +1,6 @@
 """AWS configuration checks; boto3 response envelopes are retained as facts."""
 from . import register, result, unknown
-from .facts import field_check, get, list_of_objects
+from .facts import Unavailable, field_check, get, guard, list_of_objects
 from .fixtures import CASES
 
 
@@ -23,6 +23,17 @@ for args in [
     field_check(cid, "aws", kind, path, good, bad, title, expected=type(good))
 
 
+def _native_optional(item, key, default, expected):
+    """Use an AWS omission default only when the field was not read or was confirmed empty."""
+    guard(item)
+    coverage = item.get("_coverage", {})
+    marker = coverage.get(key)
+    if key not in item and (key not in coverage or
+            isinstance(marker, dict) and marker.get("status") == "empty"):
+        return default
+    return get(item, key, expected)
+
+
 @register("aws.rds.no_public_endpoint", "aws", "exposure", "rds_instance", "RDS instance avoids a public endpoint", "high", "SC-7", "Disable public accessibility or document the approved exposure and restrict network access.")
 def rds_public(item, index):
     value = get(item, "PubliclyAccessible", bool)
@@ -33,7 +44,7 @@ CASES["aws.rds.no_public_endpoint"] = {"pass": {"PubliclyAccessible": False}, "f
 @register("aws.s3.versioning", "aws", "hardening", "bucket", "S3 bucket versioning is enabled", "medium", "CP-9", "Enable versioning and use lifecycle retention aligned with recovery needs.")
 def versioning(item, index):
     config = get(item, "Versioning", dict)
-    state = config.get("Status")
+    state = _native_optional(config, "Status", None, str)
     if state not in ("Enabled", "Suspended", None):
         return unknown("unrecognized S3 versioning state")
     return result(state != "Enabled", versioning_status=state or "not_enabled")
@@ -43,9 +54,9 @@ CASES["aws.s3.versioning"] = {"pass": {"Versioning": {"Status": "Enabled"}}, "fa
 @register("aws.s3.access_logging", "aws", "hardening", "bucket", "S3 bucket has server access logging configured", "low", "AU-2", "Enable access logging to an appropriate protected bucket, or review a documented alternative data-access audit control.")
 def logging(item, index):
     config = get(item, "Logging", dict)
-    enabled = config.get("LoggingEnabled")
-    if enabled is not None and (not isinstance(enabled, dict) or not isinstance(enabled.get("TargetBucket"), str)):
-        return unknown("malformed S3 logging target")
+    enabled = _native_optional(config, "LoggingEnabled", None, dict)
+    if enabled is not None:
+        get(enabled, "TargetBucket", str)
     return result(enabled is None, logging_enabled=enabled, semantics="CloudTrail data event coverage is a separate control")
 CASES["aws.s3.access_logging"] = {"pass": {"Logging": {"LoggingEnabled": {"TargetBucket": "audit"}}}, "fail": {"Logging": {}}}
 
@@ -53,13 +64,19 @@ CASES["aws.s3.access_logging"] = {"pass": {"Logging": {"LoggingEnabled": {"Targe
 @register("aws.s3.no_public_acl", "aws", "exposure", "bucket", "S3 bucket ACL has no public group grants", "high", "AC-3", "Remove public ACL grants, disable ACLs where feasible, and review Public Access Block enforcement.")
 def acl(item, index):
     grants = list_of_objects(get(item, "Acl.Grants", list))
-    public = []
+    public, unresolved = [], []
     for grant in grants:
-        grantee = get(grant, "Grantee", dict)
-        if grantee.get("URI") in ("http://acs.amazonaws.com/groups/global/AllUsers", "http://acs.amazonaws.com/groups/global/AuthenticatedUsers"):
-            public.append(grant)
+        try:
+            grantee = get(grant, "Grantee", dict)
+            uri = _native_optional(grantee, "URI", None, str)
+            if uri in ("http://acs.amazonaws.com/groups/global/AllUsers", "http://acs.amazonaws.com/groups/global/AuthenticatedUsers"):
+                public.append(grant)
+        except Unavailable as exc:
+            unresolved.append(str(exc))
     if public:
         return "MANUAL", {"public_acl_grants": public, "reason": "Public ACL is declared; bucket/account IgnorePublicAcls and Object Ownership determine effectiveness"}
+    if unresolved:
+        return unknown("bucket ACL grantee facts unavailable", unresolved=unresolved)
     return result(False, public_acl_grants=[])
 CASES["aws.s3.no_public_acl"] = {"pass": {"Acl": {"Grants": []}}, "manual": {"Acl": {"Grants": [{"Grantee": {"URI": "http://acs.amazonaws.com/groups/global/AllUsers"}, "Permission": "READ"}]}}}
 
@@ -67,10 +84,9 @@ CASES["aws.s3.no_public_acl"] = {"pass": {"Acl": {"Grants": []}}, "manual": {"Ac
 @register("aws.kms.rotation", "aws", "hardening", "kms_key", "Customer-managed symmetric KMS key rotation is enabled", "medium", "SC-12", "Enable automatic rotation for eligible symmetric customer-managed KMS keys.")
 def rotation(item, index):
     metadata = get(item, "Metadata.KeyMetadata", dict)
-    if metadata.get("KeyManager") == "AWS" or metadata.get("Origin") != "AWS_KMS" or metadata.get("KeySpec") != "SYMMETRIC_DEFAULT":
-        if all(k in metadata for k in ("KeyManager", "Origin", "KeySpec")):
-            return "NOT_APPLICABLE", {"key_metadata": metadata}
-        return unknown("key manager/origin/spec unavailable")
+    manager, origin, spec = (get(metadata, key, str) for key in ("KeyManager", "Origin", "KeySpec"))
+    if manager == "AWS" or origin != "AWS_KMS" or spec != "SYMMETRIC_DEFAULT":
+        return "NOT_APPLICABLE", {"key_metadata": metadata}
     enabled = get(item, "Rotation.KeyRotationEnabled", bool)
     return result(not enabled, rotation_enabled=enabled)
 CASES["aws.kms.rotation"] = {state: {"Metadata": {"KeyMetadata": {"KeyManager": "CUSTOMER", "Origin": "AWS_KMS", "KeySpec": "SYMMETRIC_DEFAULT"}}, "Rotation": {"KeyRotationEnabled": v}} for state, v in (("pass", True), ("fail", False))}
@@ -79,11 +95,28 @@ CASES["aws.kms.rotation"] = {state: {"Metadata": {"KeyMetadata": {"KeyManager": 
 @register("aws.cloudtrail.management_events", "aws", "hardening", "cloudtrail", "CloudTrail records both read and write management events", "high", "AU-2", "Configure complete management event selectors and review excluded event sources.")
 def trail_events(item, index):
     selectors = get(item, "EventSelectors", dict)
-    if selectors.get("AdvancedEventSelectors"):
-        return "MANUAL", {"advanced_event_selectors": selectors["AdvancedEventSelectors"], "reason": "Advanced selectors need field-selection review"}
+    advanced = _native_optional(selectors, "AdvancedEventSelectors", [], list)
+    if advanced:
+        return "MANUAL", {"advanced_event_selectors": list_of_objects(advanced), "reason": "Advanced selectors need field-selection review"}
     rows = list_of_objects(get(selectors, "EventSelectors", list))
-    complete = any(get(row, "IncludeManagementEvents", bool) and row.get("ReadWriteType") == "All" and not row.get("ExcludeManagementEventSources") for row in rows)
-    return result(not complete, event_selectors=rows)
+    complete, unresolved = False, []
+    for row in rows:
+        try:
+            if not get(row, "IncludeManagementEvents", bool):
+                continue
+            read_write = get(row, "ReadWriteType", str)
+            excluded = _native_optional(row, "ExcludeManagementEventSources", [], list)
+            if any(not isinstance(source, str) for source in excluded):
+                raise Unavailable("malformed excluded management event sources")
+            if read_write == "All" and not excluded:
+                complete = True
+        except Unavailable as exc:
+            unresolved.append(str(exc))
+    if complete:
+        return result(False, event_selectors=rows)
+    if unresolved:
+        return unknown("management event selector facts unavailable", unresolved=unresolved)
+    return result(True, event_selectors=rows)
 CASES["aws.cloudtrail.management_events"] = {"pass": {"EventSelectors": {"EventSelectors": [{"IncludeManagementEvents": True, "ReadWriteType": "All"}]}}, "fail": {"EventSelectors": {"EventSelectors": []}}}
 
 
@@ -105,19 +138,29 @@ CASES["aws.eks.control_plane_logging"] = {"pass": {"Cluster": {"cluster": {"logg
 @register("aws.iam.access_key_count", "aws", "hardening", "iam_user", "IAM user avoids multiple active long-lived access keys", "medium", "IA-5", "Review key rotation overlap and prefer short-lived role credentials.")
 def key_count(item, index):
     keys = list_of_objects(get(item, "AccessKeys.items", list))
-    if any(k.get("Status") not in ("Active", "Inactive") for k in keys):
-        return unknown("malformed access key status")
-    active = sum(k["Status"] == "Active" for k in keys)
-    return result(active > 1, active_key_count=active)
+    active, unresolved = 0, []
+    for key in keys:
+        try:
+            status = get(key, "Status", str)
+            if status not in ("Active", "Inactive"):
+                raise Unavailable("unrecognized access key status")
+            active += status == "Active"
+        except Unavailable as exc:
+            unresolved.append(str(exc))
+    if active > 1:
+        return result(True, active_key_count=active)
+    if unresolved:
+        return unknown("access key status unavailable", active_key_count=active, unresolved=unresolved)
+    return result(False, active_key_count=active)
 CASES["aws.iam.access_key_count"] = {"pass": {"AccessKeys": {"collection_status": "collected", "items": [{"Status": "Active"}]}}, "fail": {"AccessKeys": {"collection_status": "collected", "items": [{"Status": "Active"}, {"Status": "Active"}]}}}
 
 
 @register("aws.logs.retention", "aws", "hardening", "log_group", "CloudWatch log group has a retention policy", "low", "AU-11", "Set explicit retention consistent with incident response and regulatory needs.")
 def retention(item, index):
     get(item, "logGroupName", str)
-    if "retentionInDays" not in item:
+    days = _native_optional(item, "retentionInDays", None, int)
+    if days is None:
         return result(True, retention="never_expire", semantics="Valid API omission means unlimited retention; review intentional retention and cost")
-    days = get(item, "retentionInDays", int)
     if days <= 0:
         return unknown("invalid retention duration")
     return result(False, retention_days=days)
@@ -126,7 +169,15 @@ CASES["aws.logs.retention"] = {"pass": {"logGroupName": "audit", "retentionInDay
 
 @register("aws.rds.backups", "aws", "hardening", "rds_instance", "RDS automatic backup retention is nonzero", "medium", "CP-9", "Enable automated backups with retention suitable for recovery requirements.")
 def backups(item, index):
-    if item.get("ReadReplicaSourceDBInstanceIdentifier"):
+    guard(item)
+    field = "ReadReplicaSourceDBInstanceIdentifier"
+    coverage = item.get("_coverage", {})
+    marker = coverage.get(field)
+    replica = ""
+    empty_omission = field not in item and isinstance(marker, dict) and marker.get("status") == "empty"
+    if not empty_omission and (field in item or field in coverage):
+        replica = get(item, field, str)
+    if replica:
         return "NOT_APPLICABLE", {"reason": "Read replica backup eligibility needs separate engine/version policy review"}
     days = get(item, "BackupRetentionPeriod", int)
     if not 0 <= days <= 35:

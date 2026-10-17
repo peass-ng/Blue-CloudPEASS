@@ -1,0 +1,452 @@
+{
+ "azure-compliance.control.appservice_function_app_latest_java_version": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Ensure that 'Java version' is the latest, if used as a part of the Function app",
+   "title": "Ensure that 'Java version' is the latest, if used as a part of the Function app",
+   "guidance": "Compare the function app Java version with the supported Functions runtime versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_function_app_latest_java_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1329,
+   "query_sha256": "58c6d3abf8207c75f941e0778d865edcb38a46016d0b5903d7705d5fd05af06e",
+   "status_case_sql": "case\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'Java%' and configuration -> 'properties' ->> 'javaVersion' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "regulatory_compliance/appservice.pp",
+   "control_line": 345,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.appservice_function_app_latest_python_version": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Ensure that 'Python version' is the latest, if used as a part of the Function app",
+   "title": "Ensure that 'Python version' is the latest, if used as a part of the Function app",
+   "guidance": "Compare the function app Python version with the supported Functions runtime versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_function_app_latest_python_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1455,
+   "query_sha256": "199d3a369e458143da5ee3c1112711e02d9b0972e4f88c46a136e4c0a6a37f68",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'Python%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "regulatory_compliance/appservice.pp",
+   "control_line": 369,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.appservice_web_app_latest_dotnet_framework_version": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Web app should use the latest 'Net Framework' version",
+   "title": "Web app should use the latest 'Net Framework' version",
+   "guidance": "Compare netFrameworkVersion with the currently supported .NET versions for App Service."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_dotnet_framework_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1645,
+   "query_sha256": "7a572cc0be4c3af4076fe3913e7b3d893ca19fe004fb60a400e2b4761a5cd430",
+   "status_case_sql": "case\n        when b.id is null and configuration -> 'properties' ->> 'netFrameworkVersion' in ('v6.0', 'v7.0') then 'ok'\n        when b.id is not null and configuration -> 'properties' ->> 'linuxFxVersion' not like 'DOTNETCORE|%' then 'ok'\n        when b.id is not null and configuration -> 'properties' ->> 'linuxFxVersion' in ('DOTNETCORE|6.0', 'DOTNETCORE|7.0') then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "regulatory_compliance/appservice.pp",
+   "control_line": 385,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.appservice_web_app_latest_java_version": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Ensure that 'Java version' is the latest, if used as a part of the Web app",
+   "title": "Ensure that 'Java version' is the latest, if used as a part of the Web app",
+   "guidance": "Compare javaVersion / linuxFxVersion with the currently supported Java versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_java_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1357,
+   "query_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "regulatory_compliance/appservice.pp",
+   "control_line": 353,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.appservice_web_app_latest_php_version": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Ensure that 'PHP version' is the latest, if used as a part of the WEB app",
+   "title": "Ensure that 'PHP version' is the latest, if used as a part of the WEB app",
+   "guidance": "Compare phpVersion / linuxFxVersion with the currently supported PHP versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_php_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1402,
+   "query_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "regulatory_compliance/appservice.pp",
+   "control_line": 361,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.appservice_web_app_latest_python_version": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Ensure that 'Python version' is the latest, if used as a part of the Web app",
+   "title": "Ensure that 'Python version' is the latest, if used as a part of the Web app",
+   "guidance": "Compare pythonVersion / linuxFxVersion with the currently supported Python versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_python_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1508,
+   "query_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "regulatory_compliance/appservice.pp",
+   "control_line": 377,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.cis_v210_9_5": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "9.5 Ensure That 'PHP version' is the Latest, If Used to Run the Web App",
+   "title": "9.5 Ensure That 'PHP version' is the Latest, If Used to Run the Web App",
+   "guidance": "Compare phpVersion / linuxFxVersion with the currently supported PHP versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_php_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1402,
+   "query_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "cis_v210/section_9.pp",
+   "control_line": 85,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.cis_v210_9_6": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "9.6 Ensure that 'Python version' is the Latest Stable Version, if Used to Run the Web App",
+   "title": "9.6 Ensure that 'Python version' is the Latest Stable Version, if Used to Run the Web App",
+   "guidance": "Compare pythonVersion / linuxFxVersion with the currently supported Python versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_python_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1508,
+   "query_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "cis_v210/section_9.pp",
+   "control_line": 99,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.cis_v210_9_7": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "9.7 Ensure that 'Java version' is the latest, if used to run the Web App",
+   "title": "9.7 Ensure that 'Java version' is the latest, if used to run the Web App",
+   "guidance": "Compare javaVersion / linuxFxVersion with the currently supported Java versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_java_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1357,
+   "query_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "cis_v210/section_9.pp",
+   "control_line": 113,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.cis_v300_9_7": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "9.7 Ensure that 'PHP version' is currently supported (if in use)",
+   "title": "9.7 Ensure that 'PHP version' is currently supported (if in use)",
+   "guidance": "Compare phpVersion / linuxFxVersion with the currently supported PHP versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_php_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1402,
+   "query_sha256": "814a14d24c3c39e368171c529a69de34c7bf1d8fa09b501d560b9e33dc3cf7c9",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PHP%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "cis_v300/section_9.pp",
+   "control_line": 115,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.cis_v300_9_8": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "9.8 Ensure that 'Python version' is currently supported (if in use)",
+   "title": "9.8 Ensure that 'Python version' is currently supported (if in use)",
+   "guidance": "Compare pythonVersion / linuxFxVersion with the currently supported Python versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_python_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1508,
+   "query_sha256": "2f701fa190a2584d6a8032169e306f7e85442c42aa19c106ba0804e5d3eaee1e",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'PYTHON%' then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "cis_v300/section_9.pp",
+   "control_line": 129,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "azure-compliance.control.cis_v300_9_9": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "9.9 Ensure that 'Java version' is currently supported (if in use)",
+   "title": "9.9 Ensure that 'Java version' is currently supported (if in use)",
+   "guidance": "Compare javaVersion / linuxFxVersion with the currently supported Java versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "query_id": "appservice_web_app_latest_java_version",
+   "query_path": "regulatory_compliance/appservice.pp",
+   "query_line": 1357,
+   "query_sha256": "191e4d12af3a66ad1d54a360e0cbe05619f993f02d97fe7484e98d11b5db4cb6",
+   "status_case_sql": "case\n        when b.id is null then 'skip'\n        when configuration -> 'properties' ->> 'linuxFxVersion' not like 'JAVA%' and configuration -> 'properties' ->> 'javaContainer' is null then 'ok'\n        when configuration -> 'properties' ->> 'linuxFxVersion' like '%' || $1 or  configuration -> 'properties' ->>  'javaVersion' = $1 then 'ok'\n        else 'alarm'\n      end",
+   "control_path": "cis_v300/section_9.pp",
+   "control_line": 143,
+   "arguments": [],
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.apim_threat_detection_llm_jacking": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "No potential LLM Jacking attacks detected across all Azure API Management instances",
+   "title": "No potential LLM Jacking attacks detected across all Azure API Management instances",
+   "guidance": "Review API Management gateway logs for abusive AI/LLM API usage and confirm alerting is in place."
+  },
+  "reason": "Prowler queries Log Analytics for LLM-jacking request patterns; that is a data-plane log query, not a configuration fact.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/api-management/genai-gateway-capabilities",
+   "https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-apis-introduction"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/apim/apim_threat_detection_llm_jacking/apim_threat_detection_llm_jacking.py",
+   "source_sha256": "6d19d378e5a2dc6b98ba8a9a106824f677c24638f56e84a0865f78e20c5d5cbd",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.app_ensure_java_version_is_latest": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "App Service web app uses the latest supported Java version or 17 by default",
+   "title": "App Service web app uses the latest supported Java version or 17 by default",
+   "guidance": "Compare the app Java version with the currently supported versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/app/app_ensure_java_version_is_latest/app_ensure_java_version_is_latest.py",
+   "source_sha256": "6ff5cf74082d6feac1910e58373f0087ff912db1551dc2fd0ca5abf4ecb4e5a8",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.app_ensure_php_version_is_latest": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "App Service web app uses the latest supported PHP version or 8.2 by default",
+   "title": "App Service web app uses the latest supported PHP version or 8.2 by default",
+   "guidance": "Compare the app PHP version with the currently supported versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/app/app_ensure_php_version_is_latest/app_ensure_php_version_is_latest.py",
+   "source_sha256": "85fb55380e2cbd73715d00501bb88d2b1956a77b6ae5b74d7b62ef87430db83a",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.app_ensure_python_version_is_latest": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "App Service web app uses the latest supported Python version or 3.12 by default",
+   "title": "App Service web app uses the latest supported Python version or 3.12 by default",
+   "guidance": "Compare the app Python version with the currently supported versions."
+  },
+  "reason": "Pinned 'latest' runtime versions in the upstream query age out and would produce false positives; the supported runtime set is published by App Service per stack.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/app/app_ensure_python_version_is_latest/app_ensure_python_version_is_latest.py",
+   "source_sha256": "7407a8c5ebe42996f5e1f294a0029187033af02d9de3e70ae43a1d5f4c3b954b",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.app_function_access_keys_configured": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Function app has function keys configured",
+   "title": "Function app has function keys configured",
+   "guidance": "Confirm the function app uses function/host keys and rotates them, and that anonymous triggers are intended."
+  },
+  "reason": "Function keys are only readable through secret-bearing POST listKeys APIs, which PEASO does not call.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/azure-functions/function-keys-how-to"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/app/app_function_access_keys_configured/app_function_access_keys_configured.py",
+   "source_sha256": "79036d1d23bc74de114be2ee96b5c0b47c77fb488afae356845820f4eb818c6e",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.app_function_application_insights_enabled": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Function App has Application Insights configured",
+   "title": "Function App has Application Insights configured",
+   "guidance": "Confirm the function app has Application Insights configured."
+  },
+  "reason": "Prowler reads APPLICATIONINSIGHTS_CONNECTION_STRING / APPINSIGHTS_INSTRUMENTATIONKEY from app settings (secret-bearing POST API).",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/app/app_function_application_insights_enabled/app_function_application_insights_enabled.py",
+   "source_sha256": "8b52f76c4096ae224e5771b007d8dda19eb6c29826dc733c997eb721a3b4bc28",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.app_function_latest_runtime_version": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Function app uses the latest supported runtime version (~4)",
+   "title": "Function app uses the latest supported runtime version (~4)",
+   "guidance": "Confirm FUNCTIONS_EXTENSION_VERSION is ~4 in the function app configuration."
+  },
+  "reason": "Prowler reads FUNCTIONS_EXTENSION_VERSION from app settings, which require the secret-bearing POST config/appsettings/list API; PEASO stays read-only on secrets.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/app-service/language-support-policy",
+   "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/sites/config-web"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/app/app_function_latest_runtime_version/app_function_latest_runtime_version.py",
+   "source_sha256": "3af2f21791dc581a99a7893e11e057c1dc125a0d780978b0e862e0ee2ad4369c",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ }
+}

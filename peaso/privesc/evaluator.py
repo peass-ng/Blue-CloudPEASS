@@ -17,17 +17,26 @@ The result is a list of Reach objects consumed by graph.py.
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import re
 
-from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, best, combine, downgrade
-from .schema import EVALUATED_BLOCKERS, FACTS_NEEDED, MODEL_BLOCKERS
+from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, as_list, best, combine, downgrade, glob_match
+from .schema import (BLOCKER_ALIASES, CHAIN_SOURCE_SELECTORS, EVALUATED_BLOCKERS, FACTS_NEEDED, GENERIC_SELECTORS,
+                     GENERIC_SOURCE_SELECTORS, MODEL_BLOCKERS, PRECONDITIONS, expand_requires)
 
 _PH = re.compile(r"(?<!\$)\{([^{}]+)\}")
 # Selectors that depend on the source (or the pivot) and are evaluated per source.
 DYNAMIC_SELECTORS = {
+    "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
+    "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
+    "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant",
+    "gcp_challenge_fact", "gcp_resource_self_grant", "gcp_external_principal_evidence",
+    "gcp_bounded_access_gain",
+    "azure_challenge_fact", "azure_external_principal_evidence", "k8s_challenge_fact", "k8s_helm_values_rbac", "k8s_verified_pivot",
     "same_as_source", "trust_allows_principal_of_source", "source_kind", "source_group_covered_by",
-    "source_attached_policy_covered_by", "via_assumable_role_covered_by", "custom_role_assigned_to_source",
+    "source_attached_policy_covered_by", "via_assumable_role_covered_by",
+    "via_assumable_role_attached_policy_covered_by", "custom_role_assigned_to_source",
     "entra_source_is_owner_of_application", "entra_source_is_owner_of_service_principal", "entra_source_is_owner_of_group",
     "entra_custom_role_assigned_to_source", "entra_pim_eligible_for_source", "entra_dynamic_rule_attributes_writable_by_source",
     "entra_role_assignment_scope_covers_target", "entra_reset_matrix_column", "ml_compute_assigned_to_source",
@@ -35,8 +44,13 @@ DYNAMIC_SELECTORS = {
     "azure_fic_matches_k8s_sa", "k8s_node_cloud_identity", "k8s_nodes_mapped_to_cloud_identity",
     "gcp_custom_role_bound_to_source", "azure_deployer_of_pivot", "azure_host_linked_to_pivot",
     "k8s_node_hosting_pods_with_sa", "k8s_node_hosting_pods_in_namespace", "k8s_node_hosting_privileged_pod_in_namespace",
+    "k8s_node_hosting_host_mount_pod_in_namespace", "k8s_node_hosting_pod_of_source",
+    "gcp_group_join_open_to_source",
     "credential_stored_in_scope", "kube2iam_namespace_permits_role", "gcp_implicit_delegation_chain",
     "assumable_by_pivot_role",
+    # Azure extensions: depend on the source or on {pivot}.
+    "azure_consumer_of_pivot", "azure_assignable_via_identity_holding", "azure_users_assigned_to_pivot",
+    "azure_assignment_condition_uses_principal_attribute", "entra_pim_group_eligible_for_source",
 }
 # Multi-valued target placeholders: when several requirements reference the same one, they must all hold
 # on the SAME resolved resource (intersection), not each on some resource.
@@ -63,6 +77,8 @@ class CReq:
 
 
 UNRESOLVED_PREFIX = "unresolved:"
+_PLACEHOLDER_PREFIXES = ("unknown:", UNRESOLVED_PREFIX)
+PRECONDITION_PREFIX = "precondition:"
 
 
 class CandidateSet:
@@ -119,6 +135,8 @@ class Reach:
 
 def _template_kind(template):
     names = _PH.findall(template) if isinstance(template, str) else []
+    if "source_rolebound_clusterrole" in names:
+        return "target"  # the RoleBinding namespace must equal each target SA namespace
     if any(n == "pivot" or n.startswith("pivot.") for n in names):
         return "pivot"
     if any(n.startswith("target.") or n in ("target",) for n in names):
@@ -126,9 +144,35 @@ def _template_kind(template):
     return "static"
 
 
+# These seven legacy claims need exact consumer/target joins or a bounded portal outcome.
+# Preserve their catalog IDs for historical lookup while withholding graph edges.
+# A reviewed v4 correction may replace a hold only after its fact importer and
+# wrong-target validation are admitted together. See shared-suppression.json.
+_SHARED_SEMANTIC_HOLDS = frozenset({
+    "aws-codecommit-gitpush-pipeline-source",
+    "aws-ec2-passrole-associate-instance-profile",
+    "aws-v3-05-add-or-replace-a-workspaces-web-portal-saml-oidc-identi",
+    "gcp-appengine-versions-create-actas",
+    "gcp-appintegration-runas-sa-actas",
+    "gcp-artifactregistry-gcrio-namespace-squat",
+    "gcp-privatecatalog-product-version-poison",
+})
+
+
 class Evaluator:
-    def __init__(self, model, entries, *, include_unknown=True):
+    def __init__(self, model, entries, *, include_unknown=True, admin_scopes=None):
+        """admin_scopes: {source id: [scopes it already administers]}; a source is skipped for a technique when every
+        scope the technique's targets live in is within one of them (its edges would be suppressed anyway)."""
         self.model = model
+        self.admin_scopes = admin_scopes or {}
+        self.skipped_admin = 0
+        self.memo_hits = 0
+        self.skipped_service_managed = 0
+        # Reaches removed by a definitive model blocker, kept until the lift pass (target.removes_blockers along a
+        # chain) and then reported in `blocked` (never silently dropped).
+        self._blocked_pending = []
+        self.blocked = []
+        self._last_pivots = None
         self.entries = [e for e in entries if e["provider"] == model.provider or (
             model.provider == "azure" and e["provider"] == "azure")]
         self.include_unknown = include_unknown
@@ -147,8 +191,7 @@ class Evaluator:
         scope_rule = target.get("scope", "any")
         localize = bool(LOCALIZING_SELECTORS & set(selector)) or scope_rule in LOCALIZING_SCOPES
         requires = entry.get("requires") or {}
-        base = list(requires.get("all_of") or [])
-        groups = [list(g) for g in (requires.get("any_of") or [])] or [[]]
+        groups = expand_requires(requires)  # DNF: v1 all_of + one any_of group, nested {any_of}/{all_of} multiplied out
         extra = []
         for key, template in COVERED_BY.items():
             if key not in selector:
@@ -160,10 +203,10 @@ class Evaluator:
         alternatives = []
         for group in groups:
             reqs, seen = [], set()
-            for raw in base + group + extra:
+            for raw in list(group) + extra:
                 key = model.requirement_key(raw)
                 template = model.requirement_template(raw)
-                ident = (key, template)
+                ident = (key, template, raw.get("bind"), repr(raw.get("request_context")))
                 if ident in seen:
                     continue
                 seen.add(ident)
@@ -178,13 +221,20 @@ class Evaluator:
             if first is not None:
                 selector["_resource_type_from_action"] = first["action"]
         static_sel, dynamic_sel = {}, {}
+        for pre in entry.get("preconditions") or []:
+            pid = pre if isinstance(pre, str) else (pre or {}).get("id")
+            if pid:
+                selector[PRECONDITION_PREFIX + pid] = True
         for key, value in selector.items():
             if key in COVERED_BY and key != "trust_allows_saml_provider_covered_by":
                 continue
             if key in LOCALIZING_SELECTORS:
                 continue
             text = repr(value)
-            if key in DYNAMIC_SELECTORS or "{source" in text or "{pivot" in text or "{target" in text:
+            if key.startswith(PRECONDITION_PREFIX):
+                (dynamic_sel if PRECONDITIONS.get(key[len(PRECONDITION_PREFIX):], ((), "target"))[1] == "source"
+                 else static_sel)[key] = value
+            elif key in DYNAMIC_SELECTORS or "{source" in text or "{pivot" in text or "{target" in text:
                 dynamic_sel[key] = value
             else:
                 static_sel[key] = value
@@ -195,7 +245,12 @@ class Evaluator:
                 "floor": entry.get("confidence", "derived"),
                 "blockers_not_evaluated": [b for b in blockers if b and b not in EVALUATED_BLOCKERS and b not in model_blockers],
                 "model_blockers": model_blockers,
-                "source_kind": entry.get("source_kind"), "source_selector": entry.get("source_selector") or {}}
+                "source_kind": entry.get("source_kind"),
+                "source_selector": {k: v for k, v in (entry.get("source_selector") or {}).items()
+                                    if k not in GENERIC_SOURCE_SELECTORS and k not in CHAIN_SOURCE_SELECTORS},
+                "source_reaches": (entry.get("source_selector") or {}).get("source_reaches_kind"),
+                "source_globs": {k: v for k, v in (entry.get("source_selector") or {}).items() if k in GENERIC_SOURCE_SELECTORS},
+                "source_service_managed": bool((entry.get("source_selector") or {}).get("include_service_managed"))}
 
     # ------------------------------------------------------------ candidates
     def note(self, kind, scope, status, reason, impact):
@@ -209,9 +264,24 @@ class Evaluator:
         model = self.model
         variant = model.target_variant(kind, compiled["selector"])
         managed = model.include_service_managed(compiled)
-        key = (kind, tuple(sorted((k, repr(v)) for k, v in compiled["static"].items())), variant, managed)
+        # GCP challenge evidence creates a technique-specific exact candidate set. It
+        # must never share the ordinary kind-only cache entry or another technique's.
+        challenge = next((compiled["selector"].get(p + "_challenge_fact")
+                          for p in ("aws", "gcp", "azure", "k8s")
+                          if compiled["selector"].get(p + "_challenge_fact")), None)
+        if compiled["selector"].get("gcp_resource_self_grant"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_external_principal_evidence"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_bounded_access_gain"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("k8s_verified_pivot"):
+            challenge = compiled["entry"]["id"]
+        key = (kind, tuple(sorted((k, repr(v)) for k, v in compiled["static"].items())), variant, managed, challenge)
         if key in self._csets:
             return self._csets[key]
+        # Static selectors may consult their siblings (all of them are part of the cache key).
+        model.current_selector = compiled["selector"]
         members = {n.id: n for n in model.targets_for(kind, compiled["selector"])}
         excluded = 0
         if not managed:
@@ -223,7 +293,7 @@ class Evaluator:
         for sel_key, value in sorted(compiled["static"].items()):
             if not members:
                 break
-            verdict = model.selector(sel_key, value, members, None)
+            verdict = self._select(sel_key, value, members, None)
             if verdict is None:
                 # Facts missing: never expand to every target. The remaining candidates become one unresolved
                 # placeholder per scope (computed after the other selectors had a chance to rule them out).
@@ -252,8 +322,13 @@ class Evaluator:
             unresolved.setdefault(node.scope, unresolved_why[tid])
         unknown_scopes = model.unknown_target_scopes(kind)
         for scope, status in unknown_scopes.items():
-            self.note("targets", scope, status, f"{kind} inventory {status}",
-                      "Targets of this kind in this scope are unknown; techniques reaching them are reported with unknown confidence")
+            if status.startswith("review_evidence_"):
+                reason = f"{kind} reviewed evidence {status[len('review_evidence_'):]}"
+                detail = "Exact target evidence is unavailable; no target identity has been established"
+            else:
+                reason = f"{kind} inventory {status}"
+                detail = "Targets of this kind in this scope are unknown; techniques reaching them are reported with unknown confidence"
+            self.note("targets", scope, status, reason, detail)
         digest = hashlib.sha1(repr(key).encode()).hexdigest()[:10]
         label = compiled["entry"]["target"].get("aggregate_as") or kind
         cset = CandidateSet(f"{kind}:{digest}", kind, members, floor, label, unknown_scopes, unresolved, excluded)
@@ -261,6 +336,30 @@ class Evaluator:
         return cset
 
     # ----------------------------------------------------------------- index
+    def _select(self, key, value, candidates, source, pivot=None):
+        if key in GENERIC_SELECTORS:
+            return _generic_selector(key, value, candidates)
+        if key.startswith(PRECONDITION_PREFIX):
+            return self.model.precondition(key[len(PRECONDITION_PREFIX):], candidates, source)
+        return self.model.selector(key, value, candidates, source, pivot=pivot)
+
+    def _admin_covers(self, source, cset, compiled=None):
+        """True when the source already administers every scope the technique's targets can live in for it."""
+        # The scope of a Secret is its origin cluster/namespace. Administrative
+        # control there establishes no authority in the separately authenticated
+        # remote cluster whose credential is stored in that Secret.
+        if cset.kind == "k8s_remote_cluster":
+            return False
+        scopes = self.admin_scopes.get(source.id)
+        if not scopes:
+            return False
+        within = self.model.scope_within
+        wanted = set(cset.by_scope) | set(cset.unknown_scopes) | set(cset.unresolved)
+        allowed = self.model.allowed_scopes(compiled["scope"], source) if compiled is not None else None
+        if allowed is not None:
+            wanted = {s for s in wanted if s in allowed}
+        return all(any(within(s, a) for a in scopes) for s in wanted)
+
     def _index(self):
         model = self.model
         self.by_key, self.universal = {}, set()
@@ -271,6 +370,7 @@ class Evaluator:
             for key in keys:
                 self.by_key.setdefault(key, set()).add(node.id)
         self.all_sources = {n.id: n for n in model.sources()}
+        self.service_managed_sources = {sid for sid, n in self.all_sources.items() if model.managed_source(n)}
 
     def _alt_sources(self, reqs):
         sets, unknown = [], []
@@ -293,10 +393,83 @@ class Evaluator:
 
     # --------------------------------------------------------------- evaluate
     def run(self):
-        reaches = []
+        reaches, gated = [], []
         for compiled in self.compiled:
-            reaches.extend(self.evaluate(compiled))
+            technique_id = compiled["entry"]["id"]
+            if self.model.provider == 'aws' and technique_id == 'aws-ec2-passrole-associate-instance-profile':
+                from .effective_permissions.ec2_profile_association import evaluate as evaluate_profile_association
+                reaches.extend(evaluate_profile_association(self, compiled))
+                continue
+            if technique_id in _SHARED_SEMANTIC_HOLDS:
+                self.note("technique", "*", "unresolved", f"{technique_id} exact semantic join held",
+                          "No principal edge until the exact source, target, scope and execution facts are collected "
+                          "and the corrected technique semantics are admitted")
+                continue
+            (gated if compiled.get("source_reaches") else reaches).extend(self.evaluate(compiled))
+        if self._blocked_pending:
+            for reach in self._lift_blockers(reaches + gated):
+                (gated if reach.entry.get("source_reaches") else reaches).append(reach)
+        if gated:
+            reaches.extend(self._chain_gate(reaches, gated))
         return reaches
+
+    def _chain_gate(self, reaches, gated):
+        """source_selector.source_reaches_kind: keep a gated reach only when its source is of the wanted kind or reaches
+        a node of that kind through the other reaches (iterated to a fixpoint: kept gated reaches add edges). The reach
+        is downgraded to the weakest confidence of the best chain, with condition source_reaches_<kind>_via_chain."""
+        adjacency = {}   # source id -> {target id: (confidence rank, target kind)}
+        add_edges = functools.partial(_add_edges, adjacency)
+        for reach in reaches:
+            add_edges(reach)
+        levels = sorted(CONF_RANK, key=CONF_RANK.__getitem__)
+        pending, kept = list(gated), []
+        while pending:
+            cache, still, progress = {}, [], False
+            for reach in pending:
+                wanted = reach.entry["source_reaches"]
+                source = reach.source
+                if reach.source_group or source is None:
+                    continue  # aggregated "may reach" sources: the chain cannot be attributed
+                if source.kind == wanted:
+                    kept.append(reach)
+                    add_edges(reach)
+                    progress = True
+                    continue
+                key = (source.id, wanted)
+                if key not in cache:
+                    cache[key] = self._chain_level(adjacency, source.id, wanted, levels)
+                level = cache[key]
+                if level is None:
+                    still.append(reach)
+                    continue
+                why = f"source_reaches_{wanted}_via_chain"
+                kept.append(Reach(reach.entry, source, _map_grants(reach.targets, lambda g: downgrade(g, level, why)),
+                                  reach.cset, source_group=reach.source_group))
+                add_edges(kept[-1])
+                progress = True
+            if not progress or len(still) == len(pending):
+                break
+            pending = still
+        return kept
+
+    @staticmethod
+    def _chain_level(adjacency, start, wanted, levels):
+        """Best (strongest) confidence level at which `start` reaches a node of kind `wanted`, or None."""
+        for level in levels:
+            limit = CONF_RANK[level]
+            seen, frontier = {start}, [start]
+            while frontier:
+                nxt = []
+                for nid in frontier:
+                    for tid, (rank, kind) in adjacency.get(nid, {}).items():
+                        if rank > limit or tid in seen:
+                            continue
+                        if kind == wanted:
+                            return level
+                        seen.add(tid)
+                        nxt.append(tid)
+                frontier = nxt
+        return None
 
     def evaluate(self, compiled):
         model = self.model
@@ -304,6 +477,7 @@ class Evaluator:
         if not cset.members and not cset.unknown_scopes and not cset.unresolved:
             return []
         model.current_selector = compiled["selector"]
+        model.current_cset = cset
         model.current_entry = compiled["entry"]
         results = {}
         grouped_unknown = {}
@@ -316,13 +490,40 @@ class Evaluator:
                 if not self.include_unknown:
                     continue
             known = [r for r in reqs if not any(r is u for u, _ in unknown_reqs)]
-            for sid in sources:
+            # Sources with equal model memo keys (same effective policies and account) reach the same targets when
+            # nothing in the technique names the source: evaluate once per key (avoids sources x targets work).
+            memo_ok = all(k in model.memo_safe_selectors and "{source" not in repr(v) and "{pivot" not in repr(v)
+                          for k, v in compiled["dynamic"].items()) \
+                and not compiled["selector"].get("same_as_source") and not any(
+                r.mode == "pivot" or "{source." in (r.template or "") for r in known)
+            memo = {}
+            for sid in sorted(sources):  # sets iterate in hash-seed order; keep output deterministic
                 source = self.all_sources[sid]
+                if sid in self.service_managed_sources and not compiled["source_service_managed"]:
+                    # Service-linked roles / Google-managed agents / Microsoft first-party apps: only the owning
+                    # service holds their credentials, so customers cannot act as them.
+                    self.skipped_service_managed += 1
+                    continue
                 if not model.source_matches(source, compiled["source_kind"], compiled["source_selector"]):
                     continue
-                reached = self._evaluate_source(compiled, known, source, cset)
+                # "source_id_glob" is enforced by _source_glob_ok for generic source selectors.
+                if compiled["source_globs"] and not _source_glob_ok(source, compiled["source_globs"]):
+                    continue
+                if self._admin_covers(source, cset, compiled):
+                    self.skipped_admin += 1
+                    continue
+                memo_key = model.source_memo_key(source) if memo_ok else None
+                if memo_key is None:
+                    reached = self._evaluate_source(compiled, known, source, cset)
+                else:
+                    if memo_key in memo:
+                        self.memo_hits += 1
+                    else:
+                        memo[memo_key] = self._evaluate_source(compiled, known, source, cset, skip_self=False)
+                    reached = _without(memo[memo_key], sid)
                 if reached and compiled["model_blockers"]:
-                    reached = self._apply_blockers(compiled, source, reached)
+                    reached = self._apply_blockers(compiled, source, reached, cset,
+                                                   self._last_pivots if memo_key is None else None)
                 if not reached:
                     continue
                 if unknown_reqs:
@@ -348,7 +549,7 @@ class Evaluator:
                 for tid, grant in reached.items():
                     merged[tid] = best(merged.get(tid), grant)
                 results[sid] = merged
-        out = [Reach(compiled, self.all_sources[sid], targets, cset) for sid, targets in results.items() if targets]
+        out = self._share_placeholders(compiled, cset, results)
         for group in grouped_unknown.values():
             why = "requirement_facts_not_collected:" + ",".join(r.key for r, _ in group["why"])
             # Sources that already reach this technique with known facts are not repeated as "may reach".
@@ -363,20 +564,234 @@ class Evaluator:
                 targets = {tid: downgrade(g, "unknown", why) for tid, g in reached.items()}
             out.append(Reach(compiled, sources[0], targets, cset, source_group=sources if len(sources) > 1 else None))
         model.current_selector = None
+        model.current_cset = None
         return out
 
-    def _apply_blockers(self, compiled, source, reached):
-        """Model-evaluated blockers: 'blocked' drops the reach, None (facts missing) annotates it."""
+    def _share_placeholders(self, compiled, cset, results):
+        """Reaches per source, with memberless placeholders (unresolved targets, unknown inventories) shared.
+
+        A placeholder stands for targets whose facts were not collected; every source holding the technique's
+        permissions reaches it the same way, so sources x placeholders edges carry no information. Each placeholder
+        is reached once per technique by the group of its holders (sources with the same placeholders share one
+        group). A source drops placeholders in scopes it already administers and, for scope-entity targets, in
+        scopes under another scope it reaches (control of an organization implies control of its projects)."""
+        within = self.model.scope_within
+        # Optional model hook: scope_containers(inner) is exactly {outer : scope_within(inner, outer)}.
+        containers = getattr(self.model, "scope_containers", None)
+        prefix = len(cset.id) + 1
+        entity = self._entity_kind(cset.kind)
+        rest, holders = {}, {}
+        for sid, targets in results.items():
+            if not targets:
+                continue
+            if isinstance(targets, AllOf):
+                placeholders, rest[sid] = targets.unknown, AllOf(targets.grant, targets.scopes, {})
+                reached_scopes = list(cset.by_scope) if targets.scopes is None else list(targets.scopes)
+            else:
+                placeholders = {t: g for t, g in targets.items() if t.startswith(_PLACEHOLDER_PREFIXES)}
+                kept = {t: g for t, g in targets.items() if t not in placeholders}
+                if kept:
+                    rest[sid] = kept
+                reached_scopes = list({cset.members[t].scope for t in kept if t in cset.members}) if entity else []
+            if not placeholders:
+                continue
+            scopes = {t: t.split(":", 1)[1][prefix:] or "*" for t in placeholders}
+            admin = self.admin_scopes.get(sid) or ()
+            # The skip test depends only on the placeholder's scope (and is order-free), so it is decided once per
+            # distinct scope against the de-duplicated dominating scopes instead of once per placeholder.
+            dominating = set(admin)
+            dominating.update(reached_scopes)
+            if entity:
+                dominating.update(scopes.values())
+            admin_set = set(admin)
+            skip = {}
+            for tid, grant in placeholders.items():
+                scope = scopes[tid]
+                dropped = skip.get(scope)
+                if dropped is None:
+                    if containers is not None:
+                        # Same test from the other side: the (few) scopes containing this one vs the dominating set.
+                        outer = containers(scope)
+                        dropped = any(other != scope for other in outer if other in dominating) or \
+                            not outer.isdisjoint(admin_set)
+                    else:
+                        dropped = any(other != scope and within(scope, other) for other in dominating) or \
+                            any(within(scope, a) for a in admin)
+                    skip[scope] = dropped
+                if dropped:
+                    continue
+                holder = holders.setdefault(tid, {})
+                holder[sid] = grant
+        groups = {}
+        for tid, by_source in holders.items():
+            groups.setdefault(frozenset(by_source), {})[tid] = by_source
+        for sids, placeholders in groups.items():
+            merged = {}
+            for tid, by_source in placeholders.items():
+                grant = None
+                for g in by_source.values():
+                    grant = best(grant, g)
+                merged[tid] = grant
+            if len(sids) == 1:
+                (sid,) = sids
+                own = rest.get(sid)
+                if own is None:
+                    rest[sid] = merged
+                elif isinstance(own, AllOf):
+                    own.unknown.update(merged)
+                else:
+                    own.update(merged)
+                continue
+            sources = sorted((self.all_sources[sid] for sid in sids), key=lambda n: n.id)
+            rest[("group",) + tuple(n.id for n in sources)] = (sources, merged)
+        out = []
+        for key, targets in rest.items():
+            if isinstance(key, tuple):
+                sources, merged = targets
+                out.append(Reach(compiled, sources[0], merged, cset, source_group=sources))
+            elif targets:
+                out.append(Reach(compiled, self.all_sources[key], targets, cset))
+        return out
+
+    def _entity_kind(self, kind):
+        """Targets of this kind are scope entities (control of a scope covers the scopes below it)."""
+        cache = self.__dict__.setdefault("_entity_kinds", {})
+        if kind not in cache:
+            first = next(iter(self.model.targets(kind)), None)
+            cache[kind] = bool(first is not None and first.entity)
+        return cache[kind]
+
+    def _apply_blockers(self, compiled, source, reached, cset=None, pivots=None):
+        """Model-evaluated blockers. Verdicts (Model.blocker_verdict): 'clear' (evaluated, does not apply);
+        None (facts missing: edge kept, annotated blocker_<b>_not_evaluated); ('possibly_blocked', evidence) (an
+        enforcing control may reject the technique: edge kept, downgraded to conditional with the evidence);
+        ('blocked', evidence) (definitive: the reach is held back for the lift pass and, unless a reachable
+        target.removes_blockers technique lifts the blocker, reported in Evaluator.blocked). A dict verdict is per
+        target id (targets missing from it are not affected)."""
+        blocked = {}   # target id (or None: the whole reach) -> [(blocker, evidence)]
         for blocker in compiled["model_blockers"]:
-            verdict = self.model.blocker(blocker, source, compiled)
-            if verdict == "blocked":
-                return None
-            if verdict is None:
-                why = f"blocker_{blocker}_not_evaluated"
-                self.note("blocker", "*", "not_evaluated", f"blocker {blocker} not evaluated",
-                          "Edges kept; needs " + FACTS_NEEDED.get(blocker, "facts not in snapshot"))
-                reached = _map_grants(reached, lambda g: downgrade(g, g.confidence, why))
-        return reached
+            verdict = self.model.blocker_verdict(blocker, source, compiled, pivots=pivots, reached=reached, cset=cset)
+            per_target = verdict if isinstance(verdict, dict) else None
+            if per_target is not None and isinstance(reached, AllOf):
+                reached = reached.expand(cset, source.id) if cset is not None else reached
+            for tid, raw in (per_target.items() if per_target is not None else ((None, verdict),)):
+                if per_target is not None and tid not in reached:
+                    continue
+                state, evidence = _verdict(raw)
+                if state == "clear":
+                    continue
+                if state == "blocked":
+                    blocked.setdefault(tid, []).append((blocker, evidence))
+                    continue
+                if state == "possibly_blocked":
+                    why = f"blocker_{blocker}_possibly_enforced" + (f": {evidence}" if evidence else "")
+                    self.note("blocker", source.scope, "possibly_blocked", f"blocker {blocker} possibly enforced",
+                              "Edges kept as conditional with the enforcing control as evidence")
+                    fn = lambda g, why=why: downgrade(g, "conditional", why)
+                else:
+                    why = f"blocker_{blocker}_not_evaluated"
+                    self.note("blocker", "*", "not_evaluated", f"blocker {blocker} not evaluated",
+                              "Edges kept; needs " + FACTS_NEEDED.get(blocker, "facts not in snapshot"))
+                    fn = lambda g, why=why: downgrade(g, g.confidence, why)
+                if tid is None:
+                    reached = _map_grants(reached, fn)
+                else:
+                    reached = {**reached, tid: fn(reached[tid])}
+        if not blocked:
+            return reached
+        if None in blocked:
+            self._blocked_pending.append((compiled, source, reached, cset, blocked[None]))
+            return None
+        groups = {}
+        for tid, why in blocked.items():
+            groups.setdefault(tuple(why), {})[tid] = reached[tid]
+        for why, targets in groups.items():
+            self._blocked_pending.append((compiled, source, targets, cset, list(why)))
+        rest = {tid: g for tid, g in reached.items() if tid not in blocked}
+        return rest or None
+
+    def _lift_blockers(self, reaches):
+        """Restore held-back (blocked) reaches whose source - or a node it reaches through the other reaches - reaches
+        a scope entity (k8s_admission_control) of a scope containing the source's with a technique whose target.removes_blockers
+        covers every blocker of the reach. The restored reach is downgraded to the weakest confidence of the chain,
+        with condition blocker_<b>_lifted_via_<technique>. Iterated to a fixpoint; what stays blocked is reported in
+        self.blocked and as coverage."""
+        adjacency, lifters = {}, {}   # node id -> [(entity scope, frozenset(blockers), rank, technique id)]
+
+        def index(reach):
+            _add_edges(adjacency, reach)
+            removes = (reach.entry["entry"].get("target") or {}).get("removes_blockers")
+            if not removes or reach.source_group or reach.source is None:
+                return
+            lifted = set(removes)
+            for b in removes:
+                lifted |= BLOCKER_ALIASES.get(b, set())
+            targets = reach.targets.expand(reach.cset, reach.source.id) if isinstance(reach.targets, AllOf) else reach.targets
+            for tid, grant in (targets or {}).items():
+                node = reach.cset.members.get(tid)
+                if node is not None and node.entity:
+                    lifters.setdefault(reach.source.id, []).append(
+                        (node.scope, frozenset(lifted), CONF_RANK[grant.confidence], reach.entry["entry"]["id"]))
+
+        for reach in reaches:
+            index(reach)
+        levels = sorted(CONF_RANK, key=CONF_RANK.__getitem__)
+        pending, restored = list(self._blocked_pending), []
+        while pending:
+            still = []
+            for item in pending:
+                compiled, source, targets, cset, why = item
+                found = self._lift_level(adjacency, lifters, source, {b for b, _ in why}, levels)
+                if found is None:
+                    still.append(item)
+                    continue
+                level, techniques = found
+                conds = [f"blocker_{b}_lifted_via_{techniques[b]}" + (f" (was: {ev})" if ev else "") for b, ev in why]
+
+                def lift(g, conds=conds, level=level):
+                    for cond in conds:
+                        g = downgrade(g, level, cond)
+                    return g
+                reach = Reach(compiled, source, _map_grants(targets, lift), cset)
+                restored.append(reach)
+                index(reach)
+            if len(still) == len(pending):
+                break
+            pending = still
+        self._blocked_pending = []
+        for compiled, source, targets, cset, why in pending:
+            expanded = targets.expand(cset, source.id) if isinstance(targets, AllOf) else targets
+            for b, ev in why:
+                self.note("blocker", source.scope, "blocked", f"blocker {b} enforced",
+                          "Edges removed from the attack graph; listed in stats['blocked'] with the evidence")
+            self.blocked.append({
+                "technique": compiled["entry"]["id"], "source": source.id, "source_label": source.label,
+                "blockers": [{"id": b, "evidence": ev} for b, ev in why],
+                "target_count": len(expanded), "targets": sorted(expanded)[:20],
+                "confidence": min((g.confidence for g in expanded.values()), key=CONF_RANK.__getitem__, default="unknown")})
+        return restored
+
+    def _lift_level(self, adjacency, lifters, source, needed, levels):
+        """(level, {blocker: technique id}) for the strongest level at which every needed blocker is lifted from
+        nodes reachable from `source` (the source itself included), or None."""
+        for level in levels:
+            limit = CONF_RANK[level]
+            seen, frontier, got = {source.id}, [source.id], {}
+            while frontier:
+                nxt = []
+                for nid in frontier:
+                    for scope, lifted, rank, technique in lifters.get(nid, ()):
+                        if rank <= limit and (scope == source.scope or self.model.scope_within(source.scope, scope)):
+                            for b in needed & lifted:
+                                got.setdefault(b, technique)
+                    for tid, (rank, _) in adjacency.get(nid, {}).items():
+                        if rank <= limit and tid not in seen:
+                            seen.add(tid)
+                            nxt.append(tid)
+                frontier = nxt
+            if needed <= set(got):
+                return level, got
+        return None
 
     @staticmethod
     def _steps(per_target):
@@ -395,14 +810,37 @@ class Evaluator:
                 steps.insert(0, (name, reqs))
         return steps
 
-    def _evaluate_source(self, compiled, reqs, source, cset):
+    def _evaluate_source(self, compiled, reqs, source, cset, skip_self=True):
         model = self.model
+        self._last_pivots = None
+        if (model.provider == "k8s" and any("source_rolebound_clusterrole" in (r.template or "") for r in reqs)
+                and not all(model._complete(k) for k in ("rolebinding", "clusterrole", "clusterrolebinding"))):
+            if not self.include_unknown:
+                return None
+            reason = "rolebound_clusterrole_rbac_not_collected"
+            scopes = {target.scope for target in cset.members.values() if model.scope_allows(compiled["scope"], source, target)}
+            scopes.update(cset.unknown_scopes)
+            return {f"{UNRESOLVED_PREFIX}{cset.id}:{scope}": Grant("unknown", [], [reason])
+                    for scope in sorted(scopes)} or None
         static = [r for r in reqs if r.mode == "static"]
         pivot = [r for r in reqs if r.mode == "pivot"]
         per_target = [r for r in reqs if r.mode == "target"]
         grant = Grant(compiled["floor"] if compiled["floor"] in CONF_RANK else "derived")
         grants = [grant]
+        bound = {}
         for req in static:
+            if req.raw.get("bind"):
+                bound.setdefault(req.raw["bind"], []).append(req)
+        for name, group in sorted(bound.items()):
+            if len(group) < 2:
+                continue  # a bind name used once in this alternative is an ordinary requirement
+            got = model.check_bound(source, [r.raw for r in group], [r.template for r in group])
+            if got is None:
+                return None
+            grants.append(got)
+        for req in static:
+            if req.raw.get("bind") and len(bound.get(req.raw["bind"], ())) >= 2:
+                continue
             refs, floor = model.resolve(req.template, source, None)
             got = None
             for ref in refs:
@@ -415,6 +853,7 @@ class Evaluator:
             got, pivot_values = self._pivot(source, pivot)
             if got is None:
                 return None
+            self._last_pivots = pivot_values
             grants.append(got)
         base = combine(*grants)
         members = cset.members
@@ -456,6 +895,19 @@ class Evaluator:
                         got = AllTargets(next(iter(held.values())))
                     else:
                         got = {tid: g for scope, g in held.items() for tid in cset.by_scope[scope]}
+            elif not isinstance(current, AllTargets) and model.scope_only(req.raw, req.template, req.localized):
+                # Already narrowed: still one check per scope of the remaining targets.
+                reps = {}
+                for tid in current:
+                    reps.setdefault(members[tid].scope, tid)
+                held = model.check_targets(source, req.raw, req.template, [members[t] for t in reps.values()], localized=req.localized)
+                held = held.grant if isinstance(held, AllTargets) else held
+                got = {}
+                for tid in current:
+                    rep = reps[members[tid].scope]
+                    g = held if isinstance(held, Grant) else held.get(rep)
+                    if g is not None:
+                        got[tid] = g
             else:
                 candidates = members.values() if isinstance(current, AllTargets) else [members[t] for t in current]
                 if not candidates:
@@ -465,10 +917,10 @@ class Evaluator:
                 if isinstance(current, AllTargets):
                     current = AllTargets(combine(current.grant, got.grant))
                 else:
-                    current = {t: combine(g, got.grant) for t, g in current.items()}
+                    current = _combine_each(current, got.grant, left=True)
             else:
                 if isinstance(current, AllTargets):
-                    current = {t: combine(current.grant, g) for t, g in got.items()}
+                    current = _combine_each(got, current.grant, left=False)
                 else:
                     current = {t: combine(g, got[t]) for t, g in current.items() if t in got}
             if not current:
@@ -476,14 +928,57 @@ class Evaluator:
         scope_rule = compiled["scope"]
         unknown = dict(placeholders)
         if isinstance(current, AllTargets) and not compiled["dynamic"]:
+            allowed = model.allowed_scopes(scope_rule, source)
+            if current.grant.confidence == "unknown":
+                # Every candidate reached only through missing facts (e.g. an unresolvable target placeholder).
+                if self.include_unknown:
+                    why = _unknown_reason(current.grant)
+                    for scope in cset.by_scope:
+                        if allowed is None or scope in allowed:
+                            unknown.setdefault(f"{UNRESOLVED_PREFIX}{cset.id}:{scope}", downgrade(current.grant, "unknown", why))
+                return unknown or None
             # Symbolic "every candidate" result: graph.py aggregates without materialising members.
-            return AllOf(current.grant, model.allowed_scopes(scope_rule, source), unknown)
+            return AllOf(current.grant, allowed, unknown)
+        first_dynamic_verdict = None
+        if isinstance(current, AllTargets) and len(compiled["dynamic"]) == 1 and not cset.floor:
+            # An unevaluable selector leaves only one unresolved target per scope. When
+            # every member has the same grant, materialising and downgrading every
+            # target for every source adds no information (notably 10k Azure users).
+            key, value = next(iter(compiled["dynamic"].items()))
+            first_dynamic_verdict = self._select(key, value, members, source, pivot=pivot_values)
+            if first_dynamic_verdict is None:
+                self.note("selector", "*", "not_evaluated", f"selector {key} not evaluated",
+                          "Matching targets reported as one unresolved placeholder per scope (no members); needs "
+                          + FACTS_NEEDED.get(key, "facts not in snapshot"))
+                grant = downgrade(current.grant, "unknown", f"selector_{key}_not_evaluated")
+            elif first_dynamic_verdict.keys() == members.keys():
+                first = next(iter(first_dynamic_verdict.values()), None)
+                if first and first[0] == "unknown" and all(v == first for v in first_dynamic_verdict.values()):
+                    reason = first[1] or f"selector_{key}_unknown"
+                    self.note("selector", "*", "unresolved", f"selector {key} unresolved ({first[1]})",
+                              "Targets matching only on missing facts reported as one unresolved placeholder per scope; needs "
+                              + FACTS_NEEDED.get(key, "facts not in snapshot"))
+                    grant = downgrade(downgrade(current.grant, *first), "unknown", reason)
+                else:
+                    grant = None
+            else:
+                grant = None
+            if grant is not None:
+                result = {}
+                if self.include_unknown:
+                    allowed = model.allowed_scopes(scope_rule, source)
+                    for scope, ids in cset.by_scope.items():
+                        if (allowed is None or scope in allowed) and (not skip_self or len(ids) > 1 or source.id not in ids):
+                            result[f"{UNRESOLVED_PREFIX}{cset.id}:{scope}"] = grant
+                result.update(unknown)
+                return result or None
         if isinstance(current, AllTargets):
             current = {tid: current.grant for tid in members}
         unresolved = {}
         for key, value in compiled["dynamic"].items():
             subset = {tid: members[tid] for tid in current}
-            verdict = model.selector(key, value, subset, source, pivot=pivot_values)
+            verdict = first_dynamic_verdict if first_dynamic_verdict is not None else self._select(
+                key, value, subset, source, pivot=pivot_values)
             if verdict is None:
                 self.note("selector", "*", "not_evaluated", f"selector {key} not evaluated",
                           "Matching targets reported as one unresolved placeholder per scope (no members); needs "
@@ -505,7 +1000,7 @@ class Evaluator:
             target = members[tid]
             if not model.scope_allows(scope_rule, source, target):
                 continue
-            if tid == source.id and not compiled["selector"].get("same_as_source"):
+            if skip_self and tid == source.id and not compiled["selector"].get("same_as_source"):
                 continue
             if tid in unresolved:
                 if self.include_unknown:
@@ -513,7 +1008,14 @@ class Evaluator:
                     result[pid] = best(result.get(pid), downgrade(g, "unknown", unresolved[tid]))
                 continue
             floor = cset.floor.get(tid)
-            result[tid] = downgrade(g, floor[0], floor[1]) if floor else g
+            g = downgrade(g, floor[0], floor[1]) if floor else g
+            if g.confidence == "unknown":
+                # A target reached only through missing facts is not proven: placeholder, not member.
+                if self.include_unknown:
+                    pid = f"{UNRESOLVED_PREFIX}{cset.id}:{target.scope}"
+                    result[pid] = best(result.get(pid), g)
+                continue
+            result[tid] = g
         result.update(unknown)
         return result or None
 
@@ -548,6 +1050,54 @@ class Evaluator:
         return downgrade(winner, "conditional", "pivot_resource_may_need_creation") if model.pivot_is_conditional else winner, values
 
 
+def _generic_selector(key, value, candidates):
+    """Evaluator-implemented selectors that only read the node id / label (every provider, always evaluable)."""
+    globs = as_list(value)
+    out = {}
+    for tid, node in (candidates.items() if isinstance(candidates, dict) else ((n.id, n) for n in candidates)):
+        if key == "target_id_glob":
+            keep = any(glob_match(g, tid) for g in globs)
+        elif key == "target_name_glob":
+            keep = any(glob_match(g, str(node.label or "")) or glob_match(g, str(node.attrs.get("name") or "")) for g in globs)
+        else:  # exclude_target_id_glob
+            keep = not any(glob_match(g, tid) for g in globs)
+        if keep:
+            out[tid] = None
+    return out
+
+def _source_glob_ok(source, globs):
+    return all(any(glob_match(g, source.id) for g in as_list(value)) for value in globs.values())
+
+def _unknown_reason(grant):
+    return next((c for c in reversed(grant.conditions) if "not_in_snapshot" in c or "not_collected" in c or "not_evaluated" in c),
+                grant.conditions[-1] if grant.conditions else "facts_missing")
+
+
+def _verdict(raw):
+    """Normalise a blocker verdict: 'clear' | 'blocked' | 'possibly_blocked' | None, optionally (state, evidence)."""
+    if isinstance(raw, (tuple, list)):
+        state, evidence = (tuple(raw) + (None,))[:2]
+    else:
+        state, evidence = raw, None
+    if state not in ("clear", "blocked", "possibly_blocked"):
+        state = None
+    return state, (str(evidence)[:300] if evidence else None)
+
+
+def _add_edges(adjacency, reach):
+    """Adjacency {source id: {target id: (best confidence rank, target kind)}} of a reach (attributed sources only)."""
+    if reach.source_group or reach.source is None:
+        return
+    out = adjacency.setdefault(reach.source.id, {})
+    targets = reach.targets.expand(reach.cset, reach.source.id) if isinstance(reach.targets, AllOf) else reach.targets
+    for tid, grant in (targets or {}).items():
+        node = reach.cset.members.get(tid)
+        kind = node.kind if node is not None else reach.cset.kind
+        rank = CONF_RANK[grant.confidence]
+        if tid not in out or rank < out[tid][0]:
+            out[tid] = (rank, kind)
+
+
 def _map_grants(reached, fn):
     if isinstance(reached, AllOf):
         return AllOf(fn(reached.grant), reached.scopes, {k: fn(v) for k, v in reached.unknown.items()})
@@ -557,3 +1107,23 @@ def _worse(current, new):
     if current is None:
         return new
     return new if CONF_RANK[new[0]] > CONF_RANK[current[0]] else current
+
+
+def _combine_each(grants, other, left):
+    """{t: combine(g, other)} (or combine(other, g)) with one combine per distinct grant object: targets reached
+    through the same statement share their Grant, so a per-target combine is mostly repeated work."""
+    out, seen = {}, {}
+    for t, g in grants.items():
+        key = id(g)
+        got = seen.get(key)
+        if got is None:
+            got = seen[key] = (combine(g, other) if left else combine(other, g), g)
+        out[t] = got[0]
+    return out
+
+
+def _without(reached, source_id):
+    """A memoized reach for one source: drop the source itself (AllOf excludes it when the graph is built)."""
+    if not reached or isinstance(reached, AllOf) or source_id not in reached:
+        return reached
+    return {tid: g for tid, g in reached.items() if tid != source_id} or None

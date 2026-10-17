@@ -1,0 +1,191 @@
+{
+  "aws-compliance.control.apigateway_rest_api_endpoint_restrict_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.private_endpoint_type"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/apigateway.pp#L144",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "365a712c4ad0da245c0c87cb91daa58edc448b6a798dbb5b4e1e11174ca1de8c",
+      "query_id": "apigateway_rest_api_endpoint_restrict_public_access"
+    }
+  },
+  "aws-compliance.control.apigateway_rest_api_stage_use_ssl_certificate": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.client_certificate"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/apigateway.pp#L82",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7d419b226953bddc9741065b734f5aa2c9f8b43bd3b81caf6b6061a22a2d761b",
+      "query_id": "apigateway_rest_api_stage_use_ssl_certificate"
+    }
+  },
+  "aws-compliance.control.apigateway_rest_api_stage_xray_tracing_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.rest_xray"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/apigateway.pp#L103",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2a04ce665b41986fc24330e41ea0b4408c7e0f70ca0aadd97087979f11fbde30",
+      "query_id": "apigateway_rest_api_stage_xray_tracing_enabled"
+    }
+  },
+  "aws-compliance.control.apigateway_stage_cache_encryption_at_rest_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.wildcard_cache_encryption"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/apigateway.pp#L28",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "621a8cb5ec8291803f1b186f35c7cea82fdb9170c103b469b91795d673152825",
+      "query_id": "apigateway_stage_cache_encryption_at_rest_enabled"
+    }
+  },
+  "aws-compliance.control.apigateway_stage_logging_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.apigateway.rest_execution_logging",
+      "aws.b.apigateway.http_execution_logging"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/apigateway.pp#L53",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "efdf9f5549a5256afc8e7162a9a983f68caa997e8e0874fdccc1cb39aec24bd7",
+      "query_id": "apigateway_stage_logging_enabled"
+    }
+  },
+  "aws-compliance.control.apigateway_stage_use_waf_web_acl": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.waf_reference"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/apigateway.pp#L116",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1f44c0899df984f6e9db279f3f763c9ca8c5227190c296dbc6fcbbee9dfb8b88",
+      "query_id": "apigateway_stage_use_waf_web_acl"
+    }
+  },
+  "aws-compliance.control.foundational_security_apigateway_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.apigateway.rest_execution_logging",
+      "aws.b.apigateway.http_execution_logging"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/apigateway.pp#L25",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "efdf9f5549a5256afc8e7162a9a983f68caa997e8e0874fdccc1cb39aec24bd7",
+      "query_id": "apigateway_stage_logging_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_apigateway_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.client_certificate"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/apigateway.pp#L38",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7d419b226953bddc9741065b734f5aa2c9f8b43bd3b81caf6b6061a22a2d761b",
+      "query_id": "apigateway_rest_api_stage_use_ssl_certificate"
+    }
+  },
+  "aws-compliance.control.foundational_security_apigateway_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.rest_xray"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/apigateway.pp#L51",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2a04ce665b41986fc24330e41ea0b4408c7e0f70ca0aadd97087979f11fbde30",
+      "query_id": "apigateway_rest_api_stage_xray_tracing_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_apigateway_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.waf_reference"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/apigateway.pp#L64",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1f44c0899df984f6e9db279f3f763c9ca8c5227190c296dbc6fcbbee9dfb8b88",
+      "query_id": "apigateway_stage_use_waf_web_acl"
+    }
+  },
+  "aws-compliance.control.foundational_security_apigateway_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.apigateway.wildcard_cache_encryption"
+    ],
+    "reason": "Exact pinned stage predicate, wildcard method conjunction, reference presence and REST/APIv2 source UNION reviewed. Both stage families are assessed with native SDK response paths and parent identity; denied/partial stage reads do not become absence. No authorizer equivalence is inferred from endpoint type or hash-only matching.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+      "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/apigateway.pp#L77",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "621a8cb5ec8291803f1b186f35c7cea82fdb9170c103b469b91795d673152825",
+      "query_id": "apigateway_stage_cache_encryption_at_rest_enabled"
+    }
+  }
+}

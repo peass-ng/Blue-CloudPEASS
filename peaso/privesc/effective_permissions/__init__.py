@@ -165,6 +165,7 @@ class Model:
 
     # ---- hooks ----------------------------------------------------------
     current_selector = None
+    current_cset = None  # the evaluator's candidate set for the technique being evaluated (index caches)
     current_entry = None
     pivot_is_conditional = True
 
@@ -241,10 +242,29 @@ class Model:
         service agents, Microsoft first-party service principals); excluded from target sets by default."""
         return False
 
+    def managed_source(self, node):
+        """True for identities that are never escalation sources (only their provider / control plane holds their
+        credentials). Defaults to service_managed(); a model may keep such identities as targets (K8s)."""
+        return self.service_managed(node)
+
     def include_service_managed(self, compiled):
         """True when the entry explicitly targets service-managed identities (target.include_service_managed)."""
         target = (compiled.get("entry") or {}).get("target") or {}
         return bool(target.get("include_service_managed"))
+
+    def source_memo_key(self, source):
+        """Hashable key such that sources with equal keys get identical per-target verdicts for any technique whose
+        requirements and selectors do not name the source; None (default) evaluates every source individually."""
+        return None
+
+    # Source-dependent selector keys whose verdict is a function of source_memo_key() alone (so techniques using
+    # them can still be evaluated once per memo key). Empty by default.
+    memo_safe_selectors = frozenset()
+
+    def precondition(self, pid, candidates, source):
+        """Machine-checked precondition (schema.PRECONDITIONS) -> {id: None | (confidence, why)} for the candidates
+        that satisfy it (or may: ("unknown", why) makes them unresolved); None when the model cannot evaluate it."""
+        return None
 
     def target_variant(self, kind, selector):
         """Discriminator when an entry's selector needs a different candidate inventory of the same kind."""
@@ -287,6 +307,12 @@ class Model:
         """'blocked' (drop the edge), 'clear' (evaluated, does not apply) or None (facts missing)."""
         return None
 
+    def blocker_verdict(self, blocker, source, compiled, pivots=None, reached=None, cset=None):
+        """Verdict for one source's reach: 'clear', None (facts missing), ('possibly_blocked', evidence) or
+        ('blocked', evidence); or {target id: verdict} when the blocker depends on the target. pivots: the pivot
+        values (e.g. {"pivot.namespace": ...}) on which the pivot requirements hold, or None. Default: blocker()."""
+        return self.blocker(blocker, source, compiled)
+
     def _held(self, principal, req, template, target):
         refs, floor = self.resolve_for(template, principal, target)
         grant = None
@@ -295,6 +321,18 @@ class Model:
         if grant is None:
             return None
         return downgrade(grant, floor[0], floor[1]) if floor else grant
+
+    def check_bound(self, principal, reqs, templates):
+        """Requirements sharing a `bind` name must hold on ONE common resource the source picks (usually one it
+        creates). Default: each must hold on its own pattern; a common resource is not proven, so the result is
+        conditional (bound_resource_not_verified). Providers that can intersect resource patterns override this."""
+        grants = []
+        for req, template in zip(reqs, templates):
+            got = self._held(principal, req, template, None)
+            if got is None:
+                return None
+            grants.append(got)
+        return downgrade(combine(*grants), "conditional", "bound_resource_not_verified")
 
     def check_targets_shared(self, principal, reqs, templates, name, candidates):
         """Every requirement must hold on the SAME value of the multi-valued placeholder `name`."""

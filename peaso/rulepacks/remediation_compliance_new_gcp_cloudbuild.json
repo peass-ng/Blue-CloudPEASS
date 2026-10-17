@@ -1,0 +1,12 @@
+{
+  "gcp_pci_cloudbuild_trigger_3302edf7cb18": {
+    "summary": "Enable a supported build-log destination for this enabled Cloud Build trigger.",
+    "steps": ["Inspect the trigger's inline build logging mode and confirm the trigger is enabled; for a referenced build file, review that file at its current source revision separately.", "For an inline build configured with logging NONE, select a supported logging destination such as CLOUD_LOGGING_ONLY or GCS_ONLY under build.options.logging and review access and retention with the owner.", "Deploy the reviewed trigger configuration, run an authorized build, and verify logs appear in the intended destination."],
+    "cli": [],
+    "caveats": ["An inline logging value is configuration evidence, not proof that a build ran or that the destination retained logs.", "Current file-backed build configuration is not collected; a previous build cannot establish what the referenced file contains now, so those triggers remain UNKNOWN.", "An omitted disabled field means false only for the full unmasked BuildTrigger response under its proto3 implicit-presence boolean contract; partial or denied field evidence remains UNKNOWN."],
+    "references": [{"title": "Cloud Build build configuration schema", "url": "https://docs.cloud.google.com/build/docs/build-config-file-schema"}, {"title": "Cloud Build BuildTrigger proto", "url": "https://github.com/googleapis/googleapis/blob/master/google/devtools/cloudbuild/v1/cloudbuild.proto"}, {"title": "ProtoJSON presence and default values", "url": "https://protobuf.dev/programming-guides/json/"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_gcp_cloudbuild", "kind": "cloudbuild_trigger", "target": "resource", "path": "disabled; inlineBuild.logging_field_state; inlineBuild.logging; _provenance.representation=full", "observed_fail_evidence": "trigger; logging"},
+    "proposed_spec_sha256": "3f0936e1a21a324bdfe49a0eaf3e5b6c7c1a03ea28f6a16adc34ba3dc2e6d95d",
+    "review_status": "source_bound_pending_review"
+  }
+}

@@ -6,14 +6,25 @@ def collect_live(connector, requirements=None):
     provider = connector["provider"]
     scopes = connector.get("scopes", [])
     normalized = {**connector, "scopes": list(dict.fromkeys(scopes))}
+    from peaso.progress import current_callback
+    callback = current_callback()
+    if callback is not None:
+        # Runtime-only copy: neither the input connector nor saved snapshots
+        # contain this callable. Provider owners keep it out of metadata.
+        def runtime_progress(event):
+            callback(event)
+        normalized["options"] = {**connector.get("options", {}), "_progress_callback": runtime_progress}
     from importlib import import_module
-    return import_module("peaso.collectors." + provider).collect(normalized, requirements)
+    from .bulk_evidence import collect
+    return collect(import_module("peaso.collectors." + provider), normalized, requirements)
 
 
 def supported_types(provider):
     from importlib import import_module
     module = import_module("peaso.collectors." + provider)
     kinds = sorted(getattr(module, "AWS_TYPES", getattr(module, "SUPPORTED_TYPES", getattr(module, "TYPES", TYPES[provider]))))
+    from .bulk_evidence import ALIASES
+    kinds = sorted(set(kinds) | {alias for alias,source in ALIASES[provider].items() if source in kinds})
     TYPES[provider] = kinds
     return kinds
 

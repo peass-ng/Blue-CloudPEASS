@@ -6,6 +6,143 @@ from peaso.collectors.gcp import GCPCollector, Transport, Credentials
 from tests.test_peaso_collectors_gcp import FixtureTransport, connector, collection
 
 
+def test_extended_fact_hydration_projects_native_metadata_with_exact_read_requests():
+    requests = []
+    def resolve(request):
+        requests.append(request)
+        url, params = request["url"], request.get("params") or {}
+        if url.endswith("/metrics"):
+            assert params["fields"] == "metrics(name,filter,disabled,bucketName,labelExtractors,metricDescriptor(type)),nextPageToken"
+            return {"metrics": [{"name": "event", "filter": 'resource.type="gcs_bucket" AND protoPayload.methodName="storage.setIamPermissions"', "metricDescriptor": {"type": "logging.googleapis.com/user/event"}}]}
+        if url.endswith("/alertPolicies"):
+            assert "documentation" not in params["fields"] and "conditions" in params["fields"]
+            return {"alertPolicies": [{"name": "projects/p-one/alertPolicies/a", "enabled": True, "conditions": [{"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/event"'}}]}]}
+        if "serviceusage.googleapis.com" in url:
+            assert request["method"] == "GET"
+            assert url == "https://serviceusage.googleapis.com/v1/projects/p-one/services"
+            assert params["pageSize"] == 100
+            return {"services": [{"name": "projects/p-one/services/compute.googleapis.com", "state": "ENABLED"}]}
+        if "alloydb.googleapis.com" in url and url.endswith("/clusters"):
+            assert "initialUser" not in params["fields"]
+            return {"clusters": [{"name": "projects/p-one/locations/r/clusters/c", "encryptionInfo": {"encryptionType": "CUSTOMER_MANAGED_ENCRYPTION"}}]}
+        if "alloydb.googleapis.com" in url and url.endswith("/instances"):
+            assert "databaseFlags" in params["fields"] and "password" not in params["fields"]
+            return {"instances": [{"name": "projects/p-one/locations/r/clusters/c/instances/i", "databaseFlags": {"log_min_messages": "error"}}]}
+        if "essentialcontacts.googleapis.com" in url:
+            return {"contacts": [{"name": "projects/p-one/contacts/c", "notificationCategorySubscriptions": ["ALL"]}]}
+        if "accessapproval.googleapis.com" in url:
+            assert "enrolledServices" in params["fields"]
+            return {"name": "projects/p-one/accessApprovalSettings", "enrolledServices": [{"cloudProduct": "all", "enrollmentLevel": "BLOCK_ALL"}]}
+        if url.endswith("/billingInfo"):
+            return {"name": "projects/p-one/billingInfo", "projectId": "p-one", "billingAccountName": "billingAccounts/000000-000000-000000"}
+        if "cloudbilling.googleapis.com" in url and not url.endswith(":getIamPolicy"):
+            return {"name": "billingAccounts/000000-000000-000000", "open": True}
+        if "bigtableadmin.googleapis.com" in url and url.endswith("/instances"):
+            return {"instances": [{"name": "projects/p-one/instances/i", "state": "READY"}]}
+        if "run.googleapis.com" in url and url.endswith("/jobs"):
+            return {"jobs": [{"name": "projects/p-one/locations/r/jobs/j"}]}
+        if url.endswith(":getIamPolicy"):
+            if "bigtableadmin" in url:
+                assert request["method"] == "POST" and request["body"] == {"options": {"requestedPolicyVersion": 3}}
+            else:
+                assert request["method"] == "GET" and params["options.requestedPolicyVersion"] == 3
+            return {}  # Successful omitted IAM repeated bindings is known empty.
+        raise AssertionError("unexpected API request " + url)
+    kinds = ["logging_metric", "monitoring_alert_policy", "service_usage", "alloydb_cluster", "alloydb_instance", "essential_contact", "access_approval_settings", "billing_account", "bigtable_instance", "cloudrun_job"]
+    reader = FixtureTransport(resolve)
+    snapshot = GCPCollector(connector(kinds, alloydb_locations=["r"], cloudrun_locations=["r"]), transport=reader).collect()
+    assert all(collection(snapshot, kind)["status"] == "collected" for kind in kinds)
+    assert collection(snapshot, "logging_metric")["items"][0]["name"] == "projects/p-one/metrics/event"
+    for kind in ("bigtable_instance", "billing_account", "cloudrun_job"):
+        assert collection(snapshot, kind)["items"][0]["iamPolicy"] == {"bindings": []}
+    assert not any(":enable" in request["url"] or "/tabledata" in request["url"] for request in requests)
+    assert all(request["method"] == "GET" or request["url"].endswith(":getIamPolicy") for request in requests)
+    # Evaluate the actual native metric/alert configuration with only pure checks.
+    from peaso.checks import CHECKS, gcp_ports_logging
+    from peaso.snapshot import resources
+    cid = gcp_ports_logging.REFERENCE_SPECS["logging_metric_alert_storage_iam_permission_changes"]
+    check = next(check for check in CHECKS if check.id == cid)
+    index = {kind: [row for row in resources(snapshot) if row["type"] == kind] for kind in ("logging_metric", "monitoring_alert_policy")}
+    index["collections"] = {kind: [collection(snapshot, kind)] for kind in index}
+    assert check.evaluate({"projectId": "p-one"}, index)[0] == "PASS"
+
+
+def test_partial_bigtable_locations_and_denied_billing_policy_preserve_gaps():
+    from peaso.collectors.gcp import ReadError
+    def resolve(request):
+        url = request["url"]
+        if "bigtableadmin" in url and url.endswith("/instances"):
+            return {"instances": [{"name": "projects/p-one/instances/i"}], "failedLocations": ["unreachable-region"]}
+        if url.endswith("/billingInfo"):
+            return {"billingAccountName": "billingAccounts/000000-000000-000000"}
+        if "cloudbilling" in url and url.endswith(":getIamPolicy"):
+            raise ReadError("denied", "api_error", http_status=403, reason="IAM_PERMISSION_DENIED")
+        if "cloudbilling" in url:
+            return {"name": "billingAccounts/000000-000000-000000"}
+        if url.endswith(":getIamPolicy"):
+            return {}
+        return {}
+    reader = FixtureTransport(resolve)
+    snapshot = GCPCollector(connector(["bigtable_instance", "billing_account"]), transport=reader).collect()
+    assert collection(snapshot, "bigtable_instance")["status"] == "partial"
+    assert collection(snapshot, "bigtable_instance")["error"]["code"] == "unreachable_locations"
+    billing = collection(snapshot, "billing_account")["items"][0]
+    assert billing["_coverage"]["iamPolicy"]["status"] == "denied"
+    assert billing["_coverage"]["iamPolicy"]["error"]["http_status"] == 403
+    assert all(request["method"] in ("GET", "POST") for request in reader.requests)
+
+
+def test_builtin_role_definitions_remain_available_in_each_referencing_project():
+    def resolve(request):
+        url = request["url"]
+        if "cloudresourcemanager" in url and url.endswith(":getIamPolicy"):
+            return {"bindings": [{"role": "roles/viewer", "members": ["user:reviewer@example.com"]}]}
+        if url.endswith("/roles/viewer"):
+            return {"name": "roles/viewer", "includedPermissions": ["compute.instances.get"]}
+        if url.endswith("/projects/p-one") and "cloudresourcemanager" in url:
+            return {"name": "projects/123", "projectId": "p-one"}
+        if url.endswith("/projects/p-two") and "cloudresourcemanager" in url:
+            return {"name": "projects/456", "projectId": "p-two"}
+        return {"roles": [], "results": []}
+    reader = FixtureTransport(resolve)
+    snapshot = GCPCollector(connector(["iam_policy", "iam_role"], scopes=["projects/p-one", "projects/p-two"]), transport=reader).collect()
+    for scope in snapshot["scopes"]:
+        assert collection(snapshot, "iam_role", scope)["items"][0]["includedPermissions"] == ["compute.instances.get"]
+    assert all(request["url"].endswith("/roles/viewer") for request in reader.requests if "/v1/roles/" in request["url"])
+
+
+def test_progress_callback_is_transient_and_settles_denied_inventories_without_payload():
+    import json
+    from peaso.collectors.gcp import ReadError
+    events = []
+    def resolve(request):
+        if request["url"].endswith("/firewalls"):
+            raise ReadError("denied", "api_error", http_status=403)
+        return {"items": [{"name": "n", "description": "fixture-private-inventory-marker"}]}
+    request = connector(["network", "firewall"], _progress_callback=events.append)
+    snapshot = GCPCollector(request, transport=FixtureTransport(resolve)).collect()
+    assert events[-1]["completed"] == 2 and events[-1]["total"] == 2 and events[-1]["resources"] == 1
+    assert events[-1]["dynamic_total"] is False and events[-1]["phase"] == "completed"
+    assert [event["completed"] for event in events] == sorted(event["completed"] for event in events)
+    assert "fixture-private-inventory-marker" not in json.dumps(events)
+    assert "_progress_callback" not in json.dumps(snapshot)
+    assert callable(request["options"]["_progress_callback"])
+
+
+def test_serviceaccount_policy_uses_official_read_only_post_empty_body_and_v3_query():
+    def resolve(request):
+        if request["url"].endswith("/serviceAccounts"):
+            return {"accounts": [{"name": "projects/p-one/serviceAccounts/sa@p-one.iam.gserviceaccount.com", "email": "sa@p-one.iam.gserviceaccount.com"}]}
+        assert request["url"].endswith(":getIamPolicy")
+        assert request["method"] == "POST" and request["body"] is None
+        assert request["params"] == {"options.requestedPolicyVersion": 3}
+        return {"version": 3, "bindings": [{"role": "roles/viewer", "members": ["user:reviewer@example.com"], "condition": {"expression": "request.time < timestamp('2027-01-01T00:00:00Z')"}}]}
+    snapshot = GCPCollector(connector(["service_account"]), transport=FixtureTransport(resolve)).collect()
+    account = collection(snapshot, "service_account")["items"][0]
+    assert account["_coverage"]["iamPolicy"]["status"] == "collected"
+    assert account["iamPolicy"]["version"] == 3 and account["iamPolicy"]["bindings"][0]["condition"]
+
+
 def test_default_gcp_pagination_exceeds_ten_pages_and_ten_thousand_resources():
     def resolve(request):
         page = int((request.get("params") or {}).get("pageToken", "0"))
@@ -160,3 +297,34 @@ def test_workspace_api_denial_stays_denied_without_enablement_or_consent():
         transport=reader).collect()
     assert all(row["status"] == "denied" for row in result["collections"])
     assert all(request["method"] == "GET" for request in reader.requests)
+
+
+def test_key_and_table_inventory_is_metadata_only_and_dataproc_regions_are_explicit():
+    def resolve(request):
+        url = request["url"]
+        if "apikeys.googleapis.com" in url:
+            assert "keyString" not in request["params"]["fields"]
+            return {"keys": [{"name": "projects/p-one/locations/global/keys/k", "uid": "key-id", "createTime": "2026-01-01T00:00:00Z",
+                "restrictions": {"apiTargets": [{"service": "storage.googleapis.com"}]}}]}
+        if url.endswith("/datasets"):
+            return {"datasets": [{"datasetReference": {"datasetId": "d"}}]}
+        if url.endswith("/datasets/d"):
+            return {"datasetReference": {"datasetId": "d"}, "access": []}
+        if url.endswith("/tables"):
+            return {"tables": [{"tableReference": {"tableId": "t"}, "type": "TABLE"}]}
+        if url.endswith("/tables/t"):
+            assert "view" not in request["params"]["fields"] and "query" not in request["params"]["fields"]
+            return {"tableReference": {"tableId": "t"}, "type": "TABLE", "encryptionConfiguration": {"kmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}}
+        if "dataproc" in url:
+            assert "/regions/r-a/clusters" in url
+            return {"clusters": [{"clusterName": "c", "config": {"encryptionConfig": {"gcePdKmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}}}]}
+        if url.endswith("/managedZones"):
+            return {"managedZones": [{"name": "zone", "visibility": "public", "dnssecConfig": {"state": "on"}}]}
+        return {"policies": []}
+    reader = FixtureTransport(resolve)
+    result = GCPCollector(connector(["api_key", "bigquery_table", "dataproc_cluster", "dns_managed_zone", "dns_policy"],
+        dataproc_regions=["r-a"]), transport=reader).collect()
+    assert collection(result, "api_key")["items"][0]["restrictions"]["apiTargets"]
+    assert collection(result, "bigquery_table")["items"][0]["encryptionConfiguration"]
+    assert collection(result, "dataproc_cluster")["items"][0]["config"]["encryptionConfig"]
+    assert not any(":getKeyString" in request["url"] or "tabledata" in request["url"] or ":query" in request["url"] for request in reader.requests)

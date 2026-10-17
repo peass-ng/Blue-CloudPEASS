@@ -14,5 +14,7 @@ class Settings:
     issuer: str = field(default_factory=lambda: os.getenv("PEASO_COGNITO_ISSUER", ""))
     audience: str = field(default_factory=lambda: os.getenv("PEASO_COGNITO_CLIENT_ID", ""))
     scan_timeout: int = field(default_factory=lambda: int(os.getenv("PEASO_SCAN_TIMEOUT_SECONDS", "900")))
+    gcp_platform_sa_secret_arn: str = field(default_factory=lambda: os.getenv("PEASO_GCP_PLATFORM_SA_SECRET_ARN", ""))
+    require_connector_access_check: bool = field(default_factory=lambda: os.getenv("PEASO_REQUIRE_CONNECTOR_ACCESS_CHECK", "false").lower() == "true")
     lease_seconds: int = 30
 

@@ -6,6 +6,7 @@ import pytest
 
 boto3 = pytest.importorskip("boto3")
 from botocore.stub import Stubber
+from botocore.exceptions import EndpointConnectionError, ConnectionClosedError
 
 from peaso.collectors import aws
 
@@ -125,28 +126,21 @@ def test_region_discovery_denial_does_not_silently_scan_a_default_region(sdk):
 @pytest.mark.parametrize("code", ["ReportNotPresent", "ReportExpired", "ReportInProgress"])
 def test_credential_report_missing_or_expired_authorized_generation_then_fresh_read(sdk, code):
     session, add = sdk
-    iam = add("iam")
-    iam.add_client_error("get_credential_report", code, expected_params={})
-    iam.add_response("generate_credential_report", {"State": "COMPLETE", "Description": "ready"}, {})
-    iam.add_response("get_credential_report", {"Content": b"user,arn,password_enabled,mfa_active\nreviewer,arn:aws:iam::123456789012:user/reviewer,true,true\n", "ReportFormat": "text/csv", "GeneratedTime": NOW}, {})
+    add("iam").add_client_error("get_credential_report", code, expected_params={})
     requests = aws.Requests({})
     read = aws._credentials_report(requests, session, REGION)
-    assert read.status == "collected"
-    assert read.items[0]["mfa_active"] == "true"
-    assert requests.calls == 3
-    assert requests.evidence_generations == 1
+    assert read.status == "not_collected" and read.items == []
+    assert read.error == {"code": "credential_report_generation_disabled", "source_code": code}
+    assert requests.calls == 1 and requests.evidence_generations == 0
 
 
 def test_credential_report_generation_denial_stays_denied(sdk):
     session, add = sdk
-    iam = add("iam")
-    iam.add_client_error("get_credential_report", "ReportNotPresent", expected_params={})
-    iam.add_client_error("generate_credential_report", "AccessDenied", expected_params={})
+    add("iam").add_client_error("get_credential_report", "AccessDenied", expected_params={})
     requests = aws.Requests({})
     read = aws._credentials_report(requests, session, REGION)
-    assert read.status == "denied"
-    assert read.error["code"] == "AccessDenied"
-    assert requests.evidence_generations == 1
+    assert read.status == "denied" and read.error["code"] == "AccessDenied"
+    assert requests.calls == 1 and requests.evidence_generations == 0
 
 
 def policy(policy_id):
@@ -237,3 +231,151 @@ def test_organization_parent_inventory_rejects_a_cycle(sdk):
     read = aws._organization_parents(aws.Requests({}), session, REGION, ACCOUNT)
     assert read.status == "partial"
     assert read.error["code"] == "organization_parent_cycle"
+
+
+@pytest.mark.parametrize("kind,service,operation,response", [
+    ("cloudfront_distribution", "cloudfront", "list_distributions", {"DistributionList": {"Marker": "", "MaxItems": 100, "IsTruncated": False, "Quantity": 0}}),
+    ("route53_zone", "route53", "list_hosted_zones", {"HostedZones": [], "Marker": "", "IsTruncated": False, "MaxItems": "100"}),
+    ("route53_health_check", "route53", "list_health_checks", {"HealthChecks": [], "Marker": "", "IsTruncated": False, "MaxItems": "100"}),
+])
+def test_declared_global_plugin_specs_are_dispatched_once_not_unsupported(sdk, monkeypatch, kind, service, operation, response):
+    session, add = sdk
+    add("sts").add_response("get_caller_identity", {"Account": ACCOUNT, "Arn": f"arn:aws:iam::{ACCOUNT}:user/reviewer", "UserId": "AIDAINERT123456789"}, {})
+    add(service).add_response(operation, response, {})
+    # Exercise the generic spec path explicitly, even if a later plugin version
+    # adds a custom fetcher. Its declaration still must not become unsupported.
+    monkeypatch.setattr(aws, "FETCHERS", {k: v for k, v in aws.FETCHERS.items() if k != kind})
+    enrich_calls = []
+    monkeypatch.setattr(aws, "ENRICHERS", {**aws.ENRICHERS, kind: lambda requests, context, region, items: enrich_calls.append((context, region)) or items})
+    snapshot = aws.collect({"provider": "aws", "scopes": [REGION]}, [kind])
+    collection = next(c for c in snapshot["collections"] if c["type"] == kind)
+    assert collection["status"] == "empty"
+    assert collection["global"] is True
+    assert collection["account_id"] == ACCOUNT
+    assert snapshot["metadata"]["calls"] == 2
+    assert enrich_calls == [(session, REGION)]
+
+
+def test_report_usage_provenance_matches_authorized_generation_then_read(sdk):
+    session, add = sdk
+    add("sts").add_response("get_caller_identity", {"Account": ACCOUNT, "Arn": f"arn:aws:iam::{ACCOUNT}:user/reviewer", "UserId": "AIDAINERT123456789"}, {})
+    add("iam").add_client_error("get_credential_report", "ReportNotPresent", expected_params={})
+    snapshot = aws.collect({"provider": "aws", "scopes": [REGION]}, ["iam_credential_report"])
+    assert snapshot["metadata"]["authorized_evidence_generation"] == {"iam_credential_report": False,
+        "generation_requests": 0, "iam_service_last_accessed_report": False,
+        "service_last_accessed_generation_requests": 0}
+    assert snapshot["metadata"]["usage_evidence"]["credential_report"] == "report_unavailable_or_not_requested"
+
+
+@pytest.mark.parametrize("kind,service,operation,expression,response,arguments", [
+    ("cloudfront_distribution", "cloudfront", "list_distributions", "DistributionList.Items || `[]`", {"DistributionList": {"Marker": "", "MaxItems": 100, "IsTruncated": False, "Quantity": 0}}, {}),
+    ("cognito_user_pool", "cognito-idp", "list_user_pools", "UserPools", {"UserPools": []}, {"MaxResults": 60}),
+])
+def test_custom_global_and_regional_fetchers_pass_through_one_enrichment(sdk, monkeypatch, kind, service, operation, expression, response, arguments):
+    session, add = sdk
+    add("sts").add_response("get_caller_identity", {"Account": ACCOUNT, "Arn": f"arn:aws:iam::{ACCOUNT}:user/reviewer", "UserId": "AIDAINERT123456789"}, {})
+    add(service).add_response(operation, response, arguments)
+    def fetch(requests, context, region, account):
+        assert account == ACCOUNT
+        return requests.pages(context, service, region, operation, expression, **arguments)
+    enrich_calls = []
+    monkeypatch.setattr(aws, "FETCHERS", {**aws.FETCHERS, kind: fetch})
+    monkeypatch.setattr(aws, "ENRICHERS", {**aws.ENRICHERS, kind: lambda requests, context, region, items: enrich_calls.append((context, region)) or items})
+    snapshot = aws.collect({"provider": "aws", "scopes": [REGION]}, [kind])
+    assert next(c for c in snapshot["collections"] if c["type"] == kind)["status"] == "empty"
+    assert enrich_calls == [(session, REGION)]
+    assert snapshot["metadata"]["calls"] == 2
+
+
+def test_failed_endpoint_in_region_excluded_by_sdk_support_is_explicit_unsupported(sdk, monkeypatch):
+    session, add = sdk
+    region = "ap-northeast-3"
+    client = session.client("memorydb", region_name=region)
+    monkeypatch.setattr(aws.Requests, "client", lambda *args: client)
+    monkeypatch.setattr(client, "describe_clusters", lambda **kwargs: (_ for _ in ()).throw(EndpointConnectionError(endpoint_url="https://inert.invalid")))
+    monkeypatch.setattr(session, "get_available_regions", lambda service, partition_name: ["us-east-1"])
+    read = aws.Requests({}).pages(session, "memorydb", region, "describe_clusters", "Clusters")
+    assert read.status == "not_collected"
+    assert read.error["code"] == "unsupported_region_service"
+    assert read.items == []
+
+
+def test_failed_endpoint_in_supported_region_stays_unknown_not_unsupported(sdk, monkeypatch):
+    session, add = sdk
+    client = session.client("memorydb", region_name=REGION)
+    monkeypatch.setattr(aws.Requests, "client", lambda *args: client)
+    monkeypatch.setattr(client, "describe_clusters", lambda **kwargs: (_ for _ in ()).throw(EndpointConnectionError(endpoint_url="https://inert.invalid")))
+    monkeypatch.setattr(session, "get_available_regions", lambda service, partition_name: [REGION])
+    read = aws.Requests({}).pages(session, "memorydb", REGION, "describe_clusters", "Clusters")
+    assert read.status == "unknown"
+    assert read.items == []
+
+
+def test_transient_transport_recovery_retries_are_bounded_counted_and_cached(sdk, monkeypatch):
+    session, add = sdk
+    client = session.client("backup", region_name=REGION)
+    monkeypatch.setattr(aws.Requests, "client", lambda *args: client)
+    attempts = []
+    def operation(**kwargs):
+        attempts.append(kwargs)
+        if len(attempts) == 1:
+            raise ConnectionClosedError(endpoint_url="https://inert.invalid")
+        return {"Results": []}
+    monkeypatch.setattr(client, "list_protected_resources", operation)
+    sleeps = []
+    requests = aws.Requests({"retry_attempts": 2}, sleep=sleeps.append)
+    read = requests.pages(session, "backup", REGION, "list_protected_resources", "Results")
+    assert read.status == "empty"
+    assert requests.calls == 2
+    assert sleeps == [0.2]
+    again = requests.pages(session, "backup", REGION, "list_protected_resources", "Results")
+    assert again.status == "empty"
+    assert requests.calls == 2
+
+
+def test_transient_transport_exhaustion_never_fabricates_empty_success(sdk, monkeypatch):
+    session, add = sdk
+    client = session.client("backup", region_name=REGION)
+    monkeypatch.setattr(aws.Requests, "client", lambda *args: client)
+    monkeypatch.setattr(client, "list_protected_resources", lambda **kwargs: (_ for _ in ()).throw(ConnectionClosedError(endpoint_url="https://inert.invalid")))
+    requests = aws.Requests({"retry_attempts": 2}, sleep=lambda _: None)
+    read = requests.pages(session, "backup", REGION, "list_protected_resources", "Results")
+    assert read.status == "unknown"
+    assert read.items == []
+    assert requests.calls == 2
+
+
+def test_native_insight_not_enabled_is_known_absence_not_unknown_or_pass(sdk):
+    session, add = sdk
+    add("cloudtrail").add_client_error("get_insight_selectors", "InsightNotEnabledException", expected_params={"TrailName": "audit"})
+    requests = aws.Requests({})
+    detail = requests.detail(session, "cloudtrail", REGION, "get_insight_selectors", TrailName="audit", absent=("InsightNotEnabledException",))
+    assert detail["collection_status"] == "empty"
+    assert detail["absent"] is True
+    assert detail["error"]["code"] == "InsightNotEnabledException"
+    assert requests.calls == 1
+
+
+def test_aws_progress_is_transient_cumulative_and_includes_empty_settlement(sdk):
+    session, add = sdk
+    add("sts").add_response("get_caller_identity", {"Account": ACCOUNT, "Arn": f"arn:aws:iam::{ACCOUNT}:user/reviewer", "UserId": "AIDAINERT123456789"}, {})
+    add("ec2").add_response("describe_vpcs", {"Vpcs": []}, {})
+    events = []
+    connector = {"provider": "aws", "scopes": [REGION], "options": {"_progress_callback": events.append}}
+    snapshot = aws.collect(connector, ["vpc"])
+    assert events[0]["phase"] == "discovering"
+    assert events[-1]["phase"] == "completed"
+    assert events[-1]["completed"] == events[-1]["total"] == len(snapshot["collections"])
+    assert [event["completed"] for event in events] == sorted(event["completed"] for event in events)
+    assert all(set(event) <= {"phase", "provider", "scope", "completed", "total", "resources", "dynamic_total"} for event in events)
+    assert "_progress_callback" not in json.dumps(snapshot)
+    assert connector["options"]["_progress_callback"] == events.append
+
+
+def test_aws_progress_callback_failure_cannot_change_coverage(sdk):
+    session, add = sdk
+    add("sts").add_response("get_caller_identity", {"Account": ACCOUNT, "Arn": f"arn:aws:iam::{ACCOUNT}:user/reviewer", "UserId": "AIDAINERT123456789"}, {})
+    def broken(event):
+        raise RuntimeError("inert callback failure")
+    snapshot = aws.collect({"provider": "aws", "scopes": [REGION], "options": {"_progress_callback": broken}}, [])
+    assert next(c for c in snapshot["collections"] if c["type"] == "aws_account")["status"] == "collected"

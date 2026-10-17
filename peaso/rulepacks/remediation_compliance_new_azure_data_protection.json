@@ -1,0 +1,28 @@
+{
+  "azure_cosmos_account_10_5_1_5_2029065": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure_data_protection",
+      "kind": "cosmos_account",
+      "path": "properties.backupPolicy.type,periodicModeProperties.backupRetentionIntervalInHours,continuousModeProperties.tier and exact owner min_retention_days",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "f4ef67eef182fa4dd665d919d4bf040fe046132b59757cb9e85dde1d6249460c",
+    "references": [
+      {
+        "title": "Azure Cosmos DB Database Accounts GET REST API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/cosmos-db-resource-provider/database-accounts/get?view=rest-cosmos-db-resource-provider-2024-05-15"
+      },
+      {
+        "title": "Azure Cosmos DB online backup and on-demand restore",
+        "url": "https://learn.microsoft.com/en-us/azure/cosmos-db/online-backup-and-restore"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact account, backup mode and owner-approved minimum retention; check whether the proposed mode or tier change is supported and what it will cost.",
+      "For a measured shortfall, have the account owner change the periodic retention hours or select an approved continuous tier through the owned Azure configuration or IaC after migration-impact review.",
+      "Re-read the account backup policy and separately test an approved restore workflow; if the migration disrupts recovery or cost expectations, follow the owner's reviewed rollback path rather than assuming mode changes are reversible."
+    ],
+    "summary": "Align the Cosmos DB account's declared backup retention with its approved minimum."
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "aws-compliance.control.foundational_security_redshift_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.no_public_endpoint"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L29",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "3af440b81919264b127ba7e3e266f4d5ef01bfd76079c4daa206bde7be138724",
+      "query_id": "redshift_cluster_prohibit_public_access"
+    }
+  },
+  "aws-compliance.control.foundational_security_redshift_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.kms_key_declared"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L133",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "423f0a84017f5826bcc6036ae75d20e309c270c18533730fc6cf71f75bc77222",
+      "query_id": "redshift_cluster_kms_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_redshift_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.snapshots_seven_days"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L55",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "31c6b28f1e9b5b9c83080caf892c0551d0f7e43706553121bd0bd189f61b63d8",
+      "query_id": "redshift_cluster_automatic_snapshots_min_7_days"
+    }
+  },
+  "aws-compliance.control.foundational_security_redshift_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.audit_logging"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L68",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "cd63c54edc94a481db7093ce4f580f4847e60e848392aefd0f5f5ead4726b594",
+      "query_id": "redshift_cluster_audit_logging_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_redshift_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.allow_version_upgrade"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L81",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "a41ffad31a823fda7e4569b8ea1f7d62d53de4a4a7e4afe0e2b8f2de8bfff7fe",
+      "query_id": "redshift_cluster_automatic_upgrade_major_versions_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_redshift_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.enhanced_vpc_routing"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L94",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "9e9011c2e62e20e7103287db67dbbebf791188acacd5bc2f5e14b44718befb84",
+      "query_id": "redshift_cluster_enhanced_vpc_routing_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_redshift_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.nondefault_admin"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L107",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "5d3693a4098620af2c66816075943fda54d34994378e2e996d2f651a4e16981b",
+      "query_id": "redshift_cluster_no_default_admin_name"
+    }
+  },
+  "aws-compliance.control.foundational_security_redshift_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.redshift.nondefault_database"
+    ],
+    "reason": "Reviewed exact nonparameterized pinned predicate and Redshift native API configuration. Preserve scalar flags, seven-day threshold, case-sensitive default names, encryption-plus-KMS-reference conjunction and LoggingEnabled state. Known missing key requires complete scoped inventory plus unique observed cluster identity; unreadable or malformed facts are UNKNOWN. These are configuration declarations, not SQL connectivity, key ownership, major-version timing or audit-content verification.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_Cluster.html",
+      "https://docs.aws.amazon.com/redshift/latest/APIReference/API_DescribeLoggingStatus.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L120",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "70aaba4a37c18c649f3c48f7135eac106212e6b56278aed5658f0b4d25d848e2",
+      "query_id": "redshift_cluster_no_default_database_name"
+    }
+  }
+}

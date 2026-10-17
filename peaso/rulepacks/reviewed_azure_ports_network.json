@@ -1,0 +1,430 @@
+{
+  "azure-compliance.control.cis_v130_6_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v130/section_6.pp",
+      "control_line": 67,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_6_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v140/section_6.pp",
+      "control_line": 67,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v150/section_6.pp",
+      "control_line": 81,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v200/section_6.pp",
+      "control_line": 82,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_bastion_host_min_1"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_bastion_host_min_1",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 787,
+      "query_sha256": "6ba2d40123b5812c8d617079b570098c71dd176f825adbb80b673d7a296a3274",
+      "control_path": "cis_v200/section_7.pp",
+      "control_line": 26,
+      "arguments": [],
+      "status_case_sql": "case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_bastion_host",
+        "azure_subscription"
+      ],
+      "pinned_sql": "with bastion_hosts as (\n      select\n        subscription_id,\n        _ctx,\n        region,\n        resource_group,\n        count(*) as no_bastion_host\n      from\n        azure_bastion_host\n      group by\n        subscription_id,\n        _ctx,\n        resource_group,\n        region\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have bastion host.'\n        else sub.display_name || ' has ' || no_bastion_host || ' bastion host(s).'\n      end as reason\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"i.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join bastion_hosts as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v210/section_6.pp",
+      "control_line": 82,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_bastion_host_min_1"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_bastion_host_min_1",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 787,
+      "query_sha256": "6ba2d40123b5812c8d617079b570098c71dd176f825adbb80b673d7a296a3274",
+      "control_path": "cis_v210/section_7.pp",
+      "control_line": 28,
+      "arguments": [],
+      "status_case_sql": "case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_bastion_host",
+        "azure_subscription"
+      ],
+      "pinned_sql": "with bastion_hosts as (\n      select\n        subscription_id,\n        _ctx,\n        region,\n        resource_group,\n        count(*) as no_bastion_host\n      from\n        azure_bastion_host\n      group by\n        subscription_id,\n        _ctx,\n        resource_group,\n        region\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have bastion host.'\n        else sub.display_name || ' has ' || no_bastion_host || ' bastion host(s).'\n      end as reason\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"i.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join bastion_hosts as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_7_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v300/section_7.pp",
+      "control_line": 82,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_bastion_host_min_1"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_bastion_host_min_1",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 787,
+      "query_sha256": "6ba2d40123b5812c8d617079b570098c71dd176f825adbb80b673d7a296a3274",
+      "control_path": "cis_v300/section_8.pp",
+      "control_line": 30,
+      "arguments": [],
+      "status_case_sql": "case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_bastion_host",
+        "azure_subscription"
+      ],
+      "pinned_sql": "with bastion_hosts as (\n      select\n        subscription_id,\n        _ctx,\n        region,\n        resource_group,\n        count(*) as no_bastion_host\n      from\n        azure_bastion_host\n      group by\n        subscription_id,\n        _ctx,\n        resource_group,\n        region\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have bastion host.'\n        else sub.display_name || ' has ' || no_bastion_host || ' bastion host(s).'\n      end as reason\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"i.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join bastion_hosts as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_8_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v400/section_8.pp",
+      "control_line": 83,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_8_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_virtual_network_watcher_flow_log_retention_90_days"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_virtual_network_watcher_flow_log_retention_90_days",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2265,
+      "query_sha256": "cded14f266986870f5b89debb3ff5fc5b5b136a3ec723ed9a6179e853a4212ac",
+      "control_path": "cis_v400/section_8.pp",
+      "control_line": 125,
+      "arguments": [],
+      "status_case_sql": "case\n        when target_resource_id not like '%/Microsoft.Network/virtualNetworks/%' then 'skip'\n        when fl.enabled and (fl.retention_policy_days >= 90 or fl.retention_policy_days = 0) then 'ok'\n        else 'alarm'\n      end",
+      "source_dependencies": [
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      fl.id as resource,\n      case\n        when target_resource_id not like '%/Microsoft.Network/virtualNetworks/%' then 'skip'\n        when fl.enabled and (fl.retention_policy_days >= 90 or fl.retention_policy_days = 0) then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when target_resource_id not like '%/Microsoft.Network/virtualNetworks/%' then fl.name || ' is not virtual network flow log.'\n        when not fl.enabled then fl.name || ' flow log is not enabled.'\n        when fl.retention_policy_days = 0 then fl.name || ' flow log retention is set to indefinite.'\n        when fl.retention_policy_days >= 90 then fl.name || ' flow log retention is set to ' || fl.retention_policy_days || ' days.'\n        else fl.name || ' flow log retention is set to ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fl.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fl.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_watcher_flow_log as fl\n      left join azure_subscription sub on sub.subscription_id = fl.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_bastion_host_min_1"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_bastion_host_min_1",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 787,
+      "query_sha256": "6ba2d40123b5812c8d617079b570098c71dd176f825adbb80b673d7a296a3274",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 693,
+      "arguments": [],
+      "status_case_sql": "case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_bastion_host",
+        "azure_subscription"
+      ],
+      "pinned_sql": "with bastion_hosts as (\n      select\n        subscription_id,\n        _ctx,\n        region,\n        resource_group,\n        count(*) as no_bastion_host\n      from\n        azure_bastion_host\n      group by\n        subscription_id,\n        _ctx,\n        resource_group,\n        region\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have bastion host.'\n        else sub.display_name || ' has ' || no_bastion_host || ' bastion host(s).'\n      end as reason\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"i.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join bastion_hosts as i on i.subscription_id = sub.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_7_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_sg_flowlog_retention_period_greater_than_90"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_sg_flowlog_retention_period_greater_than_90",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 1038,
+      "query_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 91,
+      "arguments": [],
+      "status_case_sql": "case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_network_security_group",
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when fl.id is null or not fl.enabled or fl.retention_policy_days < 90 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when fl.id is null or not fl.enabled\n          then sg.name || ' flowlog not enabled.'\n        when fl.retention_policy_days < 90\n          then sg.name || ' flowlog ' || fl.title || ' retention period is less than 90 days.'\n        else sg.name || ' flowlog ' || fl.title || ' retention period is ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join azure_network_watcher_flow_log fl on sg.id = fl.target_resource_id\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_7_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_virtual_network_watcher_flow_log_retention_90_days"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_virtual_network_watcher_flow_log_retention_90_days",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2265,
+      "query_sha256": "cded14f266986870f5b89debb3ff5fc5b5b136a3ec723ed9a6179e853a4212ac",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 133,
+      "arguments": [],
+      "status_case_sql": "case\n        when target_resource_id not like '%/Microsoft.Network/virtualNetworks/%' then 'skip'\n        when fl.enabled and (fl.retention_policy_days >= 90 or fl.retention_policy_days = 0) then 'ok'\n        else 'alarm'\n      end",
+      "source_dependencies": [
+        "azure_network_watcher_flow_log",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      fl.id as resource,\n      case\n        when target_resource_id not like '%/Microsoft.Network/virtualNetworks/%' then 'skip'\n        when fl.enabled and (fl.retention_policy_days >= 90 or fl.retention_policy_days = 0) then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when target_resource_id not like '%/Microsoft.Network/virtualNetworks/%' then fl.name || ' is not virtual network flow log.'\n        when not fl.enabled then fl.name || ' flow log is not enabled.'\n        when fl.retention_policy_days = 0 then fl.name || ' flow log retention is set to indefinite.'\n        when fl.retention_policy_days >= 90 then fl.name || ' flow log retention is set to ' || fl.retention_policy_days || ' days.'\n        else fl.name || ' flow log retention is set to ' || fl.retention_policy_days || ' days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fl.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fl.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_watcher_flow_log as fl\n      left join azure_subscription sub on sub.subscription_id = fl.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.network_bastion_host_min_1"
+    ],
+    "reason": "Inspected full source and exact no-argument delegation. Preserve selected subscription Bastion presence; NSG full-target-ID left join/absence alarm and >=90 retention (zero fails); VNet exact target selector/enabled/(>=90 orzero) retention with non-VNet skip. Scope/completeness gates precede absence and scalar fields; no alias merges with differently scoped generic watcher/traffic-analytics predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/bastion-hosts/list?view=rest-virtualnetwork-2025-05-01",
+      "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+    ],
+    "review_notes": "Existing NSG flow logs continue until2027 retirement despite blocked new creation; future retirement is not current obsolete rejection. Literal source days criterion does not inspect retentionPolicy.enabled or storage lifecycle, and is labeled declaration only. Multiple joined NSG rows reduce FAIL if any source row alarms. Denied/partial/malformed dependencies UNKNOWN; no actual traffic/delivery probe.",
+    "source_review": {
+      "query_id": "network_bastion_host_min_1",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 787,
+      "query_sha256": "6ba2d40123b5812c8d617079b570098c71dd176f825adbb80b673d7a296a3274",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 766,
+      "arguments": [],
+      "status_case_sql": "case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_bastion_host",
+        "azure_subscription"
+      ],
+      "pinned_sql": "with bastion_hosts as (\n      select\n        subscription_id,\n        _ctx,\n        region,\n        resource_group,\n        count(*) as no_bastion_host\n      from\n        azure_bastion_host\n      group by\n        subscription_id,\n        _ctx,\n        resource_group,\n        region\n    )\n    select\n      sub.id as resource,\n      case\n        when i.subscription_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when i.subscription_id is null then sub.display_name || ' does not have bastion host.'\n        else sub.display_name || ' has ' || no_bastion_host || ' bastion host(s).'\n      end as reason\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"i.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_subscription as sub\n      left join bastion_hosts as i on i.subscription_id = sub.subscription_id;"
+    }
+  }
+}

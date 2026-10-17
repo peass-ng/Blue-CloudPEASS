@@ -1,0 +1,181 @@
+{
+  "aws-compliance.control.cis_v130_2_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_2.pp#L70"
+    }
+  },
+  "aws-compliance.control.cis_v140_2_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L64"
+    }
+  },
+  "aws-compliance.control.cis_v150_2_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L68"
+    }
+  },
+  "aws-compliance.control.cis_v200_2_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L53"
+    }
+  },
+  "aws-compliance.control.cis_v300_2_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L53"
+    }
+  },
+  "aws-compliance.control.cis_v400_2_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L49"
+    }
+  },
+  "aws-compliance.control.cis_v500_2_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L49"
+    }
+  },
+  "aws-compliance.control.cis_v600_3_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html"
+    ],
+    "reason": "Full ssl_ok CTE individually inspected: Action and Resource are expanded but neither is constrained; any Deny wildcard-principal with Bool SecureTransport=false or NumericLessThan TLS1.2 passes. Valid policy denying only s3:DeleteBucket on bucket ARN over HTTP leaves GetObject/object ARNs unaffected yet falselyPASSes HTTPS enforcement. Current IAM Action/Resource semantics prove substantive security-predicate invalidity; not missing metadata or a stricter source variant.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "s3_bucket_enforces_ssl",
+    "reviewed_source": {
+      "evaluator_sha256": "ee945ee26dd4e08c34ee2b470791d0e9bbaca48b656f3416cbf0f300789933e2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L78"
+    }
+  },
+  "aws-compliance.control.cloudtrail_security_trail_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_EventSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetEventSelectors.html"
+    ],
+    "reason": "Full CTE/all_trails/orderedCASE reviewed: mutually exclusive advanced-only Data selector has basic event_selectors NULL; SQL NOT(jsonb_array_length(NULL)=1 AND NULL contains ReadWriteTypeAll) and NOT(NULL contains IncludeManagementEventsTrue) are UNKNOWN, so neither alarms. Other logging/global/multiregion/validation/KMS flags true and exclusion array coalesced[] reaches final ok despite no management event coverage. Concrete valid advanced-only native configuration gives falsePASS; no blanket advanced-selector or missing-fact rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_query_id": "cloudtrail_security_trail_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "755495c5acd393b947320068851ba43054a120a8dd4840f3fc857372b6b46a0e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L199"
+    }
+  },
+  "prowler.aws.cloudtrail_logs_s3_bucket_is_not_publicly_accessible": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicyStatus.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-overview.html"
+    ],
+    "reason": "Full pinned execute reviewed: for in-account bucket it tests only ACL URI AllUsers; it ignores public bucket policy and AuthenticatedUsers ACL grants. Valid owner-only ACL with public GetObject wildcard policy, native IsPublic=true and no preventive PublicAccessBlock, reportsPASS. Current S3 bucket policy/ACL semantics prove concrete falsePASS for the claimed destination-publicity security condition; broader SQL declared-grants lint cannot be called equivalent and no missing-facts rejection is used.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full source individually statically inspected, valid inert native configuration counterexample retained in owned source_counterexamples tests. Lead independent audit required before active whitelist; exact source/framework/control/versions conserved.",
+    "reviewed_source": {
+      "evaluator_sha256": "80e45f828d2a63a2421919e1fdf93540954ff0b70cb95ba0a501697cf1a190ee",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_logs_s3_bucket_is_not_publicly_accessible/cloudtrail_logs_s3_bucket_is_not_publicly_accessible.metadata.json"
+    }
+  }
+}

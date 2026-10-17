@@ -1,0 +1,117 @@
+{
+  "azure-compliance.control.application_gateway_waf_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source checks only non-null WAF configuration; the actual enabled=false configuration remains non-null and falsely passes enabled WAF. Rejecting demonstrated wrong current configuration measurement, not missing facts or native code.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Full source condition/no-argument delegation inspected; current authoritative field/enum meanings and SQLcounterexamples retained. No unsupported stub or differently scoped resource substituted.",
+    "source_review": {
+      "query_id": "application_gateway_waf_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 672,
+      "query_sha256": "d1a02ab3fae9121bbee34930904e99d377de62167ebc9385d81426b6f707244d",
+      "control_path": "regulatory_compliance/network.pp",
+      "control_line": 88,
+      "arguments": [],
+      "status_case_sql": "case\n        when web_application_firewall_configuration is not null then 'ok'\n        else 'alarm'\n      end",
+      "counterexample": {
+        "webApplicationFirewallConfiguration": {
+          "enabled": false,
+          "firewallMode": "Detection"
+        },
+        "source_status": "ok",
+        "requirement_truth": "WAF_disabled"
+      }
+    }
+  },
+  "azure-compliance.control.application_gateway_waf_uses_specified_mode": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source reads PolicySettings.mode from inline gateway WAF configuration, but current provider schema exposes firewallMode there. PolicySettings belongs to a separate WAF-policy resource; valid inline Prevention falsely alarms this wrong path. Rejecting demonstrated wrong current configuration measurement, not missing facts or native code.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Full source condition/no-argument delegation inspected; current authoritative field/enum meanings and SQLcounterexamples retained. No unsupported stub or differently scoped resource substituted.",
+    "source_review": {
+      "query_id": "application_gateway_waf_uses_specified_mode",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2244,
+      "query_sha256": "210933e33f03bbb87442450d1f075c419380e8cb87c13e423a5efc1031288a9f",
+      "control_path": "regulatory_compliance/network.pp",
+      "control_line": 384,
+      "arguments": [],
+      "status_case_sql": "case\n        when (web_application_firewall_configuration::json -> 'PolicySettings' ->> 'mode') in ('Prevention','Detection') then 'ok'\n        else 'alarm'\n      end",
+      "counterexample": {
+        "webApplicationFirewallConfiguration": {
+          "enabled": true,
+          "firewallMode": "Prevention"
+        },
+        "source_status": "alarm",
+        "requirement_truth": "valid_inline_Prevention_mode"
+      }
+    }
+  },
+  "azure-compliance.control.application_insights_block_log_ingestion_and_querying_from_public": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source requires Enabled ingestion AND Enabled query access to pass the block-public-access control, rewarding the opposite of the declared hardening requirement. Rejecting demonstrated wrong current configuration measurement, not missing facts or native code.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Full source condition/no-argument delegation inspected; current authoritative field/enum meanings and SQLcounterexamples retained. No unsupported stub or differently scoped resource substituted.",
+    "source_review": {
+      "query_id": "application_insights_block_log_ingestion_and_querying_from_public",
+      "query_path": "regulatory_compliance/monitor.pp",
+      "query_line": 1313,
+      "query_sha256": "f1114bd59251c62f2ac27896a434e6b1260cc75f5537cb3b2779d9ee23ea39e0",
+      "control_path": "regulatory_compliance/monitor.pp",
+      "control_line": 276,
+      "arguments": [],
+      "status_case_sql": "case\n        when type = 'microsoft.insights/components' and public_network_access_for_ingestion = 'Enabled' and public_network_access_for_query = 'Enabled' then 'ok'\n        else 'alarm'\n      end",
+      "counterexample": {
+        "type": "microsoft.insights/components",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled",
+        "source_status": "ok",
+        "requirement_truth": "public_access_not_blocked"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_7_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source checks only non-null WAF configuration; the actual enabled=false configuration remains non-null and falsely passes enabled WAF. Rejecting demonstrated wrong current configuration measurement, not missing facts or native code.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-05-01/applicationgateways",
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components"
+    ],
+    "review_notes": "Full source condition/no-argument delegation inspected; current authoritative field/enum meanings and SQLcounterexamples retained. No unsupported stub or differently scoped resource substituted.",
+    "source_review": {
+      "query_id": "application_gateway_waf_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 672,
+      "query_sha256": "d1a02ab3fae9121bbee34930904e99d377de62167ebc9385d81426b6f707244d",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 161,
+      "arguments": [],
+      "status_case_sql": "case\n        when web_application_firewall_configuration is not null then 'ok'\n        else 'alarm'\n      end",
+      "counterexample": {
+        "webApplicationFirewallConfiguration": {
+          "enabled": false,
+          "firewallMode": "Detection"
+        },
+        "source_status": "ok",
+        "requirement_truth": "WAF_disabled"
+      }
+    }
+  }
+}

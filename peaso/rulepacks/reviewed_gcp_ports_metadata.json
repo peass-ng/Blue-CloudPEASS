@@ -1,0 +1,1240 @@
+{
+  "gcp-compliance.control.cis_v120_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.kms.no_public_iam"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L145"
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_dnssec_enabled"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_dnssec_enabled",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L56"
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_key_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L70"
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_zone_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L84"
+    }
+  },
+  "gcp-compliance.control.cis_v120_5_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.storage_bucket_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "storage_bucket_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/storage.pp"
+      ],
+      "source_query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v120_5_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_5.pp#L21"
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_with_no_public_ips"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_with_no_public_ips",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L487"
+    }
+  },
+  "gcp-compliance.control.cis_v120_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_dataset_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/bigquery.pp"
+      ],
+      "source_query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v120_7_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_7.pp#L22"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.kms.no_public_iam"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L148"
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_dnssec_enabled"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_dnssec_enabled",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L56"
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_key_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L70"
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_zone_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L84"
+    }
+  },
+  "gcp-compliance.control.cis_v130_5_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.storage_bucket_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "storage_bucket_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/storage.pp"
+      ],
+      "source_query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_5_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_5.pp#L21"
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_with_no_public_ips"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_with_no_public_ips",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L382"
+    }
+  },
+  "gcp-compliance.control.cis_v130_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_dataset_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/bigquery.pp"
+      ],
+      "source_query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v130_7_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_7.pp#L22"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.kms.no_public_iam"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L148"
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_dnssec_enabled"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_dnssec_enabled",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L56"
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_key_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L70"
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_zone_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L84"
+    }
+  },
+  "gcp-compliance.control.cis_v200_5_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.storage_bucket_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "storage_bucket_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/storage.pp"
+      ],
+      "source_query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_5_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_5.pp#L21"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_2_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "5d43bab922cb776815d49565bf25a5307b091437008ae94da797faaaa3f50790",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_2_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L229"
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_with_no_public_ips"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_with_no_public_ips",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L379"
+    }
+  },
+  "gcp-compliance.control.cis_v200_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_dataset_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/bigquery.pp"
+      ],
+      "source_query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v200_7_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_7.pp#L22"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.project_no_api_key"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "project_no_api_key",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "e7c7c52a6abfcdc55cd1230ac4d76756b995f2e0bf4b07cdc22307483f8b8169",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L189"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.kms.no_public_iam"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L147"
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_dnssec_enabled"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_dnssec_enabled",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L56"
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_key_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L70"
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_zone_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L84"
+    }
+  },
+  "gcp-compliance.control.cis_v300_5_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.storage_bucket_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "storage_bucket_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/storage.pp"
+      ],
+      "source_query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_5_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_5.pp#L21"
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_with_no_public_ips"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_with_no_public_ips",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L363"
+    }
+  },
+  "gcp-compliance.control.cis_v300_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_dataset_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/bigquery.pp"
+      ],
+      "source_query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_7_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_7.pp#L23"
+    }
+  },
+  "gcp-compliance.control.cis_v300_8_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_dataset_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/bigquery.pp"
+      ],
+      "source_query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v300_8_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_8.pp#L20"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.project_no_api_key"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "project_no_api_key",
+      "source_path": [
+        "policy_bundle/project.pp"
+      ],
+      "source_query_sha256": "e7c7c52a6abfcdc55cd1230ac4d76756b995f2e0bf4b07cdc22307483f8b8169",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L189"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.kms.no_public_iam"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L147"
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_dnssec_enabled"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_dnssec_enabled",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L56"
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_key_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L70"
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "dns_managed_zone_zone_signing_not_using_rsasha1",
+      "source_path": [
+        "policy_bundle/dns.pp"
+      ],
+      "source_query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L84"
+    }
+  },
+  "gcp-compliance.control.cis_v400_5_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.storage_bucket_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "storage_bucket_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/storage.pp"
+      ],
+      "source_query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_5_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_5.pp#L21"
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_with_no_public_ips"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_with_no_public_ips",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L363"
+    }
+  },
+  "gcp-compliance.control.cis_v400_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigquery_dataset_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_not_publicly_accessible",
+      "source_path": [
+        "policy_bundle/bigquery.pp"
+      ],
+      "source_query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cis_v400_7_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_7.pp#L23"
+    }
+  },
+  "gcp-compliance.control.cloudfunction_function_no_ingress_settings_allow_all": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloudfunction_function_no_ingress_settings_allow_all"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_no_ingress_settings_allow_all",
+      "source_path": [
+        "policy_bundle/cloudfunction.pp"
+      ],
+      "source_query_sha256": "d9ae25668862bd24d8c5a48703cd2522a1e5e4f69068aa888d847eb69b5a8e94",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cloudfunction_function_no_ingress_settings_allow_all",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/cloudfunction.pp#L17"
+    }
+  },
+  "gcp-compliance.control.cloudfunction_function_restrict_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloudfunction_function_restrict_public_access"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_restrict_public_access",
+      "source_path": [
+        "policy_bundle/cloudfunction.pp"
+      ],
+      "source_query_sha256": "84da6b777300412985a180d2014d3404e6d01c1e32969d868771ba2c3429951b",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cloudfunction_function_restrict_public_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/cloudfunction.pp#L33"
+    }
+  },
+  "gcp-compliance.control.cloudfunction_function_vpc_connector_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloudfunction_function_vpc_connector_enabled"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_vpc_connector_enabled",
+      "source_path": [
+        "policy_bundle/cloudfunction.pp"
+      ],
+      "source_query_sha256": "20d06daff4070d8c69c27ff8e12fa551ce69b3a79937da750cbf852ad7648579",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cloudfunction_function_vpc_connector_enabled",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/cloudfunction.pp#L7"
+    }
+  },
+  "gcp-compliance.control.cloudrun_service_restrict_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloudrun_service_restrict_public_access"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudrun_service_restrict_public_access",
+      "source_path": [
+        "policy_bundle/cloudrun.pp"
+      ],
+      "source_query_sha256": "7ce67f68941577d094907a0305ebade1bfcfbccd1089e1c39d755e0588ee8d98",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "gcp-compliance.control.cloudrun_service_restrict_public_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/cloudrun.pp#L7"
+    }
+  },
+  "prowler.gcp.apikeys_key_exists": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.project_no_api_key"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "apikeys_key_exists",
+      "source_path": "prowler/providers/gcp/services/apikeys/apikeys_key_exists/apikeys_key_exists.py",
+      "source_query_sha256": "daa8ab108cb1fc29d0b6da42f1375d9cb1004932c9c89cf744050624e37d1e41",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.apikeys_key_exists",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/apikeys/apikeys_key_exists/apikeys_key_exists.metadata.json"
+    }
+  },
+  "prowler.gcp.apikeys_key_rotated_in_90_days": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.api_key_elapsed_age_gt90"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "apikeys_key_rotated_in_90_days",
+      "source_path": "prowler/providers/gcp/services/apikeys/apikeys_key_rotated_in_90_days/apikeys_key_rotated_in_90_days.py",
+      "source_query_sha256": "9376011069c96c4f96f4faf0f9d69394ebc2c17d48a94e090f111ce9d3905321",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.apikeys_key_rotated_in_90_days",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/apikeys/apikeys_key_rotated_in_90_days/apikeys_key_rotated_in_90_days.metadata.json"
+    }
+  },
+  "prowler.gcp.bigquery_dataset_cmk_encryption": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization. Reuses the existing canonical native predicate after verifying the same valid native entity, fields and conditional declaration semantics; malformed evidence differences are not a second security policy.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_cmk_encryption",
+      "source_path": "prowler/providers/gcp/services/bigquery/bigquery_dataset_cmk_encryption/bigquery_dataset_cmk_encryption.py",
+      "source_query_sha256": "2da2972ce77ddb9286edc23022739de148bd1bb4c04269f78afed5c33c8e6490",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.bigquery_dataset_cmk_encryption",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/bigquery/bigquery_dataset_cmk_encryption/bigquery_dataset_cmk_encryption.metadata.json"
+    },
+    "supersedes": "prowler.gcp.bigquery_dataset_cmk_encryption"
+  },
+  "prowler.gcp.cloudfunction_function_inside_vpc": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.function_active_vpc_connector"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_inside_vpc",
+      "source_path": "prowler/providers/gcp/services/cloudfunction/cloudfunction_function_inside_vpc/cloudfunction_function_inside_vpc.py",
+      "source_query_sha256": "7d0331c9eb1f5530164b1b90562fa05437513a179e11a9d987a2327c33c32beb",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudfunction_function_inside_vpc",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudfunction/cloudfunction_function_inside_vpc/cloudfunction_function_inside_vpc.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudfunction_function_not_publicly_accessible": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.function_active_public_binding"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_not_publicly_accessible",
+      "source_path": "prowler/providers/gcp/services/cloudfunction/cloudfunction_function_not_publicly_accessible/cloudfunction_function_not_publicly_accessible.py",
+      "source_query_sha256": "0eb120f99ab07813ba543774b95924f477064ad71bc7d2c3f6ecc1606a2ac1b5",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudfunction_function_not_publicly_accessible",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudfunction/cloudfunction_function_not_publicly_accessible/cloudfunction_function_not_publicly_accessible.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_private_ip_assignment": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_private_ip_assignments"
+    ],
+    "reason": "The pinned Prowler metadata asks whether a Cloud SQL instance has a public incoming IP, but its loop treats every non-PRIVATE ipAddresses type as public. Native evaluation corrects that source false positive: PRIMARY and migrated V1 public addresses fail; OUTGOING is an outbound source address and does not fail this incoming-address check. Missing or unknown address types remain UNKNOWN, and a PASS does not assert a private incoming endpoint or effective reachability.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances#IpMapping",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_private_ip_assignment",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_private_ip_assignment/cloudsql_instance_private_ip_assignment.py",
+      "source_query_sha256": "6b62050e0adcb3b91ab002bfdc1acf402b238030a8b540a935271263d67b5681",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "applicability": "Cloud SQL instance ipAddresses declarations only; PSC and privateNetwork do not replace a missing address list. OUTGOING-only passes absence of public incoming IP without proving a private incoming endpoint; collection unavailable or unknown enum remains UNKNOWN.",
+      "semantic_correction": "Pinned evaluator FAILs address.type != PRIVATE while pinned metadata says no public IP and internet-exposed. Google IpMapping documents PRIMARY as public incoming, PRIVATE as private incoming, OUTGOING as outbound source, and MIGRATED_1ST_GEN as legacy V1 IP to decommission. FAIL only PRIMARY or MIGRATED_1ST_GEN for this check; preserve pinned source hash as provenance.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_private_ip_assignment",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_private_ip_assignment/cloudsql_instance_private_ip_assignment.metadata.json"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_public_ip": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_no_primary_address"
+    ],
+    "reason": "Reviewed exact native metadata field, source entity applicability and public-principal/role or address criterion. DNS algorithm and enablement, transient function scope, second-generation SQL exclusion and elapsed/calendar temporal thresholds remain distinct predicates. Complete dependency inventory is required for scoped absence; binding conditions remain evidence rather than being flattened into effective authorization.",
+    "official_docs": [
+      "https://docs.cloud.google.com/dns/docs/reference/v1/managedZones",
+      "https://docs.cloud.google.com/iam/docs/policies",
+      "https://docs.cloud.google.com/sql/docs/mysql/configure-ip",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_public_ip",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_public_ip/cloudsql_instance_public_ip.py",
+      "source_query_sha256": "e542d0c5ba4d9ec2e5b754190c49e71ab40ed5f060d1957cea6669cc3d461c71",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "applicability": "Native resource kind plus source variant exceptions; collection unavailable remains UNKNOWN.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_public_ip",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_public_ip/cloudsql_instance_public_ip.metadata.json"
+    }
+  }
+}
