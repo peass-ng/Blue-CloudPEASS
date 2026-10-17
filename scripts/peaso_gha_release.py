@@ -53,6 +53,18 @@ def verify_source_archive(manifest: dict) -> Path:
     return source_zip
 
 
+def verify_api_archive() -> None:
+    archive_path = deploy.BUILD / 'api.zip'
+    if not archive_path.is_file() or archive_path.stat().st_size > 50_000_000:
+        raise ValueError('API archive is missing or exceeds reviewed size')
+    with zipfile.ZipFile(archive_path) as archive:
+        members = archive.infolist()
+        if len(members) != len(set(row.filename for row in members)) or len(members) > deploy.CURRENT_API_MEMBER_LIMIT:
+            raise ValueError('API archive member count is invalid')
+        if sum(row.file_size for row in members) > 230_000_000:
+            raise ValueError('API archive expands beyond reviewed size')
+
+
 def review_plan(data: dict, release: dict) -> dict:
     """Return only nonsecret plan facts; reject an unrelated or destructive plan."""
     version = release.get('source_version')
@@ -116,6 +128,7 @@ def review_files(plan: Path, plan_json: Path, release_path: Path,
     data = json.loads(plan_json.read_text())
     release = json.loads(release_path.read_text())
     verify_source_archive(release)
+    verify_api_archive()
     result = review_plan(data, release)
     if expected_drift_sha256 and result['drift_sha256'] != expected_drift_sha256:
         raise ValueError('Provider refresh differs from the reviewed SHA-256')
@@ -135,6 +148,7 @@ def publish_frontend() -> None:
     if manifest.get('source_version') != release['source_version'] or files != manifest.get('files') or 'index.html' not in files:
         raise ValueError('Frontend assets differ from the frozen build')
     source_zip = verify_source_archive(release)
+    verify_api_archive()
     output = json.loads(deploy.terraform('output', '-json', capture=True).stdout)
     bucket = output['frontend_bucket']['value']
     distribution = output['cloudfront_distribution_id']['value']

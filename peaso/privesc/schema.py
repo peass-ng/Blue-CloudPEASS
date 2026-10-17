@@ -1252,7 +1252,7 @@ def validate_entry(entry, *, expected_provider=None, hacktricks_root=None):
         if kind == "azure_external_principal" and not selector.get("azure_external_principal_evidence"):
             errors.append(f"{where}: azure_external_principal needs typed evidence")
         if selector.get("azure_external_principal_evidence"):
-            from .effective_permissions.azure_external_principal import CONTRACT
+            from peaso.privesc.effective_permissions.azure_external_principal import CONTRACT
             contract = CONTRACT.get(entry.get("id"))
             expected_outcome = "credentials" if contract and contract[2] == "credential" else "identity"
             if (kind != "azure_external_principal"
@@ -1295,7 +1295,7 @@ def validate_entry(entry, *, expected_provider=None, hacktricks_root=None):
         if selector.get("k8s_helm_values_rbac") and (kind != "k8s_verified_authority" or selector.get("k8s_challenge_fact")):
             errors.append(f"{where}: k8s_helm_values_rbac needs an exclusive k8s_verified_authority target")
         if selector.get("k8s_verified_pivot"):
-            from .effective_permissions.k8s_verified_pivots import KINDS
+            from peaso.privesc.effective_permissions.k8s_verified_pivots import KINDS
             if (selector["k8s_verified_pivot"] != entry.get("id")
                     or set(selector) != {"k8s_verified_pivot"}
                     or kind != KINDS.get(entry.get("id"))
