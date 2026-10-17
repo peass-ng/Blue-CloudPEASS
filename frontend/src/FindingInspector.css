@@ -1,0 +1,238 @@
+.inspector.finding-inspector {
+  width: min(660px, 100vw);
+  padding: 0;
+  background: #101b29;
+}
+
+.finding-inspector .inspector-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid #35495c;
+  background: #101b29;
+}
+
+.finding-inspector .inspector-heading h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.finding-detail {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+
+.finding-detail-hero {
+  min-width: 0;
+}
+
+.finding-inspector .inspector-badges {
+  gap: 8px;
+}
+
+.finding-inspector .badge {
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.finding-inspector .finding-detail-hero h3 {
+  margin: 14px 0 10px;
+  font-size: 21px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -.02em;
+}
+
+.inspector.finding-inspector p,
+.finding-inspector li,
+.finding-inspector dd {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d5e1eb;
+}
+
+.finding-inspector .finding-detail-location {
+  margin: 0;
+  color: #b4c7d6;
+  overflow-wrap: anywhere;
+}
+
+.finding-inspector .finding-detail-asset {
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.finding-detail-asset span {
+  margin-right: 8px;
+  color: #a6bbcd;
+}
+
+.finding-detail-section {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #35495c;
+  border-radius: 12px;
+  background: #162535;
+}
+
+.finding-detail-observation {
+  border-left: 3px solid #9bf1d1;
+}
+
+.finding-inspector .finding-detail-section > h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.finding-inspector .finding-detail-section > p,
+.finding-inspector .remediation-summary {
+  margin: 0;
+}
+
+.finding-inspector .finding-detail-section ul,
+.finding-inspector .finding-detail-section ol {
+  margin: 10px 0 0;
+  padding-left: 22px;
+}
+
+.finding-inspector .finding-detail-section li {
+  margin: 7px 0;
+}
+
+.finding-inspector .remediation-summary {
+  font-weight: 400;
+}
+
+.finding-inspector .remediation h4 {
+  margin: 18px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.finding-detail-extras {
+  border: 1px solid #35495c;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.finding-detail-extras > details + details {
+  border-top: 1px solid #35495c;
+}
+
+.finding-inspector summary {
+  cursor: pointer;
+  color: #dce9f2;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.finding-detail-extras > details > summary {
+  padding: 15px 20px;
+  background: #162535;
+}
+
+.finding-detail-extras > details[open] > summary {
+  border-bottom: 1px solid #35495c;
+}
+
+.finding-detail-extra-body {
+  min-width: 0;
+  padding: 18px 20px 20px;
+}
+
+.finding-inspector .finding-detail-extra-body h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.finding-inspector .finding-detail-extra-body h4 {
+  margin: 18px 0 8px;
+  font-size: 14px;
+}
+
+.finding-detail-extra-body ul {
+  margin: 8px 0 0;
+  padding-left: 22px;
+}
+
+.finding-detail-extra-body dl,
+.finding-detail-metadata {
+  margin: 16px 0 0;
+}
+
+.finding-detail-extra-body dt,
+.finding-detail-metadata dt {
+  margin-top: 14px;
+  color: #a6bbcd;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.finding-detail-extra-body dd,
+.finding-detail-metadata dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.finding-detail-metadata {
+  margin: 0;
+  padding: 2px 20px 20px;
+}
+
+.finding-inspector .remediation-expand {
+  margin-top: 16px;
+  border-top: 1px solid #35495c;
+}
+
+.finding-inspector .remediation-expand > summary {
+  padding: 14px 0 0;
+}
+
+.finding-inspector .remediation-expand > div {
+  padding-top: 10px;
+}
+
+.finding-inspector .remediation-note {
+  margin: 0 0 12px;
+  color: #b4c7d6;
+  opacity: 1;
+}
+
+.finding-inspector .remediation-command,
+.finding-inspector .remediation-iac {
+  border-color: #42596d;
+  background: #0d1926;
+}
+
+.finding-inspector .remediation-command-heading {
+  padding: 10px 12px;
+  background: #203248;
+  color: #e3eef5;
+  font-size: 13px;
+}
+
+.finding-inspector .remediation-command pre,
+.finding-inspector .remediation-iac {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #dce9f2;
+}
+
+.finding-inspector .remediation a {
+  color: #9bf1d1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .finding-detail { gap: 16px; padding: 16px; }
+  .finding-inspector .inspector-heading { padding: 14px 16px; }
+  .finding-detail-section { padding: 16px; }
+  .finding-inspector .finding-detail-hero h3 { font-size: 19px; }
+}

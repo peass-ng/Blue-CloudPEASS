@@ -144,10 +144,12 @@ export function Inspector({
   title,
   onClose,
   children,
+  className,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -156,7 +158,7 @@ export function Inspector({
     return () => dialog?.close();
   }, []);
   return (
-    <dialog ref={ref} className="inspector" onCancel={onClose}>
+    <dialog ref={ref} className={`inspector${className ? ` ${className}` : ""}`} onCancel={onClose}>
       <div className="inspector-heading">
         <h2>{title}</h2>
         <button

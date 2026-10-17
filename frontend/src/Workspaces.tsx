@@ -47,7 +47,10 @@ export function Workspaces({ me, workspaceId, onWorkspaceCreated }: { me?: Me; w
         {workspaces.data?.items.map((item) => <div key={item.id}><strong>{item.name}</strong><span>{item.role === "admin" ? "Admin" : item.role === "write" ? "Write" : "Read"}{item.personal ? " · private" : item.id === workspaceId ? " · selected" : ""}</span></div>)}
       </div>
       {paid && ownedCount < 5 && <form className="workspace-inline-form" onSubmit={(event) => { event.preventDefault(); void act(async () => { const created = await request<Workspace>("/workspaces", json({ name: name.trim() })); onWorkspaceCreated(created.id); }, () => setName("")); }}>
-        <label>New workspace name<input value={name} onChange={(event) => setName(event.target.value)} minLength={3} maxLength={80} required placeholder="Team or project name" /></label>
+        <div className="workspace-name-field">
+          <h3><label htmlFor="new-workspace-name">New workspace name</label></h3>
+          <input id="new-workspace-name" value={name} onChange={(event) => setName(event.target.value)} minLength={3} maxLength={80} required placeholder="Team or project name" />
+        </div>
         <button className="button primary" disabled={busy || name.trim().length < 3}>Create workspace</button>
       </form>}
       {!paid && <p className="muted small">A paid HackTricks Tools membership is required to create shared workspaces.</p>}

@@ -13,6 +13,7 @@ import { catalogFrameworksPath, items, request, useApi } from "./api";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { explainFindingEvidence, explainInternetExposure } from "./findingExplanation";
 import { Remediation } from "./Remediation";
+import "./FindingInspector.css";
 type FindingPage = {
   items: Finding[];
   total?: number;
@@ -666,6 +667,10 @@ function FindingInspector({
   const observed = detail.data || finding;
   const internetExposure = observed.check_id === "analysis.internet_exposure";
   const exposure = internetExposure ? explainInternetExposure(observed.evidence, observed.status) : undefined;
+  const evidenceSummary = internetExposure ? exposure?.summary
+    : explainFindingEvidence(observed.evidence, observed.status).replace(/^Observed evidence:\s*/i, "");
+  const asset = assetLabel(observed);
+  const scopeAsset = asset === observed.scope || asset === `scope:${observed.scope}`;
   const definition = <>
     <h3>What this check evaluates</h3>
     <p>{observed.description}</p>
@@ -680,76 +685,50 @@ function FindingInspector({
     </dl>
   </>;
   return (
-    <Inspector title="Finding evidence" onClose={onClose}>
-      <div className="inspector-badges">
-        <Badge value={observed.severity} />
-        <Badge value={observed.status} />
+    <Inspector title="Finding details" className="finding-inspector" onClose={onClose}>
+      <div className="finding-detail">
+        <header className="finding-detail-hero">
+          <div className="inspector-badges">
+            <Badge value={observed.severity} />
+            <Badge value={observed.status} />
+          </div>
+          <h3>{observed.title}</h3>
+          <p className="finding-detail-location">{observed.service} · {observed.scope}</p>
+          {!scopeAsset && <p className="finding-detail-asset"><span>Asset</span> <strong>{asset}</strong></p>}
+        </header>
+        <State loading={lazy && !demo && detail.isPending}
+          error={lazy && !demo ? detail.error : undefined} onRetry={() => void detail.refetch()}>
+          <section className="finding-detail-section finding-detail-observation">
+            <h3>Observed evidence</h3>
+            <p>{evidenceSummary}</p>
+            {internetExposure && !!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+          </section>
+          <section className="finding-detail-section">
+            <h3>What to do</h3>
+            <Remediation legacy={observed.remediation} details={observed.remediation_details} compact />
+          </section>
+          <div className="finding-detail-extras">
+            {observed.description && <details>
+              <summary>How this check works</summary>
+              <div className="finding-detail-extra-body">{definition}</div>
+            </details>}
+            {observed.evidence != null && <details>
+              <summary>Technical evidence details</summary>
+              <div className="finding-detail-extra-body"><Evidence data={observed.evidence} /></div>
+            </details>}
+            <details>
+              <summary>Identifiers &amp; frameworks</summary>
+              <dl className="finding-detail-metadata">
+                <dt>Check ID</dt><dd>{observed.check_id}</dd>
+                <dt>Report resource ID</dt><dd>{observed.resource_id}</dd>
+                {observed.native_resource_id && observed.native_resource_id !== observed.resource_id && <><dt>Native ID</dt><dd>{observed.native_resource_id}</dd></>}
+                <dt>Scope</dt><dd>{observed.scope}</dd>
+                <dt>Frameworks</dt><dd>{observed.frameworks?.join(" · ") || "No framework mapping"}</dd>
+              </dl>
+            </details>
+          </div>
+        </State>
       </div>
-      <h3>{observed.title}</h3>
-      {internetExposure && <State loading={lazy && !demo && detail.isPending}
-        error={lazy && !demo ? detail.error : undefined} onRetry={() => void detail.refetch()}>
-        <h3>Affected asset</h3>
-        <p><strong>{assetLabel(observed)}</strong> · {observed.service} · {observed.scope}</p>
-        <h3>Why this result</h3>
-        <p>{exposure?.summary}</p>
-        {!!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
-        {observed.evidence != null && <details><summary>Technical evidence details</summary><Evidence data={observed.evidence} /></details>}
-        <h3>Defensive remediation</h3>
-        <Remediation legacy={observed.remediation} details={observed.remediation_details} />
-      </State>}
-      {internetExposure && <details><summary>Check and report metadata</summary>
-      <dl>
-        <dt>Check</dt>
-        <dd>{observed.check_id}</dd>
-        <dt>Asset</dt>
-        <dd>{assetLabel(observed)}</dd>
-        {observed.native_resource_id && (
-          <>
-            <dt>Native ID</dt>
-            <dd>{observed.native_resource_id}</dd>
-          </>
-        )}
-        <dt>Report resource ID</dt>
-        <dd>{observed.resource_id}</dd>
-        <dt>Scope</dt>
-        <dd>{observed.scope}</dd>
-        <dt>Frameworks</dt>
-        <dd>{observed.frameworks?.join(" · ") || "No framework mapping"}</dd>
-      </dl>
-      </details>}
-      {!internetExposure && <dl>
-        <dt>Check</dt><dd>{observed.check_id}</dd>
-        <dt>Asset</dt><dd>{assetLabel(observed)}</dd>
-        {observed.native_resource_id && <><dt>Native ID</dt><dd>{observed.native_resource_id}</dd></>}
-        <dt>Report resource ID</dt><dd>{observed.resource_id}</dd>
-        <dt>Scope</dt><dd>{observed.scope}</dd>
-        <dt>Frameworks</dt><dd>{observed.frameworks?.join(" · ") || "No framework mapping"}</dd>
-      </dl>}
-      {observed.description && (
-        <section aria-label="Check explanation">
-          {internetExposure ? <details><summary>Check definition</summary>{definition}</details> : definition}
-        </section>
-      )}
-      {!internetExposure && <State
-        loading={lazy && !demo && detail.isPending}
-        error={lazy && !demo ? detail.error : undefined}
-        onRetry={() => void detail.refetch()}
-      >
-        <h3>Observed evidence</h3>
-        <p>{explainFindingEvidence(observed.evidence, observed.status)}</p>
-        {observed.evidence != null && (
-          <details>
-            <summary>Technical evidence details</summary>
-            <Evidence data={observed.evidence} />
-          </details>
-        )}
-        <h3>Defensive remediation</h3>
-        <Remediation legacy={observed.remediation} details={observed.remediation_details} />
-      </State>}
-      <button className="button" onClick={onClose}>
-        Back to findings
-        <ChevronRight size={16} />
-      </button>
     </Inspector>
   );
 }

@@ -170,11 +170,15 @@ test("signed large finding shows reviewed remediation without forwarding bearer 
   await dialog.getByText("Technical evidence details").click();
   await expect(dialog.getByText("Complete large evidence", { exact: true })).toBeVisible();
   await expect(dialog.locator("pre.evidence")).toHaveCount(0);
-  await expect(dialog.getByText("Narrow the flagged ingress rule to tested client sources.")).toBeVisible();
+  await expect(dialog.getByText("Inspect the matching rule and attached workload.", { exact: true })).toBeVisible();
+  await dialog.getByText("How this check works").click();
   await expect(dialog.getByRole("heading", { name: "What this check evaluates" })).toBeVisible();
   await expect(dialog.getByText("IpPermissions[].IpRanges[].CidrIp", { exact: true })).toBeVisible();
   await expect(dialog.getByText("Inspect the matching rule and attached workload.", { exact: true })).toBeVisible();
+  await dialog.getByText("Commands (1)").click();
   await expect(dialog.getByText("aws ec2 describe-security-group-rules --filters Name=group-id,Values=sg-12345678")).toBeVisible();
+  await dialog.getByText("More guidance & references").click();
+  await expect(dialog.getByText("Narrow the flagged ingress rule to tested client sources.")).toBeVisible();
   await expect(dialog.getByRole("link", { name: "AWS security group rules" })).toHaveAttribute("href", /^https:\/\/docs\.aws\.amazon\.com\//);
   expect(artifactHeaders.authorization).toBeUndefined();
   expect(artifactHeaders.cookie).toBeUndefined();
@@ -229,7 +233,7 @@ test("catalog choices survive empty results and evidence is concise, escaped and
   const dialog = page.getByRole("dialog");
   await expect(dialog.locator("p").filter({ hasText: /Facts unavailable <img src=x onerror=alert\(1\)>/ })).toBeVisible();
   await expect(dialog.locator("img")).toHaveCount(0);
-  await expect(dialog.locator("details:not([open])")).toHaveCount(1);
+  await expect(dialog.locator("details:has(> summary:text-is('Technical evidence details'))")).not.toHaveAttribute("open");
   await expect(dialog.getByText("No observed evidence was supplied.")).toHaveCount(0);
   await expect(dialog.getByText("Technical evidence details")).toBeVisible();
   expect(detailCalls).toBe(1);
@@ -281,7 +285,7 @@ test("coverage is in completed Scan details and all finding columns sort", async
   await expect(page.getByRole("dialog").getByText("Collected default encryption configuration is absent. 0 rules recorded.")).toBeVisible();
   await page.getByRole("button", { name: "Close inspector" }).click();
   await page.getByRole("button", { name: "gcp gcp" }).click();
-  await expect(page.getByRole("dialog").getByText("Observed evidence: enabled is true.")).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("enabled is true.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Close inspector" }).click();
   await page.getByRole("button", { name: "k8s k8s" }).click();
   await expect(page.getByRole("dialog").getByText("No observed evidence was supplied for this undetermined result.")).toBeVisible();
