@@ -711,6 +711,73 @@ def wire_status(status):
     return "unknown" if status in ("unavailable", "unsupported") else status
 
 
+def _iam_distinct_root_views(scope, previous, current):
+    """The one collision allowed before alias proof: direct root plus CAI view."""
+    def view(item):
+        provenance = item.get("_provenance", {})
+        representation = item.get("_representation", provenance.get("representation")
+                                  if isinstance(provenance, dict) else None)
+        if representation == "full" and item.get("name") == scope and "assetType" not in item:
+            return "direct"
+        if (representation == "partial" and
+                item.get("name") == "//cloudresourcemanager.googleapis.com/" + scope and
+                item.get("assetType") == "cloudresourcemanager.googleapis.com/Project" and
+                item.get("project") == scope):
+            return "cai"
+        return None
+    return {view(previous), view(current)} == {"direct", "cai"}
+
+
+def _iam_identical_direct_root(scope, previous, current):
+    """Only a repeated complete direct root can reuse its prior observation."""
+    def payload(item):
+        provenance = item.get("_provenance", {})
+        representation = item.get("_representation", provenance.get("representation")
+                                  if isinstance(provenance, dict) else None)
+        if representation != "full" or item.get("name") != scope or "assetType" in item:
+            return None
+        return {key: value for key, value in item.items()
+                if key not in {"_resource_id", "native_id", "_provenance", "_relationships",
+                               "_representation"}}
+    left, right = payload(previous), payload(current)
+    return left is not None and left == right
+
+
+def _validate_iam_policy(policy):
+    """Reject provider Policy fields that could replace collector identity or authority."""
+    if not isinstance(policy, dict) or set(policy) - {"bindings", "auditConfigs", "etag", "version"}:
+        raise ReadError("malformed", "malformed_iam_policy")
+    if ("bindings" in policy and not isinstance(policy["bindings"], list)
+            or "auditConfigs" in policy and not isinstance(policy["auditConfigs"], list)
+            or "etag" in policy and not isinstance(policy["etag"], str)
+            or "version" in policy and type(policy["version"]) is not int):
+        raise ReadError("malformed", "malformed_iam_policy")
+    for binding in policy.get("bindings", []):
+        if (not isinstance(binding, dict) or set(binding) - {"role", "members", "condition"}
+                or not isinstance(binding.get("role"), str)
+                or not isinstance(binding.get("members", []), list)
+                or any(not isinstance(member, str) for member in binding.get("members", []))):
+            raise ReadError("malformed", "malformed_iam_policy")
+        if "condition" in binding:
+            condition = binding["condition"]
+            if (not isinstance(condition, dict)
+                    or set(condition) - {"title", "description", "expression", "location"}
+                    or any(not isinstance(value, str) for value in condition.values())):
+                raise ReadError("malformed", "malformed_iam_policy")
+    for config in policy.get("auditConfigs", []):
+        if (not isinstance(config, dict) or set(config) - {"service", "auditLogConfigs"}
+                or not isinstance(config.get("service"), str)
+                or not isinstance(config.get("auditLogConfigs", []), list)):
+            raise ReadError("malformed", "malformed_iam_policy")
+        for log in config.get("auditLogConfigs", []):
+            if (not isinstance(log, dict) or set(log) - {"logType", "exemptedMembers"}
+                    or not isinstance(log.get("logType"), str)
+                    or not isinstance(log.get("exemptedMembers", []), list)
+                    or any(not isinstance(member, str) for member in log.get("exemptedMembers", []))):
+                raise ReadError("malformed", "malformed_iam_policy")
+    return policy
+
+
 def item_identity(kind, scope, item):
     for field in ("selfLink", "resource", "name"):
         name = item.get(field)
@@ -912,7 +979,11 @@ class GCPCollector:
             if not isinstance(items, list) or any(not isinstance(x, dict) for x in items):
                 raise malformed("malformed_list")
             if transform:
-                items = [transform(item) for item in items]
+                try:
+                    items = [transform(item) for item in items]
+                except ReadError as exc:
+                    exc.request_id = request_id
+                    raise
             yield items, request_id
             if incomplete:
                 raise ReadError("unavailable", "partial_api_warning")
@@ -935,6 +1006,7 @@ class GCPCollector:
 
     def envelope(self, kind, scope, service, fetch):
         items, source_requests = {}, []
+        iam_by_native_id = {}
         state, error, service_state = "collected", None, None
         try:
             for page, request_id in fetch():
@@ -945,22 +1017,30 @@ class GCPCollector:
                     if rid is None:
                         from peaso.snapshot import digest
                         rid = digest(item)
-                    if rid in items:
-                        if kind in ('log_entry', 'iam_policy'):
+                    native_id = rid
+                    if kind == "iam_policy":
+                        # Keep every observation, but a repeated same-authority
+                        # identity is incomplete inventory even when payloads agree.
+                        prior = iam_by_native_id.get(native_id, [])
+                        if len(prior) == 1 and _iam_identical_direct_root(scope, prior[0], item):
+                            refs = prior[0]["_provenance"]["source_requests"]
+                            prior[0]["_provenance"]["source_requests"] = sorted(set([*refs, request_id]))
+                            continue
+                        if prior and not (len(prior) == 1 and
+                                          _iam_distinct_root_views(scope, prior[0], item)):
+                            error = {"kind": "malformed", "code": "conflicting_iam_policy_identity"}
+                        if rid in items:
+                            ordinal = 2
+                            while f"{rid}#observation-{ordinal}" in items:
+                                ordinal += 1
+                            rid = f"{rid}#observation-{ordinal}"
+                    elif rid in items:
+                        if kind == 'log_entry':
                             excluded = {'_resource_id', 'native_id', '_provenance', '_relationships'}
                             previous = {key: value for key, value in items[rid].items() if key not in excluded}
                             current = {key: value for key, value in item.items() if key not in excluded}
-                            if kind == 'iam_policy':
-                                # The direct root and a CAI hierarchy view can
-                                # share an identity. Their distinct authority
-                                # must not disappear in envelope deduplication.
-                                representation = items[rid].get('_provenance', {}).get('representation')
-                                if representation is not None:
-                                    previous['_representation'] = representation
                             if previous != current:
-                                code = ('conflicting_iam_policy_identity' if kind == 'iam_policy'
-                                        else 'conflicting_audit_metadata_identity')
-                                raise ReadError('malformed', code)
+                                raise ReadError('malformed', 'conflicting_audit_metadata_identity')
                         continue
                     with self.lock:
                         identity = (kind, scope, rid)
@@ -970,9 +1050,12 @@ class GCPCollector:
                             self.seen_items.add(identity)
                             self.total_items += 1
                     item["_resource_id"] = rid
-                    item["native_id"] = rid
+                    item["native_id"] = native_id
                     details = [ref for detail in item.get("_coverage", {}).values()
+                               if isinstance(detail, dict)
                                for ref in detail.get("source_requests", [])]
+                    if kind == "project":
+                        source_requests.extend(details)
                     representation = item.pop("_representation", None)
                     item["_provenance"] = {"source_requests": sorted(set([request_id, *details])), "scope": scope,
                                            "collected_at": self.read_time}
@@ -985,6 +1068,8 @@ class GCPCollector:
                         item["_provenance"]["schema_full"] = True
                     item["_relationships"] = relationships(item)
                     items[rid] = item
+                    if kind == "iam_policy":
+                        iam_by_native_id.setdefault(native_id, []).append(item)
         except ReadError as exc:
             state, error = exc.status, {"kind": exc.status, **exc.error}
             if getattr(exc, "request_id", None):
@@ -1016,7 +1101,32 @@ class GCPCollector:
             previous = self.collections.get(key)
             if previous:
                 output = {x["_resource_id"]: x for x in previous["items"]}
-                output.update({x["_resource_id"]: x for x in envelope["items"]})
+                iam_by_native_id = {}
+                if kind == "iam_policy":
+                    for row in output.values():
+                        iam_by_native_id.setdefault(row["native_id"], []).append(row)
+                for item in envelope["items"]:
+                    rid = item["_resource_id"]
+                    if kind == "iam_policy":
+                        prior = iam_by_native_id.get(item["native_id"], [])
+                        if len(prior) == 1 and _iam_identical_direct_root(scope, prior[0], item):
+                            refs = prior[0]["_provenance"]["source_requests"]
+                            prior[0]["_provenance"]["source_requests"] = sorted(set(
+                                [*refs, *item["_provenance"]["source_requests"]]))
+                            continue
+                        if prior and not (len(prior) == 1 and
+                                          _iam_distinct_root_views(scope, prior[0], item)):
+                            envelope["error"] = {"kind": "malformed", "code": "conflicting_iam_policy_identity"}
+                        if rid in output:
+                            ordinal = 2
+                            native_id = item["native_id"]
+                            while f"{native_id}#observation-{ordinal}" in output:
+                                ordinal += 1
+                            rid = f"{native_id}#observation-{ordinal}"
+                            item["_resource_id"] = rid
+                    output[rid] = item
+                    if kind == "iam_policy":
+                        iam_by_native_id.setdefault(item["native_id"], []).append(item)
                 envelope["items"] = list(output.values())
                 envelope["source_requests"] = sorted(set(previous["source_requests"] + envelope["source_requests"]))
                 if previous.get("error") or envelope.get("error"):
@@ -1207,13 +1317,24 @@ class GCPCollector:
                     body={"options": {"requestedPolicyVersion": 3}}):
                     # getIamPolicy returns the whole Policy: omitted auditConfigs
                     # means the resource itself declares no audit configuration.
-                    yield [{"name": scope, "bindings": [], **item, "_representation": "full"} for item in items], request_id
+                    try:
+                        yield [{"name": scope, "bindings": [], **_validate_iam_policy(item),
+                                "_representation": "full"} for item in items], request_id
+                    except ReadError as exc:
+                        exc.request_id = request_id
+                        raise
             except ReadError as exc:
                 failure = exc
             if self.options.get("resource_iam", True) and not (self.allowed is not None and scope_type != "project"):
+                def cai_policy(item):
+                    if not isinstance(item, dict):
+                        raise ReadError("malformed", "malformed_cai_iam_policy")
+                    policy = _validate_iam_policy(item.get("policy"))
+                    return {"name": item.get("resource"), **policy,
+                        "assetType": item.get("assetType"), "project": item.get("project"),
+                        "folders": item.get("folders", []), "_representation": "partial"}
                 yield from self.pages(f"https://cloudasset.googleapis.com/v1/{scope}:searchAllIamPolicies", scope,
-                    key="results", transform=lambda item: {"name": item.get("resource"), "bindings": [], **item.get("policy", {}),
-                        "assetType": item.get("assetType"), "project": item.get("project"), "folders": item.get("folders", [])})
+                    key="results", transform=cai_policy)
             if failure:
                 raise failure
         add("iam_policy", "iam/cloudasset", policies)
@@ -1941,20 +2062,73 @@ class GCPCollector:
             try:
                 data, request_id = self.read(f"https://cloudresourcemanager.googleapis.com/v1/{scope}:getAncestry",
                     scope, method="POST", body={})
-                ancestors = data.get("ancestor", [])
-                if not isinstance(ancestors, list):
-                    raise ReadError("malformed", "malformed_ancestry")
-                for ancestor in ancestors:
-                    resource = ancestor.get("resourceId", {})
-                    if resource.get("type") in ("folder", "organization"):
-                        parent = normalize_scope(resource["type"] + "s/" + str(resource["id"]))
-                        parents.add(parent)
+                ancestors = data.get("ancestor")
+                def malformed_ancestry():
+                    exc = ReadError("malformed", "malformed_ancestry")
+                    exc.request_id = request_id
+                    return exc
+                if not isinstance(ancestors, list) or not ancestors:
+                    raise malformed_ancestry()
+                # Older parent-only responses can still select ancestor reads,
+                # but never establish the project's complete hierarchy chain.
+                first = ancestors[0]
+                first_resource = first.get("resourceId") if isinstance(first, dict) else None
+                if isinstance(first_resource, dict) and first_resource.get("type") in ("folder", "organization"):
+                    parent_only, seen, organization_seen = set(), set(), False
+                    for ancestor in ancestors:
+                        resource = ancestor.get("resourceId") if isinstance(ancestor, dict) else None
+                        kind = resource.get("type") if isinstance(resource, dict) else None
+                        identifier = resource.get("id") if isinstance(resource, dict) else None
+                        if (kind not in ("folder", "organization") or not isinstance(identifier, str)
+                                or not re.fullmatch(r"[1-9][0-9]*", identifier)
+                                or organization_seen or (kind, identifier) in seen):
+                            raise malformed_ancestry()
+                        seen.add((kind, identifier))
+                        parent_only.add(f"{kind}s/{identifier}")
+                        if kind == "organization":
+                            organization_seen = True
+                    parents.update(parent_only)
+                    raise malformed_ancestry()
+                seen_ancestors, organization_seen, verified_parents = set(), False, set()
+                for position, ancestor in enumerate(ancestors):
+                    if not isinstance(ancestor, dict) or not isinstance(ancestor.get("resourceId"), dict):
+                        raise malformed_ancestry()
+                    resource = ancestor["resourceId"]
+                    kind, identifier = resource.get("type"), resource.get("id")
+                    if (kind not in ("project", "folder", "organization")
+                            or not isinstance(identifier, str) or not identifier
+                            or position == 0 and kind != "project"
+                            or position > 0 and kind == "project"
+                            or organization_seen or (kind, identifier) in seen_ancestors):
+                        raise malformed_ancestry()
+                    if kind in ("folder", "organization") and not re.fullmatch(r"[1-9][0-9]*", identifier):
+                        raise malformed_ancestry()
+                    if kind == "project" and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", identifier):
+                        raise malformed_ancestry()
+                    seen_ancestors.add((kind, identifier))
+                    if kind == "organization":
+                        organization_seen = True
+                    if kind in ("folder", "organization"):
+                        verified_parents.add(f"{kind}s/{identifier}")
+                project = self.collections.get(("project", scope))
+                if project and project.get("coverage_status") == "collected" and len(project.get("items", [])) == 1:
+                    row = project["items"][0]
+                    expected = {scope.split("/", 1)[1]}
+                    if isinstance(row.get("name"), str) and row["name"].startswith("projects/"):
+                        expected.add(row["name"].split("/", 1)[1])
+                    if isinstance(row.get("projectNumber"), str):
+                        expected.add(row["projectNumber"])
+                    if ancestors[0]["resourceId"]["id"] not in expected:
+                        raise malformed_ancestry()
+                parents.update(verified_parents)
                 self.ancestry[scope] = sanitize(ancestors)
                 self.ancestry_source_requests[scope] = request_id
                 if ("project", scope) in self.collections:
                     for item in self.collections[("project", scope)]["items"]:
                         item["_ancestry"] = sanitize(ancestors)
                         item["_provenance"]["source_requests"].append(request_id)
+                    self.collections[("project", scope)]["source_requests"] = sorted(set(
+                        self.collections[("project", scope)]["source_requests"] + [request_id]))
             except ReadError as exc:
                 self.scope_errors.append({"scope": scope, "operation": "getAncestry", "status": exc.status,
                     "error": exc.error, "source_requests": [exc.request_id] if getattr(exc, "request_id", None) else []})
@@ -2261,9 +2435,24 @@ class GCPCollector:
         from peaso.checks.facts import Unavailable, get, guard
 
         roots, ambiguous_scopes = {}, set()
-        root_asset_types = {"cloudresourcemanager.googleapis.com/Project",
-                            "cloudresourcemanager.googleapis.com/Folder",
-                            "cloudresourcemanager.googleapis.com/Organization"}
+        proven_alias_positions = {}
+        self.proven_project_alias_scopes = set()
+        if getattr(self, "transport", None) is not None:
+            from peaso.gcp_project_alias import AliasUnavailable, prove_project_alias
+            for (kind, scope), policy_envelope in self.collections.items():
+                if kind != "iam_policy" or not scope.startswith("projects/"):
+                    continue
+                project_envelope = self.collections.get(("project", scope))
+                if project_envelope is None:
+                    continue
+                try:
+                    binding = prove_project_alias(scope, project_envelope, policy_envelope,
+                        getattr(self.transport, "evidence", []))
+                except AliasUnavailable:
+                    continue
+                proven_alias_positions[scope] = binding.alias_position
+                self.proven_project_alias_scopes.add(scope)
+        from peaso.gcp_project_alias import root_candidate
 
         def representation(item):
             guard(item)
@@ -2301,18 +2490,31 @@ class GCPCollector:
         for (kind, scope), collection in self.collections.items():
             if kind != "iam_policy":
                 continue
-            for item in collection["items"]:
+            try:
+                guard(collection)
+                inventory = get(collection, "items", list)
+            except Unavailable:
+                ambiguous_scopes.add(scope)
+                continue
+            # Retained readable roots still need an explicit partial annotation.
+            # Inventory status can invalidate authority without hiding those rows.
+            try:
+                collection_coverage = collection.get("_coverage", {})
+                for field in ("status", "coverage_status"):
+                    if field in collection or field in collection_coverage:
+                        if get(collection, field, str) != "collected":
+                            raise Unavailable("incomplete IAM inventory")
+            except Unavailable:
+                ambiguous_scopes.add(scope)
+            for position, item in enumerate(inventory):
+                if position == proven_alias_positions.get(scope):
+                    continue
                 try:
                     name = get(item, "name", str)
                     if name == scope:
                         roots.setdefault(scope, []).append(item)
                         continue
-                    if (not name.strip() or name.count("/") <= 1
-                            or representation(item) == "full"):
-                        ambiguous_scopes.add(scope)
-                        continue
-                    asset_type = get(item, "assetType", str)
-                    if "/" not in asset_type or asset_type in root_asset_types:
+                    if root_candidate(item):
                         ambiguous_scopes.add(scope)
                 except Unavailable:
                     # A denied identity marker can hide a hierarchy root.
@@ -2324,11 +2526,11 @@ class GCPCollector:
                 for ancestor in [scope, *(chain or [])]:
                     source = self.collections.get(("iam_policy", ancestor))
                     candidates = roots.get(ancestor, [])
-                    if len(candidates) > 1 or ancestor in ambiguous_scopes:
-                        malformed.append(ancestor)
-                        continue
                     if not candidates:
                         missing.append(ancestor)
+                        continue
+                    if len(candidates) > 1 or ancestor in ambiguous_scopes:
+                        malformed.append(ancestor)
                         continue
                     if (not isinstance(source, dict) or any(
                             source.get(field, "collected") != "collected"
@@ -2606,7 +2808,8 @@ class GCPCollector:
                     "coverage_status": collection.get("coverage_status"), "resource_count": len(collection["items"]),
                     "error": collection.get("error"), "source_requests": collection.get("source_requests", [])})
                 continue
-            if key[0] in self.wanted or key[0] == "project" and self.options.get("all_projects"):
+            if (key[0] in self.wanted or key[0] == "project" and
+                    (self.options.get("all_projects") or key[1] in getattr(self, "proven_project_alias_scopes", set()))):
                 collection["items"].sort(key=lambda item: item["_resource_id"])
                 envelopes.append(collection)
         metadata = {"collection": "read-only", "collector": "native-gcp", "requested_scopes": self.requested_scopes,
@@ -2720,6 +2923,28 @@ class GCPCollector:
             self.discover()
             self.progress("collecting")
             self.run_jobs([job for scope in self.scopes for job in self.scope_jobs(scope)])
+            # Fetch independent project identity only where an observed CAI
+            # hierarchy view could alias a direct project root.
+            alias_scopes = []
+            if "iam_policy" in self.needed:
+                for scope in self.scopes:
+                    collection = self.collections.get(("iam_policy", scope))
+                    if (scope.startswith("projects/") and collection and
+                            ("project", scope) not in self.collections and
+                            any(item.get("name") == scope and
+                                item.get("_provenance", {}).get("representation") == "full"
+                                for item in collection["items"]) and
+                            any(item.get("assetType") == "cloudresourcemanager.googleapis.com/Project"
+                                for item in collection["items"])):
+                        alias_scopes.append(scope)
+            if alias_scopes:
+                self.needed.add("project")
+                # Supporting identity needs only CRM metadata; do not hydrate
+                # compute settings or monitoring scopes that were not requested.
+                self.run_jobs([("project", scope, "cloudresourcemanager",
+                    lambda scope=scope: self.pages(
+                        f"https://cloudresourcemanager.googleapis.com/v3/{scope}", scope, single=True))
+                    for scope in alias_scopes])
             self.inherited()
             self.perimeter_jobs()
             self.dependent_jobs()

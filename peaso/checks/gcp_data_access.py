@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import re
+from copy import deepcopy
+
+from peaso.gcp_project_alias import AliasUnavailable, prove_project_alias, root_candidate
 
 from peaso.gcp_data_access_policy import evidence_for, malformed_direct_principal
 from peaso.checks import register
@@ -147,31 +150,7 @@ def evaluate(policy_item, check_id, principal_evidence, project_scope, *, collec
 
 
 def _root_candidate(row):
-    """An uncertain IAM policy identity cannot be excluded as a resource peer."""
-    try:
-        name = get(row, "name", str)
-        if not name.strip() or name.count("/") <= 1:
-            return True
-        coverage = row.get("_coverage", {})
-        if "_representation" in row or "_representation" in coverage:
-            representation = get(row, "_representation", str)
-        elif "_provenance" in row or "_provenance" in coverage:
-            provenance = get(row, "_provenance", dict)
-            if "representation" in provenance or "representation" in provenance.get("_coverage", {}):
-                representation = get(provenance, "representation", str)
-            else:
-                representation = None
-        else:
-            representation = None
-        if representation == "full":
-            return True
-        asset_type = get(row, "assetType", str)
-        return ("/" not in asset_type or asset_type in {
-            "cloudresourcemanager.googleapis.com/Project",
-            "cloudresourcemanager.googleapis.com/Folder",
-            "cloudresourcemanager.googleapis.com/Organization"})
-    except Unavailable:
-        return True
+    return root_candidate(row)
 
 
 def _native(item, index, check_id):
@@ -183,6 +162,55 @@ def _native(item, index, check_id):
         name = get(item, "name", str)
     except Unavailable:
         return "UNKNOWN", {"reason": "project-root IAM policy name unavailable"}
+    if name.count("/") > 1 and not root_candidate(item):
+        return "NOT_APPLICABLE", {"reason": "resource-level IAM policy is outside the project-root check"}
+    # Only a direct root or its exact CRM project view needs the inventory-wide
+    # alias proof. Ordinary resource peers retain their prior applicability.
+    if name.count("/") > 1 and not re.fullmatch(
+            r"//cloudresourcemanager\.googleapis\.com/projects/[1-9][0-9]*", name):
+        if _root_candidate(item):
+            return "UNKNOWN", {"reason": "resource IAM policy identity unavailable or may be a hierarchy root"}
+        return "NOT_APPLICABLE", {"reason": "resource-level IAM policy is outside the project-root check"}
+    collections = index.get("collections", {}) if isinstance(index, dict) else {}
+    policies = collections.get("iam_policy", []) if isinstance(collections, dict) else []
+    matching = [row for row in policies if isinstance(row, dict) and row.get("scope") == scope] if isinstance(policies, list) else []
+    if len(matching) == 1 and isinstance(matching[0].get("items"), list):
+        candidates = [row for row in matching[0]["items"] if root_candidate(row)]
+        if (len(candidates) == 2 and sum(row.get("name") == scope for row in candidates if isinstance(row, dict)) == 1
+                and any(isinstance(row.get("name"), str) and row["name"].startswith(
+                    "//cloudresourcemanager.googleapis.com/projects/") for row in candidates if isinstance(row, dict))):
+            projects = collections.get("project", []) if isinstance(collections, dict) else []
+            selected = [row for row in projects if isinstance(row, dict) and row.get("scope") == scope] if isinstance(projects, list) else []
+            try:
+                if len(selected) != 1:
+                    raise AliasUnavailable("project collection unavailable or ambiguous")
+                raw = deepcopy(matching[0])
+                for row in raw["items"]:
+                    if isinstance(row, dict):
+                        row.pop("effectiveAuditConfigs", None)
+                        coverage = row.get("_coverage")
+                        if isinstance(coverage, dict):
+                            coverage.pop("effectiveAuditConfigs", None)
+                            coverage.pop("projectAlias", None)
+                metadata = context.get("metadata") if isinstance(context, dict) else None
+                ledger = get(metadata, "source_requests", list)
+                binding = prove_project_alias(scope, selected[0], raw, ledger)
+            except (AliasUnavailable, Unavailable) as exc:
+                return "UNKNOWN", {"reason": "project alias authority unresolved", "detail": str(exc)}
+            direct = matching[0]["items"][binding.direct_position]
+            alias = matching[0]["items"][binding.alias_position]
+            if item == alias:
+                return "NOT_APPLICABLE", {"reason": "verified CAI project projection; direct root evaluated"}
+            if item != direct:
+                return "UNKNOWN", {"reason": "project-root IAM policy identity unavailable"}
+            narrowed = dict(index)
+            narrowed["collections"] = dict(collections)
+            narrowed["collections"]["iam_policy"] = [{**matching[0], "items": [direct]}]
+            status, evidence = _native(direct, narrowed, check_id)
+            if status in ("PASS", "FAIL"):
+                evidence = {**evidence, "project_alias_requests": list(binding.source_requests),
+                            "project_number": binding.project_number}
+            return status, evidence
     if name.count("/") > 1:
         if _root_candidate(item):
             return "UNKNOWN", {"reason": "resource IAM policy identity unavailable or may be a hierarchy root"}
