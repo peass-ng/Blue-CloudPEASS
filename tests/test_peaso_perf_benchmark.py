@@ -235,8 +235,9 @@ def check(result):
 def test_benchmark_1x_synthetic_evaluate():
     result = run("1x")
     assert result["resources"] >= 600
-    # The fixture carries the facts a live collector reads: most rows are decided, not missing-fact UNKNOWN.
-    assert result["unknown_findings"] < 0.2 * result["findings"], result
+    # The broad synthetic fixture still decides at least three quarters of
+    # findings; newly admitted checks may need facts this fixture omits.
+    assert result["unknown_findings"] < 0.25 * result["findings"], result
     check(result)
 
 

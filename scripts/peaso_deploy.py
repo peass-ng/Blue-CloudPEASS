@@ -585,7 +585,7 @@ def write_vars(image, api_zip):
     existing = INFRA / "deployment.auto.tfvars.json"
     if existing.exists():
         variables.update({k: v for k, v in json.loads(existing.read_text()).items()
-                          if k in {"enable_public_customer_role_template", "worker_resources", "scan_runtime_limits", "budget_email", "monthly_budget_usd"}})
+                          if k in {"enable_public_customer_role_template", "gcp_platform_sa_secret_arn", "worker_resources", "scan_runtime_limits", "budget_email", "monthly_budget_usd"}})
     if "worker_resources" in variables:
         verify_worker_resources(variables["worker_resources"])
     existing.write_text(json.dumps(variables, indent=2) + "\n")

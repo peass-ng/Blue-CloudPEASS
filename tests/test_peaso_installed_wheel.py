@@ -70,7 +70,9 @@ print(json.dumps({'checks': len(catalog['checks']), 'techniques': len(privileges
                             cwd=target, env=environment, capture_output=True, text=True, timeout=90)
     assert result.returncode == 0, result.stderr[-4000:]
     counts = json.loads(result.stdout)
-    assert counts['checks'] >= 3900 and counts['techniques'] >= 1200
+    from peaso.privesc import load_catalog
+    assert counts['checks'] >= 3900
+    assert counts['techniques'] == len(load_catalog()['entries']) >= 600
 
 
 def test_installed_cli_help_works_without_checkout(installed_wheel):

@@ -74,6 +74,13 @@ def review_plan(data: dict, release: dict) -> dict:
     value = lambda name: (variables.get(name) or {}).get('value')
     if value('source_version') != version or value('region') != REGION:
         raise ValueError('Plan source or region differs from the frozen release')
+    if value('enable_public_customer_role_template') is not True:
+        raise ValueError('Plan would remove the existing public customer role template')
+    gcp_secret = value('gcp_platform_sa_secret_arn')
+    if not isinstance(gcp_secret, str) or not re.fullmatch(
+            r'arn:aws:secretsmanager:us-east-1:202533532952:secret:hacktricks-cspm-gcp-platform-sa-[A-Za-z0-9]{6}',
+            gcp_secret):
+        raise ValueError('Plan omits the dedicated GCP platform service account secret')
     image = value('worker_image')
     if not isinstance(image, str) or not re.fullmatch(re.escape(WORKER_REPOSITORY) + r'@sha256:[0-9a-f]{64}', image):
         raise ValueError('Worker image is not an immutable dedicated ECR digest')

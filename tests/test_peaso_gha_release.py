@@ -15,6 +15,8 @@ def plan():
         "variables": {
             "source_version": {"value": VERSION},
             "region": {"value": release.REGION},
+            "enable_public_customer_role_template": {"value": True},
+            "gcp_platform_sa_secret_arn": {"value": "arn:aws:secretsmanager:us-east-1:202533532952:secret:hacktricks-cspm-gcp-platform-sa-ABC123"},
             "worker_image": {"value": IMAGE},
             "api_zip": {"value": str(release.deploy.BUILD / "api.zip")},
         },

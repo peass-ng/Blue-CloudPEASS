@@ -43,6 +43,7 @@ def _slug(text):
     # Inline-code angle brackets are literal heading text in mdBook, while
     # arrow markup contributes only its two hyphens to the generated ID.
     text = re.sub(r"`([^`]*)`", lambda match: match.group(1).replace("<", "").replace(">", ""), text)
+    text = re.sub(r"\s*<-->\s*", "--", text)
     text = re.sub(r"\s*-->\s*", "--", text)
     text = re.sub(r"<[^>]+>", "", text).strip().lower()
     return "".join(ch if (ch.isalnum() or ch in "_-") else "-" if ch.isspace() else "" for ch in text)
@@ -84,6 +85,11 @@ def _anchors_in_text(contents):
 
 def _sources():
     for path in sorted(CATALOG_DIR.rglob("*.yaml")):
+        # Excluded proposals are not in the shipped catalog and may cite pages
+        # from later source revisions. Active entries are checked separately
+        # against each exact authored revision below.
+        if path.name.startswith("_excluded"):
+            continue
         rel = path.relative_to(CATALOG_DIR)
         for i, item in enumerate(yaml.safe_load(path.read_text()) or []):
             if not isinstance(item, dict):
