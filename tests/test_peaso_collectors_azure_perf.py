@@ -101,6 +101,8 @@ def broad_handler(index):
             return index()
         if path == "/subscriptions/sub-a/providers/Microsoft.Network/virtualNetworks":
             return {"value": [{"id": "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v", "properties": {"subnets": []}}]}
+        if path == "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v":
+            return {"id": path, "properties": {"subnets": []}}
         return {"value": []}
     return handler
 

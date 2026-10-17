@@ -5,7 +5,7 @@ from urllib.parse import urlsplit, parse_qs
 
 import pytest
 
-from peaso.collectors import azure
+from peaso.collectors import azure, azure_sql_ltr_native
 
 NEW_KINDS = tuple('vm_scale_set container_group disk_access databox_edge_device jit_network_access_policy resource_link eventgrid_domain eventgrid_topic eventhub_namespace frontdoor hdinsight_cluster healthcare_fhir_service hpc_cache iot_hub managed_hsm network_watcher bastion_host log_analytics_workspace logic_app_workflow ml_workspace mssql_managed_instance mysql_flexible_server postgresql_flexible_server recovery_vault policy_assignment security_assessment iot_security_solution servicebus_namespace service_fabric_cluster signalr_service spring_cloud_service storage_sync_service stream_analytics_job synapse_workspace web_application_firewall_policy'.split())
 SUB = '/subscriptions/sub'
@@ -80,16 +80,23 @@ def test_embedded_children_have_native_values_and_explicit_unavailable_coverage(
     endpoint, _ = azure.ENDPOINTS.get(kind, ('Microsoft.Sql/servers/server/databases', '2023-08-01'))
     rid = SUB + '/resourceGroups/group/providers/' + endpoint + '/parent'
     parent = {'id': rid, 'sku': {'name': 'Premium'}, 'properties': {}}
+    if field == 'longTermRetentionBackups': parent['location'] = 'eastus'
+    native_path = azure_sql_ltr_native.binding(parent)[0] if field == 'longTermRetentionBackups' else rid + '/' + path
     reader = azure._Reader({'retries': 0})
     def request(url, body=None, audience=azure.ARM):
         parsed = urlsplit(url)
-        if parsed.path != rid + '/' + path: return {'value': []}
+        if parsed.path != native_path: return {'value': []}
         assert parse_qs(parsed.query)['api-version'] == [version]
+        if field == 'longTermRetentionBackups': assert parse_qs(parsed.query)['databaseState'] == ['Live']
         if mode == 'denied' or mode == 'partial' and 'page=2' in url: raise azure.AzureReadError('403', 403)
         if mode == 'malformed': return {'value': [None]} if is_list else None
         if is_list:
             if mode == 'empty': return {'value': []}
             value = {'id': rid + '/' + path + '/child', 'name': 'require_secure_transport' if field == 'configurations' else 'child', 'properties': {'value': 'ON', 'publisher': 'Microsoft.GuestConfiguration', 'type': 'ConfigurationForLinux', 'settings': {'password': 'INERT_PRIVATE'}}}
+            if field == 'longTermRetentionBackups':
+                value = {'id': native_path + '/child', 'type': azure_sql_ltr_native.NATIVE_TYPE,
+                         'properties': {'serverName': 'server', 'databaseName': 'parent',
+                                        'databaseDeletionTime': None, 'backupStorageRedundancy': 'Geo'}}
             result = {'value': [value]}
             if mode == 'partial': result['nextLink'] = url + '&page=2'
             return result
@@ -139,6 +146,8 @@ def test_subscription_backup_inventory_is_incomplete_when_one_vault_denies_child
             base = SUB + '/resourceGroups/group/providers/Microsoft.RecoveryServices/vaults/'
             if path == SUB + '/providers/Microsoft.RecoveryServices/vaults':
                 return {'value': [{'id': base + name, 'properties': {}} for name in ('a', 'b')]}
+            if path in (base + 'a', base + 'b'):
+                return {'id': path, 'properties': {}}
             if path.endswith('/backupProtectedItems'):
                 if '/vaults/b/' in path: raise azure.AzureReadError('403', 403)
                 return {'value': [{'id': path + '/item', 'properties': {'sourceResourceId': SUB + '/resourceGroups/group/providers/Microsoft.Compute/virtualMachines/vm', 'protectionState': 'Protected'}}]}

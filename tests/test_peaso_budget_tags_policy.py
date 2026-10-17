@@ -1,5 +1,5 @@
 """Native Budgets/tag metadata grants preserve the existing role boundary."""
-import copy,itertools,json
+import copy,itertools,json,hashlib
 from pathlib import Path
 import pytest
 from scripts import peaso_deploy_customer_policy as policy
@@ -32,20 +32,26 @@ def test_metadata_mapping_rejects_a_verified_but_wrong_alias(monkeypatch):
  with pytest.raises(ValueError,match='mapping differs'):policy.build_policy({OPS[1]},include_credential_report_generation=False)
 
 
-def test_four_metadata_reads_preserve_previous_policy_partitions_and_trust(monkeypatch,tmp_path):
- from peaso.collectors import aws
- root=Path(__file__).resolve().parents[1];old=(root/'infra/aws/customer-role-0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d.json').read_bytes();d=json.loads(old)
- (tmp_path/'infra/aws').mkdir(parents=True);(tmp_path/'infra/aws/customer-role.json').write_bytes(old)
- monkeypatch.setattr(aws,'READ_ACTIONS',(set(aws.READ_ACTIONS)-({('route53resolver','list_firewall_domain_lists'),('sagemaker','list_endpoints'),('sagemaker','describe_endpoint'),('sagemaker','list_monitoring_executions'),('iam', 'get_role'),('iam', 'get_context_keys_for_principal_policy'),('iam', 'simulate_principal_policy'),('codecommit', 'list_repositories'),('codecommit', 'list_pull_requests'),('codecommit', 'get_pull_request'),('codecommit', 'describe_pull_request_events'),('codecommit', 'get_pull_request_approval_states')} | {('controltower', 'list_landing_zones'), ('controltower', 'get_landing_zone')}))|set(OPS));policy.refresh(tmp_path);new=json.loads((tmp_path/'infra/aws/customer-role.json').read_bytes())
- assert set(new['Resources'])==set(d['Resources'])
- for name,value in d['Resources'].items():
-  if name!='CspmConfigurationReadOnly4':assert new['Resources'][name]==value
- assert new['Parameters']==d['Parameters'] and new['Outputs']==d['Outputs']
- old_statements=d['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement'];new_statements=new['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement']
- assert new_statements[:len(old_statements)]==old_statements
- extra=new_statements[len(old_statements):];assert {a for s in extra for a in([s['Action']]if isinstance(s['Action'],str)else s['Action'])}==set(ACTIONS)
- before=(tmp_path/'infra/aws/customer-role.json').read_bytes();policy.refresh(tmp_path);assert(tmp_path/'infra/aws/customer-role.json').read_bytes()==before
-
+def test_four_metadata_reads_preserve_previous_policy_partitions_and_trust():
+ root=Path(__file__).resolve().parents[1]/'infra/aws'
+ before_hash='0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d'
+ after_hash='2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f'
+ before_raw=(root/f'customer-role-{before_hash}.json').read_bytes()
+ after_raw=(root/f'customer-role-{after_hash}.json').read_bytes()
+ assert hashlib.sha256(before_raw).hexdigest()==before_hash
+ assert hashlib.sha256(after_raw).hexdigest()==after_hash
+ before=json.loads(before_raw);after=json.loads(after_raw)
+ assert set(after['Resources'])==set(before['Resources'])
+ for name,value in before['Resources'].items():
+  if name!='CspmConfigurationReadOnly4':assert after['Resources'][name]==value
+ assert after['Parameters']==before['Parameters'] and after['Outputs']==before['Outputs']
+ old=before['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement']
+ new=after['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement']
+ assert new[:len(old)]==old
+ extra=new[len(old):]
+ assert extra==policy.build_policy(set(OPS),include_credential_report_generation=False)['Statement']
+ assert {a for row in extra for a in ([row['Action']]if isinstance(row['Action'],str)else row['Action'])}==set(ACTIONS)
+ assert all(policy.policy_size(after['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'])<=6144 for i in range(1,5))
 
 NEXT_OPS=[('route53resolver','list_firewall_domain_lists'),('sagemaker','list_endpoints'),('sagemaker','describe_endpoint'),('sagemaker','list_monitoring_executions')]
 NEXT_ACTIONS=['route53resolver:ListFirewallDomainLists','sagemaker:ListEndpoints','sagemaker:DescribeEndpoint','sagemaker:ListMonitoringExecutions']
@@ -62,18 +68,25 @@ def test_next_native_reads_are_exact_and_endpoint_metadata_is_account_scoped(ind
  assert all(policy.policy_size(d)<=6144 for d in docs)
 
 
-def test_next_four_reads_preserve_current_published_role_and_add_only_four_grants(monkeypatch,tmp_path):
+def test_next_four_reads_preserve_current_published_role_and_add_only_four_grants():
  from peaso.collectors import aws
- root=Path(__file__).resolve().parents[1];old=(root/'infra/aws/customer-role-2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f.json').read_bytes();d=json.loads(old)
- (tmp_path/'infra/aws').mkdir(parents=True);(tmp_path/'infra/aws/customer-role.json').write_bytes(old)
+ root=Path(__file__).resolve().parents[1]/'infra/aws'
+ before_hash='2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f'
+ after_hash='7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6'
+ before_raw=(root/f'customer-role-{before_hash}.json').read_bytes()
+ after_raw=(root/f'customer-role-{after_hash}.json').read_bytes()
+ assert hashlib.sha256(before_raw).hexdigest()==before_hash
+ assert hashlib.sha256(after_raw).hexdigest()==after_hash
+ before=json.loads(before_raw);after=json.loads(after_raw)
  assert set(NEXT_OPS)<=set(aws.READ_ACTIONS)
- monkeypatch.setattr(aws,'READ_ACTIONS',set(aws.READ_ACTIONS)-({('codecommit', 'get_pull_request'), ('iam', 'simulate_principal_policy'), ('codecommit', 'list_pull_requests'), ('codecommit', 'describe_pull_request_events'), ('codecommit', 'get_pull_request_approval_states'), ('codecommit', 'list_repositories'), ('iam', 'get_role'), ('iam', 'get_context_keys_for_principal_policy')} | {('controltower', 'list_landing_zones'), ('controltower', 'get_landing_zone')}))
- policy.refresh(tmp_path);new=json.loads((tmp_path/'infra/aws/customer-role.json').read_bytes())
- assert set(new['Resources'])==set(d['Resources'])
- for n,value in d['Resources'].items():
-  if n!='CspmConfigurationReadOnly4':assert new['Resources'][n]==value
- assert new['Parameters']==d['Parameters']and new['Outputs']==d['Outputs']
- before=d['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement'];after=new['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement'];assert after[:len(before)]==before
- extra=after[len(before):];assert len(extra)==4
- assert {a for s in extra for a in([s['Action']]if isinstance(s['Action'],str)else s['Action'])}==set(NEXT_ACTIONS)
- content=(tmp_path/'infra/aws/customer-role.json').read_bytes();policy.refresh(tmp_path);assert(tmp_path/'infra/aws/customer-role.json').read_bytes()==content
+ assert set(after['Resources'])==set(before['Resources'])
+ for name,value in before['Resources'].items():
+  if name!='CspmConfigurationReadOnly4':assert after['Resources'][name]==value
+ assert after['Parameters']==before['Parameters'] and after['Outputs']==before['Outputs']
+ old=before['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement']
+ new=after['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement']
+ assert new[:len(old)]==old
+ extra=new[len(old):]
+ assert extra==policy.build_policy(set(NEXT_OPS),include_credential_report_generation=False)['Statement']
+ assert {a for row in extra for a in ([row['Action']]if isinstance(row['Action'],str)else row['Action'])}==set(NEXT_ACTIONS)
+ assert all(policy.policy_size(after['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'])<=6144 for i in range(1,5))

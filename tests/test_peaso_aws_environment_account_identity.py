@@ -118,5 +118,8 @@ def test_actual_collector_dispatch_preserves_unknown_without_workloads_and_links
         'parameters': {'environment_boundaries': {'production': [ACCOUNT], 'development': [MANAGEMENT]}}})
     findings = evaluate_snapshot(snapshot, checks=[CHECK])['findings']
     assert findings and {row['status'] for row in findings} == {'UNKNOWN'}
-    assert all('environment_workload_resource' in row['evidence'].get('reason', '') for row in findings)
+    # Flat approved boundaries cannot replace the current native classification
+    # capture; that missing authority is diagnosed before workload/link absence.
+    assert all(row['evidence'].get('reason') ==
+               'current native environment classification authority unavailable' for row in findings)
     stub.assert_no_pending_responses(); sts.assert_no_pending_responses()

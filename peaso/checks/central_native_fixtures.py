@@ -143,6 +143,13 @@ def install(cases):
             "index": shared, "missing": {}, "malformed": None,
         }
 
+        # Each behavior case carries the actual scoped policy source row. A
+        # collected-but-empty envelope cannot authenticate the evaluated root.
+        for label in ("pass", "fail"):
+            bound = deepcopy(shared)
+            bound["collections"]["iam_policy"][0]["items"] = [deepcopy(cases[check_id][label])]
+            cases[check_id][label + "_index"] = bound
+
     # This rule has no PASS on complete observed RBAC inventory: absence of a
     # system:masters subject cannot rule out certificate/provider membership.
     masters_fail = _next_index({

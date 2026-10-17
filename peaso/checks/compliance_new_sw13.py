@@ -14,7 +14,7 @@ import re
 from urllib.parse import urlsplit
 
 from . import CHECKS, register, result, unknown
-from .facts import Unavailable, complete_items, get, omitted, list_of_objects
+from .facts import Unavailable, complete_items, get, guard, omitted, list_of_objects
 
 SPECS = {'azure.cis.exclusionary_device_code_flow_policy_considered': {'category': 'hardening',
                                                                'proposed_spec_sha256': '91e03ff3270962b481569dc1a8977f98c6cf4dddba66c2a8c0538217aa2b2fd1',
@@ -865,14 +865,22 @@ def native_mfa_risk_licensed_users(index, users):
 
 def native_mfa_fields_readable(value):
     """Coverage-only unread selectors are restrictions, never empty defaults."""
-    coverage = value.get('_coverage', {})
-    if not isinstance(coverage, dict):
-        return False
     try:
+        guard(value)
+        coverage = value.get('_coverage', {})
         for key in set(value) | set(coverage):
             if not isinstance(key, str):
                 return False
-            if not key.startswith('_'):
+            if key.startswith('_'):
+                continue
+            if '.' in key:
+                # Graph @odata.context is a literal property name. get() treats
+                # dots as paths, so check this key and its coverage together.
+                literal = {'field': value[key]} if key in value else {}
+                if key in coverage:
+                    literal['_coverage'] = {'field': coverage[key]}
+                get(literal, 'field')
+            else:
                 get(value, key)
         return True
     except Unavailable:

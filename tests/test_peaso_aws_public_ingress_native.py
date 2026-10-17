@@ -25,7 +25,7 @@ def facts():
       'subnet':[{'SubnetId':eni['SubnetId'],'VpcId':eni['VpcId'],'CidrBlock':'10.0.1.0/24','State':'available'}],
       'security_group':[{'GroupId':'sg-12345678','VpcId':eni['VpcId'],'IpPermissions':[{'IpProtocol':'tcp','FromPort':443,'ToPort':443,'IpRanges':[{'CidrIp':'0.0.0.0/0'}]}]}],
       'network_acl':[{'NetworkAclId':'acl-12345678','VpcId':eni['VpcId'],'Associations':[{'SubnetId':eni['SubnetId']}],
-                       'Entries':[{'RuleNumber':100,'Egress':egress,'Protocol':'-1','RuleAction':'allow','CidrBlock':'0.0.0.0/0'}for egress in(False,True)]}],
+                       'Entries':[{'RuleNumber':100,'Egress':egress,'Protocol':'-1','RuleAction':'allow','CidrBlock':'0.0.0.0/0'}for egress in(False,True)] + [{'RuleNumber':32767,'Egress':egress,'Protocol':'-1','RuleAction':'deny','CidrBlock':'0.0.0.0/0'}for egress in(False,True)]}],
       'route_table':[{'RouteTableId':'rtb-12345678','VpcId':eni['VpcId'],
                       'Associations':[{'Main':True,'AssociationState':{'State':'associated'}}],
                       'Routes':[{'DestinationCidrBlock':'10.0.0.0/16','GatewayId':'local','State':'active'},

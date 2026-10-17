@@ -12,7 +12,7 @@ from tests.test_peaso_azure_bulk_native import Transport,SUB
 native=m.native_universal_mfa
 TENANT='/tenants/'+Transport.tenant
 
-def fixture(cid=m.USERS, mode='complete'):
+def fixture(cid=m.USERS, mode='complete', strength=None):
  rule={'id':'ca-1','state':'enabled','conditions':{'users':{'includeUsers':['All'],'excludeUsers':[],
   'includeGroups':[],'excludeGroups':[],'includeRoles':[],'excludeRoles':[]},
   'applications':{'includeApplications':['All'],'excludeApplications':[]},'clientAppTypes':['all'],
@@ -31,14 +31,18 @@ def fixture(cid=m.USERS, mode='complete'):
  if mode=='block':rule['grantControls']['builtInControls']=['block']
  if mode=='unknowncontrol':rule['grantControls']['builtInControls']=['newControl']
  if mode=='terms':rule['grantControls']['termsOfUse']=['terms']
+ if strength is not None:
+  rule['grantControls'].update(builtInControls=[],authenticationStrength={'id':STRENGTH})
+  rule['grantControls']['authenticationStrength@odata.context']='https://graph.microsoft.com/v1.0/$metadata#strength'
  routes={'/v1.0/identity/conditionalAccess/policies':{'value':[rule]},
  '/v1.0/users':{'value':[{'id':'user-1','accountEnabled':True,'userType':'Member','isMfaRegistered':True}]},
  '/v1.0/policies/identitySecurityDefaultsEnforcementPolicy':{'id':'defaults','isEnabled':mode=='defaults'}}
  if mode=='denied':routes['/v1.0/identity/conditionalAccess/policies']=azure.AzureReadError('forbidden',403)
+ if strength is not None:routes['/v1.0/policies/authenticationStrengthPolicies']={'value':[strength]}
  api=Transport(routes)
- snap=azure.collect({'scopes':[SUB],'options':{'retries':0}},['conditional_access_policy','directory_user','directory_security_defaults'],transport=api)
+ snap=azure.collect({'scopes':[SUB],'options':{'retries':0}},['conditional_access_policy','directory_user','directory_security_defaults']+(['authentication_strength'] if strength is not None else []),transport=api)
  idx=_index(snap,resources(snap));idx['context']={'provider':'azure','scope':TENANT,'created_at':snap['created_at'],
-  'metadata':{'compliance_policy':{'sw13':{'status':'collected','scope':TENANT,'authorized_by':'security-owner','document_id':'policy',
+  'metadata':{**snap['metadata'],'compliance_policy':{'sw13':{'status':'collected','scope':TENANT,'authorized_by':'security-owner','document_id':'policy',
    'observed_at':'2026-10-01T00:00:00Z','expires_at':'2026-11-01T00:00:00Z','checks':{cid.replace('.','|'):{
     'userScope':'administrative' if cid==m.ADMIN else 'all','designatedGroups':['group'],'designatedRoles':[],
     'requiredApplications':['app-1'],'requiredClientAppTypes':['browser']}}}}}}
@@ -94,14 +98,7 @@ def test_native_strength_metadata_authority_pagination_and_privacy(mode,expected
 @pytest.mark.parametrize('methods,requirements,expected',[(['fido2'],'mfa','PASS'),
  (['password'],'none',None),(['futureMethod'],'mfa',None),(['password'],'mfa',None)])
 def test_independent_native_strength_join_requires_actual_mfa_methods(methods,requirements,expected):
- item,idx=fixture();controls=item['grantControls'];controls.update(builtInControls=[],authenticationStrength={'id':STRENGTH})
- controls['authenticationStrength@odata.context']='https://graph.microsoft.com/v1.0/$metadata#strength'
- idx['collections']['conditional_access_policy'][0]['items']=[copy.deepcopy(item)]
- api=Transport({'/v1.0/policies/authenticationStrengthPolicies':{'value':[{'id':STRENGTH,
-  'requirementsSatisfied':requirements,'allowedCombinations':methods}]}})
- reader=azure._Reader({'retries':0});adapter.collect(reader,api.request,{'authentication_strength'},api)
- env=reader.collections[0];idx['collections']['authentication_strength']=[env]
- idx['authentication_strength']=[{'scope':TENANT,'type':'authentication_strength','data':r} for r in env['items']]
+ item,idx=fixture(strength={'id':STRENGTH,'requirementsSatisfied':requirements,'allowedCombinations':methods})
  result=native(item,idx,m.USERS);assert (result[0] if result is not None else None)==expected
 
 @pytest.mark.parametrize('kind',['conditional_access_policy','directory_user','directory_security_defaults'])
@@ -115,4 +112,16 @@ def test_authorized_scope_obligation_still_required(change):
  if change=='expired':owner['expires_at']='2020-01-01T00:00:00Z'
  if change=='foreignscope':owner['scope']='/tenants/foreign'
  if change=='missingauthor':owner.pop('authorized_by')
+ with pytest.raises(m.Unavailable):native(item,idx,m.USERS)
+
+
+def test_literal_graph_odata_context_requires_readable_coverage():
+ controls={'builtInControls':[],'authenticationStrength@odata.context':'https://graph.microsoft.com/v1.0/$metadata#strength'}
+ assert m.native_mfa_fields_readable(controls)
+ controls['_coverage']={'authenticationStrength@odata.context':{'status':'denied'}}
+ assert not m.native_mfa_fields_readable(controls)
+
+
+def test_native_capture_fixture_rejects_foreign_context_binding():
+ item,idx=fixture();idx['context']['metadata']['credential_context_id']='foreign-capture'
  with pytest.raises(m.Unavailable):native(item,idx,m.USERS)

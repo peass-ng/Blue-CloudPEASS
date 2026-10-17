@@ -65,6 +65,7 @@ def capture(mode='good',via='direct'):
   p['sw33']['observed_at']='2026-10-15T00:00:00Z';p['sw33']['max_age_seconds']=86400
   routes[SCOPE+'/providers/Microsoft.Network/routeTables']={'value':[parent(table,'Microsoft.Network/routeTables',{'routes':[{'id':table+'/routes/approved','properties':{'addressPrefix':'10.0.0.0/24'}}]})]}
   listed=routes[SCOPE+'/providers/Microsoft.Network/routeTables']['value'][0]
+  routes[table]=listed
   routes[SCOPE+'/resources']={'value':[raw,listed]}
   routes['/providers/Microsoft.ResourceGraph/resources']={'data':[raw,listed],'count':2,'totalRecords':2,'resultTruncated':'false'}
  connector={'provider':'azure','scopes':[SUB],'auth':auth,'options':{'retries':0,'compliance_policy':p,**options}};api=API(routes);old=azure.AzureTransport;api.close=lambda:None

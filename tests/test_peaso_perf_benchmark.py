@@ -122,7 +122,10 @@ def synthetic_snapshot(vpcs, subnets, groups_count, instances, principals, iam_g
     roles = []
     for i in range(roles_count):
         role = {"RoleName": f"r{i}", "Arn": f"arn:aws:iam::{ACCOUNT}:role{paths[i % 4]}r{i}", "Path": paths[i % 4], "RoleId": f"AROA{i:010d}",
-                "CreateDate": ts(i), "MaxSessionDuration": 3600, "Tags": [], "InstanceProfileList": [],
+                "CreateDate": ts(i), "MaxSessionDuration": 3600, "Tags": [],
+                "InstanceProfileList": ([{"InstanceProfileName": f"r{i}",
+                                         "Arn": f"arn:aws:iam::{ACCOUNT}:instance-profile/r{i}",
+                                         "InstanceProfileId": f"AIPA{i:010d}"}] if i % 2 and i < instances else []),
                 "RoleLastUsed": {"LastUsedDate": ts(i + 3), "Region": "us-east-1"} if i % 3 else {},
                 "AssumeRolePolicyDocument": service_trust if i % 7 == 0 else trust,
                 "RolePolicyList": [{"PolicyName": "p", "PolicyDocument": {"Version": "2012-10-17", "Statement": [
@@ -235,9 +238,9 @@ def check(result):
 def test_benchmark_1x_synthetic_evaluate():
     result = run("1x")
     assert result["resources"] >= 600
-    # The broad synthetic fixture still decides at least three quarters of
+    # The broad synthetic fixture still decides at least four fifths of
     # findings; newly admitted checks may need facts this fixture omits.
-    assert result["unknown_findings"] < 0.25 * result["findings"], result
+    assert result["unknown_findings"] < 0.2 * result["findings"], result
     check(result)
 
 

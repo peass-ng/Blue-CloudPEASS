@@ -133,7 +133,9 @@ def test_aws_denied_role_collection_gives_unknown_and_coverage():
     scope = f"{ACCOUNT}/us-east-1"
     snap = snapshot("aws", [("iam_user", scope, [aws_user("alice", *PASS_RUN)]), ("iam_role", scope, [], "denied"),
                             ("iam_group", scope, []), ("iam_policy", scope, []), ("scp_policy", scope, [], "empty")])
-    result = run(snap)
+    # Missing role inventory is diagnostic only when unknown reaches are requested.
+    assert not edges_from(run(snap), f"arn:aws:iam::{ACCOUNT}:user/alice", "aws-ec2-passrole-runinstances")
+    result = run(snap, include_unknown=True)
     alice = f"arn:aws:iam::{ACCOUNT}:user/alice"
     edges = edges_from(result, alice, "aws-ec2-passrole-runinstances")
     assert edges and all(e["confidence"] == "unknown" for e in edges)
@@ -477,7 +479,8 @@ def test_unknown_privesc_findings_always_carry_a_reason():
     scope = f"{ACCOUNT}/us-east-1"
     snap = snapshot("aws", [("iam_user", scope, [aws_user("alice", *PASS_RUN)]), ("iam_role", scope, [], "denied"),
                             ("iam_group", scope, []), ("iam_policy", scope, []), ("scp_policy", scope, [], "empty")])
-    unknown = [f for f in run(snap)["findings"] if f["status"] == "UNKNOWN"]
+    assert not [f for f in run(snap)["findings"] if f["status"] == "UNKNOWN"]
+    unknown = [f for f in run(snap, include_unknown=True)["findings"] if f["status"] == "UNKNOWN"]
     assert unknown
     for finding in unknown:
         assert finding["evidence"]["reason"].startswith("missing_facts: ") and finding["evidence"]["reason"] != "missing_facts: "

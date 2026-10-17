@@ -7,8 +7,14 @@ from scripts import peaso_deploy_customer_policy as builder
 ROOT=Path(builder.__file__).resolve().parents[1]
 NEW_ROLE_SHA='1d8b49e45753dc7cba7069d772ad5286b5d033b294dacf6bea3a4ffd1c2aa2b1'
 DELTA={'new_role_sha256':NEW_ROLE_SHA,'new_archive':'customer-role-'+NEW_ROLE_SHA+'.json'}
-BASE=json.loads((ROOT/'infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json').read_text())
-ROLE=json.loads((ROOT/'infra/aws/customer-role.json').read_text())
+BASE_BYTES=(ROOT/'infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json').read_bytes()
+assert hashlib.sha256(BASE_BYTES).hexdigest()=='0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2'
+BASE=json.loads(BASE_BYTES)
+HISTORICAL_ROLE_BYTES=(ROOT/'infra/aws'/DELTA['new_archive']).read_bytes()
+ROLE=json.loads(HISTORICAL_ROLE_BYTES)
+ACTIVE_ROLE_SHA='96369f6236d3d2d803c75f8c982e9828c6ce5eda4697d5c39f91451478350cb2'
+ACTIVE_ROLE_BYTES=(ROOT/'infra/aws/customer-role.json').read_bytes()
+ACTIVE_ROLE=json.loads(ACTIVE_ROLE_BYTES)
 OPS={('outposts','list_outposts'):'outposts:ListOutposts',('s3control','list_regional_buckets'):'s3-outposts:ListRegionalBuckets',('s3tables','list_table_buckets'):'s3tables:ListTableBuckets',('s3vectors','list_vector_buckets'):'s3vectors:ListVectorBuckets',('dynamodb','list_backups'):'dynamodb:ListBackups',('rds','describe_db_instance_automated_backups'):'rds:DescribeDBInstanceAutomatedBackups',('rds','describe_db_cluster_automated_backups'):'rds:DescribeDBClusterAutomatedBackups',('redshift-serverless','list_snapshots'):'redshift-serverless:ListSnapshots',('redshift-serverless','list_recovery_points'):'redshift-serverless:ListRecoveryPoints'}
 
 def added():
@@ -26,7 +32,7 @@ def test_transit_gateway_route_evidence_grant_is_read_only_and_archived():
   ('ec2','get_transit_gateway_route_table_associations'),('ec2','search_transit_gateway_routes')}
  policy=builder.build_policy(operations,include_credential_report_generation=False)
  assert set(policy['Statement'][0]['Action'])==set(row['Action'])
- assert (ROOT/'infra/aws'/DELTA['new_archive']).read_bytes()==(ROOT/'infra/aws/customer-role.json').read_bytes()
+ assert hashlib.sha256(HISTORICAL_ROLE_BYTES).hexdigest()==DELTA['new_role_sha256']
 
 @pytest.mark.parametrize('operation,expected',list(OPS.items()))
 def test_new_action_has_verified_alias_and_exact_grant(operation,expected):
@@ -73,7 +79,43 @@ def test_only_nine_enumerations_added_originals_and_limits_preserved():
  assert BASE['Parameters']==ROLE['Parameters']and BASE['Outputs']==ROLE['Outputs']
  for r in ROLE['Resources'].values():
   if r['Type']=='AWS::IAM::ManagedPolicy':assert len(json.dumps(r['Properties']['PolicyDocument'],separators=(',',':')))<=6144
- assert len((ROOT/'infra/aws/customer-role.json').read_bytes())<=51200
- assert hashlib.sha256((ROOT/'infra/aws/customer-role.json').read_bytes()).hexdigest()==DELTA['new_role_sha256']
- assert (ROOT/'infra/aws'/DELTA['new_archive']).read_bytes()==(ROOT/'infra/aws/customer-role.json').read_bytes()
+ assert len(HISTORICAL_ROLE_BYTES)<=51200
+ assert hashlib.sha256(HISTORICAL_ROLE_BYTES).hexdigest()==DELTA['new_role_sha256']
  assert builder.iam_action('sts','get_caller_identity')is None
+
+
+def test_current_active_template_retains_exact_historical_metadata_and_transit_grants():
+ assert hashlib.sha256(ACTIVE_ROLE_BYTES).hexdigest()==ACTIVE_ROLE_SHA
+ assert (ROOT/'infra/aws'/('customer-role-'+ACTIVE_ROLE_SHA+'.json')).read_bytes()==ACTIVE_ROLE_BYTES
+ historical_rows=added()
+ transit=ROLE['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement'][-1]
+ expected={row['Action']:row for row in historical_rows}
+ transit_actions=set(transit['Action'])
+ assert len(expected)==9 and len(transit_actions)==3
+ scoped=ACTIVE_ROLE['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement']
+ for action,row in expected.items():
+  assert [current for current in scoped if current.get('Sid')==row['Sid']]==[row]
+ # Inspect every generated managed-policy statement: none may repeat or widen one
+ # of the twelve reviewed permissions, including via an Action wildcard.
+ matches={action:[] for action in set(expected)|transit_actions}
+ for resource in ACTIVE_ROLE['Resources'].values():
+  if resource['Type']!='AWS::IAM::ManagedPolicy':continue
+  for statement in resource['Properties']['PolicyDocument']['Statement']:
+   assert 'NotAction' not in statement
+   actions=statement['Action']if isinstance(statement['Action'],list)else[statement['Action']]
+   for action in matches:
+    for granted in actions:
+     if fnmatch.fnmatchcase(action,granted):matches[action].append((granted,statement))
+ for action,row in expected.items():
+  assert matches[action]==[(action,row)]
+ for action in transit_actions:
+  assert len(matches[action])==1
+  granted,statement=matches[action][0]
+  assert granted==action and statement['Effect']=='Allow' and statement['Resource']=='*'
+  assert set(statement)=={'Sid','Effect','Action','Resource'}
+ operations={('ec2','describe_transit_gateway_vpc_attachments'),
+  ('ec2','get_transit_gateway_route_table_associations'),('ec2','search_transit_gateway_routes')}
+ generated=builder.build_policy(operations,include_credential_report_generation=False)
+ assert set(generated['Statement'][0]['Action'])==transit_actions
+ assert generated['Statement'][0]['Effect']=='Allow' and generated['Statement'][0]['Resource']=='*'
+ assert all(a.startswith(('ec2:Describe','ec2:Get','ec2:Search')) for a in transit_actions)

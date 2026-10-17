@@ -735,6 +735,8 @@ def _native_region_counterexamples(index, account, approved):
     if len(rows) != len(wrappers) or (envelope["status"] == "empty" and rows):
         raise Unavailable("native data-resource projection inconsistent")
     types = {op: (group, service) for group, service, op, _, _ in CATALOG if op != "list_outposts"}
+    # The S3 API lists directory buckets whose native ARN service is s3express.
+    types["list_directory_buckets"] = ("s3", "s3express")
     forms = {
         "list_directory_buckets": r"bucket/[^/]+", "list_table_buckets": r"bucket/[^/]+",
         "list_vector_buckets": r"bucket/[^/]+", "describe_db_instances": r"db:[^:]+",

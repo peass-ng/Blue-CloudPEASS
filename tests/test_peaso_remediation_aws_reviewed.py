@@ -15,6 +15,7 @@ from peaso.checks.claude2_aws_b_common import DOCS as C2B_DOCS
 from peaso.remediation import template
 from scripts.peaso_compliance_compile import spec_digest
 from scripts.peaso_compliance_merge_new import signed_proposals
+from tests.release_successor_history import historical_bytes
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -206,7 +207,15 @@ def test_api_gateway_stage_entries_match_signed_native_predicates_and_preserve_l
     repin = overlay["source_anchor_repin"]
     assert repin["path"] == "peaso/rulepacks/remediation_aws_families_reviewed.json"
     assert repin["source_path"] == "peaso/checks/claude_aws_a_iam.py"
-    assert hashlib.sha256((ROOT / repin["source_path"]).read_bytes()).hexdigest() == repin["source_sha256"]
+    historical_iam = historical_bytes(
+        ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip",
+        repin["source_path"])
+    assert hashlib.sha256(historical_iam).hexdigest() == repin["source_sha256"]
+    accepted_iam = historical_bytes(
+        ROOT / "infra/aws/build/peaso-source-706b5bbfea1daee2e62386ec4356638653c0f469f49110cb3128f2e4ec0399a5.zip",
+        repin["source_path"])
+    assert hashlib.sha256(accepted_iam).hexdigest() == "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
+    assert (ROOT / repin["source_path"]).read_bytes() == accepted_iam
     family_raw = (ROOT / repin["path"]).read_bytes()
     assert hashlib.sha256(family_raw).hexdigest() == repin["post_sha256"]
     family_prior = json.loads(family_raw)

@@ -205,8 +205,11 @@ def test_namespace_policy_qualified_scope_cannot_invent_missing_coverage():
     native = {"metadata": {"name": "apps"}}
     foreign = {"collections": {"networkpolicy": [{"scope": "cluster/other", "status": "empty"}]}}
     assert check.evaluate(native, foreign)[0] == "UNKNOWN"
-    own = {"collections": {"networkpolicy": [{"scope": "cluster/apps", "status": "empty"}]}}
+    own = {"collections": {"networkpolicy": [{"scope": "cluster/apps", "status": "empty", "items": []}]}}
     assert check.evaluate(native, own)[0] == "FAIL"
+    # A status label alone cannot prove the policy inventory was returned.
+    missing_items = {"collections": {"networkpolicy": [{"scope": "cluster/apps", "status": "empty"}]}}
+    assert check.evaluate(native, missing_items)[0] == "UNKNOWN"
 
 
 def test_specific_framework_versions_preserve_ids_and_pending_status():

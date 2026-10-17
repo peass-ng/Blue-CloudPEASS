@@ -346,14 +346,22 @@ def _embed(reader, request, parents, diagnostics=None, skip=()):
                             seen.add(backup['id'].casefold())
                         yield projected
                     return
-                backup_seen = set()
+                backup_seen = {}
                 for page in reader.pages(request, url):
                     if field in ("backupJobs", "backupProtectedItems"):
+                        distinct = []
                         for row in page:
                             identity = row.get("id") if isinstance(row, dict) else None
-                            if not isinstance(identity, str) or not identity or identity.casefold() in backup_seen:
-                                raise ValueError("missing or duplicate native backup child identity")
-                            backup_seen.add(identity.casefold())
+                            if not isinstance(identity, str) or not identity:
+                                raise ValueError("missing native backup child identity")
+                            key = identity.casefold()
+                            if key in backup_seen:
+                                if backup_seen[key] != row:
+                                    raise ValueError("conflicting native backup child identity")
+                                continue
+                            backup_seen[key] = row
+                            distinct.append(row)
+                        page = distinct
                     yield _child_rows(page, rid, field)
             jobs.append((item, field, True, ("embedded_" + field, rid, "Microsoft.Resources", fetch)))
         for field, path, version in EMBEDDED_SINGLETONS.get(kind, ()):

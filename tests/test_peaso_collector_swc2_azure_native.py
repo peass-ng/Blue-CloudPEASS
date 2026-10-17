@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-from peaso.collectors import azure
+from peaso.collectors import azure, azure_sql_ltr_native
 from peaso.snapshot import validate
 
 
@@ -324,14 +324,18 @@ def test_backup_jobs_and_sql_restore_points_reuse_paged_embedded_children():
     db_id = sql_id + "/databases/db"
     job_id = vault_id + "/backupJobs/job"
     restore_id = db_id + "/restorePoints/point"
-    ltr_id = db_id + "/longTermRetentionBackups/backup"
+    ltr_path = SCOPE + "/providers/Microsoft.Sql/locations/eastus/longTermRetentionServers/server/longTermRetentionDatabases/db/longTermRetentionBackups"
+    ltr_id = ltr_path + "/backup"
     snapshot, _ = collect(["backup_job", "sql_restore_point", "sql_ltr_backup"], {
         endpoint("recovery_vault"): {"value": [{"id": vault_id, "properties": {}}]},
+        vault_id: {"id": vault_id, "properties": {}},
         endpoint("sql_server"): {"value": [{"id": sql_id, "properties": {}}]},
-        sql_id + "/databases": {"value": [{"id": db_id, "properties": {"status": "Online"}}]},
+        sql_id + "/databases": {"value": [{"id": db_id, "location": "eastus", "properties": {"status": "Online"}}]},
         vault_id + "/backupJobs": {"value": [{"id": job_id, "properties": {"status": "Completed", "protectedItemId": "item"}}]},
         db_id + "/restorePoints": {"value": [{"id": restore_id, "properties": {"restorePointCreationDate": "2026-01-01T00:00:00Z"}}]},
-        db_id + "/longTermRetentionBackups": {"value": [{"id": ltr_id, "properties": {"backupStorageRedundancy": "Geo"}}]},
+        ltr_path: {"value": [{"id": ltr_id, "type": azure_sql_ltr_native.NATIVE_TYPE,
+                             "properties": {"serverName": "server", "databaseName": "db",
+                                            "databaseDeletionTime": None, "backupStorageRedundancy": "Geo"}}]},
     })
     assert rows(snapshot, "backup_job")["items"][0]["parent_id"] == vault_id
     assert rows(snapshot, "sql_restore_point")["items"][0]["parent_id"] == db_id

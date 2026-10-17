@@ -154,7 +154,7 @@ class ApiInstallationMarkerTests(unittest.TestCase):
 
     def test_remaining_member_overflow_fails_before_zip_is_written(self):
         self.dependencies = {f'dependency/{n}.py': b'# required\n' for n in range(4)}
-        with patch.object(deploy.artifact_update, 'MAX_API_MEMBERS', len(self.source) + 1):
+        with patch.object(deploy, 'CURRENT_API_MEMBER_LIMIT', len(self.source) + 1):
             with self.assertRaisesRegex(RuntimeError, 'member limit'):
                 self.package()
         self.assertFalse((self.build / 'api.zip').exists())

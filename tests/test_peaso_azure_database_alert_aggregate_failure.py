@@ -4,6 +4,7 @@ import copy
 import pytest
 
 from peaso.checks import evaluate_check
+from tests.test_peaso_azure_database_alert_delivery_binding import observed
 
 
 CID = 'azure.other.database_backup_alert'
@@ -16,30 +17,25 @@ GROUP = BASE + '/Microsoft.Insights/actionGroups/ag'
 
 
 def proof(service, *, failed=False, suffix='one'):
-    signal = {'observable': True, 'testStatus': 'passed',
-              'alertDelayMinutes': 5, 'actionGroupId': GROUP,
-              'alertLogId': 'log-' + suffix, 'actionDelivered': True}
-    signals = {name: copy.deepcopy(signal)
-               for name in ('disabled', 'paused', 'scheduledFailure')}
+    row = copy.deepcopy(observed()['collections']['database_backup_alert_evidence'][0]['items'][0])
+    row['id'] = service + '/backupAlertEvidence/' + suffix
+    row['serviceId'] = service
+    for signal in row['signals'].values():
+        signal['triggerObservation']['serviceId'] = service
+        signal['deliveryObservation']['serviceId'] = service
+        for delivery in signal['deliveryObservation']['deliveries']:
+            delivery['serviceId'] = service
     if failed:
-        signals['paused']['testStatus'] = 'failed'
-    return {'id': service + '/backupAlertEvidence/' + suffix,
-            'serviceId': service, 'signals': signals}
+        row['signals']['paused']['testStatus'] = 'failed'
+    return row
 
 
 def facts(services, proofs):
-    kinds = {'database_backup_service': [{'id': service} for service in services],
-             'database_backup_alert_evidence': proofs,
-             'monitor_action_group': [{'id': GROUP}]}
-    index = {'context': {'provider': 'azure', 'scope': SCOPE,
-                         'metadata': {'compliance_policy': {'sw33': {
-                             'status': 'collected', 'scope': SCOPE,
-                             'backupAlerts': {'responseWindowMinutes': 10}}}}},
-             'collections': {}}
-    for kind, rows in kinds.items():
-        index['collections'][kind] = [{'type': kind, 'scope': SCOPE,
-                                       'status': 'collected' if rows else 'empty',
-                                       'items': rows}]
+    index = observed()
+    for kind, rows in (('database_backup_service', [{'id': service} for service in services]),
+                       ('database_backup_alert_evidence', proofs)):
+        index['collections'][kind][0]['status'] = 'collected' if rows else 'empty'
+        index['collections'][kind][0]['items'] = rows
         index[kind] = [{'type': kind, 'scope': SCOPE, 'data': row} for row in rows]
     return index
 

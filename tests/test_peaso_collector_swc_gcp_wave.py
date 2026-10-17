@@ -185,7 +185,7 @@ def test_sql_users_empty_pagination_denial(mode, expected):
         if mode == 'denied' or mode == 'partial' and page:
             raise ReadError('denied', 'fixture_denial')
         if mode == 'empty':
-            return {}
+            return {'items': []}
         return {'items': [{'name': 'second' if page else 'first', 'host': '%', 'type': 'BUILT_IN'}],
                 **({'nextPageToken': 'more'} if not page else {})}
     result, _ = snapshot(['sql_instance', 'sql_user'], resolve)

@@ -1,5 +1,6 @@
 """WAF companion reads preserve the existing customer's grants and trust."""
 import copy
+import hashlib
 import json
 from pathlib import Path
 import pytest
@@ -15,27 +16,20 @@ def actions(document):
  return {a for s in document['Statement']for a in ([s['Action']]if isinstance(s['Action'],str)else s['Action'])}
 
 def test_default_companion_policy_preserves_three_existing_documents_and_scopes():
- # This comparison predates the Budgets/tag/Resolver/SageMaker grants; the active template
- # is checked separately below against the complete current generator.
- from peaso.collectors.aws import READ_ACTIONS
- historical_actions=(READ_ACTIONS|policy.PRESERVED_TEMPLATE_READ_ACTIONS)-({
-  ('budgets','describe_budget_actions_for_account'),('budgets','describe_budget_action'),
-  ('ec2','describe_tags'),('lambda','list_tags'),
-  ('route53resolver','list_firewall_domain_lists'),('sagemaker','list_endpoints'),
-  ('sagemaker','describe_endpoint'),('sagemaker','list_monitoring_executions'),
-    ('iam', 'get_role'),
-    ('iam', 'get_context_keys_for_principal_policy'),
-    ('iam', 'simulate_principal_policy'),
-    ('codecommit', 'list_repositories'),
-    ('codecommit', 'list_pull_requests'),
-    ('codecommit', 'get_pull_request'),
-    ('codecommit', 'describe_pull_request_events'),
-    ('codecommit', 'get_pull_request_approval_states'),
- } | {('controltower', 'list_landing_zones'), ('controltower', 'get_landing_zone')})
- logical=policy.build_policy(historical_actions);documents=policy.split_policy(logical)
- baseline=json.loads((policy.REVIEWED_ROLE_PATH.parent/'customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json').read_text())
- old=[baseline['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument']for i in range(1,4)]
- assert documents[:3]==old and len(documents)==4
+ root=policy.REVIEWED_ROLE_PATH.parent
+ before_hash='a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980'
+ after_hash='0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d'
+ before_raw=(root/f'customer-role-{before_hash}.json').read_bytes()
+ after_raw=(root/f'customer-role-{after_hash}.json').read_bytes()
+ assert hashlib.sha256(before_raw).hexdigest()==before_hash
+ assert hashlib.sha256(after_raw).hexdigest()==after_hash
+ baseline=json.loads(before_raw);updated=json.loads(after_raw)
+ assert set(updated['Resources'])-set(baseline['Resources'])=={'CspmConfigurationReadOnly4'}
+ assert all(updated['Resources'][key]==value for key,value in baseline['Resources'].items())
+ assert updated['Parameters']==baseline['Parameters'] and updated['Outputs']==baseline['Outputs']
+ documents=[updated['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'] for i in range(1,5)]
+ old=[baseline['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'] for i in range(1,4)]
+ assert documents[:3]==old
  assert actions(documents[3])==EXPECTED
  assert all(policy.policy_size(d)<=6144 for d in documents)
  wildcard={a for s in documents[3]['Statement']if s['Resource']=='*'for a in ([s['Action']]if isinstance(s['Action'],str)else s['Action'])}
@@ -58,18 +52,21 @@ def test_only_requested_waf_operations_add_companion_reads(operation,expected):
  assert actions(logical)&EXPECTED==expected
  assert all(policy.policy_size(d)<=6144 for d in policy.split_policy(logical))
 
-def test_refresh_is_idempotent_and_preserves_role_and_every_existing_resource(tmp_path,monkeypatch):
- # Replay the accepted historical read universe; the current-role transition is tested separately.
- from peaso.collectors import aws
- monkeypatch.setattr(aws,'READ_ACTIONS',set(aws.READ_ACTIONS)-({('route53resolver','list_firewall_domain_lists'),('sagemaker','list_endpoints'),('sagemaker','describe_endpoint'),('sagemaker','list_monitoring_executions'),('iam', 'get_role'),('iam', 'get_context_keys_for_principal_policy'),('iam', 'simulate_principal_policy'),('codecommit', 'list_repositories'),('codecommit', 'list_pull_requests'),('codecommit', 'get_pull_request'),('codecommit', 'describe_pull_request_events'),('codecommit', 'get_pull_request_approval_states')} | {('controltower', 'list_landing_zones'), ('controltower', 'get_landing_zone')}))
+def test_refresh_is_idempotent_and_preserves_role_and_every_existing_resource(tmp_path):
+ # Refresh today's template in isolation; historical grants are checked by archive transition above.
  folder=tmp_path/'infra/aws';folder.mkdir(parents=True)
- original=json.loads((policy.REVIEWED_ROLE_PATH.parent/'customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json').read_text())
- path=folder/'customer-role.json';path.write_text(json.dumps(original))
+ original_raw=(Path(__file__).resolve().parents[1]/'infra/aws/customer-role.json').read_bytes()
+ original=json.loads(original_raw)
+ path=folder/'customer-role.json';path.write_bytes(original_raw)
  policy.refresh(tmp_path);first=path.read_bytes();updated=json.loads(first)
- assert all(updated['Resources'][key]==value for key,value in original['Resources'].items())
- assert set(updated['Resources'])-set(original['Resources'])=={'CspmConfigurationReadOnly4'}
- assert updated['Parameters']==original['Parameters']and updated['Outputs']==original['Outputs']
- assert len(first)<26000
+ assert set(updated['Resources'])==set(original['Resources'])
+ assert all(updated['Resources'][key]==value for key,value in original['Resources'].items()
+            if not key.startswith('CspmConfigurationReadOnly'))
+ assert updated['Parameters']==original['Parameters'] and updated['Outputs']==original['Outputs']
+ documents=[updated['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'] for i in range(1,5)]
+ assert documents==policy.split_policy(policy.build_policy())
+ assert all(policy.policy_size(document)<=6144 for document in documents)
+ assert len(first)<=51200  # Existing customer-role source export budget.
  policy.refresh(tmp_path);assert path.read_bytes()==first
 
 

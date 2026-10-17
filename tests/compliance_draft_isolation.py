@@ -134,12 +134,16 @@ def staged_registry(modules):
     Duplicate registrations within the draft still fail through the real guard.
     The original objects, aliases and register function are restored on exit.
     """
+    modules = tuple(modules)
     registry = peaso.checks
     original = tuple(registry.CHECKS)
     original_objects = {id(check) for check in original}
     aliases = dict(registry.CHECK_ALIASES)
     register = registry.register
     permitted = {"peaso.checks." + name for name in modules}
+    absent = object()
+    prior_modules = {name: sys.modules.get(name, absent) for name in permitted}
+    prior_attributes = {name: registry.__dict__.get(name, absent) for name in modules}
 
     def isolated_register(check_id, *args, **kwargs):
         decorate = register(check_id, *args, **kwargs)
@@ -162,6 +166,18 @@ def staged_registry(modules):
         registry.CHECKS[:] = original
         registry.CHECK_ALIASES.clear()
         registry.CHECK_ALIASES.update(aliases)
+        # An isolated fixture can retain evaluator closures, but its registrar
+        # must not remain importable from the ordinary parent test process.
+        for name, previous in prior_modules.items():
+            if previous is absent:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = previous
+        for name, previous in prior_attributes.items():
+            if previous is absent:
+                registry.__dict__.pop(name, None)
+            else:
+                registry.__dict__[name] = previous
 
 
 @lru_cache(maxsize=None)

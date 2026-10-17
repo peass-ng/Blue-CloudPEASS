@@ -1,6 +1,9 @@
 """Source and command gate for the separately reviewed AWS service families."""
 
+import ast
 from collections import Counter
+import hashlib
+import inspect
 import json
 from pathlib import Path
 import re
@@ -12,6 +15,7 @@ from peaso.checks import CHECKS
 from peaso.checks.claude_aws_a_ec2 import INSTANCE_PORTS
 from peaso.checks.claude_aws_a_network import ENDPOINT_SERVICES, SG_PORTS
 from peaso.remediation import template
+from tests.release_successor_history import historical_bytes
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +45,27 @@ def reviewed():
     return json.loads(SHARD.read_text())
 
 
+def _registered_iam_helper_matches_historical(check, helper_path, helper_line):
+    """Bind the old source line and the currently registered, unwrapped helper."""
+    assert helper_path == "peaso/checks/claude_aws_a_iam.py"
+    archive = ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip"
+    historical = historical_bytes(archive, helper_path)
+    assert hashlib.sha256(historical).hexdigest() == "84b8346563444a732479c1dd1a692c3fff79e7bc3253f16eecbcbe30c8793425"
+    lines = historical.decode().splitlines()
+    assert lines[helper_line - 1].lstrip().startswith("def evaluate(")
+    tree = ast.parse(historical)
+    enclosing = [parent.name for parent in tree.body if isinstance(parent, ast.FunctionDef)
+                 for nested in ast.walk(parent) if isinstance(nested, ast.FunctionDef)
+                 and nested.name == "evaluate" and nested.lineno == helper_line]
+    assert len(enclosing) == 1
+    registered = inspect.unwrap(check.evaluate)
+    assert registered.__module__ == "peaso.checks.claude_aws_a_iam"
+    assert registered.__qualname__ == f"{enclosing[0]}.<locals>.evaluate"
+    assert Path(inspect.getsourcefile(registered)).resolve() == (ROOT / helper_path).resolve()
+    source, _ = inspect.getsourcelines(registered)
+    assert sum(line.lstrip().startswith("def evaluate(") for line in source) == 1
+
+
 def test_ids_are_assigned_and_no_approved_template_is_overridden():
     registered = {check.id for check in CHECKS if check.id.startswith(("aws.claude_a.", "aws.cb."))}
     assert OTHER_AWS_SHARD_IDS <= registered
@@ -48,6 +73,11 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
     central = json.loads(CENTRAL.read_text())
     checks = {check.id: check for check in CHECKS}
     entries = reviewed()
+    iam_path = "peaso/checks/claude_aws_a_iam.py"
+    accepted_iam = historical_bytes(
+        ROOT / "infra/aws/build/peaso-source-706b5bbfea1daee2e62386ec4356638653c0f469f49110cb3128f2e4ec0399a5.zip",
+        iam_path)
+    assert (ROOT / iam_path).read_bytes() == accepted_iam
     assert len(assigned) == 593
     assert central[PREAPPROVED]["review_status"] == "approved"
     assert entries and set(entries) <= assigned - {PREAPPROVED}
@@ -90,7 +120,7 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
                 source_line = matches[0]
         if row["source_proof"].get("helper_evaluator"):
             helper_path, helper_line = row["source_proof"]["helper_evaluator"].rsplit(":", 1)
-            assert (ROOT / helper_path).read_text().splitlines()[int(helper_line) - 1].lstrip().startswith("def evaluate(")
+            _registered_iam_helper_matches_historical(checks[cid], helper_path, int(helper_line))
         if row["source_proof"].get("generated_family") == "INSTANCE_PORTS":
             assert "instance_port_%s_not_internet_exposed" in source_line
             assert INSTANCE_PORTS[row["source_proof"]["name"]] == row["source_proof"]["ports"]
@@ -162,29 +192,28 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
             suffix = row["source_proof"]["suffix"]
             assert principal in {"user", "role", "group"}
             assert cid == f"aws.claude_a.iam.{principal}_{suffix}"
-            assert f'%s_{suffix}" % label' in source_line
+            assert any(f'%s_{suffix}" % label' in line for line in source_lines)
             assert checks[cid].kind == f"iam_{principal}"
         elif row["source_proof"].get("generated_family") == "IAM_NAMED_ADMIN":
             principal = row["source_proof"]["principal_type"]
             assert principal in {"user", "role", "group"}
             assert cid == f"aws.claude_a.iam.prowler_{principal}_no_administratoraccess"
-            assert 'prowler_%s_no_administratoraccess" % label' in source_line
+            assert any('prowler_%s_no_administratoraccess" % label' in line for line in source_lines)
             assert checks[cid].kind == f"iam_{principal}"
         elif row["source_proof"].get("generated_family") == "IAM_STALE_NAMESPACE":
             principal = row["source_proof"]["principal_type"]
             namespace = row["source_proof"]["namespace"]
             assert cid == f"aws.claude_a.iam.{principal}_{namespace}_access_not_stale"
-            assert '%s_%s_access_not_stale" % (label, namespace)' in source_line
-            tuple_line = (ROOT / source_path).read_text().splitlines()[row["source_proof"]["source_tuple_line"] - 1]
-            assert f'_stale("iam_{principal}", "{principal}", "{namespace}"' in tuple_line
+            assert any('%s_%s_access_not_stale" % (label, namespace)' in line for line in source_lines)
+            assert any(f'_stale("iam_{principal}", "{principal}", "{namespace}"' in line
+                       for line in source_lines)
         elif row["source_proof"].get("generated_family") == "PROWLER_INLINE":
             principal = row["source_proof"]["principal_type"]
             suffix = row["source_proof"]["suffix"]
             assert principal in {"user", "role", "group"}
             assert cid == f"aws.claude_a.iam.prowler_{principal}_inline_{suffix}"
-            assert 'prowler_%s_inline_%s" % (label, suffix)' in source_line
-            tuple_line = (ROOT / source_path).read_text().splitlines()[row["source_proof"]["source_tuple_line"] - 1]
-            assert tuple_line.startswith(f'_inline("{suffix}"')
+            assert any('prowler_%s_inline_%s" % (label, suffix)' in line for line in source_lines)
+            assert any(line.startswith(f'_inline("{suffix}"') for line in source_lines)
         elif row["source_proof"].get("generated_family") == "RDS_DEFAULT_PORT":
             label = row["source_proof"]["label"]
             assert label in {"cluster", "instance"}

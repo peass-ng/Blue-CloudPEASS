@@ -95,7 +95,7 @@ def test_repeated_policy_generation_reuses_every_sdk_model_name_map():
 def test_controltower_successor_adds_only_seven_exact_reads_and_preserves_v20():
  root=Path(__file__).resolve().parents[1]/'infra/aws'
  before=json.loads((root/'customer-role-a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873.json').read_bytes())
- raw=(root/'customer-role.json').read_bytes();after=json.loads(raw)
+ raw=(root/'customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json').read_bytes();after=json.loads(raw)
  assert (root/('customer-role-'+hashlib.sha256(raw).hexdigest()+'.json')).read_bytes()==raw
  assert before['Parameters']==after['Parameters'] and before['Outputs']==after['Outputs']
  assert before['Resources'].keys()==after['Resources'].keys()
@@ -131,6 +131,7 @@ def test_private_union_aks_databricks_and_route_policy_survive_one_public_pipeli
  table=db.BASE+'Microsoft.Network/routeTables/routes'
  route=db.parent(table,'Microsoft.Network/routeTables',{'routes':[{'id':table+'/routes/approved','properties':{'addressPrefix':'10.0.0.0/24'}}]})
  routes[db.SCOPE+'/providers/Microsoft.Network/routeTables']={'value':[route]}
+ routes[table]=route
  # Complete ARG must include the same native AKS parent as the ARM list.
  resources=[raw,route,routes[aks.RID]]
  routes[db.SCOPE+'/resources']={'value':resources}

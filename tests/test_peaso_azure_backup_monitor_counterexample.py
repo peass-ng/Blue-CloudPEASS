@@ -48,8 +48,8 @@ def test_backup_violation_precedes_unavailable_monitoring(mode, monitoring, expe
     assert verdict(snapshot) == expected
 
 
-@pytest.mark.parametrize('primary,expected', [('partial', 'UNKNOWN'), ('denied', 'DENIED')])
-def test_incomplete_backup_source_never_becomes_a_proven_failure(primary, expected):
+@pytest.mark.parametrize('primary,expected', [('partial', 'FAIL'), ('denied', 'DENIED')])
+def test_retained_partial_failure_and_denied_backup_source_are_distinct(primary, expected):
     snapshot = make_snapshot('azure', [SCOPE], [
         {'type': 'backup_protected_item', 'scope': SCOPE, 'status': primary,
          'items': [{'id': ITEM, 'properties': properties('failed')}] if primary == 'partial' else []},

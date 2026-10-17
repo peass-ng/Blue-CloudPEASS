@@ -374,6 +374,9 @@ def test_native_service_coverage_and_configuration_fixture():
         url = request["url"]
         if url == 'https://cloudresourcemanager.googleapis.com/v3/projects/p-one':
             return {'name': 'projects/123456789012', 'projectId': 'p-one'}
+        if ':getEffectivePolicy' in url:
+            constraint = url.rsplit('/policies/', 1)[1].split(':', 1)[0]
+            return {'name': 'projects/123456789012/policies/' + constraint, 'spec': {'rules': []}}
         if url.endswith(":getIamPolicy") or url.endswith("/iam"):
             return {"version": 3, "bindings": [], "auditConfigs": [{"service": "allServices"}]}
         if ":searchAllIamPolicies" in url:

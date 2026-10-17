@@ -216,8 +216,9 @@ def test_data_access_audit_evaluates_inherited_union_and_skips_resource_policies
     assert status == "FAIL" and evidence["evaluated_scopes"] == ["projects/p", "organizations/1"]
     # Completeness: an uncollected (e.g. denied) ancestor cannot yield FAIL.
     assert check.evaluate(audit_policy([{"scope": "projects/p", "auditConfigs": []}], "partial", ["organizations/1"]), {})[0] == "UNKNOWN"
-    # ... but an already-collected enabling level still proves PASS.
-    assert check.evaluate(audit_policy([{"scope": "projects/p", "auditConfigs": data}], "partial", ["organizations/1"]), {})[0] == "PASS"
+    # A missing ancestor leaves hierarchy-wide source authority unresolved,
+    # including potential exemptions; a local enabling level cannot prove PASS.
+    assert check.evaluate(audit_policy([{"scope": "projects/p", "auditConfigs": data}], "partial", ["organizations/1"]), {})[0] == "UNKNOWN"
     assert check.evaluate({"name": "projects/p", "auditConfigs": data}, {})[0] == "UNKNOWN"  # not materialized
     exempt = copy.deepcopy(data)
     exempt[0]["auditLogConfigs"][0]["exemptedMembers"] = ["user:a@example.com"]

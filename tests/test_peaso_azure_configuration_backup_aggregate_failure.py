@@ -1,6 +1,7 @@
 """Independent backup failures survive another resource's unresolved restore."""
 import base64
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 import pytest
@@ -19,6 +20,18 @@ def case(*, corrupt=False, unresolved=False, reverse=False):
     second = deepcopy(first)
     second['resource_id'] += '-second'
     second['artifact']['uri'] += '-second'
+    validation = second['restore']['validation']
+    validation['resource_id'] = second['resource_id'].casefold()
+    validation['artifact_uri'] = second['artifact']['uri']
+    result_artifact = validation['result_artifact']
+    result_artifact['uri'] += '-second'
+    result = json.loads(base64.b64decode(result_artifact['content_base64']))
+    result['resource_id'] = validation['resource_id']
+    result['restored_resource_id'] = validation['resource_id']
+    result['artifact_uri'] = validation['artifact_uri']
+    raw = json.dumps(result, sort_keys=True, separators=(',', ':')).encode()
+    result_artifact['content_base64'] = base64.b64encode(raw).decode()
+    result_artifact['sha256'] = hashlib.sha256(raw).hexdigest()
     payload['required_resources']['items'].append({'id': second['resource_id']})
     payload['exports']['items'].append(second)
     if corrupt:

@@ -1,4 +1,5 @@
 """Actual public dispatch and intake with inert HTTP/native-shape unit responses."""
+from collections import Counter
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
@@ -77,7 +78,9 @@ def test_public_collect_dispatch_query_flow_and_real_engine(monkeypatch,freshnes
     assert raw==before
     assert len(constructed)==1
     assert len(http)==len(tokens)
-    assert len([req for req in http if req.method=='POST'])==4 # NSG, routes and two empty-admin reads.
+    assert Counter(urlsplit(req.full_url).path.casefold().rsplit('/',1)[-1] for req in http if req.method=='POST') == {
+        'effectivenetworksecuritygroups':1, 'effectiveroutetable':2,
+        'listnetworkmanagereffectivesecurityadminrules':3}
     assert len([req for req in http if req.method=='GET'])>=14 # Seven complete inventory universes before/after.
     paths=[c for c in snapshot['collections']if c['type']=='nsg_effective_internet_path']
     assert len(paths)==1 and paths[0]['status']=='collected',paths
