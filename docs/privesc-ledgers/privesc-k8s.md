@@ -2,13 +2,13 @@
 
 The row classification below started at historical revision `329aec912e90`. At HackTricks Cloud [PR #481](https://github.com/HackTricks-wiki/hacktricks-cloud/pull/481) head `4202559da3`, its rows cover **422 of 422 headings across 50 scoped Kubernetes and OpenShift pages**. The 2026-10-16 strict catalog review now has **72 active techniques and 221 exclusions**. Four exact reviewed-evidence variants activate Argo CD remote credentials, static Google keys, GKE RBAC self-grants, and Kiam/Kube2IAM role credentials; metadata-only guesses remain excluded. The Kubernetes HackTricks change moves secret-copy, admission-bypass, generic API operations, host-file reads, controller/status side effects, and OpenShift label discovery out of the privilege-escalation section; their exclusion links below follow the destination pages. The [PR #479 interim snapshot](privesc-k8s-pr479-head.md) is historical and should not be read as the final PR #481 heading count.
 
-This ledger lists every heading in the Kubernetes and OpenShift pages of HackTricks Cloud at revision `329aec912e90`. Each heading maps to one of these:
+This ledger lists every heading in the Kubernetes and OpenShift pages of HackTricks Cloud at revision `4202559da31f53bb101052ab4622a636d243c4a5`. Each heading maps to one of these:
 
 - catalog ids in `peaso/privesc/catalog/k8s/*.yaml`
 - an exclusion in `peaso/privesc/catalog/k8s/_excluded.yaml`
 - a structural or out-of-scope reason
 
-The ledger is generated from the checkout, the catalog and the manual rows. `tests/test_peaso_privesc_coverage_k8s.py` checks that every id and exclusion named here exists. When the checkout is at 329aec912e90, it also checks that every in-scope heading has a row.
+The ledger is generated from the checkout, the catalog and the manual rows. `tests/test_peaso_privesc_coverage_k8s.py` checks that every id and exclusion named here exists. When the checkout is at 4202559da31f53bb101052ab4622a636d243c4a5, it also checks that every in-scope heading has a row.
 
 **Pages in scope** (relative to `src/pentesting-cloud/`):
 

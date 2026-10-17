@@ -1,7 +1,7 @@
 """Kubernetes privesc coverage ledger <-> catalog consistency.
 
 The ledger (``docs/privesc-ledgers/privesc-k8s.md``, or ``PEASO_K8S_PRIVESC_LEDGER``) maps every heading
-of the in-scope HackTricks Cloud Kubernetes/OpenShift pages (revision 329aec9) to k8s catalog ids, a k8s
+of the in-scope HackTricks Cloud Kubernetes/OpenShift pages (revision 4202559) to k8s catalog ids, a k8s
 ``_excluded.yaml`` item, or a structural / out-of-scope reason. These tests keep the ledger and the catalog in sync;
 the heading-completeness check runs only against a checkout at the ledger revision.
 """
@@ -19,8 +19,8 @@ from peaso.privesc.schema import HACKTRICKS_CLOUD, checkout_revision, load_catal
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "peaso" / "privesc" / "catalog" / "k8s"
 LEDGER = Path(os.environ.get("PEASO_K8S_PRIVESC_LEDGER", ROOT / "docs" / "privesc-ledgers" / "privesc-k8s.md"))
-LEDGER_REVISION = "329aec9"
 CURRENT_LEDGER_REVISION = "4202559da31f53bb101052ab4622a636d243c4a5"
+LEDGER_REVISION = CURRENT_LEDGER_REVISION
 PC = "src/pentesting-cloud/"
 SCOPE = [
     "kubernetes-security/kubernetes-privilege-escalation",
