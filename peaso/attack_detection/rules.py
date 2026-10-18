@@ -18,13 +18,16 @@ import yaml
 
 from .aws import normalize_aws_cloudtrail
 from .aws_security_controls import normalize_aws_security_control
+from .aws_trail_update import normalize_aws_trail_update
 from .gcp import normalize_gcp_audit
+from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .kubernetes import normalize_kubernetes_audit
+from .kubernetes_next import normalize_kubernetes_cluster_admin_grant
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "037f3e1f7f2e45c86b3e443ba418366774752874"
-DEFAULT_RULE_PACK_SHA256 = "7c4d38c99cd42e425e5befabc1523d280258e777df38dde84ad6f6e91a9f2087"
+DEFAULT_RULE_REF = "90c6cfc6405cc24b908651f28f9478e9c4f74194"
+DEFAULT_RULE_PACK_SHA256 = "01da43bb3d9d3d40c407cb13e7a24b02e94039d5a0e19a6e7e20913d2cae3672"
 
 
 @dataclass(frozen=True)
@@ -131,7 +134,8 @@ def detect_aws_events(
 ) -> list[Detection]:
     """Return evidence for matching records; no compromise verdict is implied."""
     def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
-        return normalize_aws_cloudtrail(record) or normalize_aws_security_control(record)
+        return (normalize_aws_cloudtrail(record) or normalize_aws_security_control(record)
+                or normalize_aws_trail_update(record))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
@@ -140,14 +144,23 @@ def detect_gcp_events(
     records: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
 ) -> list[Detection]:
     """Detect successful GCP audit events with concrete credential evidence."""
-    return _detect_events(records, rules if rules is not None else load_rules(product="gcp"), normalize_gcp_audit, "gcp")
+    def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
+        base = normalize_gcp_audit(record)
+        return ([base] if base is not None else []) + normalize_gcp_project_self_iam_bindings(record)
+
+    return _detect_events(records, rules if rules is not None else load_rules(product="gcp"), normalize, "gcp")
 
 
 def detect_kubernetes_events(
     records: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
 ) -> list[Detection]:
     """Detect completed Kubernetes audit events with returned RBAC objects."""
-    return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize_kubernetes_audit, "kubernetes")
+    def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
+        base = normalize_kubernetes_audit(record)
+        next_event = normalize_kubernetes_cluster_admin_grant(record)
+        return ([base] if base is not None else []) + ([next_event] if next_event is not None else [])
+
+    return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize, "kubernetes")
 
 
 def detect_azure_events(
@@ -162,25 +175,27 @@ def _detect_events(
 ) -> list[Detection]:
     matches: list[Detection] = []
     for record in records:
-        event = normalizer(record)
-        if event is None:
-            continue
-        for rule in selected_rules:
-            if rule.product != product:
+        normalized = normalizer(record)
+        events = [normalized] if isinstance(normalized, Mapping) else normalized or []
+        for event in events:
+            if not isinstance(event, Mapping):
                 continue
-            if all(event.get(field) in expected if isinstance(expected, list) else event.get(field) == expected for field, expected in rule.selection.items()):
-                evidence = {field: event[field] for field in rule.selection}
-                correlation = event.get("correlation_evidence")
-                if isinstance(correlation, Mapping):
-                    evidence["correlation"] = dict(correlation)
-                matches.append(Detection(
-                    rule_id=rule.id, title=rule.title, severity=rule.level,
-                    technique_id=rule.technique_id,
-                    event_id=event["event.id"], event_time=event["event.time"],
-                    account_id=event["account.id"],
-                    actor_id=event["actor.id"], target_id=event["target.id"],
-                    evidence=evidence,
-                    description=rule.description,
-                    legitimate_context=rule.falsepositives,
-                ))
+            for rule in selected_rules:
+                if rule.product != product:
+                    continue
+                if all(event.get(field) in expected if isinstance(expected, list) else event.get(field) == expected for field, expected in rule.selection.items()):
+                    evidence = {field: event[field] for field in rule.selection}
+                    correlation = event.get("correlation_evidence")
+                    if isinstance(correlation, Mapping):
+                        evidence["correlation"] = dict(correlation)
+                    matches.append(Detection(
+                        rule_id=rule.id, title=rule.title, severity=rule.level,
+                        technique_id=rule.technique_id,
+                        event_id=event["event.id"], event_time=event["event.time"],
+                        account_id=event["account.id"],
+                        actor_id=event["actor.id"], target_id=event["target.id"],
+                        evidence=evidence,
+                        description=rule.description,
+                        legitimate_context=rule.falsepositives,
+                    ))
     return matches

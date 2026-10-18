@@ -94,7 +94,7 @@ def test_reader_does_not_publish_noisy_credential_activity_as_attack(monkeypatch
     result = entra_attack_logs.analyze_entra_source(
         {"tenant_id": TENANT}, [], {}, SimpleNamespace(kind="entra_directory_audit", tenant_id=TENANT))
     assert result["coverage"]["events_read"] == 1
-    assert result["coverage"]["credential_add_candidates"] == 1
-    assert result["coverage"]["detection_status"] == "not_implemented"
+    assert result["coverage"]["global_admin_self_grant_candidates"] == 0
+    assert result["coverage"]["detection_status"] == "global_admin_self_grants_only"
     assert result["detections"] == []
     assert "sensitive app" not in str(result)

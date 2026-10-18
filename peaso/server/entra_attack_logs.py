@@ -64,7 +64,8 @@ def _timestamp(value):
 
 def _initial_url(now):
     stamp = lambda value: value.isoformat(timespec="seconds").replace("+00:00", "Z")
-    interval = f"activityDateTime ge {stamp(now - WINDOW)} and activityDateTime le {stamp(now)}"
+    interval = (f"activityDateTime ge {stamp(now - WINDOW)} and activityDateTime le {stamp(now)} "
+                "and activityDisplayName eq 'Add member to role'")
     query = urlencode({"$filter": interval, "$top": "100", "$orderby": "activityDateTime desc"})
     return GRAPH + _PATH + "?" + query, interval
 
@@ -137,12 +138,11 @@ def _read(transport, *, analyze, now, tenant):
                     ignored += 1
                 else:
                     events.append(metadata)
-                    from peaso.attack_detection.entra import normalize_entra_credential_add
-                    candidate = normalize_entra_credential_add(
-                        row, tenant=tenant,
-                        event_id=metadata["event_id_sha256"], event_time=metadata["time"],
-                    )
+                    from peaso.attack_detection.azure_next import normalize_entra_global_admin_self_grant
+                    candidate = normalize_entra_global_admin_self_grant(row, tenant=tenant)
                     if candidate is not None:
+                        candidate["event.id"] = metadata["event_id_sha256"]
+                        candidate["event.time"] = metadata["time"]
                         candidates.append(candidate)
         next_url = page.get("@odata.nextLink")
         if next_url is not None:
@@ -181,12 +181,15 @@ def _run(auth, scopes, options, source, *, analyze):
     coverage = {"source": "entra_directory_audit", "tenant_id": tenant, "window_hours": 24,
                 "pages_read": pages, "events_read": read, "events_normalized": len(events),
                 "events_ignored": ignored, "truncated": truncated,
-                "credential_add_candidates": len(candidates),
-                "detection_status": "not_implemented"}
+                "global_admin_self_grant_candidates": len(candidates),
+                "detection_status": "global_admin_self_grants_only"}
     if not analyze:
         return {"source_status": "accessible", "coverage": coverage,
                 "note": "Graph directoryAudits read succeeded. Empty results do not prove that all activities were logged or retained."}
-    return {"coverage": coverage, "events": events, "detections": []}
+    from peaso.attack_detection import detect_azure_events
+    detections = detect_azure_events(candidates) if candidates else []
+    return {"coverage": coverage, "events": events,
+            "detections": [d.__dict__ for d in detections]}
 
 
 def check_entra_source(auth, scopes, options, source):

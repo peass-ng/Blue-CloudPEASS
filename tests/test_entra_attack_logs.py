@@ -9,6 +9,8 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pytest
 
+from peaso.attack_detection import Rule
+from peaso.attack_detection.azure_next import GLOBAL_ADMIN_TEMPLATE
 from peaso.server.attack_logs import LogAccessError
 from peaso.server.entra_attack_logs import (
     MAX_EVENTS, MAX_PAGES, analyze_entra_source, check_entra_source,
@@ -56,7 +58,7 @@ def test_check_one_bounded_graph_get_and_tenant_binding(monkeypatch):
     api = with_api(monkeypatch, [{"value": []}])
     result = check_entra_source(AUTH, [], {}, SOURCE)
     assert result["source_status"] == "accessible"
-    assert result["coverage"]["detection_status"] == "not_implemented"
+    assert result["coverage"]["detection_status"] == "global_admin_self_grants_only"
     assert result["coverage"]["pages_read"] == 1
     assert api.closed and len(api.urls) == 1
     parsed = urlsplit(api.urls[0])
@@ -66,6 +68,7 @@ def test_check_one_bounded_graph_get_and_tenant_binding(monkeypatch):
     assert query["$top"] == ["100"]
     assert query["$orderby"] == ["activityDateTime desc"]
     assert "activityDateTime ge" in query["$filter"][0]
+    assert "activityDisplayName eq 'Add member to role'" in query["$filter"][0]
 
 
 def test_mismatched_source_tenant_blocks_before_transport(monkeypatch):
@@ -102,7 +105,7 @@ def test_analyze_returns_only_redacted_metadata_and_no_detection_claim(monkeypat
     assert result["coverage"]["events_read"] == 3
     assert result["coverage"]["events_normalized"] == 1
     assert result["coverage"]["events_ignored"] == 2
-    assert result["coverage"]["detection_status"] == "not_implemented"
+    assert result["coverage"]["detection_status"] == "global_admin_self_grants_only"
     assert result["detections"] == []
     assert len(result["events"]) == 1
     projected = json.dumps(result)
@@ -111,6 +114,38 @@ def test_analyze_returns_only_redacted_metadata_and_no_detection_claim(monkeypat
     assert "secret value" not in projected
     assert "row-1" not in projected
     assert api.closed
+
+
+def test_reviewed_self_global_admin_rule_matches_without_exposing_raw_audit_id(monkeypatch):
+    actor = "22222222-2222-2222-2222-222222222222"
+    role_id = "33333333-3333-3333-3333-333333333333"
+    row = {
+        "id": "raw-directory-audit-id", "activityDateTime": datetime.now(timezone.utc).isoformat(),
+        "category": "RoleManagement", "loggedByService": "Core Directory",
+        "activityDisplayName": "Add member to role", "operationType": "Assign",
+        "result": "success", "initiatedBy": {"user": {"id": actor}},
+        "targetResources": [
+            {"type": "User", "id": actor, "modifiedProperties": [
+                {"displayName": "Role.ObjectID", "newValue": json.dumps(role_id)},
+                {"displayName": "Role.TemplateId", "newValue": json.dumps(GLOBAL_ADMIN_TEMPLATE)},
+            ]},
+            {"type": "Role", "id": role_id, "modifiedProperties": []},
+        ],
+    }
+    rule = Rule(id="test-entra-self-global", title="Self global admin", level="high",
+                description="Review", technique_id="azure-self-global", product="azure",
+                selection={"event.source": "entra.directoryAudit",
+                           "event.name": "global_admin_self_assignment",
+                           "event.outcome": "success", "request.self_grant": True,
+                           "request.role_template_id": GLOBAL_ADMIN_TEMPLATE,
+                           "scope.type": "tenant"})
+    monkeypatch.setattr("peaso.attack_detection.rules.load_rules", lambda *args, **kwargs: (rule,))
+    with_api(monkeypatch, [{"value": [row]}])
+    result = analyze_entra_source(AUTH, [], {}, SOURCE)
+    assert result["coverage"]["global_admin_self_grant_candidates"] == 1
+    assert len(result["detections"]) == 1
+    assert result["detections"][0]["rule_id"] == rule.id
+    assert "raw-directory-audit-id" not in json.dumps(result)
 
 
 def _next(url, **changes):

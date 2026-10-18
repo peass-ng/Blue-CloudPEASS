@@ -59,7 +59,7 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
 
 def test_entra_access_check_does_not_authorize_analysis_without_context(tmp_path, monkeypatch):
     monkeypatch.setattr("peaso.server.entra_attack_logs.check_entra_source", lambda *args: {
-        "source_status": "accessible", "coverage": {"events_read": 0, "detection_status": "not_implemented"}})
+        "source_status": "accessible", "coverage": {"events_read": 0, "detection_status": "global_admin_self_grants_only"}})
     monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (TEST_RULE,))
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     with TestClient(create_app(settings, authenticator=IdentityStub()), base_url="http://localhost:8000") as client:
@@ -73,6 +73,17 @@ def test_entra_access_check_does_not_authorize_analysis_without_context(tmp_path
         assert checked.status_code == 200 and checked.json()["status"] == "warning"
         assert "check_token" not in checked.json()
         assert client.post("/api/attack-analysis/run", json={**source, "check_token": "invalid"}).status_code == 422
+
+        entra_rule = Rule(id="test-entra-rule", title="Self global grant", level="high",
+                          description="Review", technique_id="azure-self-global", product="azure",
+                          selection={"event.source": "entra.directoryAudit",
+                                     "event.name": "global_admin_self_assignment"})
+        monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (entra_rule,))
+        monkeypatch.setattr("peaso.server.entra_attack_logs.analyze_entra_source", lambda *args: {
+            "coverage": {"events_read": 0, "truncated": False}, "detections": []})
+        allowed = client.post("/api/attack-analysis/check-access", json=source)
+        assert allowed.status_code == 200 and allowed.json()["status"] == "pass"
+        assert client.post("/api/attack-analysis/run", json={**source, "check_token": allowed.json()["check_token"]}).status_code == 200
 
 
 def test_s3_check_proves_get_object_and_reports_empty_without_token(monkeypatch):
