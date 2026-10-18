@@ -151,18 +151,41 @@ def _subjects(row, binding_kind):
     return subjects
 
 
+def _system_masters_subjects(row):
+    """Inspect only subjects that could be the selected Group identity."""
+    subjects = optional(row, "subjects", [], list)
+    matches = []
+    for subject in subjects:
+        if not isinstance(subject, dict):
+            raise Unavailable("RBAC subject kind unavailable")
+        kind = get(subject, "kind", str)
+        if kind != "Group":
+            continue
+        name = get(subject, "name", str)
+        if name != "system:masters":
+            continue
+        api_group = optional(subject, "apiGroup", "rbac.authorization.k8s.io", str)
+        namespace = optional(subject, "namespace", "", str)
+        if api_group != "rbac.authorization.k8s.io":
+            raise Unavailable("system:masters Group API group malformed")
+        if namespace:
+            raise Unavailable("system:masters Group has namespace")
+        matches.append(subject)
+    return matches
+
+
 def _evaluate(check_id, item, index):
     kind = KINDS[check_id]
     if check_id == IDS[0]:
         context, _, _ = _context(index)
         if item != context:
             raise Unavailable("scope target mismatch")
+        inventories = {kind: _inventory(index, kind) for kind in ("clusterrolebinding", "rolebinding")}
         matches = []
-        for binding_kind in ("clusterrolebinding", "rolebinding"):
-            for binding in _inventory(index, binding_kind).values():
-                for subject in _subjects(binding, binding_kind):
-                    if subject["kind"] == "Group" and subject["name"] == "system:masters":
-                        matches.append({"kind": binding_kind, "binding_id": binding["id"]})
+        for binding_kind, bindings in inventories.items():
+            for binding in bindings.values():
+                for _ in _system_masters_subjects(binding):
+                    matches.append({"kind": binding_kind, "binding_id": binding["id"]})
         if matches:
             return result(True, affected_bindings=matches, semantics="observed RBAC bindings only")
         return unknown("RBAC bindings contain no system:masters subject; certificate and provider group memberships unobserved")

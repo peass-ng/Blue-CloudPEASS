@@ -613,6 +613,12 @@ def _sanitize(value):
 def _native(item, kind, cluster, scope, namespaced):
     if not isinstance(item, dict) or not isinstance(item.get("metadata"), dict):
         raise ValueError("malformed Kubernetes object")
+    if kind == "namespace":
+        # GET /api/v1/namespaces fixes the GVK even when list items omit TypeMeta.
+        # Reject a supplied, conflicting TypeMeta instead of silently replacing it.
+        if item.get("kind", "Namespace") != "Namespace" or item.get("apiVersion", "v1") != "v1":
+            raise ValueError("namespace object type conflicts with endpoint")
+        item = {**item, "kind": "Namespace", "apiVersion": "v1"}
     meta = item["metadata"]
     name, namespace = meta.get("name"), meta.get("namespace")
     if not isinstance(name, str) or not name or (namespaced and (not isinstance(namespace, str) or not namespace)):
@@ -647,6 +653,9 @@ def _pages(reader, api, path, kind, cluster, scope, namespaced):
         response = reader.call(api.get_json, path, params)
         if not isinstance(response, dict) or not isinstance(response.get("items"), list) or not isinstance(response.get("metadata", {}), dict):
             raise ValueError("malformed Kubernetes list")
+        if kind == "namespace" and (response.get("kind", "NamespaceList") != "NamespaceList"
+                                    or response.get("apiVersion", "v1") != "v1"):
+            raise ValueError("namespace list type conflicts with endpoint")
         metadata = response.get("metadata", {})
         current_version = metadata.get("resourceVersion")
         if version is not None and current_version != version:
