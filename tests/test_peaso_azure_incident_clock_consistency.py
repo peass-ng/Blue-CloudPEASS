@@ -1,7 +1,8 @@
+# Historical fixture contracts; current native admission is tested separately.
 """A claimed triage event after the capture cutoff is not proof of compliance."""
 from copy import deepcopy
 import pytest
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_azure_incident_triage_requirements import incident_snapshot, review, SCOPE, CID
 

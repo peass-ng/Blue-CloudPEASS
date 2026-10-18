@@ -4,6 +4,13 @@ import pytest
 from peaso.gcp_project_alias import AliasUnavailable, prove_project_alias
 from tests.test_peaso_gcp_project_alias import fixture, SCOPE
 
+@pytest.mark.parametrize('position', [0, 1])
+def test_missing_collector_native_identity_cannot_authorize_alias(position):
+    projects, policies, ledger = fixture()
+    policies['items'][position].pop('native_id')
+    with pytest.raises(AliasUnavailable, match='native_id'):
+        prove_project_alias(SCOPE, projects, policies, ledger)
+
 @pytest.mark.parametrize('record', [0, 3, 4])
 @pytest.mark.parametrize('field', ['id', 'status', 'method', 'query'])
 def test_denied_ledger_field_cannot_authorize_alias(record, field):

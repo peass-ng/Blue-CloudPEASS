@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """An absent tag_value is unrestricted, distinct from a forbidden empty set."""
 import json
 from types import SimpleNamespace
@@ -6,7 +7,7 @@ import pytest
 from tests.test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from tests.test_peaso_aws_tag_policy_locked_assignment import MASTER, ORG, OU, ROOT, POLICY, LOCK, CONTROL
 from peaso.collectors import aws, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 
 

@@ -1,7 +1,8 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Only a real, consistently typed Organizations parent can terminate a path."""
 import pytest
 
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_organizations_ou_account_state import case, CONTROL, SCOPE, MANAGEMENT
 

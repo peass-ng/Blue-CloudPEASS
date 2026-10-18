@@ -1,10 +1,11 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Directed native admitted resource-limit projection acceptance."""
 import copy,json
 from types import SimpleNamespace
 import pytest
 from peaso.collectors import azure,k8s,azure_aks_workloads_native as native
 from peaso.collectors.azure_aks_admitted_limits_native import project
-from peaso.engine import collect_snapshot,evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.server.validation import validate_connector
 from peaso.checks.compliance_new_sw25_facts import APPARMOR_ID
 from tests.test_peaso_azure_aks_workloads_native import ca,fixture,RID,TOKEN

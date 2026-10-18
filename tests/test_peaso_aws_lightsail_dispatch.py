@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Public collector boundary: normative input + native IAM + frozen evaluator."""
 import copy
 import json
@@ -7,7 +8,7 @@ import boto3
 from botocore.stub import Stubber
 import pytest
 from peaso.collectors import aws, collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.aws_lightsail_owner_policy import NAMESPACE, owner_metadata
 from tests import test_peaso_aws_lightsail_iam_native as fixture
 
@@ -16,7 +17,7 @@ from tests import test_peaso_aws_lightsail_iam_native as fixture
 @pytest.mark.parametrize('mode,expected', [('inline', 'PASS'), ('wider', 'FAIL'), ('condition', 'UNKNOWN'), ('stale', 'UNKNOWN'), ('absent', 'UNKNOWN')])
 def test_public_lightsail_dispatch(monkeypatch, requirements, mode, expected):
     if requirements == [fixture.CHECK]:
-        from peaso.engine import plan_collection
+        from tests.archived_check_contract import plan_collection
         requirements = plan_collection({'provider': 'aws', 'checks': [fixture.CHECK], 'connector': {'provider': 'aws', 'scopes': [fixture.SCOPE], 'options': {}}})
     session = boto3.Session(aws_access_key_id='INERT', aws_secret_access_key='INERT', region_name=fixture.REGION)
     approved = {'status': 'collected', 'scope': fixture.SCOPE, 'observed_at': datetime.now(timezone.utc).isoformat(),

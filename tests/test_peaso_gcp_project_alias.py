@@ -5,6 +5,7 @@ import pytest
 
 from peaso.gcp_project_alias import AliasUnavailable, prove_project_alias
 from peaso.checks.gcp_data_access import _native
+from peaso.collectors.gcp import item_identity
 from peaso.gcp_data_access_policy import OPTION
 
 SCOPE = "projects/alias-demo"
@@ -30,6 +31,8 @@ def fixture(scope=SCOPE):
     alias = {"name": "//cloudresourcemanager.googleapis.com/" + NUMBER,
              "assetType": "cloudresourcemanager.googleapis.com/Project", "project": NUMBER,
              "_provenance": {"scope": scope, "source_requests": ["cai-1", "cai-2"], "representation": "partial"}}
+    for policy in (direct, alias):
+        policy["native_id"] = item_identity("iam_policy", scope, policy)
     projects = {"type": "project", "scope": scope, "status": "collected", "coverage_status": "collected",
                 "source_requests": ["project-get", "ancestry", "hydration"], "items": [project]}
     policies = {"type": "iam_policy", "scope": scope, "status": "collected", "coverage_status": "collected",
@@ -52,6 +55,7 @@ def test_binds_numeric_and_id_scope_with_original_positions_and_pages(scope):
     peer = {"name": "//storage.googleapis.com/projects/_/buckets/example",
             "assetType": "storage.googleapis.com/Bucket",
             "_provenance": {"scope": scope, "source_requests": ["cai-2"], "representation": "partial"}}
+    peer["native_id"] = item_identity("iam_policy", scope, peer)
     policies["items"].insert(0, peer)
     binding = prove(projects, policies, ledger)
     assert (binding.project_number, binding.direct_position, binding.alias_position) == ("123456789", 1, 2)
@@ -135,6 +139,7 @@ def test_unreadable_peer_type_cannot_be_excluded():
     projects, policies, ledger = fixture()
     policies["items"].append({"name": "//storage.googleapis.com/projects/_/buckets/example",
                               "assetType": "storage.googleapis.com/Bucket",
+                              "native_id": "//storage.googleapis.com/projects/_/buckets/example",
                               "_coverage": {"assetType": {"status": "denied"}},
                               "_provenance": {"scope": SCOPE, "source_requests": ["peer"], "representation": "partial"}})
     policies["source_requests"].append("peer")

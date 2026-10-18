@@ -1,9 +1,10 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Repeated response step text does not identify duplicate history events."""
 from copy import deepcopy
 
 import pytest
 
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_azure_incident_triage_requirements import CID, SCOPE, incident_snapshot, review
 

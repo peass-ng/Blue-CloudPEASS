@@ -123,7 +123,7 @@ def test_public_hosted_native_country_review(monkeypatch, mode, expected):
     from types import SimpleNamespace
     from urllib.parse import urlsplit
     from peaso.collectors import azure, collect_live
-    from peaso.engine import evaluate_snapshot, plan_collection
+    from tests.archived_check_contract import evaluate_snapshot, plan_collection
     from peaso.server.validation import validate_connector
     from tests.test_peaso_collectors_azurek8s import FakeAzure
     rule, location, config, context = case('noBlockRequired' if mode.startswith('no_block') else 'block')

@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Native Azure report schema, bound guest measurements and failure preservation."""
 import copy
 from datetime import datetime, timezone
@@ -5,7 +6,7 @@ import json
 import pytest
 from peaso.collectors.azure import _Reader, AzureReadError
 from peaso.collectors.azure_guest_reports import collect_reports, project_report
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 SCOPE='/subscriptions/11111111-1111-1111-1111-111111111111'

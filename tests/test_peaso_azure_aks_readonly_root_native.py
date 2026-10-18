@@ -15,6 +15,7 @@ REFERENCE='private-secret-reference-not-metadata'
 
 def case(ca,mode='good',affected='aks_pod'):
  routes,_,options,auth,_=fixture(ca)
+ routes[SCOPE]={'id':SCOPE,'subscriptionId':SUB,'tenantId':Transport.tenant}
  # Root-filesystem policy has no custom owner criterion. Explicit auth binds each cluster.
  options.pop('compliance_parameters')
  routes[SCOPE+'/providers/Microsoft.Kubernetes/connectedClusters']={'value':[]}
@@ -53,7 +54,7 @@ def case(ca,mode='good',affected='aks_pod'):
   schemas[path]=(version,typ+'List')
  if mode=='missing_credential':auth.pop('aks_workloads')
  if mode=='foreign_endpoint':routes[RID]['properties']['fqdn']='other.example.org'
- if mode=='tenant_mismatch':routes['/subscriptions']['value'][0]['tenantId']='foreign'
+ if mode=='tenant_mismatch':routes[SCOPE]['tenantId']='foreign'
  if mode=='arc':routes[SCOPE+'/providers/Microsoft.Kubernetes/connectedClusters']={'value':[{'id':SCOPE+'/resourceGroups/rg/providers/Microsoft.Kubernetes/connectedClusters/arc'}]}
  if mode=='arc_denied':routes[SCOPE+'/providers/Microsoft.Kubernetes/connectedClusters']=azure.AzureReadError('forbidden',403)
  if mode=='page_cap':options['max_pages']=1

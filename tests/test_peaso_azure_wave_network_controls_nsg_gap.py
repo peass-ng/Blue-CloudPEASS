@@ -1,5 +1,6 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Executable current-behavior witness for the NSG service-name evidence gap."""
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_azure_nsg_direction_priority import SCOPE, NSG, PAIRS, native_nsg
 

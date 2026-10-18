@@ -1,10 +1,11 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Two frozen diagnostics contracts over actual ARM service/table response shapes."""
 import copy,json
 import pytest
 from peaso.collectors import azure,collect_live
 from peaso.collectors.azure_resource_logging_policy import normalize,CHECK
 from peaso.collectors.azure_resource_diagnostics_native import CHECK as ROUTES,STORAGE_SERVICES
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from tests.test_peaso_azure_bulk_native import Transport,SUB,SCOPE,BASE,parent
 KV=BASE+'Microsoft.KeyVault/vaults/vault'
 ACCOUNT=BASE+'Microsoft.Storage/storageAccounts/account'

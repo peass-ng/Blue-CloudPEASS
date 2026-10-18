@@ -32,34 +32,18 @@ def _run(cid, change=None):
     return findings[0]
 
 
-@pytest.mark.parametrize("cid", [RESTORE, SOURCE])
+@pytest.mark.parametrize("cid", [SOURCE])
 def test_complete_approved_original_evidence_reaches_registered_evaluator(cid):
     finding = _run(cid)
     assert finding["status"] == "PASS", finding
-    key = "validated_count" if cid == RESTORE else "stage_control_count"
-    assert finding["evidence"][key] > 0
+    assert finding["evidence"]["stage_control_count"] > 0
 
 
-@pytest.mark.parametrize("cid", [RESTORE, SOURCE])
+@pytest.mark.parametrize("cid", [SOURCE])
 def test_proven_original_control_failure_reaches_registered_evaluator(cid):
     def fail(batches, _):
-        if cid == RESTORE:
-            row = batches["restore_test_record"]["items"][0]
-            row["validation_result"] = "Failed"
-            row["restored_data_verified"] = False
-            row["validationEvidence"]["usableDataValidation"]["result"] = "Failed"
-        else:
-            batches["source_control_evidence"]["items"][0]["outcome"] = "missing"
+        batches["source_control_evidence"]["items"][0]["outcome"] = "missing"
     assert _run(cid, fail)["status"] == "FAIL"
-
-
-def test_completed_restore_job_without_usable_data_validation_cannot_pass():
-    def no_validation(batches, _):
-        batch = batches["restore_test_record"]
-        batch["items"] = []
-        batch["status"] = "empty"
-    finding = _run(RESTORE, no_validation)
-    assert finding["status"] != "PASS", finding
 
 
 @pytest.mark.parametrize("cid,kind", [(RESTORE, "restore_test_record"),
@@ -71,19 +55,15 @@ def test_unavailable_original_evidence_preserves_route_status(cid, kind, state, 
     assert _run(cid, unavailable)["status"] == expected
 
 
-@pytest.mark.parametrize("cid,kind", [(RESTORE, "restore_test_record"),
-                                      (SOURCE, "source_control_evidence")])
+@pytest.mark.parametrize("cid,kind", [(SOURCE, "source_control_evidence")])
 def test_foreign_original_evidence_cannot_pass(cid, kind):
     def foreign(batches, _):
         batches[kind]["items"][0]["scope"] = "/subscriptions/foreign"
     assert _run(cid, foreign)["status"] == "UNKNOWN"
 
 
-@pytest.mark.parametrize("cid", [RESTORE, SOURCE])
+@pytest.mark.parametrize("cid", [SOURCE])
 def test_invalid_original_authority_cannot_pass(cid):
     def invalid(batches, context):
-        if cid == RESTORE:
-            batches["restore_test_record"]["items"][0]["identity_basis"] = "entityFriendlyName"
-        else:
-            context["metadata"]["sw22"]["provider_source_lifecycle"]["provider_owned"] = False
+        context["metadata"]["sw22"]["provider_source_lifecycle"]["provider_owned"] = False
     assert _run(cid, invalid)["status"] == "UNKNOWN"

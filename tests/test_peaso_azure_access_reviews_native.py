@@ -20,7 +20,7 @@ class API:
  def request(self,url,*,body=None,audience=azure.ARM):
   self.calls.append((url,audience,body));path=urlsplit(url).path;params=parse_qs(urlsplit(url).query)
   if path=='/subscriptions':return {'value':[{'id':SCOPE,'subscriptionId':SUB,'tenantId':TENANT}]}
-  if path==SCOPE:return {'id':SCOPE,'tenantId':TENANT}
+  if path==SCOPE:return {'id':SCOPE,'subscriptionId':SUB,'tenantId':TENANT}
   if path=='/v1.0/groups':
    if self.mode=='denied_groups':raise azure.AzureReadError('forbidden',403)
    return {'value':[{'id':GROUP,'groupTypes':['DynamicMembership'] if self.mode=='dynamic' else ['Unified']}]}

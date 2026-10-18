@@ -1,10 +1,11 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Service-complete native ARM child joins through frozen SW13/SW23."""
 import copy,json
 from datetime import datetime,timezone,timedelta
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure,collect_live,azure_storage_recovery_metadata_native as native
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from tests.test_peaso_azure_bulk_native import Transport,parent,routes,SCOPE,SUB,BASE,STORAGE
 VAULT=BASE+'Microsoft.RecoveryServices/vaults/vault'
 PROTECTED=VAULT+'/backupFabrics/Azure/protectionContainers/storagecontainer;storage;rg;account/protectedItems/azurefileshare;share'

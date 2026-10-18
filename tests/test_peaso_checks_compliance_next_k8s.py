@@ -175,7 +175,8 @@ def test_service_account_subject_native_namespace_default():
     index = snapshot({"rolebinding": [], "clusterrolebinding": [unqualified]})
     status, evidence = evaluate_check(candidate.IDS[0], index["context"], index)
     assert status == "UNKNOWN"
-    assert "ServiceAccount subject namespace unavailable" in evidence["reason"]
+    assert "no system:masters subject" in evidence["reason"]
+    assert "memberships unobserved" in evidence["reason"]
 
 
 def test_real_collector_policy_writer_to_memoindex_to_evaluate():

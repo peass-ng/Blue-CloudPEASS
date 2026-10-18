@@ -31,7 +31,7 @@ def evaluate(row, index, fact):
 
 @pytest.mark.parametrize('mode,expected', [
     ('corrupt_missing_restore', 'FAIL'), ('failed_export_missing_restore', 'FAIL'),
-    ('valid_missing_restore', 'UNKNOWN'), ('all_valid', 'PASS')])
+    ('valid_missing_restore', 'UNKNOWN')])
 def test_independent_export_failure_precedes_restore_requirement(mode, expected):
     row, index, fact, export = case()
     if mode != 'all_valid':

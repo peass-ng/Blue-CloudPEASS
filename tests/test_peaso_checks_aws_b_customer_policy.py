@@ -143,6 +143,33 @@ def _grants(statements):
     return out
 
 
+def test_current_role_adds_only_reviewed_cloudtrail_delivery_policy_reads():
+    role_root = Path(__file__).resolve().parents[1] / "infra/aws"
+    previous = json.loads((role_root / "customer-role-a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02.json").read_text())
+    active_bytes = (role_root / "customer-role.json").read_bytes()
+    digest = hashlib.sha256(active_bytes).hexdigest()
+    assert (role_root / f"customer-role-{digest}.json").read_bytes() == active_bytes
+    active = json.loads(active_bytes)
+    assert active["Parameters"] == previous["Parameters"]
+    assert active["Outputs"] == previous["Outputs"]
+    assert active["Resources"]["AuditRole"] == previous["Resources"]["AuditRole"]
+    assert set(active["Resources"]) == set(previous["Resources"])
+    assert {name: value for name, value in active["Metadata"].items() if name in previous["Metadata"]} == previous["Metadata"]
+    assert set(active["Metadata"]) - set(previous["Metadata"]) == {"HackTricksCspmIamRolePolicyMetadataReference"}
+    def managed_grants(template):
+        return _grants(row for resource in template["Resources"].values()
+                       if resource["Type"] == "AWS::IAM::ManagedPolicy"
+                       for row in resource["Properties"]["PolicyDocument"]["Statement"])
+    assert managed_grants(active) - managed_grants(previous) == {
+        ("Allow", action, json.dumps("*")) for action in policy_module.IAM_ROLE_POLICY_METADATA_REFERENCES
+    }
+    assert not managed_grants(previous) - managed_grants(active)
+    for name, resource in active["Resources"].items():
+        if resource["Type"] == "AWS::IAM::ManagedPolicy":
+            assert resource["Properties"]["Description"] == previous["Resources"][name]["Properties"]["Description"]
+            assert policy_size(resource["Properties"]["PolicyDocument"]) <= IAM_MANAGED_POLICY_LIMIT
+
+
 # These SDK reads were introduced after all four archived templates below.
 # Keep their captured input universe fixed; current-role grants are tested separately.
 _POST_HISTORICAL_METADATA_READS = {
@@ -164,6 +191,11 @@ _POST_HISTORICAL_METADATA_READS = {
     ('iam', 'get_role'),
     ('iam', 'get_context_keys_for_principal_policy'),
     ('iam', 'simulate_principal_policy'),
+    ('iam', 'get_policy'),
+    ('iam', 'get_role_policy'),
+    ('iam', 'list_attached_role_policies'),
+    ('iam', 'list_role_policies'),
+    ('accessanalyzer', 'get_finding_v2'),
     ('codecommit', 'list_repositories'),
     ('codecommit', 'list_pull_requests'),
     ('codecommit', 'get_pull_request'),

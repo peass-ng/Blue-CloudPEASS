@@ -1,8 +1,9 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Invalid parser intervals cannot establish a functioning gateway alert."""
 import pytest
 
 from tests.compliance_draft_isolation import staged_registry
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 

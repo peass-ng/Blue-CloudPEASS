@@ -33,11 +33,15 @@ def _selected_path(path: Path, config) -> bool:
     """Pytest may ask about siblings outside an explicitly requested file."""
     if not config.args:
         return True
-    for arg in config.args:
-        selected = Path(str(arg).split("::", 1)[0]).resolve()
-        if path == selected or (selected.is_dir() and selected in path.parents):
-            return True
-    return False
+    arguments = tuple(str(arg).split("::", 1)[0] for arg in config.args)
+    cached = getattr(config, "_peaso_collection_roots", None)
+    if cached is None or cached[0] != arguments:
+        roots = tuple(Path(arg).resolve() for arg in arguments)
+        cached = (arguments, tuple((root, root.is_dir()) for root in roots))
+        config._peaso_collection_roots = cached
+    parents = path.parents
+    return any(path == selected or (directory and selected in parents)
+               for selected, directory in cached[1])
 
 
 def pytest_configure(config):

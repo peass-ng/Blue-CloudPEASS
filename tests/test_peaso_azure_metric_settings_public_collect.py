@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Normal hosted metric settings reach native declaration and enabled-group reads."""
 from copy import deepcopy
 from types import SimpleNamespace
@@ -5,7 +6,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.server.validation import validate_connector
 from peaso.checks.compliance_new_sw25_facts import SETTINGS_ID
 from tests.test_peaso_azure_metric_requirements import settings, approval, SCOPE, GROUP

@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Actual ARM response fields through the native collector and frozen SW16."""
 import copy
 import json
@@ -5,7 +6,7 @@ from datetime import datetime,timedelta,timezone
 from urllib.parse import urlsplit,parse_qs
 import pytest
 from peaso.collectors import azure,azure_iot_policy_native as native
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from tests.test_peaso_azure_bulk_native import Transport,parent,SCOPE,SUB,BASE
 
 CHECK=native.CHECK

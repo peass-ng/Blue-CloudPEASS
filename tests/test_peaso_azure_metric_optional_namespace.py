@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Metric name presence does not require an unrequested native namespace.
 
 2018-03-01 MultiMetricCriteria lists metricNamespace outside required:
@@ -10,7 +11,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.server.validation import validate_connector
 from peaso.checks.compliance_new_sw25_facts import REQUIRED_ID
 from tests.test_peaso_azure_metric_requirements import RESOURCE, SCOPE, approval, settings

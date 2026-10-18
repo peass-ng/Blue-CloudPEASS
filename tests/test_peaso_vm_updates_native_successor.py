@@ -1,9 +1,10 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Normal hosted native patch pipeline with inert read-only HTTP responses."""
 from copy import deepcopy
 from urllib.parse import urlsplit
 from tests.test_peaso_azure_patch_installation_hosted_pipeline import NativeAPI,options,validate,SCOPE,VM,CHECK
 from peaso.collectors import azure,collect_live
-from peaso.engine import plan_collection,evaluate_snapshot
+from tests.archived_check_contract import plan_collection, evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 ABSENT=object()

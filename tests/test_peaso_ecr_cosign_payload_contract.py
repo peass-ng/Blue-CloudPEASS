@@ -103,7 +103,7 @@ for check_id in ids:registry.CHECK_ALIASES.pop(check_id,None)
 @pytest.mark.parametrize('mode,expected', [('official','PASS'),('legacy','UNKNOWN'),('foreign_digest','FAIL'),('bad_signature','FAIL'),('foreign_scope','UNKNOWN'),('partial','UNKNOWN')])
 def test_sealed_snapshot_to_engine(mode, expected):
  from peaso.snapshot import make_snapshot
- from peaso.engine import evaluate_snapshot
+ from tests.archived_check_contract import evaluate_snapshot
  value=body()
  if mode=='legacy':value={'subject':{'digest':DIGEST}}
  if mode=='foreign_digest':value['critical']['image']['docker-manifest-digest']='sha256:'+'c'*64

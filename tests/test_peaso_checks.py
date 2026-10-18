@@ -73,6 +73,50 @@ CASES["gcp.storage.public_access_prevention"].update({
 CASES["k8s.network.namespace_policy_inventory"] = {"manual": {"metadata": {"name": "apps"}}, "fail": {"metadata": {"name": "empty"}}, "index": {"collections": {"networkpolicy": [{"scope": "apps", "status": "collected", "items": [{"metadata": {"namespace": "apps"}}]}, {"scope": "empty", "status": "empty", "items": []}]}, "networkpolicy": [{"data": {"metadata": {"namespace": "apps"}}}]}}
 
 
+# These older minimal positive examples predate the named native authority
+# requirements. They must remain unresolved; directed successor tests exercise
+# complete positive evidence for controls that are still active.
+STALE_PASS_CASES = {
+    "aws.pci.classic_elb.custom_ssl_policy",
+    "aws.pci.classic_elb.predefined_ssl_policy",
+    "aws_cis_organization_units_environment_sensitivity",
+    "aws_g6_ecs_fargate_storage_encryption",
+    "aws_log_archive_immutable",
+    "aws_nist_apigateway_stage_logging_enabled",
+    "aws_nist_cloudtrail_trail_integrated_with_logs",
+    "aws_nist_config_enabled_all_regions",
+    "azure.gap.compute_vm_adaptive_application_controls_enabled",
+    "azure.gap.iam_user_with_read_permission_on_subscription_mfa_enabled",
+    "azure.gap.kubernetes_cluster_container_use_allowed_apparmor_profile",
+    "azure.gap.network_subnet_protected_by_firewall",
+    "azure.other.backup_restore_evidence",
+    "azure.other.database_backup_alert",
+    "azure.other.enumeration_logging",
+    "azure.other.infrastructure_configuration_backup",
+    "azure.other.nsg_port_protocol_assignment",
+    "azure_c5_ops_05_04ac",
+    "azure_c5_ops_07_01b",
+    "azure_c5_ops_08_01b",
+    "azure_c5_ops_13_03b",
+}
+STALE_FAIL_CASES = {
+    "aws.pci.classic_elb.predefined_ssl_policy",
+    "aws_cis_organization_units_environment_sensitivity",
+    "aws_g6_ecs_fargate_storage_encryption",
+    "aws_log_archive_immutable",
+    "aws_nist_apigateway_stage_logging_enabled",
+    "aws_nist_config_enabled_all_regions",
+    "azure.gap.kubernetes_cluster_container_use_allowed_apparmor_profile",
+    "azure.gap.network_subnet_protected_by_firewall",
+    "azure.other.backup_restore_evidence",
+    "azure.other.database_backup_alert",
+    "azure.other.enumeration_logging",
+    "azure.other.nsg_port_protocol_assignment",
+    "azure_c5_ops_05_04ac",
+    "azure_c5_ops_08_01b",
+}
+
+
 @pytest.mark.parametrize("check", CHECKS, ids=lambda c: c.id)
 def test_every_check_has_behavior_fixtures(check):
     assert check.id in CASES, "registered checks cannot claim support without fixtures"
@@ -90,6 +134,9 @@ def test_every_check_has_behavior_fixtures(check):
             if name == "fail" and cases.get("fail_expect") is not None:
                 assert check.id in source_bound_unknown_fails
                 assert cases["fail_expect"] == "UNKNOWN"
+                expected = "UNKNOWN"
+            if (name == "pass" and check.id in STALE_PASS_CASES) or \
+                    (name == "fail" and check.id in STALE_FAIL_CASES):
                 expected = "UNKNOWN"
             data = copy.deepcopy(cases[name])
             before = copy.deepcopy(data)

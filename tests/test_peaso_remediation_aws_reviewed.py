@@ -219,11 +219,9 @@ def test_api_gateway_stage_entries_match_signed_native_predicates_and_preserve_l
         ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip",
         repin["source_path"])
     assert hashlib.sha256(historical_iam).hexdigest() == repin["source_sha256"]
-    accepted_iam = historical_bytes(
-        ROOT / "infra/aws/build/peaso-source-706b5bbfea1daee2e62386ec4356638653c0f469f49110cb3128f2e4ec0399a5.zip",
-        repin["source_path"])
-    assert hashlib.sha256(accepted_iam).hexdigest() == "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
-    assert (ROOT / repin["source_path"]).read_bytes() == accepted_iam
+    # Retain the exact accepted source digest without claiming a full replay
+    # of the unpublished local 706b archive.
+    assert hashlib.sha256((ROOT / repin["source_path"]).read_bytes()).hexdigest() == "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
     family_raw = (ROOT / repin["path"]).read_bytes()
     assert hashlib.sha256(family_raw).hexdigest() == repin["post_sha256"]
     family_prior = json.loads(family_raw)

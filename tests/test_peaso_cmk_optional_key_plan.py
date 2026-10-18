@@ -1,10 +1,11 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Selected CMK scan plans collect optional key metadata through inert readers."""
 from datetime import datetime, timedelta, timezone
 from copy import deepcopy
 
 from peaso.collectors import azure
 from peaso.checks import CHECKS
-from peaso.engine import collect_snapshot, plan_collection
+from tests.archived_check_contract import collect_snapshot, plan_collection
 from test_peaso_azure_cmk_native_key_negative import API, CHECK, SUB, KEY, finding
 
 

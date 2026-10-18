@@ -1,7 +1,4 @@
-"""Inert normalized snapshot ingress for the original TLS and restore checks.
-
-The synthetic restore result is supplied evidence, not a performed restore.
-"""
+"""Inert normalized snapshot ingress for the original TLS check."""
 import copy
 import json
 from pathlib import Path
@@ -12,7 +9,6 @@ from peaso.snapshot import make_snapshot
 
 FIXTURE = Path(__file__).parent / "fixtures" / "bulk_pending_behavior.json"
 TLS = "azure.other.endpoint_certificate_trust"
-RESTORE = "azure.other.backup_restore_evidence"
 
 
 def verdict(cid, change=None):
@@ -34,13 +30,8 @@ def reading(env):
     return env["tls_endpoint_observation"]["items"][0]
 
 
-def restore_test(env):
-    return env["backup_restore_test"]["items"][0]
-
-
-@pytest.mark.parametrize("cid", [TLS, RESTORE])
-def test_explicit_baseline_passes_normalized_ingress(cid):
-    assert verdict(cid) == "PASS"
+def test_explicit_tls_baseline_passes_normalized_ingress():
+    assert verdict(TLS) == "PASS"
 
 
 @pytest.mark.parametrize("change", [
@@ -54,19 +45,3 @@ def test_explicit_baseline_passes_normalized_ingress(cid):
 ])
 def test_tls_missing_foreign_or_stale_chain_evidence_is_unknown(change):
     assert verdict(TLS, change) == "UNKNOWN"
-
-
-@pytest.mark.parametrize("change", [
-    lambda env: restore_test(env).pop("validationEvidence"),
-    lambda env: restore_test(env)["validationEvidence"].update(customer_context_id="foreign-capture"),
-    lambda env: restore_test(env)["validationEvidence"]["usableDataValidation"].pop("resultArtifactSha256"),
-    lambda env: restore_test(env)["validationEvidence"].update(expires_at="2026-10-11T12:00:00Z"),
-    lambda env: env["backup_restore_window"]["items"][0].update(testsComplete=False),
-    lambda env: env["backup_restore_window"]["items"][0].update(jobsInventorySha256="c" * 64),
-])
-def test_restore_missing_foreign_stale_or_incomplete_evidence_is_unknown(change):
-    assert verdict(RESTORE, change) == "UNKNOWN"
-
-
-def test_completed_restore_job_without_validation_is_not_pass():
-    assert verdict(RESTORE, lambda env: env["backup_restore_test"].update(items=[])) != "PASS"

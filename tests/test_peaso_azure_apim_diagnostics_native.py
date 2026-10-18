@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Native built-in APIM Azure Monitor logger plus source-bound sink aggregates."""
 import copy
 from datetime import datetime, timedelta, timezone
@@ -6,7 +7,7 @@ from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure, collect_live
 from peaso.collectors.azure_apim_diagnostics_native import HTTP_ID, VERBOSE_ID, METHODS_ID, IDS
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 SUB='/subscriptions/11111111-1111-1111-1111-111111111111'
 SERVICE=SUB+'/resourceGroups/rg/providers/Microsoft.ApiManagement/service/gateway'
@@ -86,7 +87,7 @@ def capture(monkeypatch,mode='ok',selected_check=None):
  transport=Transport();monkeypatch.setattr(azure,'AzureTransport',lambda auth:transport)
  connector={'provider':'azure','scopes':[SUB],'auth':{'method':'token','arm_token':'fixture','logs_token':'fixture'},'options':{'retries':0,'compliance_policy':{'sw24':policy}}}
  if selected_check:
-  from peaso.engine import collect_snapshot
+  from tests.archived_check_contract import collect_snapshot
   snapshot=collect_snapshot({'connector':connector,'checks':[selected_check]})
  else:
   snapshot=collect_live(connector,['azure_sw24_evidence'])

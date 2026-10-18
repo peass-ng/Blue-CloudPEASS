@@ -1,10 +1,11 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Synthetic native-shaped collect->signed public evaluator boundaries."""
 import copy
 from datetime import datetime,timedelta,timezone
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure
-from peaso.engine import collect_snapshot,evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.collectors.azure_apim_protocol_policy import CID,SPEC
 S='/subscriptions/11111111-1111-1111-1111-111111111111'
 T='22222222-2222-2222-2222-222222222222'

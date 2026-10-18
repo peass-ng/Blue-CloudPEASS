@@ -32,7 +32,7 @@ def test_fms_incomplete_identity_via_public_snapshot(mode, expected):
     from copy import deepcopy
     from test_peaso_fms_multi_acl_priority import SCOPE
     from peaso.snapshot import make_snapshot
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     policy, rows, index = case()
     if mode != "valid":
         rows[0]["Rules"][1]["Priority"] = 3

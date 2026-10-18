@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Scoped Macie finding authority through SDK stubs and the registered engine."""
 from copy import deepcopy
 import json
@@ -7,7 +8,7 @@ import pytest
 from test_peaso_aws_bulk_inventory import sdk
 from tests.test_peaso_aws_macie_findings_native import finding, ACCOUNT, REGION, BUCKET, CHECK, LIST_ARGS
 from peaso.collectors import aws, aws_macie_findings_native as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 SCOPE = ACCOUNT + '/' + REGION

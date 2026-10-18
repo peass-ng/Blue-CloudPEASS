@@ -17,6 +17,7 @@ ACI_LIST = SCOPE + "/providers/Microsoft.ContainerInstance/containerGroups"
 
 def native_result(ca, monkeypatch, *, host_pid=False, aci=False, mode="good", pod_present=True, tamper=None):
     routes, responses, options, auth, Api = fixture(ca, mode)
+    routes[SCOPE] = {"id": SCOPE, "subscriptionId": SUB, "tenantId": Transport.tenant}
     if pod_present:
         responses["/api/v1/pods"][0]["spec"]["hostPID"] = host_pid
     else:

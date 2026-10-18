@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Public collection proves configured correlation from approvals and native reads."""
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
@@ -10,7 +11,7 @@ from fastapi import HTTPException
 
 from peaso.collectors import azure, collect_live
 from peaso.collectors import azure_security_correlation_native as native
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 from tests.test_peaso_collectors_azurek8s import FakeAzure
 

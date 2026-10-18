@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Signed partial definitions never masquerade as native evidence producers."""
 import copy
 from importlib import import_module
@@ -7,7 +8,7 @@ import pytest
 from peaso.checks import CHECKS, evaluate_check
 from peaso.collectors import collect_live, supported_types
 from peaso.collectors.bulk_evidence import coverage, declared_types
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.snapshot import make_snapshot, validate
 from tests.release_successor_history import BULK_IDS, registered_before_bulk
 

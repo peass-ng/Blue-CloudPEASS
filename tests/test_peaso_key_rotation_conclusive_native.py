@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """A conclusive exact-key rotation violation does not need negative IAM proof."""
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -7,7 +8,7 @@ import pytest
 
 from peaso.checks import evaluate_check
 from peaso.collectors import collect_live, azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from tests.test_peaso_azure_key_rotation_evidence_native import (
     CONTROL, KEY, NATIVE_KEY, ORIGIN, SCOPE, VAULT, project, sources,
 )

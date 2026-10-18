@@ -1,10 +1,11 @@
+# Historical fixture contracts; current native admission is tested separately.
 """A complete empty/disabled primary roster independently disproves settings."""
 from copy import deepcopy
 import pytest
 
 from tests.compliance_draft_isolation import staged_registry
 from peaso.checks import CHECKS
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 

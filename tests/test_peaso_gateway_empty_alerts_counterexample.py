@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """A complete empty alert universe proves no gateway rule is configured."""
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
@@ -9,7 +10,7 @@ import pytest
 from peaso.checks import CHECKS
 from peaso.checks.compliance_new_sw25_facts import GATEWAY_ID, FAMILIES
 from peaso.collectors import collect_live, azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 SCOPE = '/subscriptions/11111111-1111-1111-1111-111111111111'

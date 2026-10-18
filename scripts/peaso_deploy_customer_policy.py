@@ -108,6 +108,13 @@ SECRET_METADATA_REFERENCE = (
     "https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_DescribeSecret.html",
 )
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset({SECRET_METADATA_REFERENCE[0]})
+IAM_ROLE_POLICY_METADATA_REFERENCES = {
+    "iam:GetPolicy": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetPolicy.html",
+    "iam:GetRolePolicy": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html",
+    "iam:ListAttachedRolePolicies": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAttachedRolePolicies.html",
+    "iam:ListRolePolicies": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListRolePolicies.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IAM_ROLE_POLICY_METADATA_REFERENCES)
 # Exact read-only native Budgets API/IAM mapping; no execution grant.
 BUDGET_STOP_REFERENCE = (
     "https://docs.aws.amazon.com/service-authorization/latest/reference/list_budgets.html",
@@ -648,9 +655,9 @@ def refresh(root: Path):
     for number, document in enumerate(documents, 1):
         resources[f"{MANAGED_POLICY_PREFIX}{number}"] = {"Type": "AWS::IAM::ManagedPolicy", "Properties": {
             "Description": (previous_resources.get(f"{MANAGED_POLICY_PREFIX}{number}", {}).get("Properties", {}).get("Description")
-                            if previous_resources.get(f"{MANAGED_POLICY_PREFIX}{number}", {}).get("Properties", {}).get("PolicyDocument") == document
-                            else f"PEASO read-only configuration metadata ({number}/{len(documents)})"),
+                            or f"HackTricks CSPM read-only configuration metadata ({number}/{len(documents)})"),
             "Roles": [{"Ref": "AuditRole"}], "PolicyDocument": document}}
+    current_metadata = json.loads(json.dumps(template.get("Metadata", {})))
     template.setdefault("Metadata", {})["PeasoPermissionReference"] = {
         "Source": REFERENCE_URL, "CapturedDate": REFERENCE_DATE, "SHA256": REFERENCE_SHA256,
         "Mapping": "Reviewed SDK/IAM aliases and namespaces; action names verified against AWS-published reference",
@@ -697,6 +704,15 @@ def refresh(root: Path):
             "CapturedDate": "2026-10-15", "Actions": native_actions,
             "ResourceReferences": NATIVE_METADATA_RESOURCE_REFERENCES,
             "Boundary": "Exact metadata reads; budget actions and Lambda functions scoped to customer account. No action execution, tag mutation or secret values.",
+        }
+    if "HackTricksCspmPermissionReference" in current_metadata:
+        # Published HackTricks templates already carry the legacy source records
+        # under their branded keys. Keep those records verbatim on regeneration.
+        template["Metadata"] = current_metadata
+        template["Metadata"]["HackTricksCspmIamRolePolicyMetadataReference"] = {
+            "Actions": sorted(IAM_ROLE_POLICY_METADATA_REFERENCES),
+            "Sources": IAM_ROLE_POLICY_METADATA_REFERENCES,
+            "Boundary": "Read IAM role policy names and documents for CloudTrail delivery-role configuration; no IAM writes.",
         }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.

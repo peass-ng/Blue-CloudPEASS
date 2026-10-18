@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Optional native Organizations ARNs must agree with org/owner/partition."""
 from types import SimpleNamespace
 import pytest
@@ -5,7 +6,7 @@ from tests.test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from tests.aws_tag_policy_fixture import collect_policy
 from tests.test_peaso_aws_tag_policy_locked_assignment import MASTER, ORG, CONTROL
 from peaso.collectors import aws, collect_live, aws_organizations_native as native
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 
 ORG_ARN = f'arn:aws:organizations::{MASTER}:organization/{ORG}'

@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Public collector dispatch derives dates without additional native requests."""
 import base64
 import copy
@@ -5,7 +6,7 @@ import json
 from datetime import datetime, timezone
 import pytest
 from peaso.collectors import azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from tests import test_peaso_azure_certificate_issuance_native as fixture
 
 @pytest.mark.parametrize('requirements', [['certificate_issuance'], ['certificate_issuance', 'key_vault_certificate']])

@@ -56,7 +56,7 @@ def test_owner_input_rejects_unapproved_or_foreign_scope(field,value):
 @pytest.mark.parametrize('approval_age_seconds,expected', [(0, 'PASS'), (86401, 'UNKNOWN'), (-3600, 'UNKNOWN')])
 def test_native_collector_to_engine_preserves_policy_and_scores_one_project(approval_age_seconds, expected):
  from tests.test_peaso_collectors_gcp import snapshot
- from peaso.engine import evaluate_snapshot
+ from tests.archived_check_contract import evaluate_snapshot
  _,index=bundle();policy=index['context']['metadata'][OPTION]
  # Collection uses its real capture clock; keep the approved fixture relative to it.
  policy['observed_at']=(datetime.now(timezone.utc)-timedelta(seconds=approval_age_seconds)).isoformat()

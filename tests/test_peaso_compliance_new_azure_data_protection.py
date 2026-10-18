@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Provider-shaped Cosmos backup retention cases bound to an approved owner minimum."""
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
@@ -7,7 +8,7 @@ from peaso.checks import CHECKS, evaluate_check
 from peaso.checks import compliance_new_azure_data_protection as new
 from peaso.collectors.azure import _cosmos_backup_retention_policy
 from peaso.collectors import azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 

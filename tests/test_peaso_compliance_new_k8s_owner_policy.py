@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Defensive signed owner-policy predicates over complete Kubernetes facts."""
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
@@ -8,7 +9,7 @@ from peaso.checks import compliance_new_k8s_owner_policy as checks
 from peaso.checks.facts import MemoIndex
 from peaso.collectors.k8s import _owner_policy_metadata
 from peaso.collectors import k8s
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 
 NOW = datetime(2026, 10, 12, tzinfo=timezone.utc)

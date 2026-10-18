@@ -175,7 +175,7 @@ def captured_snapshot(secret=True, yaml='variables: {}', unrelated=False, public
 
 
 def status(snapshot,check=native.SECRET_CHECK):
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     report=evaluate_snapshot(snapshot,checks=[check])
     assert SECRET not in json.dumps(snapshot) and TOKEN not in json.dumps(snapshot)
     assert SECRET not in json.dumps(report) and TOKEN not in json.dumps(report)

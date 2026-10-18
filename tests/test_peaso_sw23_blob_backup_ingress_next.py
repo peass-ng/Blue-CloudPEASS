@@ -28,20 +28,6 @@ def _finding(cid, mutate):
     return findings[0]
 
 
-def test_backup_equivalent_export_and_restore_instants_join():
-    def equivalent_offsets(evidence):
-        export = evidence["exports"]["items"][0]
-        export["completed_at"] = "2026-10-12T13:00:00+02:00"
-        export["restore"]["tested_at"] = "2026-10-12T14:00:00+02:00"
-    assert _finding(BACKUP, equivalent_offsets)["status"] == "PASS"
-
-
-def test_backup_distinct_restore_instant_stays_unresolved():
-    def distinct_instant(evidence):
-        evidence["exports"]["items"][0]["restore"]["tested_at"] = "2026-10-12T14:00:01+02:00"
-    assert _finding(BACKUP, distinct_instant)["status"] == "UNKNOWN"
-
-
 def test_uniform_foreign_effective_grant_container_stays_unresolved():
     def foreign_grant(evidence):
         container = evidence["containers"]["items"][0]

@@ -74,10 +74,9 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
     checks = {check.id: check for check in CHECKS}
     entries = reviewed()
     iam_path = "peaso/checks/claude_aws_a_iam.py"
-    accepted_iam = historical_bytes(
-        ROOT / "infra/aws/build/peaso-source-706b5bbfea1daee2e62386ec4356638653c0f469f49110cb3128f2e4ec0399a5.zip",
-        iam_path)
-    assert (ROOT / iam_path).read_bytes() == accepted_iam
+    # The accepted helper is pinned independently; the unpublished local
+    # 706b archive is not a portable historical-release fixture.
+    assert hashlib.sha256((ROOT / iam_path).read_bytes()).hexdigest() == "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
     assert len(assigned) == 593
     assert central[PREAPPROVED]["review_status"] == "approved"
     assert entries and set(entries) <= assigned - {PREAPPROVED}
@@ -109,6 +108,23 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
             else:
                 matches = [text for text in source_lines if cid in text]
             assert matches
+            source_line = matches[0]
+        elif row["source_proof"].get("generated_family") == "WAF_CLASSIC":
+            suffix = row["source_proof"]["suffix"]
+            needle = '@install("aws.cb.%s.' + suffix + '" % prefix'
+            matches = [text for text in source_lines if needle in text]
+            assert len(matches) == 1
+            source_line = matches[0]
+        elif row["source_proof"].get("generated_family") == "SHIELD_PROTECTION":
+            matches = [text for text in source_lines if text.startswith("def _shield_check(")]
+            assert len(matches) == 1
+            source_line = matches[0]
+        elif row["source_proof"].get("generated_family") == "RAM_TRUST":
+            # Native edits shifted these authoring lines. Resolve the exact
+            # generator argument instead of attributing a neighboring line.
+            kind = row["source_proof"]["principal_kind"]
+            matches = [text for text in source_lines if text.startswith('_ram("' + kind + '"')]
+            assert len(matches) == 1
             source_line = matches[0]
         elif row["source_proof"].get("generated_family") in {
                 None, "SNS_ACTIONS", "SSM_COMPLIANCE", "NEP_SUBNET",
@@ -153,10 +169,26 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
         elif row["source_proof"].get("generated_family") == "LIGHTSAIL_PORT":
             assert cid in source_line and str(row["source_proof"]["tcp_port"]) in source_line
             assert 'def _open_ports(' in (ROOT / source_path).read_text()
+        elif row["source_proof"].get("generated_family") == "WAF_CLASSIC":
+            suffix = row["source_proof"]["suffix"]
+            needle = '@install("aws.cb.%s.' + suffix + '" % prefix'
+            matches = [text for text in source_lines if needle in text]
+            assert len(matches) == 1
+            source_line = matches[0]
         elif row["source_proof"].get("generated_family") == "SHIELD_PROTECTION":
             assert "def _shield_check(" in source_line
             assert cid in (ROOT / source_path).read_text()
             assert row["source_proof"]["resource_arn_field"] in row["field_binding"]["path"]
+        elif row["source_proof"].get("generated_family") == "WAF_CLASSIC":
+            suffix = row["source_proof"]["suffix"]
+            needle = '@install("aws.cb.%s.' + suffix + '" % prefix'
+            matches = [text for text in source_lines if needle in text]
+            assert len(matches) == 1
+            source_line = matches[0]
+        elif row["source_proof"].get("generated_family") == "SHIELD_PROTECTION":
+            matches = [text for text in source_lines if text.startswith("def _shield_check(")]
+            assert len(matches) == 1
+            source_line = matches[0]
         elif row["source_proof"].get("generated_family") == "RAM_TRUST":
             assert '_ram("' + row["source_proof"]["principal_kind"] + '"' in source_line
             assert 'return "MANUAL"' in (ROOT / source_path).read_text()
@@ -252,11 +284,24 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
             assert cid in tuple_line and row["source_proof"]["engine"] in tuple_line
             assert tuple(row["source_proof"]["pinned_versions"]) == (
                 "10.11", "10.12", "10.13", "11.6", "11.7", "11.8")
+        elif row["source_proof"].get("source_kind") == "route53_domain" and cid == "aws.cb.route53.domain_not_expired":
+            matches = [text for text in source_lines if text.startswith('_expiry("' + cid + '"')]
+            assert len(matches) == 1
         else:
             # Saved line numbers describe the reviewed source snapshot. Later
             # native fixes can shift a direct registration without changing it.
             source_lines = (ROOT / source_path).read_text().splitlines()
-            assert cid in source_line or sum(f'"{cid}"' in candidate for candidate in source_lines) == 1
+            if cid not in source_line and sum(f'"{cid}"' in candidate for candidate in source_lines) != 1:
+                # A fixture assignment may also mention this ID. Prove the
+                # unique decorated registration and its live callable instead.
+                nodes = ast.parse("\n".join(source_lines)).body
+                registrations = [node for node in nodes if isinstance(node, ast.FunctionDef)
+                                 and any(isinstance(decorator, ast.Call) and decorator.args
+                                         and isinstance(decorator.func, ast.Name) and decorator.func.id == "install"
+                                         and isinstance(decorator.args[0], ast.Constant)
+                                         and decorator.args[0].value == cid for decorator in node.decorator_list)]
+                assert len(registrations) == 1, (cid, source_path, len(registrations))
+                assert inspect.unwrap(checks[cid].evaluate).__name__ == registrations[0].name
         assert template(cid) == row
 
 

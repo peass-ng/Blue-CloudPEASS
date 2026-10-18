@@ -1,7 +1,8 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Passive supplied inventory through sealed snapshot and exact registered engine."""
 import copy
 from peaso.snapshot import make_snapshot
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from tests.nsg_service_observation_fixture import CID,S,NOW,fixture,digest
 
 def status(collections,policy,partial=False):

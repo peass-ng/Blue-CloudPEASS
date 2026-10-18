@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Inert registered-runtime regression probes for Azure PCI patch evidence binding."""
 
 from copy import deepcopy
@@ -5,7 +6,7 @@ from copy import deepcopy
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_azure_patch_installation_hosted_pipeline import (
     CHECK, OPERATION, SCOPE, VM, NativeAPI, options,

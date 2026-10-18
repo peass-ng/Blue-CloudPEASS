@@ -96,7 +96,11 @@ def test_merges_of_lead_reviewed_rows_require_recorded_verification():
 def test_generated_coverage_summary_is_the_same_accepted_source_snapshot():
     summary = json.loads((PACK / "catalog_summary.json").read_text())
     runtime = json.loads((PACK / "runtime_metadata.json").read_text())
-    assert {key: value for key, value in summary.items() if key not in ("phase", "inventory_coverage")} == runtime["coverage"]
+    assert {key: value for key, value in summary.items() if key not in ("phase", "inventory_coverage", "active_native_checks", "automation_scope")} == runtime["coverage"]
+    from peaso.checks import CHECKS
+    from peaso.checks.native_only import automated_checks, scope
+    assert summary["active_native_checks"] == len(automated_checks(CHECKS))
+    assert summary["automation_scope"] == scope()
     from peaso.collectors.bulk_evidence import coverage
     assert summary["inventory_coverage"] == coverage()
     assert sum(summary["upstream"].values()) == summary["upstream_total"]

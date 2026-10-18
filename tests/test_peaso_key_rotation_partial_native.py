@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Independent native key policies survive inaccessible vault/key siblings."""
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -6,7 +7,7 @@ import json
 import pytest
 
 from peaso.collectors import azure, azure_key_rotation_evidence_native as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_azure_key_rotation_evidence_native import SCOPE, VAULT, ORIGIN, KEY, NATIVE_KEY, CONTROL, sources
 from tests.test_peaso_key_rotation_conclusive_native import owner

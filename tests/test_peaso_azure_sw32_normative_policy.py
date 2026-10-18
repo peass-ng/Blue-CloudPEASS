@@ -146,7 +146,7 @@ def test_policy_scope_and_total_bounds_preserved():
 
 
 def test_criteria_do_not_produce_missing_rbac_or_scan_observations():
- from peaso.engine import evaluate_snapshot
+ from tests.archived_check_contract import evaluate_snapshot
  from peaso.snapshot import make_snapshot
  # The concrete current SW32 IDs are selected from their reviewed declaration, without importing drafts.
  from pathlib import Path

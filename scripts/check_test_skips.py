@@ -29,6 +29,10 @@ PYTEST_ALLOWED = (
      'private captured cloud snapshots under .cache/peaso-qa (tests/test_peaso_reachability.py)'),
     (r'saved native snapshot is not part of the portable source checkout', 1,
      'optional private PSP replay; synthetic applicability regressions remain mandatory'),
+    (r'PEASO_ARTIFACT_UPDATE_QA_DIR exact private QA directory was not supplied', 35,
+     'optional historical saved-plan replay; current public plan guards remain mandatory'),
+    (r'Exact private e937 state and refresh QA paths were not supplied', 6,
+     'optional historical successor-plan replay; private state never enters the source archive'),
 )
 PLAYWRIGHT_ALLOWED = (
     # One env-gated test per spec; each needs an isolated real backend or captured snapshot.

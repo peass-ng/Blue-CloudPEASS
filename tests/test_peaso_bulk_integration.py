@@ -6,6 +6,12 @@ from peaso.collectors import bulk_evidence
 from peaso.snapshot import make_snapshot
 
 MANIFEST=json.loads(Path('peaso/checks/bulk_pending.json').read_text())
+# Reviewed native collection successors preserve the frozen authoring manifest.
+DEPENDENCY_SUCCESSORS = {
+ 'aws_log_archive_immutable': (['s3_bucket', 'cloudtrail'], ['s3_bucket', 'cloudtrail_account_inventory']),
+ 'aws_nist_apigateway_stage_logging_enabled': (['http_api_stage', 'rest_api_stage'], ['http_api_stage', 'rest_api_stage', 'rest_api_method']),
+ 'aws_nist_cloudtrail_trail_integrated_with_logs': (['cloudtrail_account_inventory', 'log_group', 'cloudtrail_delivery_role_scope'], ['cloudtrail_account_inventory', 'log_group']),
+}
 
 def test_all_signed_pending_ids_are_unique_and_registered_once():
  ids=[c.id for c in CHECKS];assert len(ids)==len(set(ids))
@@ -22,7 +28,12 @@ def test_all_signed_pending_ids_are_unique_and_registered_once():
  assert set(MANIFEST['checks'])<=set(ids)
  for c in CHECKS:
   if c.id in MANIFEST['checks']:
-   r=MANIFEST['checks'][c.id];assert (c.provider,c.kind,c.dependencies)==(r['provider'],r['kind'],r['dependencies'])
+   r=MANIFEST['checks'][c.id]
+   expected = r['dependencies']
+   if c.id in DEPENDENCY_SUCCESSORS:
+    original, expected = DEPENDENCY_SUCCESSORS[c.id]
+    assert r['dependencies'] == original
+   assert (c.provider,c.kind,c.dependencies)==(r['provider'],r['kind'],expected)
 
 @pytest.mark.parametrize('ident',MANIFEST['checks'])
 def test_each_new_definition_rejects_absent_and_denied_input(ident):

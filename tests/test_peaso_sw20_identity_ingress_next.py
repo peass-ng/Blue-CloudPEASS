@@ -27,25 +27,6 @@ def status(cid, item, index):
     return rows[0]["status"]
 
 
-@pytest.mark.parametrize("location", ["grant_row", "grant_source", "decision_row", "decision_source"])
-def test_mfa_rejects_explicit_foreign_tenant_or_capture(location):
-    item, index = case(MFA)
-    index["context"]["metadata"].update(credential_context_id="cred-1", customer_context_id="customer-1")
-    index["collections"]["entra_user"][0]["scopeCoverage"]["_provenance"].update(credential_context_id="cred-1", customer_context_id="customer-1")
-    user = index["collections"]["entra_user"][0]["items"][0]
-    grants = user["effectiveSubscriptionGrants"]
-    decisions = user["managementSignInDecisions"]
-    for row in (grants, decisions, *decisions["items"]):
-        row["tenant_id"] = "tenant-1"
-        row["_provenance"] = {**row.get("_provenance", {}), "tenant_id": "tenant-1",
-                              "credential_context_id": "cred-1", "customer_context_id": "customer-1"}
-    target = {"grant_row": grants, "grant_source": grants["_provenance"],
-              "decision_row": decisions["items"][0],
-              "decision_source": decisions["_provenance"]}[location]
-    target["tenant_id"] = "foreign-tenant"
-    assert status(MFA, item, index) == "UNKNOWN"
-
-
 @pytest.mark.parametrize("kind", ["history", "proof", "domain"])
 def test_federation_rejects_explicit_foreign_source_subject(kind):
     item, index = case(FEDERATED)
@@ -56,23 +37,6 @@ def test_federation_rejects_explicit_foreign_source_subject(kind):
     selected = {"history": history, "proof": proof, "domain": domain}[kind]
     selected["source_subject_id"] = "other-subject"
     assert status(FEDERATED, item, index) == "UNKNOWN"
-
-
-@pytest.mark.parametrize("location", ["grant", "decision"])
-def test_mfa_rejects_foreign_capture_context(location):
-    item, index = case(MFA)
-    index["context"]["metadata"].update(customer_context_id="customer-1")
-    index["collections"]["entra_user"][0]["scopeCoverage"]["_provenance"]["customer_context_id"] = "customer-1"
-    user = index["collections"]["entra_user"][0]["items"][0]
-    grants = user["effectiveSubscriptionGrants"]
-    decisions = user["managementSignInDecisions"]
-    grants["_provenance"]["customer_context_id"] = "customer-1"
-    decisions["_provenance"]["customer_context_id"] = "customer-1"
-    for row in decisions["items"]:
-        row["_provenance"] = {"customer_context_id": "customer-1"}
-    selected = grants if location == "grant" else decisions["items"][0]
-    selected["_provenance"]["customer_context_id"] = "foreign-customer"
-    assert status(MFA, item, index) == "UNKNOWN"
 
 
 @pytest.mark.parametrize("kind", ["history", "proof", "domain"])
@@ -93,24 +57,17 @@ def test_measured_mfa_bypass_survives_unrelated_malformed_path():
     assert status(MFA, item, index) == "FAIL"
 
 
-def test_matching_explicit_identity_and_capture_still_pass():
-    for cid in (MFA, FEDERATED):
-        item, index = case(cid)
-        index["context"]["metadata"].update(credential_context_id="cred-1", customer_context_id="customer-1")
-        user = index["collections"]["entra_user"][0]["items"][0]
-        if cid == MFA:
-            index["collections"]["entra_user"][0]["scopeCoverage"]["_provenance"].update(credential_context_id="cred-1", customer_context_id="customer-1")
-            grants = user["effectiveSubscriptionGrants"]
-            decisions = user["managementSignInDecisions"]
-            rows = [grants, decisions, *decisions["items"]]
-        else:
-            history = index["collections"]["human_signin_history"][0]["items"][0]
-            rows = [history, history["authenticationEvidence"][0],
-                    index["collections"]["domain_federation"][0]["items"][0]]
-        for row in rows:
-            row["tenant_id"] = "tenant-1"
-            row["source_idp_id"] = user["source_idp_id"]
-            row["source_subject_id"] = user["source_subject_id"]
-            row["_provenance"] = {**row.get("_provenance", {}), "tenant_id": "tenant-1",
-                                  "credential_context_id": "cred-1", "customer_context_id": "customer-1"}
-        assert status(cid, item, index) == "PASS"
+def test_matching_explicit_federation_identity_and_capture_still_pass():
+    item, index = case(FEDERATED)
+    index["context"]["metadata"].update(credential_context_id="cred-1", customer_context_id="customer-1")
+    user = index["collections"]["entra_user"][0]["items"][0]
+    history = index["collections"]["human_signin_history"][0]["items"][0]
+    rows = [history, history["authenticationEvidence"][0],
+            index["collections"]["domain_federation"][0]["items"][0]]
+    for row in rows:
+        row["tenant_id"] = "tenant-1"
+        row["source_idp_id"] = user["source_idp_id"]
+        row["source_subject_id"] = user["source_subject_id"]
+        row["_provenance"] = {**row.get("_provenance", {}), "tenant_id": "tenant-1",
+                              "credential_context_id": "cred-1", "customer_context_id": "customer-1"}
+    assert status(FEDERATED, item, index) == "PASS"

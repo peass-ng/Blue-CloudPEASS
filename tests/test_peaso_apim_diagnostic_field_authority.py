@@ -1,8 +1,9 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Native APIM selected-field authority through inert collection and registered snapshots."""
 import copy
 from peaso.checks.azure_apim_diagnostics_native import configuration, digest
 from peaso.collectors.azure_apim_diagnostics_native import HTTP_ID, VERBOSE_ID, METHODS_ID
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from test_peaso_azure_apim_diagnostics_native import capture
 

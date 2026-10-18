@@ -16,9 +16,11 @@ npm --prefix frontend run test:e2e
 
 `tests/conftest.py` restores pinned synthetic fixture data from the compressed regression bundle and removes inputs it created when the session exits. Draft control registrars have isolation rules: tests for a draft run separately and must not contaminate the admitted runtime registry.
 
+The automatic engine rejects controls requiring owner declarations or external/manual evidence, including when mixed with eligible controls. A parameterized admission test covers every archived identifier. Explicit historical fixture contracts use the test-only archived adapter; they do not establish current automatic coverage or reactivate controls in the product. Collector and active-check regressions remain in the current suite.
+
 ## CI
 
-The repository's `Tests` workflow runs Python tests and fixture-backed Playwright checks. It checks unexpected skips separately. Some source-provenance, live-backend and scale tests require their documented pinned exports, tokens or explicit opt-in settings; a skip is not a pass. Frontend fixtures use an unreachable backend by default so an unmocked request cannot accidentally use a cloud account.
+The repository's `Tests` workflow runs Python tests and fixture-backed Playwright checks. It checks unexpected skips separately. Some source-provenance, live-backend and scale tests require their documented pinned exports, tokens or explicit opt-in settings; a skip is not a pass. Historical saved-plan replays require their exact private QA directories and are separately allowlisted; the current public deployment guards still run. Frontend fixtures use an unreachable backend by default so an unmocked request cannot accidentally use a cloud account.
 
 For provider code, verify successful, denied, empty, partial, malformed and paginated responses. Confirm redaction, read-only method allowlists, exact scope/identity binding and cancellation. Offline evaluation must work without provider calls. API tests must cover authentication, tenant/workspace ownership, quotas, storage and job lifecycle.
 

@@ -230,7 +230,8 @@ def test_default_plan_skips_bulk_streams_but_keeps_every_dependency():
     from peaso.engine import BULK_STREAM_TYPES, plan_collection
     assert {"activity_log", "directory_audit"} <= BULK_STREAM_TYPES["azure"] and "activity" in BULK_STREAM_TYPES["gcp"]
     for provider in ("aws", "azure", "gcp", "k8s"):
-        available = set(supported_types(provider))
+        from peaso.checks.native_only import automated_inventory_types
+        available = set(automated_inventory_types(provider, supported_types(provider)))
         plan = set(plan_collection({"connector": {"provider": provider}}))
         assert not plan & BULK_STREAM_TYPES[provider]
         dependencies = {kind for check in CHECKS if check.provider == provider for kind in check.dependencies}
@@ -238,7 +239,8 @@ def test_default_plan_skips_bulk_streams_but_keeps_every_dependency():
         # Audit predicates remain UNKNOWN until the caller explicitly requests
         # their event streams; registering them does not widen default collection.
         assert (dependencies & available) - BULK_STREAM_TYPES[provider] <= plan
-        assert plan == available - BULK_STREAM_TYPES[provider]
+        # AWS-owned managed-policy library collection remains explicit opt-in.
+        assert plan == available - BULK_STREAM_TYPES[provider] - ({"iam_managed_policy"} if provider == "aws" else set())
     explicit = plan_collection({"connector": {"provider": "azure", "options": {"inventories": ["activity_log", "directory_audit"]}}})
     assert explicit == ["activity_log", "directory_audit"]
     assert "activity_log" in plan_collection({"connector": {"provider": "azure", "options": {"collect_all": True}}})
@@ -250,7 +252,8 @@ def test_default_and_privesc_plans_cover_every_privesc_required_type(provider):
     from peaso.analysis.privesc_requirements import privesc_collection_types
     from peaso.collectors import supported_types
     from peaso.engine import BULK_STREAM_TYPES, plan_collection
-    available = set(supported_types(provider))
+    from peaso.checks.native_only import automated_inventory_types
+    available = set(automated_inventory_types(provider, supported_types(provider)))
     required = set(privesc_required_types(provider))
     # The privesc model's own reads are part of the requirement, not only the hand-written floor.
     assert set(REQUIRED_TYPES[provider]["privesc"]) <= required

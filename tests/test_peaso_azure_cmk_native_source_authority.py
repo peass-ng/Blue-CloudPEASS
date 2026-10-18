@@ -1,9 +1,10 @@
+# Historical fixture contracts; current native admission is tested separately.
 """CMK native GET authority must belong to the evaluated capture."""
 from copy import deepcopy
 
 import pytest
 
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from test_peaso_azure_cmk_native_full_get import CHECK, SUB, capture
 

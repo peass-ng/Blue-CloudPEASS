@@ -1,9 +1,10 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Normal Cognito-compatible owner options -> AWS collector -> OU evaluator."""
 from types import SimpleNamespace
 import pytest
 
 from peaso.collectors import aws, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 from tests.test_peaso_aws_organization_ou_native import (
     sdk, ACCOUNT, REGION, MEMBER, PROD, SENSITIVE, ROOT, CONTROL,

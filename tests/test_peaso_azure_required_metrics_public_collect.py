@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Hosted normative requirements through the existing readonly Azure collector."""
 from copy import deepcopy
 from types import SimpleNamespace
@@ -5,7 +6,7 @@ from urllib.parse import urlsplit, parse_qs
 import pytest
 
 from peaso.collectors import collect_live, azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.server.validation import validate_connector
 from peaso.checks.compliance_new_sw25_facts import REQUIRED_ID
 from tests.test_peaso_azure_alert_routing_native import native, SCOPE, RESOURCE

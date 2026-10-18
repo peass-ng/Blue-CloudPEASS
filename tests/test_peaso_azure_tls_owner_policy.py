@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 """Explicit TLS criteria never substitute for native endpoint observations."""
 import copy
 from datetime import timedelta
@@ -6,7 +7,7 @@ import pytest
 from fastapi import HTTPException
 from peaso import azure_tls_owner_policy as policy
 from peaso.collectors import azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.server.validation import validate_connector
 from tests.compliance_draft_isolation import staged_registry
 

@@ -273,7 +273,12 @@ def test_role_permissions_and_immutable_versions():
         assert hashlib.sha256((root / ('customer-role-' + digest + '.json')).read_bytes()).hexdigest() == digest
         assert digest in (root / 'storage.tf').read_text()
     current = json.loads((root / 'customer-role.json').read_text())
-    old = json.loads((root / ('customer-role-' + frozen[-1] + '.json')).read_text())
+    # Keep the old archives immutable; compare the current role to the last
+    # published broker-based template, before this metadata-read extension.
+    previous = 'a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02'
+    previous_bytes = (root / ('customer-role-' + previous + '.json')).read_bytes()
+    assert hashlib.sha256(previous_bytes).hexdigest() == previous
+    old = json.loads(previous_bytes)
     current_role = current['Resources']['AuditRole']
     old_role = old['Resources']['AuditRole']
     assert current_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']['AWS'] == 'arn:aws:iam::202533532952:role/HackTricks-CSPM'

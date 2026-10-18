@@ -34,10 +34,11 @@ class Transport:
         assert body is None
         parsed = urlsplit(url)
         self.calls.append((audience, parsed.path, parse_qs(parsed.query)))
-        if audience == azure.ARM and parsed.path == "/subscriptions":
+        if audience == azure.ARM and parsed.path in ("/subscriptions", SCOPE):
             if self.subscription_status is not None:
                 raise self.subscription_status
-            return {"value": [{"id": SCOPE, "subscriptionId": SUB, "tenantId": self.binding_tenant}]}
+            row = {"id": SCOPE, "subscriptionId": SUB, "tenantId": self.binding_tenant}
+            return {"value": [row]} if parsed.path == "/subscriptions" else row
         if audience == azure.GRAPH and parsed.path == "/v1.0/users":
             page = int(parse_qs(parsed.query).get("page", ["1"])[0]) - 1
             data = self.pages[page]
@@ -78,7 +79,7 @@ def test_fully_paged_roster_is_scoped_but_never_external_proof(monkeypatch):
     report = evaluate_snapshot(snapshot, checks=list(CHECKS), include_not_applicable=True)
     assert {f["check_id"] for f in report["findings"]} == set(CHECKS)
     assert not any(f["status"] == "PASS" for f in report["findings"])
-    assert all(audience in (azure.ARM, azure.GRAPH) and path in ("/subscriptions", "/v1.0/users")
+    assert all(audience in (azure.ARM, azure.GRAPH) and path in (SCOPE, "/v1.0/users")
                for audience, path, _ in api.calls)
     assert len([1 for audience, path, _ in api.calls if audience == azure.GRAPH and path == "/v1.0/users"]) == 2
 

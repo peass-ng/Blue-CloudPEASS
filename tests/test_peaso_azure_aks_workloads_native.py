@@ -1,3 +1,4 @@
+# Historical fixture contracts; current native admission is tested separately.
 import copy,json
 from datetime import datetime,timedelta,timezone
 from types import SimpleNamespace
@@ -8,7 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from peaso.collectors import azure,k8s
 from peaso.collectors import azure_aks_workloads_native as native
-from peaso.engine import collect_snapshot,evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.server.validation import validate_connector
 from tests.test_peaso_azure_bulk_native import Transport,parent,SUB,SCOPE,BASE,envelope
 RID=BASE+'Microsoft.ContainerService/managedClusters/cluster';HOST='cluster-123.hcp.eastus.azmk8s.io';TOKEN='private-token-never-persist'
@@ -25,13 +26,14 @@ def fixture(ca,mode='good'):
  credentials=[{'cluster_id':RID,'server':'https://'+HOST,'ca_cert_data':ca,'token':TOKEN}]
  cluster=parent(RID,'Microsoft.ContainerService/managedClusters',{'provisioningState':'Succeeded','fqdn':HOST})
  routes={'/subscriptions':{'value':[{'id':SCOPE,'subscriptionId':SUB,'tenantId':Transport.tenant}]},SCOPE+'/providers/Microsoft.ContainerService/managedClusters':{'value':[copy.deepcopy(cluster)]},RID:cluster}
+ routes[SCOPE]=routes['/subscriptions']['value'][0]
  namespaces=[obj('Namespace','kube-system'),obj('Namespace','default')]
  pod=obj('Pod','app','default',spec={'containers':[{'name':'app','image':'approved.example/app:v1','env':[{'name':'PASSWORD','value':'private-workload-literal'}]}]},status={})
  service=obj('Service','app','default',spec={'ports':[{'port':443}],'type':'ClusterIP'})
  responses={'/api/v1/namespaces':namespaces,'/api/v1/pods':[pod],'/api/v1/services':[service],'/api/v1/limitranges':[]}
  if mode=='arc_present':routes[SCOPE+'/providers/Microsoft.Kubernetes/connectedClusters']={'value':[parent(BASE+'Microsoft.Kubernetes/connectedClusters/arc','Microsoft.Kubernetes/connectedClusters',{})]}
  if mode=='arc_denied':routes[SCOPE+'/providers/Microsoft.Kubernetes/connectedClusters']=azure.AzureReadError('forbidden',403)
- if mode=='subscription_denied':routes['/subscriptions']=azure.AzureReadError('forbidden',403)
+ if mode=='subscription_denied':routes['/subscriptions']=azure.AzureReadError('forbidden',403);routes[SCOPE]=azure.AzureReadError('forbidden',403)
  if mode in ('arm_paged','arm_partial','arm_foreign_page'):
   endpoint=SCOPE+'/providers/Microsoft.ContainerService/managedClusters'
   nextpath=endpoint.replace(SUB,'99999999-9999-9999-9999-999999999999')if mode=='arm_foreign_page'else endpoint
@@ -42,7 +44,7 @@ def fixture(ca,mode='good'):
    return {'value':[copy.deepcopy(cluster)],'nextLink':azure.ARM+nextpath+'?api-version=2024-05-01&page=2'}
   routes[endpoint]=pages
  if mode=='wrong_get_name':cluster['name']='foreign'
- if mode=='conflicting_subscription':routes['/subscriptions']['value'].append({'id':SCOPE,'subscriptionId':SUB,'tenantId':'foreign'})
+ if mode=='conflicting_subscription':routes['/subscriptions']['value'].append({'id':SCOPE,'subscriptionId':SUB,'tenantId':'foreign'});routes[SCOPE]={**routes[SCOPE],'subscriptionId':'conflicting-selected-subscription'}
  if mode=='bad_image':pod['spec']['containers'][0]['image']='unapproved.example/app:v1'
  if mode=='bad_port':service['spec']['ports'][0]['port']=80
  if mode=='no_policy':policy=None
@@ -180,7 +182,7 @@ def test_only_images_selected_does_not_read_services(monkeypatch,ca):
 
 
 def test_planner_parent_expansion_preserves_selection_and_explicit_inventories(ca):
- from peaso.engine import plan_collection
+ from tests.archived_check_contract import plan_collection
  from peaso.collectors.bulk_evidence import expand_native_requirements
  _,_,options,auth,_=fixture(ca)
  req=plan_collection({'connector':{'provider':'azure','scopes':[SUB],'auth':auth,'options':options},'checks':[native.IMAGES]})

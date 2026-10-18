@@ -1,8 +1,7 @@
-"""Offline reproduction of a CRM project-ID root alongside its CAI number view.
+"""An inert root pair without a transport ledger stays conservatively UNKNOWN.
 
-This is an inert baseline fixture for the proposed authority comparison. It
-deliberately records the current conservative UNKNOWN until source code binds
-the two identities and compares their policy contents safely.
+The real transport and verified alias path are covered by the separate project
+alias pipeline tests. This fixture deliberately omits that authority.
 """
 
 from threading import Lock
@@ -34,6 +33,7 @@ def test_native_project_id_and_number_policy_views_are_currently_ambiguous(check
     collector.read_time = "2026-10-17T00:00:00Z"
     collector.needed = {"project", "iam_policy"}
     collector.options = {"metrics_scopes": False, "resource_iam": True}
+    collector.api_key_alias_mode = False
     collector.allowed = None
     collector.ancestry = {SCOPE: [{"resourceId": {"type": "project", "id": NUMBER}}]}
     collector.ancestry_source_requests = {SCOPE: "ancestry-request"}
