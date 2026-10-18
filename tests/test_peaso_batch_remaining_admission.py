@@ -285,9 +285,10 @@ def test_cloudtrail_alias_cli_selection_emits_one_canonical_finding(tmp_path):
     assert len(selected) == 1 and selected[0]["status"] == "FAIL"
 
 
-def test_four_k8s_scope_checks_bind_only_real_collected_runtime_kinds():
+def test_four_k8s_scope_checks_use_collected_kinds_but_require_external_policy():
     from peaso.engine import _selection
     from peaso.collectors import supported_types
+    from peaso.checks.native_only import exclusions
 
     expected = {
         "k8s_cluster_version_at_least_oldest_supported": ("api_discovery", {"api_discovery"}, "cluster"),
@@ -304,8 +305,9 @@ def test_four_k8s_scope_checks_bind_only_real_collected_runtime_kinds():
         assert check.kind == kind and set(check.dependencies) == dependencies and check.target == "scope"
         assert kind in collected and dependencies <= collected
         assert signed[cid]["resource_kind"] == source_kind
-        _, selected = _selection("k8s", None, [cid], None)
-        assert [check.id for check in selected] == [cid]
+        assert cid in exclusions()
+        with pytest.raises(ValueError, match="requires external policy or manual evidence"):
+            _selection("k8s", None, [cid], None)
 
 
 def test_exact_ecr_private_policy_fixture_semantics_and_no_mutation():
