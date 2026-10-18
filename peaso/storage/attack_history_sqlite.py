@@ -19,6 +19,7 @@ import uuid
 from collections.abc import Mapping
 
 from peaso.auth.secrets import CredentialCipher
+from .attack_history_artifacts import LocalAttackHistoryArtifacts
 
 
 _HASH = re.compile(r"[0-9a-f]{64}\Z")
@@ -90,6 +91,7 @@ class SQLiteAttackHistoryStore:
         self.cipher = cipher
         state_dir = Path(state_dir)
         state_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        self.artifacts = LocalAttackHistoryArtifacts(state_dir / "attack_history_artifacts")
         self.path = state_dir / "attack_history.sqlite3"
         with self._connect() as db:
             db.executescript("""
@@ -370,6 +372,12 @@ class SQLiteAttackHistoryStore:
                 "SELECT partition_id FROM attack_partitions WHERE job_id=? AND finalized=1", (job_id,))}
             if not expected or finalized != expected:
                 raise AttackHistoryError(409, "Attack analysis partition coverage is incomplete")
+            try:
+                result = self.artifacts.get_result(tenant, job_id, result_ref, result_digest)
+            except ValueError:
+                raise AttackHistoryError(409, "Attack analysis result artifact is unavailable or invalid")
+            if result["summary"]["partial"] or result["summary"]["source_count"] < 1:
+                raise AttackHistoryError(409, "Attack analysis result coverage is incomplete")
             db.execute("""UPDATE attack_jobs SET status='completed',lease_owner=NULL,lease_until=NULL,
                          result_ref=?,result_digest=?,updated_at=? WHERE tenant=? AND id=?""",
                        (result_ref, result_digest, now, tenant, job_id))
@@ -381,6 +389,25 @@ class SQLiteAttackHistoryStore:
             if row["status"] != "completed":
                 raise AttackHistoryError(409, "Attack analysis result is unavailable")
             return {"ref": row["result_ref"], "sha256": row["result_digest"]}
+
+    def write_result(self, tenant: str, job_id: str, owner: str, generation: int,
+                     value: Mapping[str, object], *, now: float | None = None) -> tuple[str, str]:
+        """Write an immutable sanitized result for the current worker."""
+        now = time.time() if now is None else float(now)
+        with self._connect() as db:
+            self._fenced(db, tenant, job_id, owner, generation, now)
+        try:
+            return self.artifacts.put_result(tenant, job_id, value)
+        except ValueError:
+            raise AttackHistoryError(400, "Invalid attack analysis result") from None
+
+    def read_result(self, tenant: str, job_id: str) -> dict:
+        """Read a completed result with tenant and digest verification."""
+        pointer = self.result_pointer(tenant, job_id)
+        try:
+            return self.artifacts.get_result(tenant, job_id, pointer["ref"], pointer["sha256"])
+        except ValueError:
+            raise AttackHistoryError(409, "Attack analysis result artifact is unavailable or invalid") from None
 
     def fail_job(self, tenant: str, job_id: str, owner: str, generation: int,
                  error_code: str, *, now: float | None = None) -> None:

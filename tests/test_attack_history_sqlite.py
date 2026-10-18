@@ -21,6 +21,8 @@ CONNECTOR = hashlib.sha256(json.dumps(PRIVATE_CONNECTOR, sort_keys=True, separat
 CHECKPOINT = "c" * 64
 RESULT = "d" * 64
 SOURCE = {"kind": "aws_cloudtrail_s3", "bucket": "customer-audit", "prefix": "AWSLogs/123/", "region": "us-east-1", "days": 30}
+EMPTY_RESULT = {"schema_version": 1, "summary": {"source_count": 1, "event_count": 0,
+                "detection_count": 0, "partial": False}, "detections": []}
 
 
 def store(tmp_path: Path, *, active: int = 10, total: int = 1000) -> SQLiteAttackHistoryStore:
@@ -133,10 +135,11 @@ def test_crash_reclaim_replay_and_transactional_checkpoint(tmp_path: Path) -> No
     assert db.list_partitions("tenant-a", job)[0]["sequence"] == 2
     reopened = store(tmp_path)
     assert reopened.list_partitions("tenant-a", job)[0]["checkpoint_ref"] == "attack-checkpoint/part-1/2"
-    reopened.complete_job("tenant-a", job, "worker-b", gen2,
-                          f"attack-results/{job}/{RESULT}", RESULT, now=15)
+    ref, digest = reopened.write_result("tenant-a", job, "worker-b", gen2, EMPTY_RESULT, now=15)
+    reopened.complete_job("tenant-a", job, "worker-b", gen2, ref, digest, now=15)
     assert reopened.get_job("tenant-a", job)["status"] == "completed"
-    assert reopened.result_pointer("tenant-a", job) == {"ref": f"attack-results/{job}/{RESULT}", "sha256": RESULT}
+    assert reopened.result_pointer("tenant-a", job) == {"ref": ref, "sha256": digest}
+    assert reopened.read_result("tenant-a", job)["summary"]["event_count"] == 0
     raises(409, lambda: reopened.checkpoint_partition("tenant-a", job, "worker-b", gen2, "part-1", 3,
                                                       "attack-checkpoint/late", CHECKPOINT, now=16))
 
@@ -151,6 +154,7 @@ def test_cancel_invalidates_worker_and_frees_separate_capacity(tmp_path: Path) -
                                                 "attack-checkpoint/late", CHECKPOINT, now=12))
     raises(409, lambda: db.complete_job("tenant-a", job, "worker-a", gen,
                                        f"attack-results/{job}/{RESULT}", RESULT, now=12))
+    raises(409, lambda: db.write_result("tenant-a", job, "worker-a", gen, EMPTY_RESULT, now=12))
     raises(409, lambda: db.claim_job("tenant-a", job, "worker-b", now=12))
     second = create(db)
     assert second["status"] == "queued"
@@ -192,9 +196,18 @@ def test_completion_requires_every_planned_partition_final_and_bound_result(tmp_
                                         f"attack-results/{job}/wrong", RESULT, now=17))
     raises(409, lambda: db.checkpoint_partition("tenant-a", job, "worker-a", gen, "first", 2,
                                                 "attack-checkpoint/changed", CHECKPOINT, finalized=True, now=17))
-    db.complete_job("tenant-a", job, "worker-a", gen, result_ref, RESULT, now=18)
+    partial = {**EMPTY_RESULT, "summary": {**EMPTY_RESULT["summary"], "partial": True}}
+    partial_ref, partial_digest = db.write_result("tenant-a", job, "worker-a", gen, partial, now=17)
+    raises(409, lambda: db.complete_job("tenant-a", job, "worker-a", gen,
+                                        partial_ref, partial_digest, now=17))
+    no_coverage = {**EMPTY_RESULT, "summary": {**EMPTY_RESULT["summary"], "source_count": 0}}
+    empty_ref, empty_digest = db.write_result("tenant-a", job, "worker-a", gen, no_coverage, now=17)
+    raises(409, lambda: db.complete_job("tenant-a", job, "worker-a", gen,
+                                        empty_ref, empty_digest, now=17))
+    real_ref, real_digest = db.write_result("tenant-a", job, "worker-a", gen, EMPTY_RESULT, now=17)
+    db.complete_job("tenant-a", job, "worker-a", gen, real_ref, real_digest, now=18)
     assert db.get_job("tenant-a", job)["result_available"] is True
-    assert db.result_pointer("tenant-a", job) == {"ref": result_ref, "sha256": RESULT}
+    assert db.result_pointer("tenant-a", job) == {"ref": real_ref, "sha256": real_digest}
 
 
 def test_encrypted_replay_snapshot_is_private_and_stable(tmp_path: Path) -> None:
@@ -234,3 +247,61 @@ def test_fingerprint_and_versions_participate_in_idempotency(tmp_path: Path) -> 
     raises(409, lambda: db.create_job("tenant-a", "connector-1", SOURCE, RULE, "e" * 64,
                                       PRIVATE_CONNECTOR, source_version="source-v1",
                                       rule_version="rules-v1", normalizer_version="normalizer-v1"))
+
+
+def test_result_file_must_exist_and_match_hash_before_completion(tmp_path: Path) -> None:
+    db = store(tmp_path)
+    job = create(db)["id"]
+    gen = db.claim_job("tenant-a", job, "worker-a", now=10)
+    db.checkpoint_partition("tenant-a", job, "worker-a", gen, "main", 1,
+                            "attack-checkpoint/main", CHECKPOINT, finalized=True, now=11)
+    raises(409, lambda: db.complete_job("tenant-a", job, "worker-a", gen,
+                                        f"attack-results/{job}/{RESULT}", RESULT, now=12))
+    assert db.get_job("tenant-a", job)["status"] == "running"
+    ref, digest = db.write_result("tenant-a", job, "worker-a", gen, EMPTY_RESULT, now=13)
+    path = db.artifacts._path("tenant-a", job, ref, digest)
+    assert path.read_bytes().startswith(b'{"detections":')
+    path.write_bytes(b'{"tampered":true}')
+    raises(409, lambda: db.complete_job("tenant-a", job, "worker-a", gen, ref, digest, now=14))
+    assert db.get_job("tenant-a", job)["status"] == "running"
+    assert db.artifacts.verify_result("tenant-a", job, ref, digest) is False
+    ref, digest = db.write_result("tenant-a", job, "worker-a", gen, EMPTY_RESULT, now=15)
+    db.complete_job("tenant-a", job, "worker-a", gen, ref, digest, now=16)
+    assert db.read_result("tenant-a", job)["job_id"] == job
+    path.write_bytes(b'{"tampered":true}')
+    raises(409, lambda: db.read_result("tenant-a", job))
+
+
+def test_result_read_is_bound_to_tenant_and_job(tmp_path: Path) -> None:
+    db = store(tmp_path)
+    job_a = create(db, "tenant-a")["id"]
+    job_b = create(db, "tenant-b")["id"]
+    gen = db.claim_job("tenant-a", job_a, "worker-a", now=10)
+    ref, digest = db.write_result("tenant-a", job_a, "worker-a", gen, EMPTY_RESULT, now=11)
+    assert db.artifacts.verify_result("tenant-a", job_a, ref, digest)
+    assert db.artifacts.verify_result("tenant-b", job_a, ref, digest) is False
+    assert db.artifacts.verify_result("tenant-a", job_b, ref, digest) is False
+    raises(404, lambda: db.read_result("tenant-b", job_a))
+    raises(404, lambda: db.write_result("tenant-b", job_a, "worker-a", gen, EMPTY_RESULT, now=11))
+
+
+def test_artifact_writer_rejects_raw_logs_and_secrets(tmp_path: Path) -> None:
+    db = store(tmp_path)
+    job = create(db)["id"]
+    gen = db.claim_job("tenant-a", job, "worker-a", now=10)
+    raises(400, lambda: db.write_result("tenant-a", job, "worker-a", gen,
+                                        dict(EMPTY_RESULT, CloudTrailEvent={"raw": True}), now=11))
+    finding = {
+        "rule_id": "rule-1", "title": "Observed event", "severity": "medium",
+        "technique_id": "test", "event_id": "event-1", "event_time": "2026-10-18T00:00:00Z",
+        "account_id": "123456789012", "actor_id": "arn:aws:iam::123456789012:user/example",
+        "target_id": "arn:aws:iam::123456789012:user/target",
+        "evidence": {"rawEvent": "raw log contents"}, "description": "Observed event",
+        "legitimate_context": [],
+    }
+    bad = {"schema_version": 1, "summary": {"source_count": 1, "event_count": 1,
+           "detection_count": 1, "partial": False}, "detections": [finding]}
+    raises(400, lambda: db.write_result("tenant-a", job, "worker-a", gen, bad, now=11))
+    finding["evidence"] = {"event.source": "iam.amazonaws.com", "request.other_user_keyspaces_credential_created": True}
+    ref, digest = db.write_result("tenant-a", job, "worker-a", gen, bad, now=11)
+    assert db.artifacts.get_result("tenant-a", job, ref, digest)["detections"][0]["evidence"]["event.source"] == "iam.amazonaws.com"
