@@ -22,8 +22,8 @@ from .kubernetes import normalize_kubernetes_audit
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "70ac609714d6923615e97d01743a1b799e5089a6"
-DEFAULT_RULE_PACK_SHA256 = "aa861ba4f4448147f94f241e545150c6c305484a7a0a2eda6822c42ddf3ce84a"
+DEFAULT_RULE_REF = "fd10e6856aa6b1f4208352ed963434889643e2f8"
+DEFAULT_RULE_PACK_SHA256 = "d6634358f0165d34687ba9807c82d74ee45a6faaf7ee7303ef9148bb96e9af0e"
 
 
 @dataclass(frozen=True)

@@ -8,6 +8,9 @@ from typing import Any
 from urllib.parse import unquote
 
 
+ADMINISTRATOR_ACCESS_ARN = "arn:aws:iam::aws:policy/AdministratorAccess"
+
+
 def _policy_document(value: Any) -> Mapping[str, Any] | None:
     if isinstance(value, Mapping):
         return value
@@ -71,22 +74,40 @@ def normalize_aws_cloudtrail(record: Mapping[str, Any]) -> dict[str, Any] | None
     actor_arn = identity.get("arn")
     identity_account = identity.get("accountId")
     issuer_parts = issuer_arn.split(":", 5) if isinstance(issuer_arn, str) else []
+    assumed_role_prefix = (
+        f"arn:{issuer_parts[1]}:sts::{account_id}:assumed-role/{target_role}/"
+        if len(issuer_parts) == 6 and isinstance(account_id, str) and isinstance(target_role, str)
+        else ""
+    )
+    session_name = actor_arn[len(assumed_role_prefix):] if (
+        isinstance(actor_arn, str) and assumed_role_prefix and actor_arn.startswith(assumed_role_prefix)
+    ) else ""
     self_role = (
         actor_kind == "AssumedRole"
         and isinstance(target_role, str) and bool(target_role)
         and issuer.get("type") == "Role" and issuer.get("userName") == target_role
-        and len(issuer_parts) == 6 and issuer_parts[2] == "iam"
+        and len(issuer_parts) == 6 and issuer_parts[0] == "arn"
+        and issuer_parts[1] in {"aws", "aws-us-gov", "aws-cn"}
+        and issuer_parts[2] == "iam" and issuer_parts[3] == ""
         and issuer_parts[5].startswith("role/") and issuer_parts[5].rsplit("/", 1)[-1] == target_role
-        and isinstance(account_id, str) and issuer_parts[4] == account_id
+        and isinstance(account_id, str) and record.get("recipientAccountId") == account_id
+        and issuer_parts[4] == account_id
+        and issuer.get("accountId", account_id) == account_id
         and identity_account == account_id
-        and isinstance(actor_arn, str)
-        and actor_arn.startswith(f"arn:{issuer_parts[1]}:sts::{account_id}:assumed-role/{target_role}/")
+        and bool(session_name) and "/" not in session_name
+    )
+    failed = bool(record.get("errorCode") or record.get("errorMessage")
+                  or response.get("errorCode") or response.get("errorMessage"))
+    self_role_admin_policy_attach = (
+        record.get("eventName") == "AttachRolePolicy"
+        and not failed and self_role
+        and request.get("policyArn") == ADMINISTRATOR_ACCESS_ARN
     )
     return {
         "cloud.provider": "aws",
         "event.name": record.get("eventName"),
         "event.source": record.get("eventSource"),
-        "event.outcome": "failure" if record.get("errorCode") or response.get("errorCode") else "success",
+        "event.outcome": "failure" if failed else "success",
         "event.id": record.get("eventID"),
         "event.time": record.get("eventTime"),
         "account.id": account_id,
@@ -101,5 +122,6 @@ def normalize_aws_cloudtrail(record: Mapping[str, Any]) -> dict[str, Any] | None
         "request.unconditional_admin_grant": _unconditional_admin_grant(request.get("policyDocument")),
         "request.self_user": isinstance(actor_user, str) and bool(actor_user) and target_user == actor_user,
         "request.self_role": self_role,
+        "request.self_role_admin_policy_attach": self_role_admin_policy_attach,
         "request.other_user": isinstance(actor_user, str) and bool(actor_user) and isinstance(target_user, str) and bool(target_user) and target_user != actor_user,
     }

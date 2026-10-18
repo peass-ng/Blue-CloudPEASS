@@ -3,10 +3,105 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import re
 from typing import Any
 
 
+_PROJECT = re.compile(r"[a-z][a-z0-9-]{4,28}[a-z0-9]\Z")
+_ACCOUNT_EMAIL = re.compile(r"[a-z][a-z0-9-]*@[a-z][a-z0-9-]{4,28}[a-z0-9]\.iam\.gserviceaccount\.com\Z")
+_PRINCIPAL_EMAIL = re.compile(r"[^\s@:/]+@[^\s@:/]+\.[^\s@:/]+\Z")
+_TOKEN_CREATOR = "roles/iam.serviceAccountTokenCreator"
+_AUDIT_TYPE = "type.googleapis.com/google.cloud.audit.AuditLog"
+_POLICY_TYPE = "type.googleapis.com/google.iam.v1.Policy"
+_REQUEST_TYPE = "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
+
+
+def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Return a policy-binding observation for a separately reviewed rule.
+
+    A SetIAMPolicy response contains the resulting complete policy, not a
+    before/after delta. Therefore this event does not prove a new privilege.
+    """
+    if not isinstance(record, Mapping):
+        return None
+    log_name = record.get("logName")
+    if not isinstance(log_name, str):
+        return None
+    log_match = re.fullmatch(r"projects/([^/]+)/logs/cloudaudit\.googleapis\.com%2Factivity", log_name)
+    if log_match is None or _PROJECT.fullmatch(log_match.group(1)) is None:
+        return None
+    project = log_match.group(1)
+    resource = record.get("resource")
+    if not isinstance(resource, Mapping) or resource.get("type") != "service_account":
+        return None
+    labels = resource.get("labels")
+    if isinstance(labels, Mapping) and labels.get("project_id") not in (None, project):
+        return None
+    payload = record.get("protoPayload")
+    if not isinstance(payload, Mapping) or payload.get("@type") != _AUDIT_TYPE:
+        return None
+    if payload.get("serviceName") != "iam.googleapis.com" or payload.get("methodName") != "google.iam.admin.v1.SetIAMPolicy":
+        return None
+    status = payload.get("status")
+    if status is not None and (not isinstance(status, Mapping) or status.get("code") not in (None, 0) or isinstance(status.get("code"), bool)):
+        return None
+    auth = payload.get("authenticationInfo")
+    request = payload.get("request")
+    response = payload.get("response")
+    if not isinstance(auth, Mapping) or not isinstance(request, Mapping) or not isinstance(response, Mapping):
+        return None
+    if request.get("@type") != _REQUEST_TYPE or response.get("@type") != _POLICY_TYPE:
+        return None
+    actor = auth.get("principalEmail")
+    if not isinstance(actor, str) or _PRINCIPAL_EMAIL.fullmatch(actor) is None:
+        return None
+    actor = actor.lower()
+    requested_resource = request.get("resource")
+    if not isinstance(requested_resource, str):
+        return None
+    target_match = re.fullmatch(r"projects/-/serviceAccounts/([^/]+)", requested_resource)
+    if target_match is None:
+        return None
+    target_email = target_match.group(1)
+    if _ACCOUNT_EMAIL.fullmatch(target_email) is None or not target_email.endswith(f"@{project}.iam.gserviceaccount.com"):
+        return None
+    named_resource = payload.get("resourceName")
+    named_match = re.fullmatch(r"projects/-/serviceAccounts/([^/]+)", named_resource) if isinstance(named_resource, str) else None
+    if named_match is None or not (named_match.group(1).isdigit() or named_match.group(1) == target_email):
+        return None
+    member = ("serviceAccount:" if actor.endswith(".gserviceaccount.com") else "user:") + actor
+    bindings = response.get("bindings")
+    if not isinstance(bindings, list):
+        return None
+    if not any(isinstance(binding, Mapping) and binding.get("role") == _TOKEN_CREATOR
+               and "condition" not in binding and isinstance(binding.get("members"), list)
+               and member in binding["members"] for binding in bindings):
+        return None
+    event_id = record.get("insertId")
+    event_time = record.get("timestamp")
+    if not isinstance(event_id, str) or not event_id or not isinstance(event_time, str) or not event_time:
+        return None
+    return {
+        "cloud.provider": "gcp",
+        "event.name": "service_account_token_creator_self_binding_observed",
+        "event.source": "iam.googleapis.com",
+        "event.outcome": "success",
+        "event.id": event_id,
+        "event.time": event_time,
+        "account.id": project,
+        "actor.id": actor,
+        "target.id": requested_resource,
+        "request.actor_is_member": True,
+        "request.role": _TOKEN_CREATOR,
+        "request.binding_observed": True,
+        "target.service_account": target_email,
+    }
+
+
 def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    policy_binding = normalize_gcp_token_creator_binding_observation(record)
+    if policy_binding is not None:
+        return policy_binding
     payload = record.get("protoPayload")
     if not isinstance(payload, Mapping) or payload.get("@type") != "type.googleapis.com/google.cloud.audit.AuditLog":
         return None

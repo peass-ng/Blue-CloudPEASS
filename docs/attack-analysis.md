@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `70ac609714d6923615e97d01743a1b799e5089a6` by
+pack at pinned commit `fd10e6856aa6b1f4208352ed963434889643e2f8` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -103,11 +103,18 @@ Kubernetes: <https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/>
 
 ## Detection quality
 
-The first rules require successful operations and concrete parameters. A
-denied API call, incomplete policy document, foreign account event, or bare
-enumeration cannot produce a privilege escalation finding. A legitimate
-administrator may still perform a matching action. Each result therefore
-exposes its matched evidence and names the investigation it supports. Future
-correlation should join related events by account, principal, target and time,
-and should use effective permission changes before labeling an escalation as
-confirmed.
+The pinned pack has eleven activity rules: six AWS, two GCP, one
+Azure, and two Kubernetes. The AWS role attachment rule requires the exact
+AdministratorAccess policy and evidence that the target is the issuing role.
+The GCP Token Creator rule reports a binding in the resulting service-account
+policy; a SetIAMPolicy log entry alone cannot prove the binding was newly
+added. Kubernetes binding updates are normalized as observed state, but do
+not emit a privilege-gain detection without a before/after comparison.
+
+The rules require successful operations and concrete parameters. A denied API
+call, incomplete policy document, foreign account event, or bare enumeration
+cannot produce a privilege escalation finding. A legitimate administrator may
+still perform a matching action. Each result therefore exposes its matched
+evidence and names the investigation it supports. Future correlation should
+join related events by account, principal, target and time, and should use
+effective permission changes before labeling an escalation as confirmed.
