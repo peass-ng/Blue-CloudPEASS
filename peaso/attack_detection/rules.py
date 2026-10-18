@@ -30,6 +30,8 @@ from .aws_sns_topic import normalize_aws_sns_topic
 from .aws_lambda_control import normalize_aws_lambda_control
 from .aws_cloudwatch_monitoring import normalize_aws_cloudwatch_monitoring
 from .aws_cloudwatch_logs import normalize_aws_cloudwatch_logs
+from .aws_ec2_metadata_network import normalize_aws_ec2_metadata_network
+from .aws_ec2_rule_edit import normalize_aws_ec2_rule_edit
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -51,8 +53,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "9630b64ecc0342bff3b2d9829e05fd5ccb7d0de9"
-DEFAULT_RULE_PACK_SHA256 = "1b496cfdd68dc7ed2dc4521c4d5efc30abe0d604aa28bb45225dff16a5c857a5"
+DEFAULT_RULE_REF = "30e828672b1345e690c1a94ce011a1641c058c81"
+DEFAULT_RULE_PACK_SHA256 = "615b727b5532f0ef599094e848e03cbc930897b0c9e3056a83f469cef2ae4a39"
 
 
 @dataclass(frozen=True)
@@ -174,6 +176,8 @@ def detect_aws_events(
         lambda_control = normalize_aws_lambda_control(record)
         cloudwatch_monitoring = normalize_aws_cloudwatch_monitoring(record)
         cloudwatch_logs = normalize_aws_cloudwatch_logs(record)
+        ec2_metadata_network = normalize_aws_ec2_metadata_network(record)
+        ec2_rule_edit = normalize_aws_ec2_rule_edit(record)
         return (([base] if base is not None else [])
                 + ([profile] if profile is not None else [])
                 + ([updated_profile] if updated_profile is not None else [])
@@ -186,7 +190,9 @@ def detect_aws_events(
                 + ([sns_topic] if sns_topic is not None else [])
                 + ([lambda_control] if lambda_control is not None else [])
                 + cloudwatch_monitoring
-                + ([cloudwatch_logs] if cloudwatch_logs is not None else []))
+                + ([cloudwatch_logs] if cloudwatch_logs is not None else [])
+                + ([ec2_metadata_network] if ec2_metadata_network is not None else [])
+                + ([ec2_rule_edit] if ec2_rule_edit is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
