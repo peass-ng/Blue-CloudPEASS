@@ -50,6 +50,14 @@ REVIEWED_RDS_CLUSTER_EQUIVALENT = {
         ("aws-compliance.benchmark.fedramp_moderate_rev_4", "aws-compliance.control.rds_db_instance_and_cluster_enhanced_monitoring_enabled"),
     }),
 }
+# This reviewed native evidence successor retains the exact RDS callback and
+# strengthens the common raw-inventory identity guard. Preserve the original
+# frozen module pin and admit only this explicitly reviewed whole-file successor.
+REVIEWED_RDS_RUNTIME_SUCCESSORS = {
+    "ded9f2aa60b562cc3db565a091434ad182e8ae8635d4b128549b827a39a6f5f9": frozenset({
+        "2a87f6c990065271ae9eaa9c34582d64297554eaf183f81c5a566eeb0cd8ac72",
+    }),
+}
 DESCRIPTION_FIELD_ORDER = ("description", "fail_when", "evaluated", "not_applicable_when", "pass_when")
 DESCRIPTION_FIELDS = set(DESCRIPTION_FIELD_ORDER)
 ANALYSIS_IDS = {"analysis.grant_review", "analysis.inactive_identity", "analysis.principal_exposure",
@@ -82,7 +90,8 @@ def _reviewed_rds_registered_declaration(native):
     wanted = {"provider": "aws", "type": "rds_cluster", "category": "hardening", "severity": "medium", "target": "resource"}
     if (len(registered) != 1 or actual.get("id") != survivor or actual.get("provider") != "aws" or
             expected["id"] in native or CHECK_ALIASES.get(expected["id"]) != survivor or
-            digest(source.read_bytes()) != expected["source_sha256"] or
+            digest(source.read_bytes()) not in ({expected["source_sha256"]} |
+                REVIEWED_RDS_RUNTIME_SUCCESSORS.get(expected["source_sha256"], frozenset())) or
             any(field in actual and actual[field] != value for field, value in wanted.items())):
         raise ValueError("Reviewed RDS duplicate registration or source changed")
     check = registered[0]

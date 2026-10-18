@@ -980,24 +980,42 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
                     rotation = {"collection_status": "malformed", "error": {"code": "secret_identity_mismatch"}}
             state = rotation.get("collection_status", "malformed")
             if state == "collected":
-                # The already-required DescribeSecret response supersedes stale
-                # ListSecrets KmsKeyId. Omission is an unresolved AWS default,
-                # never a safe or unsafe inferred key identity.
-                key_id = rotation.get("KmsKeyId")
-                if isinstance(key_id, str) and key_id:
-                    item["KmsKeyId"] = key_id
-                    item["_coverage"]["KmsKeyId"] = {"status": "collected", "source_operation": "secretsmanager:DescribeSecret"}
+                # DescribeSecret omits KmsKeyId for aws/secretsmanager. Preserve
+                # the exact omission proof without inventing a key ID or ARN.
+                if "KmsKeyId" not in rotation:
+                    item["_coverage"]["KmsKeyId"] = {
+                        "status": "empty", "source_operation": "secretsmanager:DescribeSecret",
+                        "native_member_present": False, "documented_default": "aws/secretsmanager"}
                 else:
-                    item["_coverage"]["KmsKeyId"] = {"status": "empty" if key_id is None or key_id == "" else "malformed",
-                        "source_operation": "secretsmanager:DescribeSecret"}
+                    key_id = rotation["KmsKeyId"]
+                    if isinstance(key_id, str) and key_id:
+                        item["KmsKeyId"] = key_id
+                        item["_coverage"]["KmsKeyId"] = {
+                            "status": "collected", "source_operation": "secretsmanager:DescribeSecret",
+                            "native_member_present": True}
+                    else:
+                        item["_coverage"]["KmsKeyId"] = {
+                            "status": "malformed", "source_operation": "secretsmanager:DescribeSecret",
+                            "native_member_present": True}
                 flag = rotation.get("RotationEnabled")
                 if type(flag) is bool:
                     item["RotationEnabled"] = flag
                     item["_coverage"]["RotationEnabled"] = {"status": "collected", "source_operation": "secretsmanager:DescribeSecret"}
+                elif flag is None and not any(rotation.get(field) for field in
+                        ("RotationRules", "RotationLambdaARN", "NextRotationDate")):
+                    # DescribeSecret documents null for never-configured
+                    # rotation. This successful, identity-bound native read
+                    # therefore proves automatic rotation is not enabled.
+                    # Preserve whether AWS omitted the member or returned null;
+                    # denied/partial/foreign reads never reach this branch.
+                    item["RotationEnabled"] = False
+                    item["_coverage"]["RotationEnabled"] = {
+                        "status": "collected", "source_operation": "secretsmanager:DescribeSecret",
+                        "native_member_present": "RotationEnabled" in rotation,
+                        "native_value": None, "interpretation": "documented_never_configured_rotation",
+                        "documentation": "https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_DescribeSecret.html#SecretsManager-DescribeSecret-response-RotationEnabled"}
                 else:
-                    # AWS documents null for never-configured rotation. An
-                    # omitted or malformed flag is also not proof of disabled.
-                    item["_coverage"]["RotationEnabled"] = {"status": "empty" if flag is None else "malformed", "source_operation": "secretsmanager:DescribeSecret"}
+                    item["_coverage"]["RotationEnabled"] = {"status": "malformed", "source_operation": "secretsmanager:DescribeSecret"}
                 for field, typ in (("RotationRules", dict), ("RotationLambdaARN", str)):
                     if field in rotation:
                         if isinstance(rotation[field], typ):

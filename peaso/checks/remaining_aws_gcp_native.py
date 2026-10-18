@@ -7,9 +7,11 @@ collector types rather than inventing a second RDS inventory.
 from __future__ import annotations
 
 import re
+from collections import Counter
 
 from . import alias_check, register, result
 from .facts import Unavailable, complete_items, get, memoized
+from ..snapshot import digest
 
 _SCOPE = re.compile(r"([0-9]{12})/([a-z]{2}(?:-[a-z]+)+-[0-9])")
 _RDS_CLUSTER = re.compile(r"arn:(aws|aws-cn|aws-us-gov):rds:([a-z0-9-]+):([0-9]{12}):cluster:(.+)")
@@ -38,6 +40,17 @@ def _authority(index, kind):
     rows = complete_items(index, kind)
     if len(wrappers) != len(rows) or any(w.get("data") != row for w, row in zip(wrappers, rows)):
         raise Unavailable("resource wrappers differ from inventory: " + kind)
+    # Resource projection deduplicates by native ID. Compare the authoritative
+    # envelope with the projected rows so duplicate or conflicting raw members
+    # cannot silently become one apparently unique resource. Order is immaterial.
+    native_rows = env.get("items")
+    if not isinstance(native_rows, list) or len(native_rows) != len(rows):
+        raise Unavailable("native inventory differs from projected resources: " + kind)
+    try:
+        if Counter(digest(row) for row in native_rows) != Counter(digest(row) for row in rows):
+            raise Unavailable("native inventory differs from projected resources: " + kind)
+    except (TypeError, ValueError) as exc:
+        raise Unavailable("native inventory contains malformed members: " + kind) from exc
     return account, region, rows
 
 
@@ -225,11 +238,18 @@ def secret_uses_enabled_kms(item, index):
     coverage = get(item, "_coverage", dict).get("KmsKeyId")
     if not isinstance(coverage, dict) or coverage.get("status") not in {"collected", "empty"} or coverage.get("source_operation") != "secretsmanager:DescribeSecret":
         raise Unavailable("KMS key reference lacks identity-bound DescribeSecret coverage")
-    # AWS omits KmsKeyId for its service default. Without resolving that
-    # default through a separate authoritative key lookup, outcome is UNKNOWN.
+    # AWS omits KmsKeyId for aws/secretsmanager in an authoritative
+    # DescribeSecret response. AWS managed keys are permanently enabled.
+    if "KmsKeyId" not in item:
+        if coverage.get("status") != "empty" or coverage.get("native_member_present") is not False or coverage.get("documented_default") != "aws/secretsmanager":
+            raise Unavailable("KMS key omission lacks documented DescribeSecret default proof")
+        return result(False, secret_arn=arn, key_manager="AWS", key_state="Enabled",
+                      key_reference="aws/secretsmanager", key_identity_source="documented_DescribeSecret_omission")
+    if coverage.get("status") != "collected":
+        raise Unavailable("KMS key reference contradicts DescribeSecret coverage")
     key_ref = get(item, "KmsKeyId", str)
     if not key_ref:
-        raise Unavailable("empty KMS key reference cannot resolve service default")
+        raise Unavailable("empty KMS key reference is not a documented omission")
     keys_by_arn, keys_by_id, key_account, key_region, key_partition = memoized(
         index, ("remaining_aws_gcp", "kms_index"), lambda: _kms_index(index))
     if (account, region, partition) != (key_account, key_region, key_partition):

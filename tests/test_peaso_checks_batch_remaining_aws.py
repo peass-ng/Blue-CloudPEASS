@@ -34,6 +34,16 @@ def with_global_iam(index,rows):
     result['iam_policy']=[{'provider':'aws','type':'iam_policy','scope':scope,'data':copy.deepcopy(row)} for row in rows]
     return result
 
+def with_global_customer_iam(index,rows):
+    result=copy.deepcopy(index);scope='111111111111/global'
+    result['context']['Account']='111111111111'
+    result['collections']['iam_customer_policy']=[{'type':'iam_customer_policy','scope':scope,
+        'global':True,'account_id':'111111111111',
+        'status':'collected' if rows else 'empty','items':copy.deepcopy(rows)}]
+    result['iam_customer_policy']=[{'provider':'aws','type':'iam_customer_policy',
+        'scope':scope,'data':copy.deepcopy(row)} for row in rows]
+    return result
+
 def sg(protocol='tcp',port=22):
     return {'GroupId':'sg-1','OwnerId':'111111111111','IpPermissions':[{'IpProtocol':protocol,'FromPort':port,'ToPort':port,'Ipv6Ranges':[{'CidrIpv6':'::/0'}]}]}
 
@@ -80,7 +90,18 @@ def cases():
     bucket={'name':'bucket-one','accessLogConfig':{'enabled':True,'destination':'logs'}}
     bad=copy.deepcopy(bucket);bad['accessLogConfig']['enabled']=False
     configs['aws_cis_lightsail_bucket_access_logging']=(bucket,indexed({'lightsail_bucket':[bucket]}),bad,indexed({'lightsail_bucket':[bad]}))
-    configs['aws_g6_ecr_public_repositories_absent']=(CONTEXT,indexed({'ecr_public_repository':[]}),CONTEXT,indexed({'ecr_public_repository':[{'repositoryArn':'arn:aws:ecr-public::111111111111:repository/public-one','repositoryName':'public-one'}]}))
+    # Historical ECR Public fixture is superseded by the pinned upstream
+    # private-repository policy SQL; retain the original signed JSON separately.
+    ecr_base={'repositoryArn':'arn:aws:ecr:us-east-1:111111111111:repository/app',
+              'repositoryName':'app','registryId':'111111111111'}
+    ecr_private={**ecr_base,'Policy':{'collection_status':'collected','registryId':'111111111111',
+        'repositoryName':'app','policyText':{'Statement':[{'Effect':'Allow',
+        'Principal':{'AWS':['arn:aws:iam::111111111111:role/ci']},'Action':['ecr:BatchGetImage']}]}}}
+    ecr_wildcard={**ecr_base,'Policy':{'collection_status':'collected','registryId':'111111111111',
+        'repositoryName':'app','policyText':{'Statement':[{'Effect':'Allow',
+        'Principal':{'AWS':['*']},'Action':['ecr:BatchGetImage']}]}}}
+    configs['aws_g6_ecr_public_repositories_absent']=(ecr_private,indexed({'ecr_repository':[ecr_private]}),
+                                                      ecr_wildcard,indexed({'ecr_repository':[ecr_wildcard]}))
     ec2={'InstanceId':'i-1','State':{'Name':'running'}}
     configs['aws_ec2_status_alarm']=(ec2,indexed({'instance':[ec2],'cloudwatch_alarm':[alarm('AWS/EC2','StatusCheckFailed','InstanceId','i-1')]}),ec2,indexed({'instance':[ec2],'cloudwatch_alarm':[]}))
     function={'FunctionArn':'arn:aws:lambda:us-east-1:111111111111:function:one'}
@@ -119,12 +140,16 @@ def cases():
     bad=copy.deepcopy(kms);bad['Metadata']['KeyMetadata']['KeySpec']='SYMMETRIC_DEFAULT'
     configs['aws_kms_imported_key_origin_spec']=(kms,indexed({'kms_key':[kms]}),bad,indexed({'kms_key':[bad]}))
     policy_arn='arn:aws:iam::111111111111:policy/narrow'
-    policy={'Arn':policy_arn,'AccountId':'111111111111','PolicyVersionList':[{'IsDefaultVersion':True,
-        'Document':{'Statement':[{'Effect':'Allow','Action':'s3:GetObject',
-          'Resource':'arn:aws:s3:::data-bucket/record'}]}}]}
-    bad=copy.deepcopy(policy);bad['PolicyVersionList'][0]['Document']['Statement'][0]['Action']='s3:*'
-    configs['aws.pci.iam.wildcard_action_scoped_resource']=(policy,with_global_iam(indexed({}),[policy]),
-        bad,with_global_iam(indexed({}),[bad]))
+    policy={'Arn':policy_arn,'AccountId':'111111111111','DefaultVersionId':'v1',
+        'DefaultDocument':{'collection_status':'collected','VersionId':'v1',
+            'Document':{'Statement':[{'Effect':'Allow','Action':'s3:GetObject',
+                'Resource':'arn:aws:s3:::data-bucket/record'}]}},
+        '_provenance':{'operation':'iam:ListPolicies','managed_scope':'Local',
+            'only_attached':False,'account_id':'111111111111',
+            'default_operation':'iam:GetPolicyVersion'}}
+    bad=copy.deepcopy(policy);bad['DefaultDocument']['Document']['Statement'][0]['Action']='s3:*'
+    configs['aws.pci.iam.wildcard_action_scoped_resource']=(policy,with_global_customer_iam(indexed({}),[policy]),
+        bad,with_global_customer_iam(indexed({}),[bad]))
     for cid,source,service,names in (
         ('aws_eventbridge_iam_user_change_alert','aws.iam','iam.amazonaws.com',
          ['CreateUser','DeleteUser','UpdateUser','CreateAccessKey','UpdateAccessKey','DeleteAccessKey']),
@@ -209,25 +234,32 @@ def test_metadata_and_signed_links_preserved_for_companion():
         check=CHECKS_BY_ID[cid]
         assert cid in signed and check.provider=='aws'
         assert (check.category,check.severity,check.title,check.target)==(category,severity,title,target)
-        assert signed[cid]['severity']==severity and signed[cid]['title']==title
+        assert signed[cid]['severity']==severity
+        if cid=='aws_g6_ecr_public_repositories_absent':
+            from peaso.checks.aws_ecr_source_correction import validate_prior_spec
+            assert validate_prior_spec()
+            assert signed[cid]["data_source"]=="ecr-public:DescribeRepositories repositoryName,repositoryArn across the ECR Public registry in us-east-1; complete API pagination"
+            assert signed[cid]['title']=='Account has no ECR Public repositories'
+        else:
+            assert signed[cid]['title']==title
         assert signed[cid]['requirements']
 
 
 def test_iam_declared_notaction_equivalent_and_default_version_only():
     cid='aws.pci.iam.wildcard_action_scoped_resource'
     policy,index=copy.deepcopy(CASES[cid][:2])
-    statement=policy['PolicyVersionList'][0]['Document']['Statement'][0]
+    statement=policy['DefaultDocument']['Document']['Statement'][0]
     statement.pop('Action');statement['NotAction']=['iam:*']
-    index=with_global_iam(indexed({}),[policy])
+    index=with_global_customer_iam(indexed({}),[policy])
     assert CHECKS_BY_ID[cid].evaluate(policy,index)[0]=='FAIL'
     statement['Effect']='Deny'
-    index=with_global_iam(indexed({}),[policy])
+    index=with_global_customer_iam(indexed({}),[policy])
     assert CHECKS_BY_ID[cid].evaluate(policy,index)[0]=='PASS'
     statement['Effect']='Allow';statement['NotAction']=['*']
-    index=with_global_iam(indexed({}),[policy])
+    index=with_global_customer_iam(indexed({}),[policy])
     assert CHECKS_BY_ID[cid].evaluate(policy,index)[0]=='PASS'
     statement['Effect']='Allow';statement['NotResource']='arn:aws:s3:::other'
-    index=with_global_iam(indexed({}),[policy])
+    index=with_global_customer_iam(indexed({}),[policy])
     assert CHECKS_BY_ID[cid].evaluate(policy,index)[0]=='UNKNOWN'
 
 

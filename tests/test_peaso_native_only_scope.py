@@ -63,3 +63,40 @@ def test_host_file_attestations_are_not_automatic_inventories():
     assert "file_metadata" not in engine.plan_collection({"connector": {"provider": "k8s"}})
     with pytest.raises(ValueError, match="inventories must be supported"):
         engine.plan_collection({"connector": {"provider": "k8s", "options": {"inventories": ["file_metadata"]}}})
+
+
+REVIEWED_AWS_UNKNOWN_EXTERNAL = {
+    "aws.claude_a.organizations.no_untrusted_delegated_administrators": "organizations_trusted_delegated_administrators",
+    "aws_cloudtrail_administration_command": "approved_remote_administration_principals",
+    "aws_cloudtrail_event_triggered_execution": "approved_event_automation_principals",
+    "aws_cloudtrail_permission_group_discovery": "approved_iam_inventory_principals",
+}
+
+
+def test_remaining_aws_unknown_customer_contracts_are_not_auto_admitted():
+    entries = exclusions()
+    catalog_ids = {row["id"] for row in engine.get_catalog()["checks"]}
+    _, default = engine._selection("aws", None, None, None)
+    default_ids = {check.id for check in default}
+    historical_ids = {check.id for check in CHECKS}
+    for check_id, field in REVIEWED_AWS_UNKNOWN_EXTERNAL.items():
+        assert field in entries[check_id]["mandatory_external_fields"]
+        assert check_id in historical_ids
+        assert check_id not in catalog_ids
+        assert check_id not in default_ids
+        with pytest.raises(ValueError, match="external policy or manual evidence"):
+            engine.plan_collection({"connector": {"provider": "aws"}, "checks": [check_id]})
+
+
+def test_organization_delegate_grant_and_fixed_native_thresholds_remain_admitted():
+    native_ids = {
+        "aws_cis_organizations_policy_management_delegated",
+        "aws.gap.iam.root_not_used_90_days",
+    }
+    assert native_ids.isdisjoint(exclusions())
+    assert native_ids <= {check.id for check in CHECKS}
+    assert native_ids <= {row["id"] for row in engine.get_catalog()["checks"]}
+    _, default = engine._selection("aws", None, None, None)
+    assert native_ids <= {check.id for check in default}
+    for check_id in native_ids:
+        assert engine.plan_collection({"connector": {"provider": "aws"}, "checks": [check_id]})

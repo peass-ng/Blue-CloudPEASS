@@ -470,14 +470,45 @@ def sec_lambda(item, index):
     return result(not (rules is not None and fn), rotation_lambda=fn)
 
 
+DEFAULT_SECRET_KMS = _secret(AccountId=ACCOUNT, Region="us-east-1", _coverage={"KmsKeyId": {
+    "status": "empty", "source_operation": "secretsmanager:DescribeSecret",
+    "native_member_present": False, "documented_default": "aws/secretsmanager"}})
+DEFAULT_SECRET_KMS_INDEX = {
+    "context": {**CONTEXT, "metadata": {"caller_identities": [
+        {"Account": ACCOUNT, "Arn": "arn:aws:iam::" + ACCOUNT + ":user/fixture"}]}},
+    "collections": {"secret": [{"type": "secret", "scope": SCOPE, "account_id": ACCOUNT,
+        "global": False, "status": "collected", "items": [DEFAULT_SECRET_KMS]}]},
+    "secret": [{"type": "secret", "scope": SCOPE, "provider": "aws", "data": DEFAULT_SECRET_KMS}],
+}
+
+
 @install("aws.cb.secretsmanager.cmk_encryption", "secret", "Secret is encrypted with a customer managed KMS key",
     _secret(KmsKeyId=KMS_ARN), _secret(KmsKeyId="alias/aws/secretsmanager"), rows=[C + "secretsmanager_secret_encrypted_with_kms_cmk"], severity="medium", control="SC-28",
     remediation="Re-encrypt the secret with a customer managed KMS key.", docs=[D_SEC], dependencies=["secret", "kms_key"],
-    extra={"index": inventory("kms_key", [{"Metadata": {"KeyMetadata": {"Arn": KMS_ARN, "KeyId": "k1", "KeyManager": "CUSTOMER"}}}]), "default_key": _secret()},
+    extra={"index": inventory("kms_key", [{"Metadata": {"KeyMetadata": {"Arn": KMS_ARN, "KeyId": "k1", "KeyManager": "CUSTOMER"}}}]),
+           "default_key": DEFAULT_SECRET_KMS,
+           "default_key_index": DEFAULT_SECRET_KMS_INDEX},
     note="Steampipe alarms on a null KmsKeyId, alias/aws/secretsmanager, or a key whose aliases include it; the alias join is replaced by KeyManager = AWS (the only AWS managed key Secrets Manager uses).")
 def sec_cmk(item, index):
+    collections = index.get("collections") if isinstance(index, dict) else None
+    if "KmsKeyId" not in item or (isinstance(collections, dict) and "secret" in collections):
+        # Validate actual native inventory for either key form. Historical
+        # explicit-key fixtures without a secret envelope keep their old path.
+        from .remaining_aws_gcp_native import _secret_index
+        secrets, _, _, _ = _secret_index(index)
+        arn = get(item, "ARN", str)
+        if secrets.get(arn) != item:
+            raise Unavailable("secret absent from unique scoped inventory")
+    if "KmsKeyId" not in item:
+        coverage = get(item, "_coverage", dict).get("KmsKeyId") if "_coverage" in item else None
+        if not isinstance(coverage, dict) or coverage.get("status") != "empty" or coverage.get("source_operation") != "secretsmanager:DescribeSecret" or coverage.get("native_member_present") is not False or coverage.get("documented_default") != "aws/secretsmanager":
+            raise Unavailable("KMS key omission lacks identity-bound DescribeSecret evidence")
+        # DescribeSecret omits KmsKeyId for the AWS managed aws/secretsmanager key.
+        return result(True, kms_key_id=None, key_manager="AWS")
     key = _opt(item, "KmsKeyId")
-    if not key or key == "alias/aws/secretsmanager":
+    if not key:
+        raise Unavailable("empty KMS key reference is not a documented omission")
+    if key == "alias/aws/secretsmanager":
         return result(True, kms_key_id=key)
     return result(kms_manager(index, key) != "CUSTOMER", kms_key_id=key)
 

@@ -78,6 +78,13 @@ def full_requirements():
 
 
 def description_for(check_id):
+    if check_id == 'aws.pci.iam.wildcard_action_scoped_resource':
+        from .aws_pci_iam_scoped_source_correction import description
+        return description()
+    if check_id == 'aws_g6_ecr_public_repositories_absent':
+        from .aws_ecr_source_correction import description, validate_prior_spec
+        validate_prior_spec()
+        return description()
     from .aws_policy_source_correction import CORRECTIONS, description as aws_policy_description
     if check_id in CORRECTIONS:
         return aws_policy_description(check_id)
@@ -124,6 +131,20 @@ def proposal_provenance_for(check_id):
             raise ValueError("Historical Cloud SQL lockout proposal hash changed")
         provenance["signed_spec_status"] = "historical_superseded_for_this_check"
         provenance["source_correction"] = correction_provenance()
+    if check_id == 'aws_g6_ecr_public_repositories_absent':
+        from .aws_ecr_source_correction import PRIOR_FROZEN_SPEC_SHA256, correction_provenance, validate_prior_spec
+        validate_prior_spec()
+        if provenance['signed_spec_sha256'] != PRIOR_FROZEN_SPEC_SHA256:
+            raise ValueError('Historical ECR Public proposal hash changed')
+        provenance['signed_spec_status'] = 'historical_superseded_for_this_check'
+        provenance['source_correction'] = correction_provenance()
+    if check_id == 'aws.pci.iam.wildcard_action_scoped_resource':
+        from .aws_pci_iam_scoped_source_correction import PRIOR_FROZEN_SPEC_SHA256, correction_provenance, validate_prior_spec
+        validate_prior_spec()
+        if provenance['signed_spec_sha256'] != PRIOR_FROZEN_SPEC_SHA256:
+            raise ValueError('Historical scoped IAM customer-policy proposal hash changed')
+        provenance['signed_spec_status'] = 'historical_superseded_for_this_check'
+        provenance['source_correction'] = correction_provenance()
     from .aws_policy_source_correction import PRIOR, correction_provenance
     if check_id in PRIOR:
         if provenance["signed_spec_sha256"] != PRIOR[check_id]:

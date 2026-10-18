@@ -1,5 +1,13 @@
 {
   "checks": {
+    "aws.claude_a.organizations.no_untrusted_delegated_administrators": {
+      "mandatory_external_fields": [
+        "organizations_trusted_delegated_administrators"
+      ],
+      "native_alternative": null,
+      "reason": "The no-untrusted-delegates contract compares administrators with the customer trusted account list; the evaluator silently substitutes an empty default, which cannot decide whether a registered delegate is trusted.",
+      "source": "peaso/checks/claude_aws_a_security.py::delegated_admins@475-488"
+    },
     "aws.nist.apigateway_stage_valid_client_certificate": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -498,6 +506,30 @@
       "native_alternative": null,
       "reason": "customer-required VPC endpoint service list by VPC",
       "source": "peaso/checks/compliance_new_sw06.py::_vpc_endpoints@417"
+    },
+    "aws_cloudtrail_administration_command": {
+      "mandatory_external_fields": [
+        "approved_remote_administration_principals"
+      ],
+      "native_alternative": null,
+      "reason": "Successful SSM administration events require comparison with customer-approved remote administration principals; the list is read from operator policy before a PASS or FAIL.",
+      "source": "peaso/checks/compliance_new_sw42.py::_activity@550-603"
+    },
+    "aws_cloudtrail_event_triggered_execution": {
+      "mandatory_external_fields": [
+        "approved_event_automation_principals"
+      ],
+      "native_alternative": null,
+      "reason": "Successful EventBridge rule or target changes require comparison with customer-approved automation principals; the list is read from operator policy before a PASS or FAIL.",
+      "source": "peaso/checks/compliance_new_sw42.py::_activity@550-603"
+    },
+    "aws_cloudtrail_permission_group_discovery": {
+      "mandatory_external_fields": [
+        "approved_iam_inventory_principals"
+      ],
+      "native_alternative": null,
+      "reason": "Successful IAM group discovery events require comparison with customer-approved inventory principals; the list is read from operator policy before a PASS or FAIL.",
+      "source": "peaso/checks/compliance_new_sw42.py::_activity@550-603"
     },
     "aws_cloudwatch_alarm_missing_data_realert": {
       "mandatory_external_fields": [],

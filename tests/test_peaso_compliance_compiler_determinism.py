@@ -79,7 +79,15 @@ def test_reviewed_compiler_outputs_are_identical_across_hash_seeds(tmp_path):
     requirements = json.loads(first["compliance_requirements.json"])
     lookup = json.loads(first["compliance_lookup.json"])
     native = json.loads((PACK / "native_catalog.json").read_bytes())
-    assert len(native["checks"]) == 3986
+    # Native-only admission partitions the unchanged historical registry.
+    active = {row["id"] for row in native["checks"]}
+    archived = {row["id"] for row in native["archived_checks"]}
+    assert len(active) == len(native["checks"])
+    assert len(archived) == len(native["archived_checks"])
+    assert not active.intersection(archived)
+    assert len(active | archived) == 3986
+    assert archived == set(native["excluded_controls"])
+    assert native["automation_scope"]["manual_attestations"] is False
     assert len(requirements["frameworks"]) == 160
     assert sum(len(row["requirements"]) for row in requirements["frameworks"]) == 22212
     forward = _edges_from_requirements(requirements)

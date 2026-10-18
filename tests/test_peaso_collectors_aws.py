@@ -331,7 +331,8 @@ def test_secret_metadata_only_and_lambda_environment_redaction(sdk):
     requests = aws.Requests({})
     read = requests.pages(session, "secretsmanager", REGION, "list_secrets", "SecretList")
     enriched = aws._enrich(requests, session, REGION, "secret", read.items, account=ACCOUNT, partition="aws")
-    assert "RotationEnabled" not in enriched[0]
+    assert enriched[0]["RotationEnabled"] is False
+    assert enriched[0]["_coverage"]["RotationEnabled"]["interpretation"] == "documented_never_configured_rotation"
     assert enriched[0]["Policy"]["ResourcePolicy"]["Statement"] == []
     safe = aws._safe({"Environment": {"Variables": {"PASSWORD": "env-secret"}}, "Code": {"Location": "signed-download-url"}, "SecretString": "stored-secret", "FunctionName": "audit"})
     assert safe == {"FunctionName": "audit"}

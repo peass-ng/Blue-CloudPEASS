@@ -28,7 +28,7 @@ SPECS = {
     'aws_route53_hosted_zone_dnssec_enabled': ('route53_zone', 'hardening', 'medium', 'Public Route 53 hosted zone signs DNSSEC', 'Enable DNSSEC signing and an active key-signing key on public hosted zones.', 'resource'),
     'aws_lambda_code_signing_configured': ('lambda_function', 'hardening', 'medium', 'Lambda code signing validates deployed packages', 'Attach a code-signing configuration with approved publishers and Enforce policy.', 'resource'),
     'aws_cis_lightsail_bucket_access_logging': ('lightsail_bucket', 'hardening', 'medium', 'Lightsail storage buckets have request logging', 'Enable access logs to a configured destination bucket.', 'resource'),
-    'aws_g6_ecr_public_repositories_absent': ('ecr_public_repository','exposure','high','Account has no ECR Public repositories','Remove ECR Public repositories if public distribution is not authorized.','scope'),
+    'aws_g6_ecr_public_repositories_absent': ('ecr_repository','exposure','high','Private ECR repository policy has no wildcard AWS principal','Review a literal wildcard AWS principal in the private ECR repository policy.','resource'),
     'aws_ec2_status_alarm': ('instance','hardening','high','EC2 failures trigger status-check alarms','Configure an actionable StatusCheckFailed alarm for each applicable instance.','resource'),
     'aws_cis_lambda_config_recorded': ('lambda_function','hardening','medium','AWS Config records Lambda functions','Enable a running customer-managed AWS Config recorder that includes AWS::Lambda::Function.','resource'),
     'aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled': ('rds_instance','hardening','medium','RDS DB instance and cluster enhanced monitoring should be enabled','Enable Enhanced Monitoring and a monitoring role on each applicable RDS instance.','resource'),
@@ -36,7 +36,7 @@ SPECS = {
     'aws_g6_all_cloudtrail_destination_bucket_access_logging': ('cloudtrail','hardening','medium','Every CloudTrail destination bucket has access logging','Enable S3 server access logging with a destination bucket and prefix.','resource'),
     'aws_nist_cloudtrail_s3_logging_enabled': ('cloudtrail','hardening','medium','Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket','Enable S3 server access logging on the bucket used by each logging trail.','resource'),
     'aws_kms_imported_key_origin_spec': ('kms_key','hardening','medium','Imported KMS key has approved origin and algorithm','Replace nonconforming imported KMS material with an approved key specification and usage.','resource'),
-    'aws.pci.iam.wildcard_action_scoped_resource': ('iam_policy','hardening','high','IAM policies avoid all actions on scoped resources','Scope declared Allow actions to the intended API actions for each resource ARN.','resource'),
+    'aws.pci.iam.wildcard_action_scoped_resource': ('iam_customer_policy','hardening','high','IAM policies avoid all actions on scoped resources','Scope declared Allow actions to the intended API actions for each resource ARN.','resource'),
     'aws_eventbridge_iam_user_change_alert': ('event_rule','hardening','medium','Alert on IAM user changes','Create enabled CloudTrail EventBridge rules covering each required IAM user and access-key change with a target.','scope'),
     'aws_eventbridge_snapshot_change_alert': ('event_rule','hardening','medium','Alert on snapshot manipulations','Create enabled CloudTrail EventBridge rules covering snapshot create, attribute changes, and deletion with a target.','scope'),
     'aws.nist.cloudtrail_cloudwatch_integration': ('cloudtrail','hardening','medium','Logging CloudTrail trails have a CloudWatch Logs destination','Enable a resolvable CloudWatch Logs destination for each logging home-Region trail.','resource'),
@@ -55,7 +55,7 @@ KEYS = {'msk_cluster':'ClusterArn','client_vpn_endpoint':'ClientVpnEndpointId',
         'sqs_queue':'QueueUrl','rds_cluster':'DBClusterIdentifier',
         'rds_instance':'DBInstanceIdentifier','dynamodb_table':'TableName',
         'route53_zone':'Id','lambda_function':'FunctionArn','lightsail_bucket':'name',
-        'ecr_public_repository':'repositoryArn'}
+        'ecr_public_repository':'repositoryArn','ecr_repository':'repositoryArn'}
 KEYS['config_recorder']='name'
 KEYS['cloudtrail']='TrailARN'
 KEYS['bucket']='Name'
@@ -359,8 +359,22 @@ def _signing(item,index):
         return 'NOT_APPLICABLE',{'function_arn':identity,'state':state}
     if state!='Active':return unknown('unrecognized Lambda state')
     signing=get(item,'CodeSigning',dict)
-    if get(signing,'collection_status',str)!='collected' or get(signing,'FunctionArn',str)!=identity:
-        raise Unavailable('Lambda code-signing detail unavailable or foreign')
+    if get(signing,'collection_status',str)!='collected':
+        raise Unavailable('Lambda code-signing detail unavailable')
+    name=get(item,'FunctionName',str) if 'FunctionName' in item else None
+    if name is not None and (not name or not identity.endswith(':function:'+name)):
+        raise Unavailable('Lambda function name and ARN mismatch')
+    # GetFunctionCodeSigningConfig returns FunctionName. Retain the older
+    # FunctionArn projection for already stored snapshots, validating both
+    # identities if they are present.
+    if 'FunctionName' in signing:
+        returned=get(signing,'FunctionName',str)
+        if name is None or returned not in (name,identity):
+            raise Unavailable('Lambda code-signing detail belongs to a foreign function')
+    elif 'FunctionArn' not in signing:
+        raise Unavailable('Lambda code-signing detail identity unavailable')
+    if 'FunctionArn' in signing and get(signing,'FunctionArn',str)!=identity:
+        raise Unavailable('Lambda code-signing detail belongs to a foreign function')
     config_arn=optional(signing,'CodeSigningConfigArn','',str)
     if not config_arn:return result(True,function_arn=identity,reason='no code-signing config')
     detail=get(item,'CodeSigningConfig',dict)
@@ -384,16 +398,113 @@ def _lightsail(item,index):
     return result(not enabled or not destination,bucket_name=identity,enabled=enabled,destination_present=bool(destination))
 
 
-def _public_ecr(item,index):
-    context,scope=_scope(index)
-    if item!=context:raise Unavailable('scope target mismatch')
-    if not scope.endswith('/us-east-1'):raise Unavailable('ECR Public home Region not collected')
-    rows=_rows(index,'ecr_public_repository')
-    for row in rows:
-        arn=get(row,'repositoryArn',str)
-        if not arn.startswith('arn:aws:ecr-public::'+scope.split('/')[0]+':repository/'):
-            raise Unavailable('foreign ECR Public repository')
-    return result(bool(rows),repository_count=len(rows),repository_arns=[get(row,'repositoryArn',str) for row in rows])
+def _private_ecr_policy(item,index):
+    # Pinned Steampipe ecr_repository_prohibit_public_access SQL selects the
+    # regional private aws_ecr_repository.policy_std, after plugin canonicalization.
+    arn=_member(item,index,'ecr_repository')
+    _,scope=_scope(index)
+    account,region=scope.split('/')
+    name=get(item,'repositoryName',str)
+    metadata=get(get(index,'context',dict),'metadata',dict)
+    callers=metadata.get('caller_identities',[])
+    if 'caller_identities' in metadata:
+        if not isinstance(callers,list) or not callers:
+            raise Unavailable('private ECR caller identity unavailable')
+        partitions={match.group(1) for caller in callers if isinstance(caller,dict) and caller.get('Account')==account
+                    for match in [re.fullmatch(r'arn:(aws(?:-us-gov|-cn)?):(?:iam|sts)::'+account+r':.+',str(caller.get('Arn','')))] if match}
+        if len(partitions)!=1 or not arn.startswith('arn:'+next(iter(partitions))+':'):
+            raise Unavailable('private ECR ARN partition disagrees with caller identity')
+    if (get(item,'registryId',str)!=account or not name or
+            not re.fullmatch(r'arn:aws(?:-us-gov|-cn)?:ecr:'+re.escape(region)+':'+account+
+                             ':repository/'+re.escape(name),arn)):
+        raise Unavailable('private ECR repository identity is foreign or malformed')
+    policy=get(item,'Policy',dict)
+    status=get(policy,'collection_status',str)
+    if status=='empty':
+        error=policy.get('error')
+        if (policy.get('absent') is True and isinstance(error,dict) and
+                error.get('code') in (None,'RepositoryPolicyNotFoundException') and
+                set(error) <= {'code'} and 'policyText' not in policy):
+            return result(False,repository_arn=arn,policy='documented_absent')
+        raise Unavailable('private ECR policy absence is not documented')
+    if status!='collected':
+        raise Unavailable('private ECR policy detail incomplete')
+    if get(policy,'registryId',str)!=account or get(policy,'repositoryName',str)!=name:
+        raise Unavailable('private ECR policy detail belongs to a foreign repository')
+    document=get(policy,'policyText',(str,dict))
+    if isinstance(document,str):
+        try:document=json.loads(document)
+        except ValueError as exc:raise Unavailable('malformed private ECR policy JSON') from exc
+    if not isinstance(document,dict) or 'collection_status' in document or '_coverage' in document:
+        raise Unavailable('malformed private ECR policy document')
+    if any(field in document and not isinstance(document[field],str) for field in ('Version','Id')):
+        raise Unavailable('private ECR policy header is malformed')
+    statements=document.get('Statement')
+    if isinstance(statements,dict):
+        statements=[statements]  # policyToCanonical wraps a single Statement.
+    if not isinstance(statements,list) or any(not isinstance(row,dict) for row in statements):
+        raise Unavailable('private ECR policy Statement is malformed')
+    hits=0
+    for statement in statements:
+        if statement.get('Effect') not in ('Allow','Deny'):
+            raise Unavailable('private ECR policy Effect is malformed')
+        if 'Sid' in statement and not isinstance(statement['Sid'],str):
+            raise Unavailable('private ECR policy Sid is malformed')
+        for field in ('NotAction','Resource','NotResource'):
+            if field in statement:
+                values=statement[field]
+                values=[values] if isinstance(values,str) else values
+                if not isinstance(values,list) or any(not isinstance(value,str) for value in values):
+                    raise Unavailable('private ECR policy '+field+' is malformed')
+        if 'NotPrincipal' in statement:
+            excluded=statement['NotPrincipal']
+            if isinstance(excluded,str):
+                if excluded!='*':raise Unavailable('private ECR policy NotPrincipal is malformed')
+            elif isinstance(excluded,dict) and excluded:
+                for values in excluded.values():
+                    values=[values] if isinstance(values,str) else values
+                    if not isinstance(values,list) or any(not isinstance(value,str) for value in values):
+                        raise Unavailable('private ECR policy NotPrincipal is malformed')
+            else:
+                raise Unavailable('private ECR policy NotPrincipal is malformed')
+        if 'Condition' in statement:
+            condition=statement['Condition']
+            if not isinstance(condition,dict) or any(
+                    not isinstance(operator,str) or not isinstance(clauses,dict) or
+                    any(not isinstance(key,str) or not isinstance(value,(str,int,float,bool,list)) or
+                        (isinstance(value,list) and any(not isinstance(part,(str,int,float,bool)) for part in value))
+                        for key,value in clauses.items()) for operator,clauses in condition.items()):
+                raise Unavailable('private ECR policy Condition is malformed')
+        principal=statement.get('Principal')
+        if isinstance(principal,str):
+            if principal!='*':
+                raise Unavailable('private ECR policy Principal string is malformed')
+            aws_values=['*']  # policyToCanonical maps bare * to AWS: ["*"].
+        elif isinstance(principal,dict) and principal and all(
+                key in ('AWS','Service','Federated','CanonicalUser') for key in principal):
+            for values in principal.values():
+                normalized=[values] if isinstance(values,str) else values
+                if not isinstance(normalized,list) or any(
+                        not isinstance(value,str) or not value for value in normalized):
+                    raise Unavailable('private ECR policy Principal value is malformed')
+            aws_values=principal.get('AWS',[])
+            if isinstance(aws_values,str):
+                aws_values=[aws_values]  # Principal.AWS scalar -> array.
+            if any('%' in value for value in aws_values):
+                # The plugin URL-unescapes before canonicalization; a parsed
+                # native document cannot prove whether %2A remains literal.
+                raise Unavailable('private ECR principal URL encoding is ambiguous')
+        else:
+            raise Unavailable('private ECR policy Principal is malformed')
+        actions=statement.get('Action')
+        if isinstance(actions,str):
+            actions=[actions]  # policyToCanonical wraps scalar Action.
+        if not isinstance(actions,list) or any(
+                not isinstance(value,str) or not value for value in actions):
+            raise Unavailable('private ECR policy Action is malformed')
+        if statement['Effect']=='Allow' and '*' in aws_values and actions:
+            hits+=1
+    return result(bool(hits),repository_arn=arn,canonical_wildcard_statements=hits)
 
 
 def _lambda_config(item,index):
@@ -483,13 +594,53 @@ def _kms_imported_spec(item,index):
 
 
 def _iam_scoped_wildcard(item,index):
-    arn=_member(item,index,'iam_policy')
-    versions=list_of_objects(get(item,'PolicyVersionList',list))
-    default=[version for version in versions if get(version,'IsDefaultVersion',bool)]
-    if len(default)!=1:
-        raise Unavailable('exactly one default IAM policy version required')
+    # This signed predicate selects customer-managed policies. The old
+    # GetAccountAuthorizationDetails iam_policy projection also contains
+    # AWS-owned policies, so bind each resource to the exact Local universe.
+    from .aws_all_policies import _rows as customer_rows
+
+    context=get(index,'context',dict)
+    scope=get(context,'scope',str)
+    match=re.fullmatch(r'([0-9]{12})/(?:global|[a-z0-9-]+)',scope)
+    if get(context,'provider',str)!='aws' or match is None or context.get('Account')!=match.group(1):
+        raise Unavailable('customer IAM account authority missing')
+    account=match.group(1)
+    envelopes=get(index,'collections',dict).get('iam_customer_policy')
+    if (not isinstance(envelopes,list) or len(envelopes)!=1 or
+            envelopes[0].get('account_id')!=account or envelopes[0].get('global') is not True or
+            envelopes[0].get('status') not in ('collected','empty')):
+        raise Unavailable('complete customer IAM global inventory unavailable')
+
+    def documents():
+        rows=customer_rows(index,account)  # exact envelope/wrapper equality
+        found={}
+        for row in rows:
+            arn=get(row,'Arn',str)
+            if (not re.fullmatch(r'arn:(?:aws|aws-cn|aws-us-gov):iam::'+account+r':policy/.+',arn)
+                    or get(row,'AccountId',str)!=account or arn in found):
+                raise Unavailable('foreign or duplicate customer IAM policy')
+            provenance=get(row,'_provenance',dict)
+            if (provenance.get('operation')!='iam:ListPolicies' or
+                    provenance.get('managed_scope')!='Local' or
+                    provenance.get('only_attached') is not False or
+                    provenance.get('account_id')!=account or
+                    provenance.get('default_operation')!='iam:GetPolicyVersion'):
+                raise Unavailable('customer IAM policy universe unproven')
+            detail=get(row,'DefaultDocument',dict)
+            if (get(detail,'collection_status',str)!='collected' or
+                    get(detail,'VersionId',str)!=get(row,'DefaultVersionId',str)):
+                raise Unavailable('default IAM policy version unavailable or mismatched')
+            document=get(detail,'Document',dict)
+            statements(document)  # reject malformed default documents before grading
+            found[arn]=(row,document)
+        return found
+
+    found=memoized(index,('iam_scoped_customer_defaults',),documents)
+    arn=get(item,'Arn',str)
+    if arn not in found or found[arn][0]!=item:
+        raise Unavailable('customer IAM resource not in exact native inventory')
     matches=0
-    for statement in statements(get(default[0],'Document')):
+    for statement in statements(found[arn][1]):
         effect=get(statement,'Effect',str)
         if effect not in ('Allow','Deny'):
             raise Unavailable('unrecognized IAM effect')
@@ -514,15 +665,12 @@ def _iam_scoped_wildcard(item,index):
             exclusions=array(statement['NotAction'])
             if not exclusions or any(not isinstance(value,str) for value in exclusions):
                 raise Unavailable('malformed IAM NotAction set')
-            # NotAction="*" excludes every action; it is not an equivalent
-            # wildcard grant. Other exclusions still leave a broad action set.
             broad=not any(value in ('*','*:*') for value in exclusions)
         else:
             raise Unavailable('IAM Allow action absent')
         matches+=int(broad)
     return result(bool(matches),policy_arn=arn,broad_scoped_statement_count=matches,
                   semantics='declared customer-managed default policy; no effective permission inference')
-
 
 _EVENTS={
     'aws_eventbridge_iam_user_change_alert': ('aws.iam','iam.amazonaws.com',
@@ -783,7 +931,7 @@ EVALUATORS={
  'aws_route53_hosted_zone_dnssec_enabled':_dnssec,
  'aws_lambda_code_signing_configured':_signing,
  'aws_cis_lightsail_bucket_access_logging':_lightsail,
- 'aws_g6_ecr_public_repositories_absent':_public_ecr,
+ 'aws_g6_ecr_public_repositories_absent':_private_ecr_policy,
  'aws_ec2_status_alarm':_status_alarm,
  'aws_cis_lambda_config_recorded':_lambda_config,
  'aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled':_rds_instance,

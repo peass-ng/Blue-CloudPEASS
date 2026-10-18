@@ -310,7 +310,7 @@ def _vpn(requests, session, region, item):
 
 @_each
 def _lambda(requests, session, region, item):
-    signing = _detail(requests, session, region, "lambda", "get_function_code_signing_config", FunctionName=item["FunctionName"], keys=["FunctionArn", "CodeSigningConfigArn"])
+    signing = _detail(requests, session, region, "lambda", "get_function_code_signing_config", FunctionName=item["FunctionName"], keys=["FunctionName", "FunctionArn", "CodeSigningConfigArn"])
     if signing.get("collection_status") == "collected":
         # Successful read with no attachment omits this optional field.
         signing.setdefault("CodeSigningConfigArn", "")

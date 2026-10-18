@@ -21,7 +21,7 @@ def test_cloudtrail_optional_kms_omission_is_proved_by_native_list_object():
     assert "KmsKeyId" not in row
 
 
-def test_secret_rotation_omission_is_unknown_without_describe_fact():
+def test_secret_rotation_omission_uses_identity_bound_describe_fact():
     row = {"Name": "metadata-only", "ARN": "arn:aws:secretsmanager:us-east-1:123456789012:secret:metadata-only-123456"}
     class Detail(Responses):
         def detail(self, session, service, region, operation, **arguments):
@@ -29,8 +29,12 @@ def test_secret_rotation_omission_is_unknown_without_describe_fact():
                 return {"collection_status": "collected", "ARN": row["ARN"], "Name": row["Name"]}
             return super().detail(session, service, region, operation, **arguments)
     item = aws._enrich(Detail(), object(), "us-east-1", "secret", [row], account="123456789012", partition="aws")[0]
-    assert "RotationEnabled" not in item
-    assert item["_coverage"]["RotationEnabled"] == {"status": "empty", "source_operation": "secretsmanager:DescribeSecret"}
+    assert item["RotationEnabled"] is False
+    marker = item["_coverage"]["RotationEnabled"]
+    assert marker["status"] == "collected"
+    assert marker["source_operation"] == "secretsmanager:DescribeSecret"
+    assert marker["native_member_present"] is False
+    assert marker["interpretation"] == "documented_never_configured_rotation"
 
 
 @pytest.mark.parametrize("kind,row", [("sns_topic", {"TopicArn": "arn:aws:sns:us-east-1:123456789012:topic"}), ("sqs_queue", {"QueueUrl": "https://sqs.us-east-1.amazonaws.com/123456789012/queue"})])
@@ -55,3 +59,11 @@ def test_explicit_native_settings_are_not_overwritten_by_omission_projection():
     item = {"RotationEnabled": True}
     aws._documented_omission(item, "RotationEnabled", False, "secretsmanager:ListSecrets")
     assert item == {"RotationEnabled": True}
+
+
+def test_secret_rotation_omission_without_identity_bound_describe_stays_unknown():
+    row = {"Name": "metadata-only", "ARN": "arn:aws:secretsmanager:us-east-1:123456789012:secret:metadata-only-123456"}
+    item = aws._enrich(Responses(), object(), "us-east-1", "secret", [row],
+                       account="123456789012", partition="aws")[0]
+    assert "RotationEnabled" not in item
+    assert item["_coverage"]["RotationEnabled"]["status"] == "malformed"

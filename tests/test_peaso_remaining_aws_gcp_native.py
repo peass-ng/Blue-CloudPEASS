@@ -297,7 +297,7 @@ def _secret_status(snapshot):
 
 @pytest.mark.parametrize("key_ref,key_state,expected", [
     (KEY_ARN, "Enabled", "PASS"), (KEY_ID, "Enabled", "PASS"),
-    (KEY_ARN, "Disabled", "FAIL"), (None, "Enabled", "UNKNOWN"),
+    (KEY_ARN, "Disabled", "FAIL"), (None, "Enabled", "PASS"),
     (f"arn:aws:kms:{REGION}:{ACCOUNT}:alias/db", "Enabled", "UNKNOWN"),
     ("alias/aws/secretsmanager", "Enabled", "UNKNOWN"),
 ])

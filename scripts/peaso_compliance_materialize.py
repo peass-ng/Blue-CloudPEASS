@@ -82,6 +82,26 @@ def render_documents() -> dict[Path, bytes]:
     from peaso.checks.aws_policy_source_correction import CORRECTIONS
     source_corrections.update({cid: {"spec": row["spec"], "provenance": row["provenance"]}
                                for cid, row in CORRECTIONS.items()})
+    from peaso.checks import aws_ecr_source_correction as ecr_correction
+    prior_ecr = next((row for row in canonical['proposed_checks']
+                      if row['id'] == ecr_correction.CHECK_ID), None)
+    if prior_ecr is None:
+        raise ValueError('Historical ECR Public proposal missing')
+    ecr_correction.validate_prior_spec(prior_ecr)
+    source_corrections[ecr_correction.CHECK_ID] = {
+        "spec": ecr_correction.CORRECTED_SPEC,
+        "provenance": ecr_correction.correction_provenance(),
+    }
+    from peaso.checks import aws_pci_iam_scoped_source_correction as scoped_iam_correction
+    prior_scoped_iam = next((row for row in canonical['proposed_checks']
+                             if row['id'] == scoped_iam_correction.CHECK_ID), None)
+    if prior_scoped_iam is None:
+        raise ValueError('Historical scoped IAM customer-policy proposal missing')
+    scoped_iam_correction.validate_prior_spec(prior_scoped_iam)
+    source_corrections[scoped_iam_correction.CHECK_ID] = {
+        "spec": scoped_iam_correction.CORRECTED_SPEC,
+        "provenance": scoped_iam_correction.correction_provenance(),
+    }
     public = [check.public() for check in active]
     if {check["id"] for check in public} != {check.id for check in active}:
         raise ValueError("Public native catalog differs from the registry")
