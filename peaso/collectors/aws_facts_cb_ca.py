@@ -651,7 +651,9 @@ def _guardduty_findings(requests, session, region, account):
 
 
 def _securityhub_hub(requests, session, region, account):
-    hub = requests.detail(session, "securityhub", region, "describe_hub", absent=("InvalidAccessException", "ResourceNotFoundException"))
+    # DescribeHub documents InvalidAccessException as insufficient permission.
+    # Only ResourceNotFoundException establishes an absent regional hub.
+    hub = requests.detail(session, "securityhub", region, "describe_hub", absent=("ResourceNotFoundException",))
     if hub.get("absent") is True:
         # Security Hub is not enabled in this region: a complete empty inventory.
         return _result([], "empty", hub.get("error"))

@@ -196,11 +196,17 @@ def test_glue_data_catalog_encryption_and_absent_policy(sdk):
     assert evaluate("aws.cb.glue.catalog_metadata_encryption", catalog) == "FAIL"
 
 
-def test_securityhub_not_enabled_is_empty_but_denied_is_denied(sdk):
+def test_securityhub_permission_error_is_unknown_but_missing_hub_is_empty(sdk):
     session, add = sdk
     hub = add("securityhub")
     hub.add_client_error("describe_hub", service_error_code="InvalidAccessException", http_status_code=401)
-    assert facts.FETCHERS["securityhub_hub"](aws.Requests({}), session, REGION, ACCOUNT).status == "empty"
+    read = facts.FETCHERS["securityhub_hub"](aws.Requests({}), session, REGION, ACCOUNT)
+    assert read.status == "unknown" and read.items == []
+    assert read.error == {"code": "InvalidAccessException", "operation": "describe_hub"}
+    hub.add_client_error("describe_hub", service_error_code="ResourceNotFoundException", http_status_code=404)
+    read = facts.FETCHERS["securityhub_hub"](aws.Requests({}), session, REGION, ACCOUNT)
+    assert read.status == "empty" and read.items == []
+    assert read.error == {"code": "ResourceNotFoundException"}
     denied(hub, "describe_hub", "AccessDeniedException")
     read = facts.FETCHERS["securityhub_hub"](aws.Requests({}), session, REGION, ACCOUNT)
     assert read.status == "denied" and read.items == []
