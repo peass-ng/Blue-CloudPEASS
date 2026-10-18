@@ -22,6 +22,7 @@ from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
 from .aws_role_boundary_next import normalize_aws_role_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
+from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -36,8 +37,8 @@ from .kubernetes_runtime_socket_next import normalize_kubernetes_runtime_socket_
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "8e8345f04b27a29a25ec1514247b67b413f07353"
-DEFAULT_RULE_PACK_SHA256 = "f3f1909e246a5795dd169854421a9d9f1cb4550df0cb4fd1182d75f2389ddaf8"
+DEFAULT_RULE_REF = "f544873ce36fc57cb39bd9769cb4a1c9863e2669"
+DEFAULT_RULE_PACK_SHA256 = "6be09851fd9f2792edc40fec4c2df9d8650ec43717c3f0d3328bab5b145a6cfc"
 
 
 @dataclass(frozen=True)
@@ -150,11 +151,13 @@ def detect_aws_events(
         updated_profile = normalize_aws_other_user_login_profile_update(record)
         boundary = normalize_aws_role_boundary_delete(record)
         trust = normalize_aws_wildcard_role_trust(record)
+        keyspaces_credential = normalize_keyspaces_other_user_credential(record)
         return (([base] if base is not None else [])
                 + ([profile] if profile is not None else [])
                 + ([updated_profile] if updated_profile is not None else [])
                 + ([boundary] if boundary is not None else [])
-                + ([trust] if trust is not None else []))
+                + ([trust] if trust is not None else [])
+                + ([keyspaces_credential] if keyspaces_credential is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
