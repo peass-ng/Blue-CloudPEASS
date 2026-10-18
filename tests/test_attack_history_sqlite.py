@@ -20,7 +20,10 @@ PRIVATE_CONNECTOR = {"data": {"provider": "aws", "name": "frozen"},
 CONNECTOR = hashlib.sha256(json.dumps(PRIVATE_CONNECTOR, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 CHECKPOINT = "c" * 64
 RESULT = "d" * 64
-SOURCE = {"kind": "aws_cloudtrail_s3", "bucket": "customer-audit", "prefix": "AWSLogs/123/", "region": "us-east-1", "days": 30}
+SOURCE = {"kind": "aws_cloudtrail_s3", "bucket": "customer-audit",
+          "prefix": "AWSLogs/123456789012/CloudTrail/", "account_id": "123456789012",
+          "region": "us-east-1", "day": "2026-10-18", "days": 30}
+EVENT_SOURCE = {"kind": "aws_event_history", "region": "us-east-1", "day": "2026-10-18"}
 EMPTY_RESULT = {"schema_version": 1, "summary": {"source_count": 1, "event_count": 0,
                 "detection_count": 0, "partial": False}, "detections": []}
 
@@ -31,7 +34,8 @@ def store(tmp_path: Path, *, active: int = 10, total: int = 1000) -> SQLiteAttac
 
 
 def create(db: SQLiteAttackHistoryStore, tenant: str = "tenant-a", **kw):
-    return db.create_job(tenant, "connector-1", SOURCE, RULE, CONNECTOR, PRIVATE_CONNECTOR,
+    source = kw.pop("source", SOURCE)
+    return db.create_job(tenant, "connector-1", source, RULE, CONNECTOR, PRIVATE_CONNECTOR,
                          source_version="source-v1", rule_version="rules-v1",
                          normalizer_version="normalizer-v1", **kw)
 
@@ -63,7 +67,9 @@ def test_tenant_scoped_history_and_minimal_projection(tmp_path: Path) -> None:
 def test_source_allowlist_and_fingerprint_snapshot(tmp_path: Path) -> None:
     db = store(tmp_path)
     first = create(db)
-    reordered = {"days": 30, "region": "us-east-1", "prefix": "AWSLogs/123/", "bucket": "customer-audit", "kind": "aws_cloudtrail_s3"}
+    reordered = {"days": 30, "region": "us-east-1", "day": "2026-10-18",
+                 "account_id": "123456789012", "prefix": "AWSLogs/123456789012/CloudTrail/",
+                 "bucket": "customer-audit", "kind": "aws_cloudtrail_s3"}
     again = db.create_job("tenant-a", "connector-1", reordered, RULE, CONNECTOR, PRIVATE_CONNECTOR,
                           source_version="source-v1", rule_version="rules-v1", normalizer_version="normalizer-v1")
     assert first["source_fingerprint"] == again["source_fingerprint"]
@@ -113,7 +119,7 @@ def test_atomic_capacity_under_competing_creators(tmp_path: Path) -> None:
 
 def test_crash_reclaim_replay_and_transactional_checkpoint(tmp_path: Path) -> None:
     db = store(tmp_path)
-    job = create(db, now=0, expected_partitions=("part-1",))["id"]
+    job = create(db, now=0, expected_partitions=("part-1",), source=EVENT_SOURCE)["id"]
     gen1 = db.claim_job("tenant-a", job, "worker-a", lease_seconds=10, now=1)
     assert gen1 == 1
     db.checkpoint_partition("tenant-a", job, "worker-a", gen1, "part-1", 1,
@@ -175,7 +181,7 @@ def test_failure_codes_and_expired_lease_are_closed(tmp_path: Path) -> None:
 
 def test_completion_requires_every_planned_partition_final_and_bound_result(tmp_path: Path) -> None:
     db = store(tmp_path)
-    job = create(db, expected_partitions=("first", "second"))["id"]
+    job = create(db, expected_partitions=("first", "second"), source=EVENT_SOURCE)["id"]
     gen = db.claim_job("tenant-a", job, "worker-a", now=10)
     result_ref = f"attack-results/{job}/{RESULT}"
     raises(409, lambda: db.complete_job("tenant-a", job, "worker-a", gen,
@@ -251,7 +257,7 @@ def test_fingerprint_and_versions_participate_in_idempotency(tmp_path: Path) -> 
 
 def test_result_file_must_exist_and_match_hash_before_completion(tmp_path: Path) -> None:
     db = store(tmp_path)
-    job = create(db)["id"]
+    job = create(db, source=EVENT_SOURCE)["id"]
     gen = db.claim_job("tenant-a", job, "worker-a", now=10)
     db.checkpoint_partition("tenant-a", job, "worker-a", gen, "main", 1,
                             "attack-checkpoint/main", CHECKPOINT, finalized=True, now=11)
@@ -305,3 +311,23 @@ def test_artifact_writer_rejects_raw_logs_and_secrets(tmp_path: Path) -> None:
     finding["evidence"] = {"event.source": "iam.amazonaws.com", "request.other_user_keyspaces_credential_created": True}
     ref, digest = db.write_result("tenant-a", job, "worker-a", gen, bad, now=11)
     assert db.artifacts.get_result("tenant-a", job, ref, digest)["detections"][0]["evidence"]["event.source"] == "iam.amazonaws.com"
+
+
+def test_cloudtrail_s3_cannot_complete_without_reconciliation_attestation(tmp_path: Path) -> None:
+    db = store(tmp_path)
+    job = create(db)["id"]
+    generation = db.claim_job("tenant-a", job, "worker-a", now=10)
+    db.checkpoint_partition("tenant-a", job, "worker-a", generation, "main", 1,
+                            "attack-checkpoint/main", CHECKPOINT, finalized=True, now=11)
+    ref, digest = db.write_result("tenant-a", job, "worker-a", generation, EMPTY_RESULT, now=12)
+    raises(409, lambda: db.complete_job("tenant-a", job, "worker-a", generation, ref, digest, now=13))
+    assert db.get_job("tenant-a", job)["status"] == "running"
+
+
+def test_global_running_capacity_across_tenants(tmp_path: Path) -> None:
+    db = store(tmp_path)
+    first = create(db, "tenant-a")["id"]
+    second = create(db, "tenant-b")["id"]
+    db.claim_job("tenant-a", first, "worker-a", lease_seconds=20, now=10)
+    raises(429, lambda: db.claim_job("tenant-b", second, "worker-b", now=11))
+    assert db.claim_job("tenant-b", second, "worker-b", now=31) == 1

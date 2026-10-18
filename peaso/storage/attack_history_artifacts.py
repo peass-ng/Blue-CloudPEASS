@@ -65,6 +65,36 @@ def _evidence(value: object) -> dict:
 def sanitized_result(job_id: str, value: Mapping[str, object]) -> dict:
     """Project a small, useful report without accepting raw log objects."""
     _identifier(job_id)
+    if isinstance(value, Mapping) and value.get("schema_version") == 2:
+        if set(value) != {"schema_version", "summary", "chunks", "attestation"}:
+            raise ValueError("Invalid chunked attack result shape")
+        summary, chunks, attestation = value["summary"], value["chunks"], value["attestation"]
+        if (not isinstance(summary, Mapping) or set(summary) != _SUMMARY_FIELDS | {"complete_as_of"}
+                or any(type(summary[key]) is not int or not 0 <= summary[key] <= 10**12
+                       for key in ("source_count", "event_count", "detection_count"))
+                or summary["partial"] is not False or summary["source_count"] < 1
+                or not isinstance(summary["complete_as_of"], str)
+                or len(summary["complete_as_of"]) > 64):
+            raise ValueError("Invalid chunked attack result summary")
+        if not isinstance(chunks, list) or len(chunks) > 10000:
+            raise ValueError("Invalid attack result chunks")
+        clean_chunks = []
+        for item in chunks:
+            if (not isinstance(item, Mapping) or set(item) != {"ref", "sha256", "count"}
+                    or type(item["count"]) is not int or not 1 <= item["count"] <= 1000
+                    or not isinstance(item["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"])
+                    or item["ref"] != f"attack-ledger/{job_id}/findings/{item['sha256']}"):
+                raise ValueError("Invalid attack result chunk reference")
+            clean_chunks.append(dict(item))
+        if sum(item["count"] for item in clean_chunks) != summary["detection_count"]:
+            raise ValueError("Attack result chunk count mismatch")
+        if (not isinstance(attestation, Mapping) or set(attestation) != {"ref", "sha256"}
+                or not isinstance(attestation["sha256"], str)
+                or not re.fullmatch(r"[0-9a-f]{64}", attestation["sha256"])
+                or attestation["ref"] != f"attack-ledger/{job_id}/attestation/{attestation['sha256']}"):
+            raise ValueError("Invalid attack result attestation reference")
+        return {"schema_version": 2, "job_id": job_id, "summary": dict(summary),
+                "chunks": clean_chunks, "attestation": dict(attestation)}
     if not isinstance(value, Mapping) or set(value) != {"schema_version", "summary", "detections"}:
         raise ValueError("Invalid attack result shape")
     if type(value["schema_version"]) is not int or value["schema_version"] != 1:
@@ -160,11 +190,13 @@ class LocalAttackHistoryArtifacts:
             raise ValueError("Attack result digest mismatch")
         try:
             decoded = json.loads(body)
-            if not isinstance(decoded, dict) or set(decoded) != {"schema_version", "job_id", "summary", "detections"}:
+            if not isinstance(decoded, dict) or set(decoded) not in (
+                    {"schema_version", "job_id", "summary", "detections"},
+                    {"schema_version", "job_id", "summary", "chunks", "attestation"}):
                 raise ValueError("Attack result shape mismatch")
             if decoded.get("job_id") != job_id:
                 raise ValueError("Attack result identity mismatch")
-            if sanitized_result(job_id, {key: decoded[key] for key in ("schema_version", "summary", "detections")}) != decoded:
+            if sanitized_result(job_id, {key: value for key, value in decoded.items() if key != "job_id"}) != decoded:
                 raise ValueError("Attack result projection mismatch")
         except (KeyError, TypeError, ValueError, UnicodeDecodeError):
             raise ValueError("Attack result artifact is invalid") from None
