@@ -16,12 +16,15 @@ async function hostedApi(page: Page, connector?: Record<string, unknown>) {
     runtime_mode: "hosted", connector_auth_methods: { k8s: ["token", "inline", "client-cert"] },
   } }));
   await page.route("**/api/connectors**", async (route) => {
-    if (route.request().method() === "GET")
+    const path = new URL(route.request().url()).pathname;
+    const method = route.request().method();
+    if (path === "/api/connectors" && method === "GET")
       await route.fulfill({ json: { items: connector ? [connector] : [] } });
-    else {
+    else if ((path === "/api/connectors" && method === "POST") ||
+      (/^\/api\/connectors\/[^/]+$/.test(path) && method === "PATCH")) {
       sent.push(route.request().postDataJSON());
       await route.fulfill({ status: 503, json: { detail: "fixture endpoint" } });
-    }
+    } else await route.fallback();
   });
   await page.route("**/api/connectors/check-access", (route) => route.fulfill({
     json: { status: "pass", issues: [], principals: [{ scope: "fixture", principal: "fixture identity" }] },
@@ -128,12 +131,15 @@ async function hostedGcpApi(page: Page, connector?: Record<string, unknown>) {
     runtime_mode: "hosted", connector_auth_methods: { gcp: ["token"] },
   } }));
   await page.route("**/api/connectors**", async (route) => {
-    if (route.request().method() === "GET")
+    const path = new URL(route.request().url()).pathname;
+    const method = route.request().method();
+    if (path === "/api/connectors" && method === "GET")
       await route.fulfill({ json: { items: connector ? [connector] : [] } });
-    else {
+    else if ((path === "/api/connectors" && method === "POST") ||
+      (/^\/api\/connectors\/[^/]+$/.test(path) && method === "PATCH")) {
       sent.push(route.request().postDataJSON());
       await route.fulfill({ status: 503, json: { detail: "fixture endpoint" } });
-    }
+    } else await route.fallback();
   });
   await page.route("**/api/connectors/check-access", (route) => route.fulfill({
     json: { status: "pass", issues: [], principals: [{ scope: "fixture", principal: "fixture identity" }] },

@@ -137,6 +137,7 @@ test("23k coverage uses a bounded DOM window, direct final-page offset, retry, a
   await expect(rows).toHaveCount(205);
   await dialog.getByText("1 checklist versions with Not assessed requirements").click();
   await expect(dialog.getByText("Not assessed · 7 requirements")).toBeVisible();
-  await expect(dialog).toContainText("not tenant results");
+  await expect(dialog).toContainText("Catalog support (global)");
+  await expect(dialog).toContainText("These checklist requirements do not have an automated check yet.");
   await expect(dialog.locator("pre")).toHaveCount(0);
 });

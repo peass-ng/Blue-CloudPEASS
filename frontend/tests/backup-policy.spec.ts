@@ -13,12 +13,15 @@ async function hostedApi(page: Page, connector?: Record<string, unknown>) {
     runtime_mode: "hosted", connector_auth_methods: { aws: ["access_keys", "assume_role"] },
   } }));
   await page.route("**/api/connectors**", async (route) => {
-    if (route.request().method() === "GET") {
+    const path = new URL(route.request().url()).pathname;
+    const method = route.request().method();
+    if (path === "/api/connectors" && method === "GET") {
       await route.fulfill({ json: { items: connector ? [connector] : [] } });
-    } else {
+    } else if ((path === "/api/connectors" && method === "POST") ||
+      (/^\/api\/connectors\/[^/]+$/.test(path) && method === "PATCH")) {
       sent.push(route.request().postDataJSON());
       await route.fulfill({ status: 503, json: { detail: "fixture endpoint" } });
-    }
+    } else await route.fallback();
   });
   await page.route("**/api/connectors/check-access", (route) => route.fulfill({
     json: { status: "pass", issues: [], principals: [{ scope: "fixture", principal: "fixture identity" }] },
@@ -41,6 +44,7 @@ test("hosted AWS form sends no backup default and validates explicit scoped poli
   await page.goto("/#Connectors");
   await page.getByRole("button", { name: "Add connector", exact: true }).click();
   await page.getByLabel("Connector name").fill("Backup policy fixture");
+  await page.getByLabel("Authentication").selectOption("access_keys");
   await page.getByLabel("Access key ID").fill("fixture-key");
   await page.getByLabel("Secret access key").fill("fixture-secret");
   await submitConnector(page);
@@ -51,7 +55,7 @@ test("hosted AWS form sends no backup default and validates explicit scoped poli
   await page.getByLabel("Secret access key").fill("fixture-secret");
 
   await page.getByText("Advanced configuration", { exact: true }).click();
-  await expect(page.getByText("Set your required backup schedule", { exact: false })).toBeVisible();
+  await expect(page.getByText("AWS Backup plan policy", { exact: true })).toBeVisible();
   await page.getByLabel("Declare a required backup interval").check();
   await page.getByLabel("Maximum interval between scheduled backups (hours)").fill("24");
   await page.getByLabel("Applies to account/Region scopes (comma separated)").fill(`${scope}, ${scope}`);
