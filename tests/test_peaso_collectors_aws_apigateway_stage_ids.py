@@ -26,7 +26,7 @@ class Pages:
     def pages(self, session, service, region, operation, expression, **arguments):
         self.calls.append((service, region, operation, expression, arguments))
         if operation in ("get_rest_apis", "get_apis"):
-            return ReadResult([{"id": "abc123"}] if self.rest else [{"ApiId": "abc123"}])
+            return ReadResult([{"id": "abc123"}] if self.rest else [{"ApiId": "abc123", "ProtocolType": "HTTP"}])
         assert operation == "get_stages" and arguments in (
             {"restApiId": "abc123"}, {"ApiId": "abc123"})
         if self.rest:
@@ -46,7 +46,7 @@ def test_rest_and_http_stage_ids_use_distinct_official_paths_and_sdk_partition()
         "arn:aws-cn:apigateway:cn-north-1::/restapis/abc123/stages/prod")
     assert rest.items[0]["_provenance"] == {"source_operation": "get_stages",
         "parent_api_id": "abc123", "read_only": True,
-        "optional_fields_complete": ["accessLogSettings"]}
+        "optional_fields_complete": ["accessLogSettings", "methodSettings"]}
     assert rest_session.regions == ["cn-north-1"] and len(rest_pages.calls) == 2
 
     http_pages, http_session = Pages(rest=False), Session("aws-us-gov")
@@ -56,7 +56,8 @@ def test_rest_and_http_stage_ids_use_distinct_official_paths_and_sdk_partition()
     assert http.items[0]["id"] == (
         "arn:aws-us-gov:apigateway:us-gov-west-1::/apis/abc123/stages/$default")
     assert http.items[0]['_provenance'] == {'source_operation':'get_stages',
-        'parent_api_id':'abc123','read_only':True}
+        'parent_api_id':'abc123','read_only':True,'parent_protocol_source_operation':'get_apis'}
+    assert http.items[0]['ParentProtocolType'] == 'HTTP'
     assert http_session.regions == ["us-gov-west-1"] and len(http_pages.calls) == 2
 
 

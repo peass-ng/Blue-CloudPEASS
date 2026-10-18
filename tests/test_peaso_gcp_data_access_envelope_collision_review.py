@@ -15,6 +15,7 @@ def test_conflicting_root_peers_in_live_envelope_cannot_pass():
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.lock = Lock()
     collector.max_items = None
     collector.seen_items = set()
@@ -41,6 +42,7 @@ def test_unreadable_root_audit_configs_cannot_pass_after_annotation():
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: []}
     root = {"name": PROJECT, "auditConfigs": [config(service, "DATA_READ"),
@@ -61,6 +63,7 @@ def test_unreadable_resource_policy_identity_cannot_certify_unique_root(field):
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: []}
     root = {"name": PROJECT, "auditConfigs": [config(service, "DATA_READ"),
@@ -82,6 +85,7 @@ def test_canonical_cai_project_view_remains_ambiguous_without_number_binding():
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: []}
     root = {"name": PROJECT, "auditConfigs": [config(service, "DATA_READ"),
@@ -104,6 +108,7 @@ def test_partial_ancestor_envelope_cannot_prove_complete_chain():
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: [{"resourceId": {"type": "organization", "id": "34"}}]}
     project = policy(PROJECT, [])
@@ -128,6 +133,7 @@ def test_other_unavailable_root_audit_config_markers_remain_unknown(marker, incl
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: []}
     root = {"name": PROJECT, "_coverage": {"auditConfigs": marker},
@@ -148,6 +154,7 @@ def test_identical_repeated_root_page_keeps_complete_authority():
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.lock = Lock()
     collector.max_items = None
     collector.seen_items = set()
@@ -178,6 +185,7 @@ def test_omitted_root_audit_configs_need_full_or_legacy_authority(provenance, as
     check_id = next(iter(CHECK_SERVICES))
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: []}
     root = {"name": PROJECT, "_provenance": provenance}

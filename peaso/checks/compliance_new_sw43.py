@@ -375,6 +375,12 @@ def _rest_stage(stage, methods):
         percent = optional(canary, "percentTraffic", 0)
         if type(percent) not in (int, float) or percent != 0:
             raise Unavailable("REST canary deployment coverage unavailable")
+    # GetStages projects the complete sparse map; only the native collector's
+    # explicit completeness marker makes an omitted map a known absence.
+    if "methodSettings" not in stage and "methodSettings" not in stage.get("_coverage", {}):
+        complete = get(stage, "_provenance.optional_fields_complete", list)
+        if "methodSettings" not in complete:
+            raise Unavailable("REST method settings omission lacks native proof")
     settings = optional(stage, "methodSettings", {}, dict)
     if not methods:
         raise Unavailable("stage-bound deployed REST method inventory unavailable")
@@ -388,7 +394,9 @@ def _rest_stage(stage, methods):
         if "loggingLevel" in setting or "loggingLevel" in setting.get("_coverage", {}):
             _logging_level(setting, "loggingLevel")
     wildcard = get(settings, "*/*", dict) if "*/*" in setting_keys else None
-    baseline = _logging_level(wildcard, "loggingLevel") if wildcard is not None else None
+    # No configured wildcard logging level in the complete native map means
+    # no INFO/ERROR level is enabled by default; exact overrides may enable it.
+    baseline = _logging_level(wildcard, "loggingLevel", "OFF") if wildcard is not None else "OFF"
     disabled, seen = [], set()
     for method in methods:
         if get(method, "stageArn", str) != arn or get(method, "restApiId", str) != get(stage, "ParentApiId", str) or get(method, "deploymentId", str) != deployment:
@@ -411,8 +419,6 @@ def _rest_stage(stage, methods):
             specific = get(settings, key, dict)
             level = _logging_level(specific, "loggingLevel", baseline)
         else:
-            if baseline is None:
-                raise Unavailable("REST method logging inheritance unavailable")
             level = baseline
         if level == "OFF":
             disabled.append(arn + ":" + key)

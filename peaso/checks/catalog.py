@@ -114,6 +114,9 @@ def description_for(check_id):
     if check_id in ("aws_log_archive_immutable", "aws_nist_secretsmanager_secret_automatic_rotation_enabled"):
         from .native_rotation_archive_description_overlay import description
         return description(check_id, original)
+    if check_id in ("gcp.claude.logging.project_sink_all_entries", "gcp.claude.project.audit_logs_configured", "gcp.claude.project.storage_data_access_audit_logs"):
+        from .gcp_inherited_description_overlay import description
+        return description(check_id, original)
     return deepcopy(original)
 
 

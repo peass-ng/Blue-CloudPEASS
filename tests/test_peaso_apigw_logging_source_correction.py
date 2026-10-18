@@ -26,3 +26,10 @@ def test_public_contract_names_protocol_and_observation_limits():
     assert provenance["signed_spec_status"] == "historical_superseded_for_this_check"
     assert provenance["source_correction"] == public["source_correction"]
     assert description_for(check.id) == correction.description()
+
+def test_v2_missing_native_logging_guard_is_hash_bound():
+    assert correction.SOURCE_CORRECTION['version']=='peaso-apigateway-logging-source-correction-v2'
+    assert correction.SOURCE_CORRECTION['prior_current_canonical_spec_sha256']==correction.PRIOR_CORRECTED_SPEC_SHA256
+    assert correction.CORRECTED_SPEC_SHA256!=correction.PRIOR_CORRECTED_SPEC_SHA256
+    assert 'missing effective INFO/ERROR' in correction.CORRECTED_SPEC['predicate']
+    assert 'complete native settings map' in correction.DESCRIPTION['fail_when']

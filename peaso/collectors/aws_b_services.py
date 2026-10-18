@@ -260,7 +260,7 @@ def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argumen
                     # Stage response and survives the metadata projection.
                     # This proves only that field's absence, never full-row or
                     # log-delivery completeness.
-                    row['_provenance']['optional_fields_complete'] = ['accessLogSettings']
+                    row['_provenance']['optional_fields_complete'] = ['accessLogSettings', 'methodSettings']
                 items.append(row)
         if failures:
             return ReadResult(items, "partial" if items else failures[0].status, failures[0].error)

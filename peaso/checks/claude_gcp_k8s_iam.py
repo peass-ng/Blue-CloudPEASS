@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 from .claude_gcp_k8s_common import (gcp, gid, cases, strings, opt_strings, scope_index, captured_at, parse_time,
     duration_seconds, bindings, active_ingress, is_public, source_ranges, fw, PUBLIC_MEMBERS, SCOPE, result, unknown,
-    get, optional, list_of_objects, complete_items, Unavailable, CASES)
+    get, optional, list_of_objects, complete_items, context_scope, Unavailable, CASES)
 from .facts import omitted, principal_trust_lists, PUBLIC_PRINCIPALS
 
 IAM_IDS = []
@@ -157,6 +157,25 @@ def root_only(item, project_only=False, direct=False):
     return bool((PROJECT_POLICY if project_only else ROOT_POLICY).fullmatch(name))
 
 
+def _storage_data_access_state(configs, services, log_types):
+    declared = set()
+    has_exemption = False
+    for config in list_of_objects(configs):
+        service = get(config, "service", str)
+        for row in list_of_objects(optional(config, "auditLogConfigs", [], list)):
+            log_type = get(row, "logType", str)
+            if log_type not in ("ADMIN_READ", "DATA_READ", "DATA_WRITE"):
+                raise Unavailable("unrecognized audit log type")
+            members = optional(row, "exemptedMembers", [], list)
+            if any(not isinstance(member, str) or not member.strip() or member != member.strip()
+                   for member in members):
+                raise Unavailable("malformed Data Access exemption")
+            if service in services and log_type in log_types:
+                declared.add(log_type)
+                has_exemption |= bool(members)
+    return declared, has_exemption
+
+
 def audit_logs(slug, title, services, log_types):
     @gcp(slug, "iam_policy", title, control="AU-2", category="hardening",
          remediation="Enable Data Access audit logs (DATA_READ and DATA_WRITE) for the service, or allServices, in the "
@@ -164,14 +183,31 @@ def audit_logs(slug, title, services, log_types):
     def evaluate(item, index):
         if not root_only(item, direct=True):
             return "NOT_APPLICABLE", {"reason": "Not the direct project getIamPolicy document"}
-        declared = set()
-        for config in list_of_objects(optional(item, "auditConfigs", [], list)):
-            if get(config, "service", str) in services:
-                for row in list_of_objects(optional(config, "auditLogConfigs", [], list)):
-                    declared.add(get(row, "logType", str))
-        if log_types <= declared:
-            return result(False, declared_log_types=sorted(declared))
-        return "MANUAL", {"declared_log_types": sorted(declared), "required_log_types": sorted(log_types),
+        if "_provenance" in item and get(item, "_provenance.representation", str) != "full":
+            return "NOT_APPLICABLE", {"reason": "Not the direct full project getIamPolicy document"}
+        direct, direct_exemptions = _storage_data_access_state(optional(item, "auditConfigs", [], list), services, log_types)
+        has_effective = "effectiveAuditConfigs" in item or "effectiveAuditConfigs" in item.get("_coverage", {})
+        if has_effective:
+            entries = _effective_audit_entries(item, index)
+            declared, exempted = set(), False
+            for entry in entries:
+                kinds, exclusions = _storage_data_access_state(get(entry, "auditConfigs", list), services, log_types)
+                declared.update(kinds)
+                exempted |= exclusions
+            if log_types - declared:
+                return result(True, declared_log_types=sorted(declared), missing_log_types=sorted(log_types - declared),
+                              semantics="complete native project and ancestor audit policy")
+            if exempted:
+                raise Unavailable("Data Access exemptions prevent a universal logging claim")
+            return result(False, declared_log_types=sorted(declared),
+                          semantics="complete native project and ancestor audit policy")
+        if "_provenance" in item and get(item, "_provenance.representation", str) == "full":
+            raise Unavailable("native effective ancestor audit policy was not collected")
+        if log_types <= direct and not direct_exemptions:
+            return result(False, declared_log_types=sorted(direct))
+        if direct_exemptions:
+            raise Unavailable("Data Access exemptions prevent a universal logging claim")
+        return "MANUAL", {"declared_log_types": sorted(direct), "required_log_types": sorted(log_types),
                           "reason": "Project policy lacks the audit config; folder/organization auditConfigs are inherited and were not joined"}
     cid = track(gid(slug))
     good = {"name": "projects/p", "bindings": [], "auditConfigs": [{"service": "allServices", "auditLogConfigs": [
@@ -187,14 +223,79 @@ audit_logs("project.storage_data_access_audit_logs", "Cloud Storage Data Access 
            {"storage.googleapis.com", "allServices"}, {"DATA_READ", "DATA_WRITE"})
 
 
+def _effective_audit_entries(item, index):
+    coverage = get(item, "_coverage.effectiveAuditConfigs", dict)
+    if (get(coverage, "status", str) != "collected"
+            or get(coverage, "collection_status", str) != "collected"
+            or get(coverage, "ancestry_known", bool) is not True
+            or get(coverage, "missing_scopes", list)
+            or get(coverage, "malformed_scopes", list)):
+        raise Unavailable("effective ancestor audit policy incomplete")
+    entries = list_of_objects(get(item, "effectiveAuditConfigs", list))
+    source_refs = get(coverage, "source_requests", list)
+    if not source_refs or any(not isinstance(ref, str) or not ref for ref in source_refs):
+        raise Unavailable("effective audit source requests unavailable")
+    scopes = [get(entry, "scope", str) for entry in entries]
+    project = get(item, "name", str)
+    inherited = get(index, "context.metadata.inherited_scopes", list)
+    ancestors = get(coverage, "ancestor_scopes", list)
+    if (not scopes or scopes[0] != project or len(scopes) != len(set(scopes))
+            or scopes[1:] != ancestors
+            or any(scope.startswith("organizations/") for scope in scopes[1:-1])
+            or any(scope not in inherited or not re.fullmatch(r"(?:folders|organizations)/[0-9]+", scope)
+                   for scope in scopes[1:])):
+        raise Unavailable("effective audit ancestry foreign or incomplete")
+    ledger = list_of_objects(get(index, "context.metadata.source_requests", list))
+    by_ref = {}
+    for row in ledger:
+        ref = get(row, "id", str)
+        if ref in by_ref:
+            raise Unavailable("duplicate native request identity")
+        by_ref[ref] = row
+    def exact_read(ref, url):
+        row = by_ref.get(ref)
+        if (row is None or get(row, "method", str) != "POST"
+                or get(row, "status", str) != "collected" or get(row, "url", str) != url):
+            raise Unavailable("native audit policy request is unavailable or foreign")
+    ancestry_refs = get(coverage, "ancestry_source_requests", list)
+    if len(ancestry_refs) != 1 or not isinstance(ancestry_refs[0], str):
+        raise Unavailable("native project ancestry request unavailable")
+    exact_read(ancestry_refs[0],
+               f"https://cloudresourcemanager.googleapis.com/v1/{project}:getAncestry")
+    union_refs = set()
+    for entry in entries:
+        refs = get(entry, "source_requests", list)
+        if not refs or any(not isinstance(ref, str) or ref not in source_refs for ref in refs):
+            raise Unavailable("ancestor audit source request unavailable")
+        policy_scope = get(entry, "scope", str)
+        for ref in refs:
+            exact_read(ref, f"https://cloudresourcemanager.googleapis.com/v3/{policy_scope}:getIamPolicy")
+            union_refs.add(ref)
+    if union_refs != set(source_refs) or len(union_refs) != len(source_refs):
+        raise Unavailable("effective audit request union mismatch")
+    return entries
+
+
 @gcp("project.audit_logs_configured", "iam_policy", "Project IAM policy declares a Cloud Audit Logs configuration", control="AU-2",
      category="hardening", remediation="Declare auditConfigs (Data Access audit logs) for allServices or the required services.")
 def audit_any(item, index):
     if not root_only(item, direct=True):
         return "NOT_APPLICABLE", {"reason": "Not a project root IAM policy"}
+    if "_provenance" in item and get(item, "_provenance.representation", str) != "full":
+        return "NOT_APPLICABLE", {"reason": "Not the direct full project getIamPolicy document"}
     services = [get(c, "service", str) for c in list_of_objects(optional(item, "auditConfigs", [], list))]
     if services:
         return result(False, audit_config_services=services)
+    # A missing project declaration can be supplied by a parent IAM policy.
+    # Only the collector's complete, source-bound ancestry union can settle it.
+    if "effectiveAuditConfigs" in item or "effectiveAuditConfigs" in item.get("_coverage", {}):
+        entries = _effective_audit_entries(item, index)
+        services = [get(config, "service", str) for entry in entries
+                    for config in list_of_objects(get(entry, "auditConfigs", list))]
+        return result(not services, audit_config_services=services,
+                      semantics="complete project and ancestor IAM audit policy")
+    if "_provenance" in item and get(item, "_provenance.representation", str) == "full":
+        raise Unavailable("native effective ancestor audit policy was not collected")
     return "MANUAL", {"reason": "No project auditConfigs; folder/organization auditConfigs are inherited and were not joined"}
 
 
@@ -493,23 +594,140 @@ for _name, _patterns in METRIC_PATTERNS.items():
     metric_alert(_name, _patterns)
 
 
+def _bound_inherited_sinks(item, index):
+    """Collector-proven complete ancestor sink chain for this exact project."""
+    scope = context_scope(index)
+    project_id = get(item, "projectId", str)
+    name = optional(item, "name", "", str)
+    if not project_id or (name and not re.fullmatch(r"projects/[1-9][0-9]*", name)):
+        raise Unavailable("malformed project identity")
+    aliases = {project_id}
+    if name:
+        aliases.add(name.split("/", 1)[1])
+    if scope != "projects/" + project_id and scope != name:
+        raise Unavailable("project identity differs from evaluation scope")
+    ancestry = list_of_objects(get(item, "_ancestry", list))
+    if not ancestry:
+        raise Unavailable("project ancestry is empty")
+    chain, seen, organization_seen = [], set(), False
+    for position, row in enumerate(ancestry):
+        resource = get(row, "resourceId", dict)
+        kind, identifier = get(resource, "type", str), get(resource, "id", str)
+        if position == 0:
+            if kind != "project" or identifier not in aliases:
+                raise Unavailable("foreign project ancestry root")
+            continue
+        if (kind not in ("folder", "organization") or not re.fullmatch(r"[1-9][0-9]*", identifier)
+                or organization_seen or (kind, identifier) in seen):
+            raise Unavailable("malformed project ancestry chain")
+        seen.add((kind, identifier))
+        chain.append(kind + "s/" + identifier)
+        organization_seen = kind == "organization"
+    coverage = get(get(item, "_coverage", dict), "_inherited_sinks", dict)
+    if (get(coverage, "status", str) != "collected"
+            or get(coverage, "collection_status", str) != "collected"
+            or get(coverage, "ancestors", list) != chain):
+        raise Unavailable("inherited sink coverage does not match ancestry")
+    refs = get(coverage, "source_requests", list)
+    if (any(not isinstance(ref, str) or not ref for ref in refs)
+            or len(set(refs)) != len(refs) or len(refs) < len(chain)):
+        raise Unavailable("inherited sink request provenance incomplete")
+    provenance = get(item, "_provenance", dict)
+    project_refs = get(provenance, "source_requests", list)
+    if not set(refs) <= set(project_refs):
+        raise Unavailable("ancestor sink requests absent from project provenance")
+    metadata = get(get(index, "context", dict), "metadata", dict)
+    request_rows = list_of_objects(get(metadata, "source_requests", list))
+    requests = {get(row, "id", str): row for row in request_rows}
+    if len(requests) != len(request_rows):
+        raise Unavailable("duplicate source request identity")
+    ancestry_url = "https://cloudresourcemanager.googleapis.com/v1/" + scope + ":getAncestry"
+    if not any(ref in requests and get(requests[ref], "method", str) == "POST"
+               and get(requests[ref], "url", str) == ancestry_url
+               and get(requests[ref], "scope", str) == scope
+               and get(requests[ref], "status", str) == "collected" for ref in project_refs):
+        raise Unavailable("project ancestry source request unverified")
+    for ancestor in chain:
+        expected_url = "https://logging.googleapis.com/v2/" + ancestor + "/sinks"
+        if not any(ref in requests and get(requests[ref], "method", str) == "GET"
+                   and get(requests[ref], "url", str) == expected_url
+                   and get(requests[ref], "scope", str) == ancestor
+                   and get(requests[ref], "status", str) == "collected" for ref in refs):
+            raise Unavailable("ancestor sink source request unverified")
+    for ref in refs:
+        if (ref not in requests or get(requests[ref], "status", str) != "collected"
+                or get(requests[ref], "method", str) != "GET"
+                or get(requests[ref], "scope", str) not in chain
+                or get(requests[ref], "url", str) !=
+                    "https://logging.googleapis.com/v2/" + get(requests[ref], "scope", str) + "/sinks"):
+            raise Unavailable("foreign or incomplete ancestor sink source")
+    sinks = list_of_objects(get(item, "_inherited_sinks", list))
+    seen_sinks = set()
+    for sink in sinks:
+        ancestor, sink_name = get(sink, "ancestor", str), get(sink, "name", str)
+        if sink_name in seen_sinks:
+            raise Unavailable("duplicate inherited sink identity")
+        seen_sinks.add(sink_name)
+        if (ancestor not in chain or not sink_name.startswith(ancestor + "/sinks/")
+                or not sink_name[len(ancestor) + len("/sinks/"):]
+                or "/" in sink_name[len(ancestor) + len("/sinks/"):]):
+            raise Unavailable("foreign inherited sink identity")
+    return sinks, chain
+
+
 @gcp("logging.project_sink_all_entries", "project", "Project has an enabled log sink exporting all entries", control="AU-9",
      category="hardening", dependencies=["project", "log_sink"],
      remediation="Create an enabled project (or aggregated organization) sink with an empty filter, no active exclusions and a destination.")
 def sink_all_entries(item, index):
+    from .claude2_gcp_logging import all_entries
     prefixes = project_prefixes(item)
-    matches = []
+    local = []
     for sink in complete_items(index, "log_sink"):
         name = get(sink, "name", str)
-        if not in_project(name, prefixes) or optional(sink, "disabled", False, bool):
-            continue
-        if any(not optional(ex, "disabled", False, bool) for ex in list_of_objects(optional(sink, "exclusions", [], list))):
-            continue
-        if not optional(sink, "filter", "", str) and get(sink, "destination", str):
-            matches.append(name)
-    if not matches:
-        return "MANUAL", {"reason": "No same-project all-entries sink; organization/folder aggregated sinks with includeChildren were not joined"}
-    return result(False, sinks=matches)
+        if not any(re.fullmatch(re.escape(prefix) + r"sinks/[^/]+", name) for prefix in prefixes):
+            raise Unavailable("foreign or malformed project sink identity")
+        local.append(sink)
+    local_matches = [get(sink, "name", str) for sink in local if all_entries(sink)]
+    # Older signed fixtures contain no native project provenance. Preserve
+    # their documented same-project PASS / no-local MANUAL decisions only there.
+    if "_provenance" not in item and "_ancestry" not in item and "_coverage" not in item:
+        if local_matches:
+            return result(False, sinks=local_matches, source="project")
+        return "MANUAL", {"reason": "Legacy fixture has no collected project ancestry"}
+    inherited, chain = _bound_inherited_sinks(item, index)
+    inherited_matches, intercepting = [], []
+    for sink in inherited:
+        name = get(sink, "name", str)
+        include = optional(sink, "includeChildren", False, bool)
+        intercept = optional(sink, "interceptChildren", False, bool)
+        if intercept and (not include or not re.fullmatch(
+                r"logging\.googleapis\.com/projects/[^/]+", get(sink, "destination", str))):
+            raise Unavailable("invalid intercepting sink configuration")
+        if include and all_entries(sink):
+            inherited_matches.append(name)
+        if include and intercept and not optional(sink, "disabled", False, bool):
+            intercepting.append(name)
+    if inherited_matches:
+        # GetAncestry orders nearest parent first. An interceptor higher in
+        # that chain can stop entries before they reach a descendant sink.
+        positions = {ancestor: position for position, ancestor in enumerate(chain)}
+        owners = {get(sink, "name", str): get(sink, "ancestor", str) for sink in inherited}
+        unshadowed = [name for name in inherited_matches if not any(
+            positions[owners[interceptor]] > positions[owners[name]] for interceptor in intercepting)]
+        if unshadowed:
+            return result(False, sinks=unshadowed, source="ancestor aggregated sink",
+                          semantics="Complete declared ancestor route, not delivery proof")
+        return unknown("Higher ancestor interceptor may divert entries from aggregated sink",
+                       ancestor_sinks=intercepting)
+    if local_matches:
+        if intercepting:
+            return unknown("Active intercepting ancestor may divert entries from project sink",
+                           ancestor_sinks=intercepting)
+        return result(False, sinks=local_matches, source="project",
+                      semantics="Complete declared project route, not delivery proof")
+    return result(True, sinks=[], ancestors=chain,
+                  semantics="Complete project and ancestor sink inventories contain no all-entries route")
+
 
 
 cases(track(gid("logging.project_sink_all_entries")), {"projectId": "p"}, None,

@@ -1654,8 +1654,31 @@ class GCPCollector:
         if "app_engine_service" in self.needed:
             from .gcp_appengine_versions import list_services
             add("app_engine_service", "appengine", lambda: list_services(self, scope))
+        def api_key(item):
+            # The existing fields mask selects all of restrictions. ProtoJSON
+            # may omit an empty repeated allowlist from a present caller mode.
+            # Do not fill an absent mode or override explicit unreadability.
+            fields = {"serverKeyRestrictions": "allowedIps",
+                "browserKeyRestrictions": "allowedReferrers",
+                "androidKeyRestrictions": "allowedApplications",
+                "iosKeyRestrictions": "allowedBundleIds"}
+            restrictions = item.get("restrictions")
+            if ("_coverage" in item or not isinstance(restrictions, dict)
+                    or "_coverage" in restrictions):
+                return item
+            modes = [mode for mode in fields if mode in restrictions]
+            if len(modes) != 1:
+                return item
+            mode = modes[0]
+            body = restrictions[mode]
+            field = fields[mode]
+            if not isinstance(body, dict) or "_coverage" in body or field in body:
+                return item
+            return {**item, "restrictions": {**restrictions, mode: {**body,
+                field: [], "_coverage": {field: {"status": "empty"}}}}}
         add("api_key", "apikeys", lambda: self.pages(f"https://apikeys.googleapis.com/v2/{scope}/locations/global/keys",
-            scope, key="keys", params={"fields": "keys(name,uid,displayName,createTime,updateTime,deleteTime,restrictions),nextPageToken"}))
+            scope, key="keys", params={"fields": "keys(name,uid,displayName,createTime,updateTime,deleteTime,restrictions),nextPageToken"},
+            transform=api_key))
         add("dns_managed_zone", "dns", lambda: self.pages(f"https://dns.googleapis.com/dns/v1/projects/{project}/managedZones",
             scope, key="managedZones", page_size_key="maxResults"))
         add("dns_policy", "dns", lambda: self.pages(f"https://dns.googleapis.com/dns/v1/projects/{project}/policies",
@@ -2655,6 +2678,9 @@ class GCPCollector:
                 item.setdefault("_coverage", {})["effectiveAuditConfigs"] = {
                     "status": "collected" if complete else "partial", "collection_status": "collected" if complete else "partial",
                     "ancestry_known": chain is not None, "missing_scopes": missing, "malformed_scopes": malformed,
+                    "ancestor_scopes": list(chain) if chain is not None else [],
+                    "ancestry_source_requests": ([self.ancestry_source_requests[scope]]
+                        if scope in self.ancestry_source_requests else []),
                     "source_requests": sorted({ref for entry in entries for ref in entry["source_requests"]}),
                     "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"}
 

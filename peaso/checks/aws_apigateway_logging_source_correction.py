@@ -28,6 +28,8 @@ OFFICIAL_REFERENCES = [
  "https://docs.aws.amazon.com/apigateway/latest/api/API_GetDeployment.html",
  "https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-execution-logging.html",
  "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging.html",
+ "https://docs.aws.amazon.com/apigateway/latest/api/API_MethodSetting.html",
+ "https://docs.aws.amazon.com/config/latest/developerguide/api-gw-execution-logging-enabled.html",
 ]
 
 def _digest(value):
@@ -55,10 +57,20 @@ REMEDIATION = ("Configure INFO or ERROR execution logging for applicable REST me
 CORRECTED_SPEC = {**FROZEN_SPEC, "title": TITLE, "description": DESCRIPTION_TEXT,
                   "data_source": DATA_SOURCE, "predicate": PREDICATE, "remediation_hint": REMEDIATION}
 CORRECTED_SPEC_SHA256 = _digest(CORRECTED_SPEC)
+# The v1 derived criterion is hash-pinned before this narrow absence correction.
+PRIOR_CORRECTED_SPEC_SHA256 = "c74f15bcc791e99335fc2500820b5e40f960073aac81a1d7fa6a775e6d2d05e7"
+if CORRECTED_SPEC_SHA256 != PRIOR_CORRECTED_SPEC_SHA256:
+    raise ValueError("Prior API Gateway source correction changed")
+PREDICATE = PREDICATE.replace(
+ "FAIL for a proved OFF deployed REST method with complete required inventories.",
+ "FAIL for a deployed REST method with proved OFF or missing effective INFO/ERROR logging under a complete native GetStages methodSettings map and complete required inventories.")
+CORRECTED_SPEC = {**CORRECTED_SPEC, "predicate": PREDICATE}
+CORRECTED_SPEC_SHA256 = _digest(CORRECTED_SPEC)
 SOURCE_CORRECTION = {
- "version": "peaso-apigateway-logging-source-correction-v1", "status": "source_erratum_successor",
+ "version": "peaso-apigateway-logging-source-correction-v2", "status": "source_erratum_successor",
  "prior_frozen_signed_spec_sha256": PRIOR_FROZEN_SPEC_SHA256, "prior_frozen_status": "historical_superseded_for_this_check",
- "current_canonical_spec_sha256": CORRECTED_SPEC_SHA256, "source_url": SOURCE_URL, "source_sha256": SOURCE_SHA256,
+ "current_canonical_spec_sha256": CORRECTED_SPEC_SHA256,
+ "prior_current_canonical_spec_sha256": PRIOR_CORRECTED_SPEC_SHA256, "source_url": SOURCE_URL, "source_sha256": SOURCE_SHA256,
  "source_control_lines": "53-80", "source_control_sha256": CONTROL_SHA256,
  "source_query_lines": "206-248", "source_query_sha256": QUERY_SHA256,
  "source_relationship": "Derived protocol-aware configuration rule, stronger than the pinned wildcard/default-only SQL; not a literal SQL port",
@@ -67,7 +79,7 @@ SOURCE_CORRECTION = {
 DESCRIPTION = {"title": TITLE, "description": DESCRIPTION_TEXT,
  "evaluated": [DATA_SOURCE, "REST exact method and wildcard loggingLevel inheritance", "WebSocket LoggingLevel defaults and sparse route overrides", "v2 parent ProtocolType binding"],
  "pass_when": "All applicable REST methods and WebSocket stage configurations meet the bounded criterion; known HTTP exclusions do not establish a security PASS.",
- "fail_when": "A complete bound deployed REST method has effective loggingLevel OFF; denied, incomplete, unsupported or malformed evidence is UNKNOWN or DENIED.",
+ "fail_when": "A complete bound deployed REST method has effective loggingLevel OFF or no enabled INFO/ERROR level in a complete native settings map; denied, incomplete, unsupported or malformed evidence is UNKNOWN or DENIED.",
  "not_applicable_when": "No applicable REST or WebSocket stages; HTTP execution LoggingLevel is unsupported by AWS.",
  "unknown_when": "Unresolved method or route coverage, active canary, unknown protocol, incomplete or foreign native evidence.",
  "remediation": REMEDIATION, "source_correction": SOURCE_CORRECTION}

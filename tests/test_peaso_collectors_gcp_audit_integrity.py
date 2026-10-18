@@ -17,6 +17,7 @@ def _policy(scope, configs=...):
 
 def _annotated_project(policies, ancestors):
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: [
         {"resourceId": {"type": kind, "id": identifier}}
@@ -47,6 +48,7 @@ def test_complete_inherited_union_keeps_each_scope_and_request():
     assert item["_coverage"]["effectiveAuditConfigs"] == {
         "status": "collected", "collection_status": "collected", "ancestry_known": True,
         "missing_scopes": [], "malformed_scopes": [],
+        "ancestor_scopes": [FOLDER, ORGANIZATION], "ancestry_source_requests": [],
         "source_requests": sorted(f"request:{scope}" for scope in (PROJECT, FOLDER, ORGANIZATION)),
         "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)",
     }

@@ -20,7 +20,7 @@ class SDKResponses:
     def __init__(self, *, rest=None, v2=None, summary=None, v2_protocol='WEBSOCKET', method_status='collected', parent_coverage=None):
         self.rest=rest or []
         self.v2=v2 or []
-        self.summary=summary or {'/pets': {'GET': {}}}
+        self.summary=summary if summary is not None else {'/pets': {'GET': {}}}
         self.v2_protocol=v2_protocol
         self.method_status=method_status
         self.parent_coverage=parent_coverage
@@ -66,13 +66,16 @@ def v2_stage(default=None, overrides=None):
 
 @pytest.mark.parametrize('settings,expect',[
     ({'*/*':{'loggingLevel':'INFO'}},'PASS'),
-    ({'*/*':{'loggingLevel':'ERROR'},'~1pets/GET':{'DetailedMetricsEnabled':True}},'PASS'),
+    ({'*/*':{'loggingLevel':'ERROR'},'~1pets/GET':{'metricsEnabled':True}},'PASS'),
     ({'*/*':{'loggingLevel':'INFO'},'~1pets/GET':{'loggingLevel':'OFF'}},'FAIL'),
     ({'*/*':{'loggingLevel':'OFF'},'~1pets/GET':{'loggingLevel':'INFO'}},'PASS'),
     ({'~1pets/GET':{'loggingLevel':'INFO'}},'PASS'),
     ({'*/*':{'loggingLevel':'OFF'}},'FAIL'),
-    ({},'UNKNOWN'),
+    ({},'FAIL'),
+    ({'*/*':{}},'FAIL'),
+    ({'~1pets/GET':{'metricsEnabled':True}},'FAIL'),
     ({'*/*':{'loggingLevel':None}},'UNKNOWN'),
+    ({'*/*':{'loggingLevel':'INVALID'}},'UNKNOWN'),
     ({'*/*':{'loggingLevel':'INFO','_coverage':{'loggingLevel':{'status':'denied'}}}},'UNKNOWN'),
     ({'*/*':{'loggingLevel':'INFO'},'~1pets/*':{'loggingLevel':'OFF'}},'UNKNOWN'),
     ({'*/*':{'loggingLevel':'INFO'},'_coverage':{'*/*':{'status':'denied'}}},'UNKNOWN'),
@@ -136,11 +139,19 @@ def test_denied_carried_protocol_never_classifies_v2():
     finding,_,_=scan(v2=[v2_stage()],collection_override=mutate)
     assert finding['status']=='UNKNOWN'
 
-def test_botocore_stubber_through_bulk_native_collector_and_registered_engine(monkeypatch):
+@pytest.mark.parametrize('settings,expected,deployment_mode',[
+    ('OMITTED','FAIL','collected'), ({},'FAIL','collected'), ({'*/*':{}},'FAIL','collected'),
+    ({'~1pets/GET':{'metricsEnabled':True}},'FAIL','collected'),
+    ({'~1pets/GET':{'loggingLevel':'INFO'}},'PASS','collected'),
+    ({'*/*':{'loggingLevel':'INFO'}},'PASS','collected'),
+    ({'*/*':{'loggingLevel':'INFO'}},'DENIED','denied'),
+    ({'*/*':{'loggingLevel':'INFO'}},'UNKNOWN','missing_summary'),
+])
+def test_botocore_stubber_through_bulk_native_collector_and_registered_engine(monkeypatch, settings, expected, deployment_mode):
     """Real SDK response validation and whole native collection, without network."""
     import boto3
     from botocore.stub import Stubber
-    from peaso.collectors import collect_live
+    from peaso.collectors import aws
 
     sdk_session=boto3.Session(aws_access_key_id='inert',aws_secret_access_key='inert',region_name='us-east-1')
     real_client=boto3.session.Session.client
@@ -150,13 +161,17 @@ def test_botocore_stubber_through_bulk_native_collector_and_registered_engine(mo
     stubs['sts'].add_response('get_caller_identity',
         {'Account':'123456789012','Arn':'arn:aws:iam::123456789012:user/inert','UserId':'AIDAEXAMPLE'}, {})
     stubs['apigateway'].add_response('get_rest_apis',{'items':[{'id':'api123','name':'example'}]}, {})
-    stubs['apigateway'].add_response('get_stages',
-        {'item':[{'stageName':'prod','deploymentId':'dep123',
-                  'methodSettings':{'*/*':{'loggingLevel':'INFO'}}}]},
-        {'restApiId':'api123'})
-    stubs['apigateway'].add_response('get_deployment',
-        {'id':'dep123','apiSummary':{'/pets':{'GET':{}}}},
-        {'restApiId':'api123','deploymentId':'dep123','embed':['apisummary']})
+    rest_row={'stageName':'prod','deploymentId':'dep123'}
+    if settings != 'OMITTED': rest_row['methodSettings']=settings
+    stubs['apigateway'].add_response('get_stages', {'item':[rest_row]}, {'restApiId':'api123'})
+    deployment_args={'restApiId':'api123','deploymentId':'dep123','embed':['apisummary']}
+    if deployment_mode=='denied':
+        stubs['apigateway'].add_client_error('get_deployment',service_error_code='AccessDeniedException',
+            http_status_code=403,expected_params=deployment_args)
+    else:
+        deployment={'id':'dep123'}
+        if deployment_mode=='collected':deployment['apiSummary']={'/pets':{'GET':{}}}
+        stubs['apigateway'].add_response('get_deployment',deployment,deployment_args)
     stubs['apigatewayv2'].add_response('get_apis',
         {'Items':[{'ApiId':'ws123','ProtocolType':'WEBSOCKET','Name':'ws-example','RouteSelectionExpression':'$request.body.action'},
                   {'ApiId':'http123','ProtocolType':'HTTP','Name':'http-example','RouteSelectionExpression':'$request.method $request.path'}]}, {})
@@ -173,7 +188,7 @@ def test_botocore_stubber_through_bulk_native_collector_and_registered_engine(mo
     # Collector functions, the check registry, and engine dispatch stay intact.
     monkeypatch.setattr(boto3.session.Session,'client',stubbed_sdk_client)
     kinds=['rest_api_stage','http_api_stage','rest_api_method']
-    snapshot=collect_live({'provider':'aws','scopes':[SCOPE],
+    snapshot=aws.collect({'provider':'aws','scopes':[SCOPE],
         'auth':{'method':'access_keys','aws_access_key_id':'inert',
                 'aws_secret_access_key':'inert','region_name':'us-east-1'},
         'options':{'regions':['us-east-1'],'inventories':kinds,
@@ -184,24 +199,56 @@ def test_botocore_stubber_through_bulk_native_collector_and_registered_engine(mo
         stub.deactivate()
     chosen={row['type']:row for row in snapshot['collections']
             if row['scope']==SCOPE and row['type'] in kinds}
-    assert {kind:chosen[kind]['status'] for kind in kinds}=={
-        'rest_api_stage':'collected','http_api_stage':'collected',
-        'rest_api_method':'collected'}
-    method=chosen['rest_api_method']['items'][0]
+    assert chosen['rest_api_stage']['status']=='collected'
+    assert chosen['http_api_stage']['status']=='collected'
+    assert chosen['rest_api_method']['status']=={'collected':'collected','denied':'denied',
+        'missing_summary':'malformed'}[deployment_mode]
     rest=chosen['rest_api_stage']['items'][0]
-    assert method['stageArn']==rest['id']
-    assert method['deploymentId']==rest['deploymentId']=='dep123'
-    assert method['methodSettingKey']=='/pets/GET'
-    assert method['_provenance']['stage_deployment_join_verified'] is True
+    if deployment_mode=='collected':
+        method=chosen['rest_api_method']['items'][0]
+        assert method['stageArn']==rest['id']
+        assert method['deploymentId']==rest['deploymentId']=='dep123'
+        assert method['methodSettingKey']=='/pets/GET'
+        assert method['_provenance']['stage_deployment_join_verified'] is True
     protocols={row['ParentApiId']:row['ParentProtocolType']
                for row in chosen['http_api_stage']['items']}
     assert protocols=={'ws123':'WEBSOCKET','http123':'HTTP'}
     report=evaluate_snapshot(snapshot,categories=['compliance'],checks=[CHECK])
     finding=next(row for row in report['findings'] if row['check_id']==CHECK)
+    assert finding['status']==expected
+    if deployment_mode=='collected':
+        assert finding['evidence']['evaluated_rest_methods']==1
+        assert finding['evidence']['configured_websocket_stages']==1
+        assert finding['evidence']['http_not_applicable_stages']==1
+
+def test_native_absent_map_requires_collector_completeness_marker():
+    def mutate(reads):
+        row=reads['rest_api_stage'].items[0]
+        row['_provenance']['optional_fields_complete']=['accessLogSettings']
+    finding,_,_=scan(rest=[{'stageName':'prod','deploymentId':'dep123'}],collection_override=mutate)
+    assert finding['status']=='UNKNOWN'
+
+def test_native_absent_map_with_collector_marker_is_missing_logging():
+    finding,reads,_=scan(rest=[{'stageName':'prod','deploymentId':'dep123'}])
+    assert 'methodSettings' in reads['rest_api_stage'].items[0]['_provenance']['optional_fields_complete']
+    assert finding['status']=='FAIL'
+
+@pytest.mark.parametrize('stage',[{'stageName':'prod','deploymentId':'dep123','methodSettings':None},
+                                  {'stageName':'prod','deploymentId':'dep123','methodSettings':[]},
+                                  {'stageName':'prod','deploymentId':'dep123','_coverage':{'methodSettings':{'status':'denied'}}}])
+def test_null_malformed_or_denied_map_unknown(stage):
+    assert scan(rest=[stage])[0]['status']=='UNKNOWN'
+
+def test_complete_deployment_summary_missing_unknown():
+    finding,reads,_=scan(rest=[rest_stage({})],summary={})
+    assert reads['rest_api_method'].status in ('malformed','partial')
+    assert finding['status']=='UNKNOWN'
+
+def test_fully_overridden_two_deployed_methods_pass_without_wildcard():
+    settings={'~1pets/GET':{'loggingLevel':'INFO'},'~1pets/POST':{'loggingLevel':'ERROR'}}
+    finding,reads,_=scan(rest=[rest_stage(settings)],summary={'/pets':{'GET':{},'POST':{}}})
+    assert reads['rest_api_method'].status=='collected'
     assert finding['status']=='PASS'
-    assert finding['evidence']['evaluated_rest_methods']==1
-    assert finding['evidence']['configured_websocket_stages']==1
-    assert finding['evidence']['http_not_applicable_stages']==1
 
 
 def test_foreign_partition_cannot_satisfy_stage_scope():

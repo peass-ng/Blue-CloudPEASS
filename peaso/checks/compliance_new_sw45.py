@@ -577,17 +577,27 @@ def _targets(row):
     return [get(target, "Arn", str) for target in values]
 
 
-def _event_coverage(item, index, source, detail_type, detail, field, required):
+def _event_coverage(item, index, source, detail_type, detail, field, required, *, single_rule=False):
     rows = _events(item, index)
     covered = set()
+    unresolved = 0
+    complete_witness = False
     for row in rows:
-        state = get(row, "State", str)
-        if state not in ("ENABLED", "DISABLED", "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"):
-            raise Unavailable("unrecognized EventBridge state")
-        pattern_covered = _event_match(row, source, detail_type, detail, allowed_detail=field)
-        if pattern_covered and state != "DISABLED" and any(_targets(row)):
-            covered.update(pattern_covered & required)
-    return result(covered != required, covered_values=sorted(covered), missing_values=sorted(required - covered))
+        try:
+            state = get(row, "State", str)
+            if state not in ("ENABLED", "DISABLED", "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"):
+                raise Unavailable("unrecognized EventBridge state")
+            pattern_covered = _event_match(row, source, detail_type, detail, allowed_detail=field)
+            if pattern_covered and state != "DISABLED" and any(_targets(row)):
+                covered.update(pattern_covered & required)
+                if required <= pattern_covered:
+                    complete_witness = True
+        except Unavailable:
+            unresolved += 1
+    satisfied = complete_witness if single_rule else covered == required
+    if not satisfied and unresolved:
+        return unknown('event pattern or notification target evidence unresolved', covered_values=sorted(covered), missing_values=sorted(required-covered), unresolved_rules=unresolved)
+    return result(not satisfied, covered_values=sorted(covered), missing_values=sorted(required - covered))
 
 
 @_register("aws_eventbridge_iam_user_change_alert", ["event_rule"])
@@ -608,7 +618,7 @@ def snapshot_change_alert(item, index):
 def securityhub_findings_alerted(item, index):
     required = {"HIGH", "CRITICAL"}
     return _event_coverage(item, index, "aws.securityhub", "Security Hub Findings - Imported",
-        {"findings.Severity.Label": required}, "findings.Severity.Label", required)
+        {"findings.Severity.Label": required}, "findings.Severity.Label", required, single_rule=True)
 
 
 @_register("aws_securityhub_medium_findings_alert", ["event_rule"])
@@ -623,26 +633,32 @@ def inspector_critical_image_findings_alert(item, index):
     rows = _events(item, index)
     required = {"AWS_EC2_INSTANCE", "AWS_ECR_CONTAINER_IMAGE"}
     covered = set()
+    unresolved = 0
     for row in rows:
-        state = get(row, "State", str)
-        if state not in ("ENABLED", "DISABLED", "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"):
-            raise Unavailable("unrecognized EventBridge state")
-        pattern = _pattern(row)
-        if set(pattern) - {"source", "detail-type", "detail"}:
-            raise Unavailable("unreviewed Inspector event pattern")
-        sources = _strings(get(pattern, "source", list))
-        types = _strings(get(pattern, "detail-type", list))
-        if "aws.inspector2" not in sources or "Inspector2 Finding" not in types:
-            continue
-        detail = get(pattern, "detail", dict)
-        if set(detail) != {"severity", "resources"} or "CRITICAL" not in _strings(get(detail, "severity", list)):
-            raise Unavailable("Inspector finding filters cannot prove severity and resource coverage")
-        resources = get(detail, "resources", dict)
-        if set(resources) != {"type"}:
-            raise Unavailable("unreviewed Inspector resource filter")
-        kinds = set(_strings(get(resources, "type", list)))
-        if state != "DISABLED" and any(_targets(row)):
-            covered.update(kinds & required)
+        try:
+            state = get(row, "State", str)
+            if state not in ("ENABLED", "DISABLED", "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"):
+                raise Unavailable("unrecognized EventBridge state")
+            pattern = _pattern(row)
+            if set(pattern) - {"source", "detail-type", "detail"}:
+                raise Unavailable("unreviewed Inspector event pattern")
+            sources = _strings(get(pattern, "source", list))
+            types = _strings(get(pattern, "detail-type", list))
+            if "aws.inspector2" not in sources or "Inspector2 Finding" not in types:
+                continue
+            detail = get(pattern, "detail", dict)
+            if set(detail) != {"severity", "resources"} or "CRITICAL" not in _strings(get(detail, "severity", list)):
+                raise Unavailable("Inspector finding filters cannot prove severity and resource coverage")
+            resources = get(detail, "resources", dict)
+            if set(resources) != {"type"}:
+                raise Unavailable("unreviewed Inspector resource filter")
+            kinds = set(_strings(get(resources, "type", list)))
+            if state != "DISABLED" and any(_targets(row)):
+                covered.update(kinds & required)
+        except Unavailable:
+            unresolved += 1
+    if covered != required and unresolved:
+        return unknown('event pattern or notification target evidence unresolved', covered_values=sorted(covered), missing_values=sorted(required-covered), unresolved_rules=unresolved)
     return result(covered != required, covered_resource_types=sorted(covered), missing_resource_types=sorted(required - covered))
 
 
