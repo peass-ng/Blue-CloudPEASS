@@ -44,8 +44,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "fa59acbfbcc75c1cf56dddcac45c50c6f2314ff5"
-DEFAULT_RULE_PACK_SHA256 = "f67c96696708e789aec6871eb752194defe0aff84017c81662e10e6cef13092a"
+DEFAULT_RULE_REF = "8d691b3f121132b1fb578a32795aa704fe6d61c8"
+DEFAULT_RULE_PACK_SHA256 = "167d3e4adcd4907ccf55802f6be9e8abf471e8046ccccaf528ee9d1a4176fae4"
 
 
 @dataclass(frozen=True)
