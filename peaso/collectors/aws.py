@@ -2057,6 +2057,31 @@ def collect(connector, requirements=None):
                     "trail_arn": arn, "capture_observed_at": requests.observed_at.isoformat(),
                 }
                 trails.append(selected)
+            # Reuse the strict native, read-only IAM simulation. Its rows are
+            # bound to a single home-region trail, role, and log group; an
+            # incomplete regional read never supplies permission evidence.
+            permission_rows = {}
+            for home_region in ({row.get("HomeRegion") for row in trails
+                                if row.get("SourceRegion") == row.get("HomeRegion") and
+                                row.get("Status", {}).get("IsLogging") is True and
+                                row.get("IsOrganizationTrail") is False and row.get("IsMultiRegionTrail") is False and
+                                row.get("CloudWatchLogsRoleArn") and row.get("CloudWatchLogsLogGroupArn")}
+                                if "cloudtrail_delivery_role_scope" in wanted else set()):
+                if not isinstance(home_region, str):
+                    continue
+                read = regional_job(session, identity, home_region, "cloudtrail_delivery_role_scope")
+                permission_rows[home_region] = read
+            for trail in trails:
+                read = permission_rows.get(trail.get("HomeRegion"))
+                if read is not None and read.status not in {"collected", "empty"}:
+                    trail.setdefault("_coverage", {})["CloudWatchLogsRole"] = {
+                        "status": read.status, "code": (read.error or {}).get("code", "delivery_role_scope_incomplete")}
+                rows = read.items if read is not None and read.status in {"collected", "empty"} else []
+                matches = [row for row in rows if row.get("_provenance", {}).get("trail_arn") == trail.get("TrailARN") and
+                           row.get("role_arn") == trail.get("CloudWatchLogsRoleArn") and
+                           row.get("log_group_arn") == trail.get("CloudWatchLogsLogGroupArn")]
+                if len(matches) == 1:
+                    trail["CloudWatchLogsRole"] = matches[0]
             trails.extend(malformed)
             if failure:
                 return ReadResult(trails, "partial" if trails else failure.status, {"code": failure.code, "cause_status": failure.status})
@@ -2179,6 +2204,8 @@ def collect(connector, requirements=None):
                 for item in read.items:
                     item["_provenance"] = {"operation": "cloudtrail:DescribeTrails", "native_response_complete": True}
                     _documented_omission(item, "CloudWatchLogsLogGroupArn", "", "cloudtrail:DescribeTrails")
+                    _documented_omission(item, "CloudWatchLogsRoleArn", "", "cloudtrail:DescribeTrails")
+                    _documented_omission(item, "S3KeyPrefix", "", "cloudtrail:DescribeTrails")
             if kind == "instance":
                 for item in read.items:
                     item["_provenance"] = {"operation": "ec2:DescribeInstances", "native_response_complete": True}

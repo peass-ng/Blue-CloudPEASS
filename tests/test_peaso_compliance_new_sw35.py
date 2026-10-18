@@ -24,9 +24,22 @@ def index():
              "_provenance": {"operation": "cloudtrail:DescribeTrails", "native_response_complete": True},
              "S3BucketName": "trail-bucket", "S3KeyPrefix": "", "KmsKeyId": KEY,
              "CloudWatchLogsLogGroupArn": GROUP, "CloudWatchLogsRoleArn": "arn:aws:iam::123456789012:role/trail",
-             "CloudWatchLogsRole": {"collection_status": "collected", "source_operation": "iam:GetRole+SimulatePrincipalPolicy", "Arn": "arn:aws:iam::123456789012:role/trail", "TrustsCloudTrail": True,
-                                    "AllowsCreateLogStream": True, "AllowsPutLogEvents": True},
-             "IsOrganizationTrail": True,
+             "CloudWatchLogsRole": {"role_arn": "arn:aws:iam::123456789012:role/trail", "log_group_arn": GROUP,
+                                    "simulation_context_complete": True, "trust_valid": True,
+                                    "full_role_stream_scope_proven": True,
+                                    "supported_stream_prefix": "arn:aws:logs:us-east-1:123456789012:log-group:trail:log-stream:123456789012_CloudTrail_us-east-1*",
+                                    "decisions": {"logs:CreateLogStream": "allowed", "logs:PutLogEvents": "allowed"},
+                                    "_provenance": {"read_only": True, "trail_arn": TRAIL,
+                                                    "role_scope_proof": {"method": "complete_native_role_policies_v1",
+                                                                         "operations": ["ListRolePolicies", "ListAttachedRolePolicies", "GetRolePolicy"],
+                                                                         "identity_policy_inventory_complete": True,
+                                                                         "permissions_boundary_policy_complete": True,
+                                                                         "stream_prefix": "arn:aws:logs:us-east-1:123456789012:log-group:trail:log-stream:123456789012_CloudTrail_us-east-1*",
+                                                                         "SCP_RCP_verified": False, "effective_live_delivery_verified": False},
+                                                    "simulated_resource_arn": "arn:aws:logs:us-east-1:123456789012:log-group:trail:log-stream:123456789012_CloudTrail_us-east-1",
+                                                    "effective_live_delivery_verified": False, "SCP_RCP_verified": False,
+                                                    "operations": ["DescribeTrails", "GetTrailStatus", "GetEventSelectors", "GetRole", "GetContextKeysForPrincipalPolicy", "SimulatePrincipalPolicy"]}},
+             "IsOrganizationTrail": False, "IsMultiRegionTrail": False,
              "Status": {"IsLogging": True, "LatestDeliveryError": "", "LatestDeliveryTime": "2026-10-11T23:00:00Z"}}
     bucket = {"Name": "trail-bucket", "Logging": {"collection_status": "collected", "LoggingEnabled": {"TargetBucket": "access-bucket", "TargetPrefix": "logs/"}},
               "Lifecycle": {"collection_status": "collected", "Rules": []},
@@ -72,6 +85,7 @@ def mutate_failure(check_id, facts):
     elif check_id == "aws_cloudtrail_bucket_lifecycle_retention_365":
         bucket["Lifecycle"]["Rules"] = [{"Status": "Enabled", "Prefix": "AWSLogs/", "Expiration": {"Days": 30}}]
     elif check_id == "aws_cloudtrail_s3_siem_delivery":
+        trail["IsOrganizationTrail"] = True
         trail["Status"]["LatestDeliveryError"] = "AccessDenied"
     elif check_id in sw._INTEGRATION_IDS:
         trail["CloudWatchLogsLogGroupArn"] = ""
@@ -88,6 +102,8 @@ def mutate_failure(check_id, facts):
 @pytest.mark.parametrize("check_id", list(sw.META))
 def test_pass_fail_unknown_and_signed_metadata(check_id):
     facts = index()
+    if check_id == "aws_cloudtrail_s3_siem_delivery":
+        facts["cloudtrail_account_inventory"][0]["data"]["IsOrganizationTrail"] = True
     assert evaluate(check_id, facts) == "PASS"
     broken = copy.deepcopy(facts)
     mutate_failure(check_id, broken)
@@ -190,8 +206,8 @@ def foreign_organization_index():
 
 def test_foreign_organization_trail_requires_native_caller_binding_and_destination_evidence():
     facts = foreign_organization_index()
-    for check_id in ("aws_nist_cloudtrail_trail_integrated_with_logs",
-                     "aws.nist.cloudtrail_cloudwatch_destination_kms",
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"
+    for check_id in ("aws.nist.cloudtrail_cloudwatch_destination_kms",
                      "aws_cloudtrail_bucket_lifecycle_retention_365",
                      "aws_cloudtrail_s3_siem_delivery"):
         assert evaluate(check_id, facts) == "PASS"
@@ -233,4 +249,86 @@ def test_cloudtrail_duplicate_home_rows_stay_unknown_at_signed_gate():
     duplicate["Name"] = "conflict"
     facts["cloudtrail_account_inventory"].append({"data": duplicate})
     facts["collections"]["cloudtrail_account_inventory"][0]["items"].append(duplicate)
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"
+
+
+@pytest.mark.parametrize("mutation,expected", [
+    ("allow", "PASS"), ("deny", "FAIL"), ("wrong_stream", "UNKNOWN"),
+    ("unbound", "UNKNOWN"), ("multi", "UNKNOWN"), ("org", "UNKNOWN"),
+])
+def test_nist_cloudtrail_permission_evidence_is_bound_and_bounded(mutation, expected):
+    facts = index()
+    trail = facts["cloudtrail_account_inventory"][0]["data"]
+    role = trail["CloudWatchLogsRole"]
+    if mutation == "deny":
+        role["decisions"]["logs:PutLogEvents"] = "implicitDeny"
+    elif mutation == "wrong_stream":
+        role["_provenance"]["simulated_resource_arn"] += "_1"
+    elif mutation == "unbound":
+        role["_provenance"]["trail_arn"] += "-other"
+    elif mutation == "multi":
+        trail["IsMultiRegionTrail"] = True
+    elif mutation == "org":
+        trail["IsOrganizationTrail"] = True
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == expected
+
+
+@pytest.mark.parametrize("short,expected", [(False, "UNKNOWN"), (True, "FAIL")])
+def test_proven_absent_object_lock_preserves_short_lifecycle_failure(short, expected):
+    facts = index()
+    trail = facts["cloudtrail_account_inventory"][0]["data"]
+    trail.pop("S3KeyPrefix")
+    trail["S3KeyPrefix"] = ""
+    trail.setdefault("_coverage", {})["S3KeyPrefix"] = {"status": "empty", "reason": "documented_optional_api_omission", "source_operation": "cloudtrail:DescribeTrails"}
+    bucket = facts["bucket"][0]["data"]
+    bucket["ObjectLock"] = {"collection_status": "empty", "absent": True, "error": {"code": "ObjectLockConfigurationNotFoundError"}}
+    if short:
+        bucket["Lifecycle"]["Rules"] = [{"Status": "Enabled", "Prefix": "AWSLogs/", "Expiration": {"Days": 30}}]
+    assert evaluate("aws_cloudtrail_bucket_lifecycle_retention_365", facts) == expected
+
+
+def test_lifecycle_coverage_denial_remains_unknown_with_absent_object_lock():
+    facts = index()
+    bucket = facts["bucket"][0]["data"]
+    bucket["ObjectLock"] = {"collection_status": "empty", "absent": True, "error": {"code": "ObjectLockConfigurationNotFoundError"}}
+    bucket["Lifecycle"] = {"collection_status": "denied", "error": {"code": "AccessDenied"}}
+    assert evaluate("aws_cloudtrail_bucket_lifecycle_retention_365", facts) == "UNKNOWN"
+
+
+def test_s3_key_prefix_field_coverage_denial_is_not_defaulted():
+    facts = index()
+    trail = facts["cloudtrail_account_inventory"][0]["data"]
+    trail["_coverage"] = {"S3KeyPrefix": {"status": "denied", "source_operation": "cloudtrail:DescribeTrails"}}
+    assert evaluate("aws_cloudtrail_bucket_lifecycle_retention_365", facts) == "UNKNOWN"
+
+
+@pytest.mark.parametrize("flag", ["IsOrganizationTrail", "IsMultiRegionTrail"])
+@pytest.mark.parametrize("missing", ["CloudWatchLogsLogGroupArn", "CloudWatchLogsRoleArn", "group"])
+def test_unsupported_permission_scope_preserves_conclusive_configuration_failure(flag, missing):
+    facts = index()
+    trail = facts["cloudtrail_account_inventory"][0]["data"]
+    trail[flag] = True
+    if missing == "group":
+        facts["log_group"] = []
+        facts["collections"]["log_group"][0].update(items=[], status="empty")
+    else:
+        trail[missing] = ""
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "FAIL"
+
+
+@pytest.mark.parametrize("decision", ["unknown", "", "Allowed"])
+def test_unrecognized_simulation_decision_is_unknown(decision):
+    facts = index()
+    facts["cloudtrail_account_inventory"][0]["data"]["CloudWatchLogsRole"]["decisions"]["logs:PutLogEvents"] = decision
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"
+
+
+@pytest.mark.parametrize("full_proof", [False, None])
+def test_base_only_simulation_cannot_prove_full_role_stream_scope(full_proof):
+    facts = index()
+    role = facts["cloudtrail_account_inventory"][0]["data"]["CloudWatchLogsRole"]
+    if full_proof is None:
+        role.pop("full_role_stream_scope_proven")
+    else:
+        role["full_role_stream_scope_proven"] = full_proof
     assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"

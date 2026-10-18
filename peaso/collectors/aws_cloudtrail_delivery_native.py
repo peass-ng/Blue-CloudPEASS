@@ -12,11 +12,15 @@ ACTIONS = ['logs:CreateLogStream', 'logs:PutLogEvents']
 SPECS = {
     'cloudtrail_trail': ('cloudtrail', 'describe_trails', 'trailList'),
     'cloudtrail_delivery_permission': ('cloudtrail', 'describe_trails', 'trailList'),
+    'cloudtrail_delivery_role_scope': ('cloudtrail', 'describe_trails', 'trailList'),
 }
 READ_ACTIONS = {('iam', 'get_role'), ('iam', 'get_context_keys_for_principal_policy'),
                 ('iam', 'simulate_principal_policy'), ('cloudtrail', 'get_trail_status'),
-                ('cloudtrail', 'get_event_selectors')}
-NATIVE_IDS = {'cloudtrail_trail': 'TrailARN', 'cloudtrail_delivery_permission': 'role_arn'}
+                ('cloudtrail', 'get_event_selectors'), ('iam', 'list_role_policies'),
+                ('iam', 'get_role_policy'), ('iam', 'list_attached_role_policies'),
+                ('iam', 'get_policy'), ('iam', 'get_policy_version')}
+NATIVE_IDS = {'cloudtrail_trail': 'TrailARN', 'cloudtrail_delivery_permission': 'role_arn',
+              'cloudtrail_delivery_role_scope': 'role_arn'}
 _REGION = r'[a-z]{2}(?:-[a-z]+)+-[0-9]+'
 _ROLE = re.compile(r'arn:(aws):iam::([0-9]{12}):role/([A-Za-z0-9_+=,.@/-]+)')
 _GROUP = re.compile(r'arn:(aws):logs:(' + _REGION + r'):([0-9]{12}):log-group:([A-Za-z0-9_./#-]{1,512})(?::\*)?')
@@ -51,12 +55,12 @@ def _detail(requests, session, service, region, operation, **arguments):
     return value
 
 
-def _read(requests, session, service, region, operation, expression, **arguments):
+def _read(requests, session, service, region, operation, expression, *, string_rows=False, **arguments):
     from .aws import ReadFailure
     read = requests.pages(session, service, region, operation, expression, **arguments)
     if read.status not in {'collected', 'empty'}:
         raise ReadFailure((read.error or {}).get('cause_status', read.status), (read.error or {}).get('code', 'cloudtrail_delivery_list_incomplete'))
-    if any(not isinstance(row, dict) for row in read.items):
+    if any(not isinstance(row, str) if string_rows else not isinstance(row, dict) for row in read.items):
         raise ValueError('malformed_native_rows')
     return read.items
 
@@ -235,4 +239,131 @@ def permissions(requests, session, region, account):
         return _result([], exc.status, exc.code)
 
 
-FETCHERS = {'cloudtrail_trail': trails, 'cloudtrail_delivery_permission': permissions}
+def _policy_document(value):
+    if isinstance(value, str):
+        if len(value) > 131072:
+            raise ValueError('policy_document_too_large')
+        value = json.loads(unquote(value))
+    if not isinstance(value, dict) or value.get('Version') != '2012-10-17' or set(value) - {'Version', 'Statement', 'Id'}:
+        raise ValueError('unsupported_policy_document')
+    statements = value.get('Statement')
+    statements = [statements] if isinstance(statements, dict) else statements
+    if not isinstance(statements, list) or not statements:
+        raise ValueError('missing_policy_statements')
+    return statements
+
+
+def _scope_allow(statement, prefix, action):
+    if not isinstance(statement, dict) or set(statement) - {'Sid', 'Effect', 'Action', 'Resource', 'Condition', 'NotAction', 'NotResource'}:
+        raise ValueError('unsupported_policy_statement')
+    if statement.get('Effect') == 'Deny':
+        # Without a complete IAM condition/NotAction evaluator, every Deny can affect scope.
+        raise ValueError('potential_scope_deny')
+    if statement.get('Effect') != 'Allow' or 'Condition' in statement or 'NotAction' in statement or 'NotResource' in statement:
+        return False
+    actions = _strings(statement.get('Action'))
+    resources = _strings(statement.get('Resource'))
+    if not any(_wildcard(pattern.lower(), action.lower()) for pattern in actions):
+        return False
+    for resource in resources:
+        if resource == '*':
+            return True
+        # Only one terminal wildcard and a literal fixed prefix prove every suffix.
+        if resource.endswith('*') and resource.count('*') == 1 and '?' not in resource and '${' not in resource and prefix.startswith(resource[:-1]):
+            return True
+    return False
+
+
+def _scope_allowed(documents, prefix):
+    coverage = {action: False for action in ACTIONS}
+    for document in documents:
+        for statement in _policy_document(document):
+            for action in ACTIONS:
+                coverage[action] |= _scope_allow(statement, prefix, action)
+    return all(coverage.values())
+
+
+def role_scope(requests, session, region, account):
+    """Prove both actions for the whole same-account, home-Region stream prefix."""
+    from .aws import ReadFailure
+    base = permissions(requests, session, region, account)
+    if base.status not in {'collected', 'empty'}:
+        return base
+    output = []
+    try:
+        for original in base.items:
+            row = copy.deepcopy(original)
+            row['full_role_stream_scope_proven'] = False
+            row['supported_stream_prefix'] = None
+            if row.get('simulation_context_complete') is not True or row.get('trust_valid') is not True or any(row.get('decisions', {}).get(a) != 'allowed' for a in ACTIONS):
+                output.append(row)
+                continue
+            try:
+                role, group = row['role_arn'], row['log_group_arn']
+                rm, gm = _ROLE.fullmatch(role), _GROUP.fullmatch(group)
+                if rm is None or gm is None or rm.group(2) != account or gm.group(2) != region or gm.group(3) != account:
+                    raise ValueError('scope_destination_mismatch')
+                role_name = rm.group(3).rsplit('/', 1)[-1]
+                prefix = f'arn:aws:logs:{region}:{account}:log-group:{gm.group(4)}:log-stream:{account}_CloudTrail_{region}'
+                native_role = _detail(requests, session, 'iam', region, 'get_role', RoleName=role_name).get('Role')
+                if not isinstance(native_role, dict) or native_role.get('Arn') != role or native_role.get('RoleName') != role_name:
+                    raise ValueError('scope_role_binding_changed')
+                operations = ['ListRolePolicies', 'ListAttachedRolePolicies']
+                inline_names = _read(requests, session, 'iam', region, 'list_role_policies', 'PolicyNames', string_rows=True, RoleName=role_name)
+                attached = _read(requests, session, 'iam', region, 'list_attached_role_policies', 'AttachedPolicies', RoleName=role_name)
+                if len(inline_names) != len(set(inline_names)) or any(not isinstance(x, str) or not x for x in inline_names):
+                    raise ValueError('scope_inline_inventory_invalid')
+                documents = []
+                for name in inline_names:
+                    operations.append('GetRolePolicy')
+                    response = _detail(requests, session, 'iam', region, 'get_role_policy', RoleName=role_name, PolicyName=name)
+                    if response.get('RoleName') != role_name or response.get('PolicyName') != name:
+                        raise ValueError('scope_inline_policy_binding_invalid')
+                    documents.append(response.get('PolicyDocument'))
+                arns = set()
+                for entry in attached:
+                    arn = entry.get('PolicyArn')
+                    if not isinstance(arn, str) or not re.fullmatch(r'arn:aws:iam::(?:[0-9]{12}|aws):policy/[A-Za-z0-9_+=,.@/-]+', arn) or arn in arns or not isinstance(entry.get('PolicyName'), str):
+                        raise ValueError('scope_attached_inventory_invalid')
+                    arns.add(arn)
+                    operations.extend(['GetPolicy', 'GetPolicyVersion'])
+                    documents.append(_managed_document(requests, session, region, arn, entry['PolicyName']))
+                identity_allowed = _scope_allowed(documents, prefix)
+                boundary = native_role.get('PermissionsBoundary')
+                boundary_allowed = True
+                if boundary is not None:
+                    if not isinstance(boundary, dict) or boundary.get('PermissionsBoundaryType') != 'Policy' or not isinstance(boundary.get('PermissionsBoundaryArn'), str):
+                        raise ValueError('scope_boundary_binding_invalid')
+                    operations.extend(['GetPolicy', 'GetPolicyVersion'])
+                    boundary_allowed = _scope_allowed([_managed_document(requests, session, region, boundary['PermissionsBoundaryArn'])], prefix)
+                provenance = row['_provenance']
+                provenance['role_scope_proof'] = {'method': 'complete_native_role_policies_v1',
+                                                  'operations': list(dict.fromkeys(operations)),
+                                                  'identity_policy_inventory_complete': True,
+                                                  'permissions_boundary_policy_complete': True,
+                                                  'stream_prefix': prefix + '*',
+                                                  'SCP_RCP_verified': False,
+                                                  'effective_live_delivery_verified': False}
+                row['supported_stream_prefix'] = prefix + '*'
+                row['full_role_stream_scope_proven'] = identity_allowed and boundary_allowed
+            except (ValueError, TypeError, KeyError):
+                row['_coverage'] = {'full_role_stream_scope_proven': {'status': 'not_collected', 'code': 'cloudtrail_role_scope_unresolved'}}
+            output.append(row)
+        return _result(output)
+    except ReadFailure as exc:
+        return _result([], exc.status, exc.code)
+
+
+def _managed_document(requests, session, region, arn, expected_name=None):
+    policy = _detail(requests, session, 'iam', region, 'get_policy', PolicyArn=arn).get('Policy')
+    if not isinstance(policy, dict) or policy.get('Arn') != arn or (expected_name is not None and policy.get('PolicyName') != expected_name) or not isinstance(policy.get('DefaultVersionId'), str) or not re.fullmatch(r'v[1-9][0-9]*', policy['DefaultVersionId']):
+        raise ValueError('scope_managed_policy_binding_invalid')
+    version = policy['DefaultVersionId']
+    response = _detail(requests, session, 'iam', region, 'get_policy_version', PolicyArn=arn, VersionId=version).get('PolicyVersion')
+    if not isinstance(response, dict) or response.get('VersionId') != version or response.get('IsDefaultVersion') is not True:
+        raise ValueError('scope_default_policy_version_mismatch')
+    return response.get('Document')
+
+
+FETCHERS = {'cloudtrail_trail': trails, 'cloudtrail_delivery_permission': permissions,
+            'cloudtrail_delivery_role_scope': role_scope}

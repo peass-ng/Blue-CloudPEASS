@@ -227,3 +227,17 @@ def test_codebuild_literal_secondary_absence_matches_source_true_only_condition(
     assert check("aws.b.codebuild.artifact_encryption").evaluate(data, {})[0] == "PASS"
     data["Configuration"]["projects"][0]["secondaryArtifacts"][0]["encryptionDisabled"] = True
     assert check("aws.b.codebuild.artifact_encryption").evaluate(data, {})[0] == "FAIL"
+
+
+@pytest.mark.parametrize("cid", ["aws.b.ecs.no_privileged_containers", "aws.b.ecs.host_network_nonprivileged"])
+@pytest.mark.parametrize("unreadable", [{"privileged": "true"}, {"privileged": None},
+                                      {"_coverage": {"privileged": {"status": "denied"}}}])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_ecs_privileged_witness_survives_unreadable_peer(cid, unreadable, reverse):
+    peer = {"name": "unreadable", "user": "1000", **copy.deepcopy(unreadable)}
+    rows = [peer, {"name": "unsafe", "user": "1000", "privileged": True}]
+    definition = {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "networkMode": "host",
+                  "containerDefinitions": list(reversed(rows)) if reverse else rows}
+    assert check(cid).evaluate({"Definition": {"taskDefinition": definition}}, {})[0] == "FAIL"
+    definition["containerDefinitions"] = [peer]
+    assert check(cid).evaluate({"Definition": {"taskDefinition": definition}}, {})[0] == "UNKNOWN"

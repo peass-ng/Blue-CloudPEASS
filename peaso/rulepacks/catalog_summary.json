@@ -78,6 +78,7 @@
         "cloudtrail",
         "cloudtrail_account_inventory",
         "cloudtrail_delivery_permission",
+        "cloudtrail_delivery_role_scope",
         "cloudtrail_event",
         "cloudtrail_trail",
         "cloudwatch_alarm",

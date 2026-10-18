@@ -50,7 +50,7 @@ def capture(sdk,monkeypatch,mode='allow',planned=False):
   if mode=='notprincipal':stmt['NotPrincipal']=stmt.pop('Principal')
   role={'Path':'/path/','RoleName':'CloudTrailDelivery','RoleId':'AROA12345678901234567','Arn':ROLE,'CreateDate':datetime(2026,1,1,tzinfo=timezone.utc),'AssumeRolePolicyDocument':json.dumps(doc),'Description':'PRIVATE_PROVIDER_MARKER'}
   if mode=='foreignrole':role['Arn']=ROLE.replace(ACCOUNT,'999999999999')
-  if mode.startswith('boundary'):role['PermissionsBoundary']={'PermissionsBoundaryType':'Policy','PermissionsBoundaryArn':f'arn:aws:iam::{ACCOUNT}:policy/boundary'}
+  if mode.startswith('boundary') or mode=='versionmismatch':role['PermissionsBoundary']={'PermissionsBoundaryType':'Policy','PermissionsBoundaryArn':f'arn:aws:iam::{ACCOUNT}:policy/boundary'}
   if mode=='roledenied':iam.add_client_error('get_role','AccessDenied',expected_params={'RoleName':'CloudTrailDelivery'})
   else:iam.add_response('get_role',{'Role':role},{'RoleName':'CloudTrailDelivery'})
   if mode not in {'roledenied','foreignrole','unknowntrust','notprincipal','trustvariable'}:
@@ -122,3 +122,73 @@ def test_other_simulation_or_mutation_remains_prohibited(sdk):
  for operation in ['simulate_custom_policy','create_role','attach_role_policy','put_role_policy']:
   result=aws.Requests({}).detail(session,'iam',REGION,operation)
   assert result['collection_status']=='not_collected'and result['error']['code']=='non_read_operation'
+
+
+@pytest.mark.parametrize('mode,proven',[
+ ('broad',True),('attached',True),('baseonly',False),('conditional',False),('deny',False),
+ ('boundary',True),('boundarybase',False),('boundarydeny',False),('versionmismatch',False),
+])
+def test_full_role_scope_offline(sdk,monkeypatch,mode,proven):
+ session,add=sdk;sts,ct,iam=add('sts'),add('cloudtrail'),add('iam')
+ sts.add_response('get_caller_identity',{'Account':ACCOUNT,'Arn':f'arn:aws:iam::{ACCOUNT}:user/reviewer','UserId':'reviewer'}, {})
+ trail={'Name':'native-test','TrailARN':TRAIL,'HomeRegion':REGION,'IsMultiRegionTrail':False,'IsOrganizationTrail':False,'CloudWatchLogsRoleArn':ROLE,'CloudWatchLogsLogGroupArn':GROUP}
+ ct.add_response('describe_trails',{'trailList':[trail]},{'includeShadowTrails':False})
+ ct.add_response('get_trail_status',{'IsLogging':True},{'Name':TRAIL})
+ ct.add_response('get_event_selectors',{'EventSelectors':[]},{'TrailName':TRAIL})
+ trust={'Version':'2012-10-17','Statement':[{'Effect':'Allow','Action':'sts:AssumeRole','Principal':{'Service':'cloudtrail.amazonaws.com'}}]}
+ boundary_arn=f'arn:aws:iam::{ACCOUNT}:policy/boundary'
+ role={'Path':'/path/','RoleName':'CloudTrailDelivery','RoleId':'AROA12345678901234567','Arn':ROLE,'CreateDate':datetime(2026,1,1,tzinfo=timezone.utc),'AssumeRolePolicyDocument':json.dumps(trust)}
+ if mode.startswith('boundary') or mode=='versionmismatch':role['PermissionsBoundary']={'PermissionsBoundaryType':'Policy','PermissionsBoundaryArn':boundary_arn}
+ iam.add_response('get_role',{'Role':role},{'RoleName':'CloudTrailDelivery'})
+ iam.add_response('get_context_keys_for_principal_policy',{'ContextKeyNames':[]},{'PolicySourceArn':ROLE})
+ results=[{'EvalActionName':a,'EvalResourceName':STREAM,'EvalDecision':'allowed','MissingContextValues':[]}for a in native.ACTIONS]
+ if mode.startswith('boundary') or mode=='versionmismatch':
+  for result in results:result['PermissionsBoundaryDecisionDetail']={'AllowedByPermissionsBoundary':True}
+ iam.add_response('simulate_principal_policy',{'EvaluationResults':results,'IsTruncated':False},{'PolicySourceArn':ROLE,'ActionNames':native.ACTIONS,'ResourceArns':[STREAM]})
+ iam.add_response('list_role_policies',{'PolicyNames':[] if mode=='attached' else ['delivery'],'IsTruncated':False},{'RoleName':'CloudTrailDelivery'})
+ iam.add_response('list_attached_role_policies',{'AttachedPolicies':[{'PolicyName':'delivery','PolicyArn':boundary_arn}] if mode=='attached' else [],'IsTruncated':False},{'RoleName':'CloudTrailDelivery'})
+ resource=STREAM if mode=='baseonly' else STREAM+'*'
+ stmt={'Effect':'Allow','Action':native.ACTIONS,'Resource':resource}
+ if mode=='conditional':stmt['Condition']={'StringEquals':{'aws:RequestedRegion':REGION}}
+ statements=[stmt]
+ if mode=='deny':statements.append({'Effect':'Deny','Action':'logs:PutLogEvents','Resource':'*'})
+ if mode!='attached':iam.add_response('get_role_policy',{'RoleName':'CloudTrailDelivery','PolicyName':'delivery','PolicyDocument':json.dumps({'Version':'2012-10-17','Statement':statements})},{'RoleName':'CloudTrailDelivery','PolicyName':'delivery'})
+ if mode.startswith('boundary') or mode=='attached' or mode=='versionmismatch':
+  iam.add_response('get_policy',{'Policy':{'Arn':boundary_arn,'PolicyName':'delivery' if mode=='attached' else 'boundary','DefaultVersionId':'v2'}},{'PolicyArn':boundary_arn})
+  bstmt={'Effect':'Allow','Action':native.ACTIONS,'Resource':STREAM if mode=='boundarybase' else STREAM+'*'}
+  if mode=='boundarydeny':bstatements=[bstmt,{'Effect':'Deny','Action':'logs:PutLogEvents','Resource':'*'}]
+  else:bstatements=[bstmt]
+  iam.add_response('get_policy_version',{'PolicyVersion':{'VersionId':'v2','IsDefaultVersion':mode!='versionmismatch','Document':json.dumps({'Version':'2012-10-17','Statement':bstatements})}},{'PolicyArn':boundary_arn,'VersionId':'v2'})
+ monkeypatch.setattr(aws,'_session',lambda auth,region:(session,'fixture'))
+ snap=collect_live({'provider':'aws','scopes':[ACCOUNT],'options':{'regions':[REGION],'service_concurrency':1,'retry_attempts':1}},['cloudtrail_delivery_role_scope'])
+ envelope=next(e for e in snap['collections']if e['type']=='cloudtrail_delivery_role_scope')
+ assert envelope['status']=='collected',envelope
+ row=envelope['items'][0]
+ assert row['full_role_stream_scope_proven'] is proven
+ if proven:
+  assert row['supported_stream_prefix']==STREAM+'*'
+  assert len(row['_provenance']['operations'])==6
+  proof=row['_provenance']['role_scope_proof']
+  assert proof['method']=='complete_native_role_policies_v1'
+  assert {'ListRolePolicies','ListAttachedRolePolicies'}.issubset(proof['operations'])
+  assert ('GetPolicyVersion' if mode=='attached' else 'GetRolePolicy') in proof['operations']
+ for stub in (sts,ct,iam):stub.assert_no_pending_responses()
+
+
+def test_full_role_scope_denied_inventory(sdk,monkeypatch):
+ session,add=sdk;sts,ct,iam=add('sts'),add('cloudtrail'),add('iam')
+ sts.add_response('get_caller_identity',{'Account':ACCOUNT,'Arn':f'arn:aws:iam::{ACCOUNT}:user/reviewer','UserId':'reviewer'}, {})
+ trail={'Name':'native-test','TrailARN':TRAIL,'HomeRegion':REGION,'IsMultiRegionTrail':False,'IsOrganizationTrail':False,'CloudWatchLogsRoleArn':ROLE,'CloudWatchLogsLogGroupArn':GROUP}
+ ct.add_response('describe_trails',{'trailList':[trail]},{'includeShadowTrails':False})
+ ct.add_response('get_trail_status',{'IsLogging':True},{'Name':TRAIL})
+ ct.add_response('get_event_selectors',{'EventSelectors':[]},{'TrailName':TRAIL})
+ role={'Path':'/path/','RoleName':'CloudTrailDelivery','RoleId':'AROA12345678901234567','Arn':ROLE,'CreateDate':datetime(2026,1,1,tzinfo=timezone.utc),'AssumeRolePolicyDocument':json.dumps({'Version':'2012-10-17','Statement':[{'Effect':'Allow','Action':'sts:AssumeRole','Principal':{'Service':'cloudtrail.amazonaws.com'}}]})}
+ iam.add_response('get_role',{'Role':role},{'RoleName':'CloudTrailDelivery'})
+ iam.add_response('get_context_keys_for_principal_policy',{'ContextKeyNames':[]},{'PolicySourceArn':ROLE})
+ iam.add_response('simulate_principal_policy',{'EvaluationResults':[{'EvalActionName':a,'EvalResourceName':STREAM,'EvalDecision':'allowed','MissingContextValues':[]}for a in native.ACTIONS],'IsTruncated':False},{'PolicySourceArn':ROLE,'ActionNames':native.ACTIONS,'ResourceArns':[STREAM]})
+ iam.add_client_error('list_role_policies','AccessDenied',expected_params={'RoleName':'CloudTrailDelivery'})
+ monkeypatch.setattr(aws,'_session',lambda auth,region:(session,'fixture'))
+ snap=collect_live({'provider':'aws','scopes':[ACCOUNT],'options':{'regions':[REGION],'service_concurrency':1,'retry_attempts':1}},['cloudtrail_delivery_role_scope'])
+ env=next(e for e in snap['collections']if e['type']=='cloudtrail_delivery_role_scope')
+ assert env['status']=='denied' and env['items']==[]
+ for stub in (sts,ct,iam):stub.assert_no_pending_responses()

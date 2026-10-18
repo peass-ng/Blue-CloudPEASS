@@ -228,28 +228,6 @@ def _cloudtrail(item, index, check_id):
             name, bucket = _bucket(trail, buckets)
             prefix = get(trail, "S3KeyPrefix", str).strip("/")
             audit_prefix = (prefix + "/" if prefix else "") + "AWSLogs/"
-            lock = get(bucket, "ObjectLock", dict)
-            if lock.get("collection_status") not in (None, "collected", "empty"):
-                raise Unavailable("Object Lock read incomplete")
-            lock_enabled = get(lock, "ObjectLockEnabled", str)
-            if lock_enabled not in ("Enabled", "Disabled"):
-                raise Unavailable("Object Lock state unrecognized")
-            lock_good = False
-            if lock_enabled == "Enabled":
-                retention = get(lock, "Rule.DefaultRetention", dict)
-                mode = get(retention, "Mode", str)
-                if mode not in ("COMPLIANCE", "GOVERNANCE"):
-                    raise Unavailable("Object Lock mode unrecognized")
-                days = retention.get("Days")
-                years = retention.get("Years")
-                if type(days) is int and years is None:
-                    lock_good = days >= 365
-                elif type(years) is int and days is None:
-                    lock_good = years >= 1
-                else:
-                    raise Unavailable("Object Lock retention duration unavailable")
-            if not lock_good:
-                uncertain.append(name)
             lifecycle = get(bucket, "Lifecycle", dict)
             if lifecycle.get("collection_status") not in (None, "collected", "empty"):
                 raise Unavailable("bucket lifecycle read incomplete")
@@ -288,6 +266,35 @@ def _cloudtrail(item, index, check_id):
                             raise Unavailable("lifecycle expiry timing cannot be proven")
                         else:
                             raise Unavailable("lifecycle expiration duration missing")
+            if name in failed:
+                continue
+            lock = get(bucket, "ObjectLock", dict)
+            if lock.get("collection_status") not in (None, "collected", "empty"):
+                raise Unavailable("Object Lock read incomplete")
+            absent_lock = (lock.get("collection_status") == "empty" and lock.get("absent") is True and
+                           get(lock, "error.code", str) == "ObjectLockConfigurationNotFoundError")
+            if absent_lock:
+                uncertain.append(name)
+                continue
+            lock_enabled = get(lock, "ObjectLockEnabled", str)
+            if lock_enabled not in ("Enabled", "Disabled"):
+                raise Unavailable("Object Lock state unrecognized")
+            lock_good = False
+            if lock_enabled == "Enabled":
+                retention = get(lock, "Rule.DefaultRetention", dict)
+                mode = get(retention, "Mode", str)
+                if mode not in ("COMPLIANCE", "GOVERNANCE"):
+                    raise Unavailable("Object Lock mode unrecognized")
+                days = retention.get("Days")
+                years = retention.get("Years")
+                if type(days) is int and years is None:
+                    lock_good = days >= 365
+                elif type(years) is int and days is None:
+                    lock_good = years >= 1
+                else:
+                    raise Unavailable("Object Lock retention duration unavailable")
+            if not lock_good:
+                uncertain.append(name)
         if failed:
             return result(True, early_retention_buckets=sorted(set(failed)))
         if uncertain:
@@ -339,13 +346,53 @@ def _cloudtrail(item, index, check_id):
                 failed.append(arn)
                 continue
             if check_id == "aws_nist_cloudtrail_trail_integrated_with_logs":
+                if get(trail, "IsOrganizationTrail", bool) or get(trail, "IsMultiRegionTrail", bool):
+                    raise Unavailable("organization or multi-Region delivery permission scope unresolved")
                 role_fact = get(trail, "CloudWatchLogsRole", dict)
-                if (get(role_fact, "collection_status", str) != "collected" or
-                        get(role_fact, "source_operation", str) != "iam:GetRole+SimulatePrincipalPolicy" or
-                        get(role_fact, "Arn", str) != role):
-                    raise Unavailable("CloudTrail delivery role join unresolved")
-                if not get(role_fact, "TrustsCloudTrail", bool) or not get(role_fact, "AllowsCreateLogStream", bool) or not get(role_fact, "AllowsPutLogEvents", bool):
+                provenance = get(role_fact, "_provenance", dict)
+                expected_stream = (f"arn:aws:logs:{region}:{account}:log-group:"
+                                   f"{group['arn'].removesuffix(':*').split(':log-group:', 1)[1]}:"
+                                   f"log-stream:{account}_CloudTrail_{region}")
+                if (get(trail, "IsOrganizationTrail", bool) or get(trail, "IsMultiRegionTrail", bool) or
+                        get(role_fact, "role_arn", str) != role or
+                        get(role_fact, "log_group_arn", str).removesuffix(":*") != dest.removesuffix(":*") or
+                        get(role_fact, "simulation_context_complete", bool) is not True or
+                        provenance.get("read_only") is not True or
+                        provenance.get("trail_arn") != arn or
+                        provenance.get("simulated_resource_arn") != expected_stream or
+                        provenance.get("effective_live_delivery_verified") is not False or
+                        provenance.get("SCP_RCP_verified") is not False or
+                        provenance.get("operations") != ["DescribeTrails", "GetTrailStatus", "GetEventSelectors", "GetRole", "GetContextKeysForPrincipalPolicy", "SimulatePrincipalPolicy"]):
+                    raise Unavailable("bounded CloudTrail delivery role evidence unavailable")
+                decisions = get(role_fact, "decisions", dict)
+                actions = {"logs:CreateLogStream", "logs:PutLogEvents"}
+                if set(decisions) != actions or any(get(decisions, action, str) not in {"allowed", "explicitDeny", "implicitDeny"} for action in actions):
+                    raise Unavailable("CloudTrail simulation decision unrecognized")
+                if (get(role_fact, "trust_valid", bool) is not True or
+                        get(decisions, "logs:CreateLogStream", str) != "allowed" or
+                        get(decisions, "logs:PutLogEvents", str) != "allowed"):
                     failed.append(arn)
+                else:
+                    proof = get(provenance, "role_scope_proof", dict)
+                    operations = get(proof, "operations", list)
+                    permitted = {"ListRolePolicies", "ListAttachedRolePolicies", "GetRolePolicy", "GetPolicy", "GetPolicyVersion"}
+                    if (get(role_fact, "full_role_stream_scope_proven", bool) is not True or
+                            get(role_fact, "supported_stream_prefix", str) != expected_stream + "*" or
+                            proof.get("method") != "complete_native_role_policies_v1" or
+                            proof.get("identity_policy_inventory_complete") is not True or
+                            proof.get("permissions_boundary_policy_complete") is not True or
+                            proof.get("stream_prefix") != expected_stream + "*" or
+                            proof.get("SCP_RCP_verified") is not False or
+                            proof.get("effective_live_delivery_verified") is not False or
+                            any(not isinstance(op, str) for op in operations) or
+                            len(set(operations)) != len(operations) or not set(operations) <= permitted or
+                            not {"ListRolePolicies", "ListAttachedRolePolicies"} <= set(operations) or
+                            not ("GetRolePolicy" in operations or {"GetPolicy", "GetPolicyVersion"} <= set(operations)) or
+                            (("GetPolicy" in operations) != ("GetPolicyVersion" in operations))):
+                        raise Unavailable("full CloudTrail stream role permission scope unproven")
+        if check_id == "aws_nist_cloudtrail_trail_integrated_with_logs":
+            return result(bool(failed), trails_without_integration=sorted(set(failed)),
+                          permission_scope="declared role permissions for documented same-account home-Region streams; live delivery and organization effects unverified")
         return result(bool(failed), trails_without_integration=sorted(set(failed)))
     if check_id in _KMS_IDS:
         if check_id in ("aws_nist_cloudtrail_trail_logs_encrypted_with_kms_cmk", "aws.nist.cloudtrail_cloudwatch_destination_kms"):

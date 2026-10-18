@@ -18,13 +18,19 @@ def task(item):
 @install("aws.b.ecs.no_privileged_containers", "ecs_task_definition", "ECS task definition has no privileged containers", {"Definition": {"taskDefinition": {"containerDefinitions": [{"name": "app", "privileged": False}]}}}, {"Definition": {"taskDefinition": {"containerDefinitions": [{"name": "app", "privileged": True}]}}}, query="ecs_task_definition_container_non_privileged")
 def privileges(item, index):
     _, rows = task(item)
-    privileged = []
+    privileged, unresolved = [], []
     for row in rows:
-        value = optional(row, "privileged", False)
+        try:
+            value = optional(row, "privileged", False)
+        except Unavailable:
+            unresolved.append(row["name"])
+            continue
         if type(value) is not bool:
-            return unknown("malformed privileged flag")
-        if value:
+            unresolved.append(row["name"])
+        elif value:
             privileged.append(row["name"])
+    if not privileged and unresolved:
+        return unknown("container privilege evidence unavailable or malformed", unresolved_containers=unresolved)
     return result(bool(privileged), privileged_containers=privileged)
 
 
