@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from copy import deepcopy
 
+import pytest
+
 from peaso.attack_detection import Rule, detect_aws_events, normalize_aws_cloudtrail
 
 
@@ -55,6 +57,28 @@ def test_issuing_role_path_does_not_hide_a_matching_attachment() -> None:
         "arn:aws:iam::123456789012:role/team/Workload"
     )
     assert len(detect_aws_events([event], [RULE])) == 1
+
+
+@pytest.mark.parametrize("partition", ["aws", "aws-us-gov", "aws-cn"])
+def test_managed_admin_policy_uses_validated_issuer_partition(partition: str) -> None:
+    row = role_attachment()
+    identity = row["userIdentity"]
+    identity["arn"] = identity["arn"].replace("arn:aws:", f"arn:{partition}:")
+    issuer = identity["sessionContext"]["sessionIssuer"]
+    issuer["arn"] = f"arn:{partition}:iam::123456789012:role/team/Workload"
+    row["requestParameters"]["policyArn"] = f"arn:{partition}:iam::aws:policy/AdministratorAccess"
+    normalized = normalize_aws_cloudtrail(row)
+    assert normalized["request.self_role"] is True
+    assert normalized["request.self_role_admin_policy_attach"] is True
+    assert len(detect_aws_events([row], [RULE])) == 1
+
+    row["requestParameters"]["policyArn"] = (
+        "arn:aws:iam::aws:policy/AdministratorAccess" if partition != "aws"
+        else "arn:aws-us-gov:iam::aws:policy/AdministratorAccess"
+    )
+    assert normalize_aws_cloudtrail(row)["request.self_role"] is True
+    assert normalize_aws_cloudtrail(row)["request.self_role_admin_policy_attach"] is False
+    assert detect_aws_events([row], [RULE]) == []
 
 
 def test_denied_foreign_malformed_and_incomplete_events_do_not_match() -> None:

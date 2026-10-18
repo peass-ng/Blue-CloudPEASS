@@ -147,6 +147,21 @@ def test_unresolved_native_paths(monkeypatch, mode, expected):
     assert run(monkeypatch, mode)[0] == expected
 
 
+@pytest.mark.parametrize("mode,collection_status", [
+    ("partial_group", "denied"), ("hidden_group", "partial")])
+def test_incomplete_group_diagnostic_preserves_native_cause(monkeypatch, mode, collection_status):
+    status, snapshot = run(monkeypatch, mode)
+    membership = next(c for c in snapshot["collections"] if c["type"] == "directory_membership")
+    row = next(c for c in snapshot["collections"] if c["type"] == "azure_sw18_evidence"
+               and c["scope"] == "/tenants/" + TENANT)["items"][0]
+    assert membership["status"] == collection_status
+    assert status == "UNKNOWN"
+    assert row["coverage"] == {"directory_roles": False, "groups": False,
+                               "registration": True, "per_user_requirements": True}
+    assert row["_unresolved"]["groups"] == "partial, foreign, or duplicate group membership"
+    assert "groups_index" not in str(row["_unresolved"])
+
+
 def test_privileged_and_disabled_per_user(monkeypatch):
     assert run(monkeypatch, role=True)[0] == "NOT_APPLICABLE"
     assert run(monkeypatch, "group_role")[0] == "NOT_APPLICABLE"

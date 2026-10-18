@@ -55,6 +55,52 @@ def test_service_account_actor_uses_service_account_member_type():
     assert normalize_gcp_token_creator_binding_observation(row)["actor.id"] == actor
 
 
+@pytest.mark.parametrize("request_project,resource_project", [
+    (PROJECT, PROJECT), (PROJECT, "-"), ("-", PROJECT),
+])
+def test_explicit_project_resource_preserves_requested_target_and_returned_binding(
+    request_project, resource_project,
+):
+    row = event()
+    requested = f"projects/{request_project}/serviceAccounts/{SERVICE_ACCOUNT}"
+    row["protoPayload"]["request"]["resource"] = requested
+    row["protoPayload"]["resourceName"] = (
+        f"projects/{resource_project}/serviceAccounts/{SERVICE_ACCOUNT}"
+    )
+    result = normalize_gcp_token_creator_binding_observation(row)
+    assert result["target.id"] == requested
+    assert result["target.service_account"] == SERVICE_ACCOUNT
+    assert result["request.binding_observed"] is True
+    assert "new_privilege" not in result and "compromise" not in result
+
+
+@pytest.mark.parametrize("change", [
+    "request_project", "resource_project", "email_project", "returned_member", "conditional_binding",
+])
+def test_explicit_project_resource_rejects_mismatched_evidence(change):
+    row = event()
+    payload = row["protoPayload"]
+    payload["request"]["resource"] = f"projects/{PROJECT}/serviceAccounts/{SERVICE_ACCOUNT}"
+    payload["resourceName"] = f"projects/{PROJECT}/serviceAccounts/{SERVICE_ACCOUNT}"
+    if change == "request_project":
+        payload["request"]["resource"] = payload["request"]["resource"].replace(
+            f"projects/{PROJECT}/", "projects/another-project/"
+        )
+    elif change == "resource_project":
+        payload["resourceName"] = payload["resourceName"].replace(
+            f"projects/{PROJECT}/", "projects/another-project/"
+        )
+    elif change == "email_project":
+        payload["request"]["resource"] = (
+            f"projects/{PROJECT}/serviceAccounts/workload@another-project.iam.gserviceaccount.com"
+        )
+    elif change == "returned_member":
+        payload["response"]["bindings"][0]["members"] = ["user:other@example.com"]
+    elif change == "conditional_binding":
+        payload["response"]["bindings"][0]["condition"] = {"expression": "true"}
+    assert normalize_gcp_token_creator_binding_observation(row) is None
+
+
 def test_public_rule_shape_matches_only_completed_binding_observation():
     rule = Rule(
         id="synthetic-token-creator", title="Observed Token Creator binding",
