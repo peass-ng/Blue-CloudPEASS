@@ -167,7 +167,7 @@ def trust_valid(document, trail_arn, account):
     return allowed and not denied
 
 
-def permissions(requests, session, region, account):
+def permissions(requests, session, region, account, *, allow_multiregion=False):
     from .aws import ReadFailure
     parent = trails(requests, session, region, account)
     if parent.status not in {'collected', 'empty'}:
@@ -183,10 +183,12 @@ def permissions(requests, session, region, account):
         for (role, group), subjects in pairs.items():
             row = {'role_arn': role, 'log_group_arn': group, 'simulation_context_complete': False}
             trail = subjects[0]
+            if allow_multiregion:
+                row['_trail_is_multiregion'] = trail.get('IsMultiRegionTrail')
             try:
                 if len(subjects) != 1:
                     raise ValueError('ambiguous_shared_delivery_pair')
-                if type(trail.get('IsOrganizationTrail')) is not bool or type(trail.get('IsMultiRegionTrail')) is not bool or trail['IsOrganizationTrail'] or trail['IsMultiRegionTrail']:
+                if type(trail.get('IsOrganizationTrail')) is not bool or type(trail.get('IsMultiRegionTrail')) is not bool or trail['IsOrganizationTrail'] or (trail['IsMultiRegionTrail'] and not allow_multiregion):
                     raise ValueError('organization_or_multiregion_stream_scope_unresolved')
                 rm, gm = _ROLE.fullmatch(role), _GROUP.fullmatch(group)
                 if rm is None or gm is None or rm.group(2) != account or gm.group(2) != region or gm.group(3) != account:
@@ -284,15 +286,16 @@ def _scope_allowed(documents, prefix):
 
 
 def role_scope(requests, session, region, account):
-    """Prove both actions for the whole same-account, home-Region stream prefix."""
+    """Prove both actions for all documented same-account stream families."""
     from .aws import ReadFailure
-    base = permissions(requests, session, region, account)
+    base = permissions(requests, session, region, account, allow_multiregion=True)
     if base.status not in {'collected', 'empty'}:
         return base
     output = []
     try:
         for original in base.items:
             row = copy.deepcopy(original)
+            is_multiregion = row.pop('_trail_is_multiregion', None)
             row['full_role_stream_scope_proven'] = False
             row['supported_stream_prefix'] = None
             if row.get('simulation_context_complete') is not True or row.get('trust_valid') is not True or any(row.get('decisions', {}).get(a) != 'allowed' for a in ACTIONS):
@@ -304,7 +307,10 @@ def role_scope(requests, session, region, account):
                 if rm is None or gm is None or rm.group(2) != account or gm.group(2) != region or gm.group(3) != account:
                     raise ValueError('scope_destination_mismatch')
                 role_name = rm.group(3).rsplit('/', 1)[-1]
-                prefix = f'arn:aws:logs:{region}:{account}:log-group:{gm.group(4)}:log-stream:{account}_CloudTrail_{region}'
+                if type(is_multiregion) is not bool:
+                    raise ValueError('scope_trail_binding_unresolved')
+                prefix = (f'arn:aws:logs:{region}:{account}:log-group:{gm.group(4)}:log-stream:'
+                          f'{account}_CloudTrail_' + ('' if is_multiregion else region))
                 native_role = _detail(requests, session, 'iam', region, 'get_role', RoleName=role_name).get('Role')
                 if not isinstance(native_role, dict) or native_role.get('Arn') != role or native_role.get('RoleName') != role_name:
                     raise ValueError('scope_role_binding_changed')
@@ -342,6 +348,7 @@ def role_scope(requests, session, region, account):
                                                   'identity_policy_inventory_complete': True,
                                                   'permissions_boundary_policy_complete': True,
                                                   'stream_prefix': prefix + '*',
+                                                  'stream_region_scope': 'all_source_regions' if is_multiregion else 'home_region',
                                                   'SCP_RCP_verified': False,
                                                   'effective_live_delivery_verified': False}
                 row['supported_stream_prefix'] = prefix + '*'

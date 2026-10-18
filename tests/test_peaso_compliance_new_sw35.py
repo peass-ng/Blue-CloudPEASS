@@ -332,3 +332,18 @@ def test_base_only_simulation_cannot_prove_full_role_stream_scope(full_proof):
     else:
         role["full_role_stream_scope_proven"] = full_proof
     assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"
+
+
+@pytest.mark.parametrize("region_scope,expected", [("all_source_regions", "PASS"), ("home_region", "UNKNOWN"), (None, "UNKNOWN"), ("other", "UNKNOWN")])
+def test_multiregion_proof_scope_is_explicit(region_scope, expected):
+    facts = index()
+    trail = facts["cloudtrail_account_inventory"][0]["data"]
+    trail["IsMultiRegionTrail"] = True
+    prefix = GROUP + ":log-stream:123456789012_CloudTrail_*"
+    fact = trail["CloudWatchLogsRole"]
+    fact["supported_stream_prefix"] = prefix
+    proof = fact["_provenance"]["role_scope_proof"]
+    proof["stream_prefix"] = prefix
+    if region_scope is not None:
+        proof["stream_region_scope"] = region_scope
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == expected

@@ -518,6 +518,19 @@ class Transport:
                         self.sleep(delay)
                         continue
                     raise error
+                # Compute returns an empty 204 when the selected project has no
+                # Shared VPC host. Keep this exact documented relationship read
+                # distinct from a malformed 204 on any other API operation.
+                if (response.status_code != 204 and isinstance(data, dict) and "_noXpnHost" in data):
+                    # This marker is private transport state, never provider JSON.
+                    raise ReadError("malformed", "malformed_response")
+                if response.status_code == 204:
+                    if (method == "GET" and parsed.hostname == "compute.googleapis.com"
+                            and re.fullmatch(r"/compute/v1/projects/[^/]+/getXpnHost", parsed.path)
+                            and not response.content):
+                        data = {"_noXpnHost": True}
+                    else:
+                        raise ReadError("malformed", "malformed_response")
                 if not isinstance(data, dict):
                     raise ReadError("malformed", "malformed_response")
                 if parsed.hostname in {"appengine.googleapis.com", "artifactregistry.googleapis.com",
@@ -1430,7 +1443,12 @@ class GCPCollector:
             add("firewall_policy", "compute", hierarchical_firewalls)
             def firewall_associations():
                 def validate_response(data):
-                    if data.get("kind") != "compute#FirewallPoliciesListAssociations":
+                    # The public REST schema names the first value; the live v1
+                    # endpoint returns the second for an empty association list.
+                    if data.get("kind") not in {
+                        "compute#FirewallPoliciesListAssociations",
+                        "compute#firewallPoliciesListAssociationsResponse",
+                    }:
                         raise ReadError("malformed", "malformed_firewall_association_list")
                 yield from self.pages("https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/listAssociations",
                     scope, key="associations", params={"targetResource": scope}, page_size_key=None,
@@ -2066,8 +2084,13 @@ class GCPCollector:
             failure = None
             try:
                 data, request_id = self.read(f"{compute}/getXpnHost", scope)
-                yield [{"name": f"{scope}/getXpnHost", "relationshipType": "getXpnHost", "host": data,
-                    "hostProject": data.get("name"), "serviceProject": scope}], request_id
+                if data == {"_noXpnHost": True}:
+                    yield [], request_id
+                elif isinstance(data.get("name"), str) and data["name"]:
+                    yield [{"name": f"{scope}/getXpnHost", "relationshipType": "getXpnHost", "host": data,
+                        "hostProject": data["name"], "serviceProject": scope}], request_id
+                else:
+                    raise ReadError("malformed", "malformed_xpn_host")
             except ReadError as exc:
                 failure = exc
             for items, request_id in self.pages(f"{compute}/getXpnResources", scope, key="resources", page_size_key="maxResults"):

@@ -346,15 +346,16 @@ def _cloudtrail(item, index, check_id):
                 failed.append(arn)
                 continue
             if check_id == "aws_nist_cloudtrail_trail_integrated_with_logs":
-                if get(trail, "IsOrganizationTrail", bool) or get(trail, "IsMultiRegionTrail", bool):
+                if get(trail, "IsOrganizationTrail", bool):
                     raise Unavailable("organization or multi-Region delivery permission scope unresolved")
+                is_multiregion = get(trail, "IsMultiRegionTrail", bool)
                 role_fact = get(trail, "CloudWatchLogsRole", dict)
                 provenance = get(role_fact, "_provenance", dict)
                 expected_stream = (f"arn:aws:logs:{region}:{account}:log-group:"
                                    f"{group['arn'].removesuffix(':*').split(':log-group:', 1)[1]}:"
                                    f"log-stream:{account}_CloudTrail_{region}")
-                if (get(trail, "IsOrganizationTrail", bool) or get(trail, "IsMultiRegionTrail", bool) or
-                        get(role_fact, "role_arn", str) != role or
+                expected_scope = expected_stream.rsplit("_CloudTrail_", 1)[0] + "_CloudTrail_*" if is_multiregion else expected_stream + "*"
+                if (get(role_fact, "role_arn", str) != role or
                         get(role_fact, "log_group_arn", str).removesuffix(":*") != dest.removesuffix(":*") or
                         get(role_fact, "simulation_context_complete", bool) is not True or
                         provenance.get("read_only") is not True or
@@ -377,11 +378,12 @@ def _cloudtrail(item, index, check_id):
                     operations = get(proof, "operations", list)
                     permitted = {"ListRolePolicies", "ListAttachedRolePolicies", "GetRolePolicy", "GetPolicy", "GetPolicyVersion"}
                     if (get(role_fact, "full_role_stream_scope_proven", bool) is not True or
-                            get(role_fact, "supported_stream_prefix", str) != expected_stream + "*" or
+                            get(role_fact, "supported_stream_prefix", str) != expected_scope or
                             proof.get("method") != "complete_native_role_policies_v1" or
                             proof.get("identity_policy_inventory_complete") is not True or
                             proof.get("permissions_boundary_policy_complete") is not True or
-                            proof.get("stream_prefix") != expected_stream + "*" or
+                            proof.get("stream_prefix") != expected_scope or
+                            proof.get("stream_region_scope", "home_region") != ("all_source_regions" if is_multiregion else "home_region") or
                             proof.get("SCP_RCP_verified") is not False or
                             proof.get("effective_live_delivery_verified") is not False or
                             any(not isinstance(op, str) for op in operations) or
@@ -392,7 +394,7 @@ def _cloudtrail(item, index, check_id):
                         raise Unavailable("full CloudTrail stream role permission scope unproven")
         if check_id == "aws_nist_cloudtrail_trail_integrated_with_logs":
             return result(bool(failed), trails_without_integration=sorted(set(failed)),
-                          permission_scope="declared role permissions for documented same-account home-Region streams; live delivery and organization effects unverified")
+                          permission_scope="declared role permissions for documented same-account streams across configured source Regions; live delivery and organization effects unverified")
         return result(bool(failed), trails_without_integration=sorted(set(failed)))
     if check_id in _KMS_IDS:
         if check_id in ("aws_nist_cloudtrail_trail_logs_encrypted_with_kms_cmk", "aws.nist.cloudtrail_cloudwatch_destination_kms"):

@@ -2064,7 +2064,7 @@ def collect(connector, requirements=None):
             for home_region in ({row.get("HomeRegion") for row in trails
                                 if row.get("SourceRegion") == row.get("HomeRegion") and
                                 row.get("Status", {}).get("IsLogging") is True and
-                                row.get("IsOrganizationTrail") is False and row.get("IsMultiRegionTrail") is False and
+                                row.get("IsOrganizationTrail") is False and type(row.get("IsMultiRegionTrail")) is bool and
                                 row.get("CloudWatchLogsRoleArn") and row.get("CloudWatchLogsLogGroupArn")}
                                 if "cloudtrail_delivery_role_scope" in wanted else set()):
                 if not isinstance(home_region, str):
