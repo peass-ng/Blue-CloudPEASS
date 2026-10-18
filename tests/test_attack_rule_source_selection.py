@@ -54,3 +54,11 @@ def test_pinned_source_reads_public_repo_and_sanitizes_failures(monkeypatch):
         _github_rule_texts("owner/public", "a" * 40)
     assert str(exc.value) == "rule_source_unavailable"
     assert "provider response" not in str(exc.value)
+
+
+def test_local_rule_source_reads_provider_and_service_directories(tmp_path):
+    nested = tmp_path / "aws" / "iam"
+    nested.mkdir(parents=True)
+    (nested / "sample.yml").write_text(SAMPLE, encoding="utf-8")
+    rules = load_rules(tmp_path, product="aws")
+    assert [rule.id for rule in rules] == ["test-rule"]
