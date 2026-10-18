@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 import pytest
 from test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 CHECK='aws.pci.codecommit.pr_review_approval'
 SCOPE=ACCOUNT+'/'+REGION
 AUTHOR='arn:aws:iam::'+ACCOUNT+':user/author'

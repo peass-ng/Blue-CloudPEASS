@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit, parse_qs
 import pytest
 from peaso.collectors import azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 SUB = '11111111-1111-1111-1111-111111111111'
 SCOPE = '/subscriptions/' + SUB

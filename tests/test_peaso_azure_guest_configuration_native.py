@@ -5,7 +5,7 @@ import json
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 SUB='/subscriptions/11111111-1111-1111-1111-111111111111'
 VM=SUB+'/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/test'

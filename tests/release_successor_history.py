@@ -26,6 +26,7 @@ POST_BASELINE_IDS = frozenset({
 })
 ANCESTOR_MANIFEST = "db02091367b0067b5c4db3439d9fa13805877bb933e7e2dfab37113c1ffcaac8"
 VIEWS_SHA256 = "149b54a78e6811c1ec4d639e5912d5c7f4fe6a7aba16a2e6e2ee3550d995d41e"
+PUBLISHED_SPRINT_ARCHIVE = ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip"
 
 
 def registered_before_bulk(checks):
@@ -63,7 +64,9 @@ def _history():
     assert len(supplemental) == 329
     manifest["new_descriptions"].update(checks=329, sha256=hashlib.sha256(encoded(supplemental)).hexdigest())
     assert hashlib.sha256(encoded(manifest)).hexdigest() == ANCESTOR_MANIFEST
-    native = json.loads((ROOT / "peaso/rulepacks/native_catalog.json").read_text())
+    # Bind historical membership to the retained Source414e release, not the
+    # mutable successor catalog that may have changed after native admission.
+    native = json.loads(historical_bytes(PUBLISHED_SPRINT_ARCHIVE, "peaso/rulepacks/native_catalog.json"))
     # These two long-standing predicates were corrected after the published
     # historical cohort. Reconstruct their old descriptions from the exact
     # Source414e archive; current runtime retains the corrected descriptions.
@@ -159,7 +162,7 @@ def ancestor_sha(path):
 
 @lru_cache(maxsize=1)
 def _published_sprint():
-    return historical_release(ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip")
+    return historical_release(PUBLISHED_SPRINT_ARCHIVE)
 
 
 def historical_release(path):

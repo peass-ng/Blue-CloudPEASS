@@ -3,7 +3,7 @@ import copy,json,threading
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import collect_live,gcp
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot,plan_collection
 SCOPE='projects/demo-project';BUCKET='private-bucket';NUMBER='1234567890'
 ACCESS='gcp_pci_bucket_7dc6cb8c2e05';WRITE='gcp_pci_bucket_56c6b1b7f813';CHECKS=[ACCESS,WRITE]
 class API:

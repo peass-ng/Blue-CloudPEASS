@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 import pytest
 from fastapi import HTTPException
 from peaso.collectors import azure, collect_live, azure_storage_lifecycle_native as native
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 
 SUB = '11111111-1111-1111-1111-111111111111'

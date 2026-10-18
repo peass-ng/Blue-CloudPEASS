@@ -1,6 +1,6 @@
 """An empty native findings read still requires independent full coverage evidence."""
 import pytest
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 SCOPE='123456789012/eu-west-1'
 BUCKET='arn:aws:s3:::authorized-bucket'

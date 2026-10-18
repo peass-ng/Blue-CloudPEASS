@@ -2,7 +2,7 @@ import copy,json
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure,collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from tests.test_peaso_azure_bulk_native import SCOPE,BASE,Transport,parent
 CHECK='azure_c5_ops_25_02b';NAME='11111111-2222-3333-4444-555555555555'
 RESOURCE=BASE+'Microsoft.Compute/virtualMachines/server'

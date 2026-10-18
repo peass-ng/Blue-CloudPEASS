@@ -9,7 +9,7 @@ import boto3
 from botocore.stub import Stubber
 import pytest
 from peaso.collectors import aws,aws_eks_admission_native as native
-from peaso.engine import collect_snapshot,evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot,evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 A='123456789012';R='us-east-1';S=A+'/'+R;ARN=f'arn:aws:eks:{R}:{A}:cluster/owned'

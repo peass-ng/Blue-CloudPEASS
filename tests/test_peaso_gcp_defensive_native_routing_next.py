@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from peaso.collectors import collect_live
 from peaso.collectors import gcp
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 
 def test_explicit_audit_inventory_without_requirement_list_routes_native_producer(monkeypatch):

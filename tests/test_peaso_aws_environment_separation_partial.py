@@ -3,7 +3,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 import pytest
 from peaso.snapshot import make_snapshot
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 ACCOUNT = '123456789012'
 OTHER = '111111111111'

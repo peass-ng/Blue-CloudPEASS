@@ -4,7 +4,7 @@ from datetime import datetime,timedelta,timezone
 from types import SimpleNamespace
 import pytest
 from peaso.collectors import k8s,k8s_node_clock_evidence as external
-from peaso.engine import collect_snapshot,evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot,evaluate_snapshot
 CHECK='k8s_cluster_clocks_information_processing_systems_used_by_82e06ff4'
 C='clock-fixture';UID='11111111-2222-4333-8444-555555555555';SYSTEM='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
 

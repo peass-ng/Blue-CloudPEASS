@@ -3,7 +3,7 @@ from datetime import datetime,timezone,timedelta
 from urllib.parse import parse_qs,urlsplit
 import pytest
 from peaso.collectors import azure,collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from tests.test_peaso_azure_bulk_native import SCOPE,BASE,Transport,parent
 CHECK='azure_c5_ops_20_01b'
 WORKSPACE=BASE+'Microsoft.OperationalInsights/workspaces/security'

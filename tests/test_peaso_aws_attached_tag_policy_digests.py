@@ -100,7 +100,7 @@ def test_scp_content_and_cache_are_unchanged(sdk):
 @pytest.mark.parametrize('mode,expected', [('one_complete', 'PASS'), ('split_policies', 'FAIL'),
     ('legacy_snapshot', 'PASS'), ('foreign_account', 'UNKNOWN'), ('wrong_marker', 'UNKNOWN')])
 def test_one_policy_must_satisfy_all_required_keys_and_legacy_stays_usable(mode, expected):
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     from peaso.snapshot import make_snapshot
     scope = ACCOUNT + '/global'
     def row(pid, values):

@@ -13,7 +13,7 @@ from peaso.checks.gcp_audit_native import ELIGIBLE, SPEC_SHA256
 from peaso.collectors.gcp import ReadError
 from peaso.collectors.gcp import GCPCollector
 from peaso.checks import CHECKS
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 SCOPE='projects/audit-fixture'

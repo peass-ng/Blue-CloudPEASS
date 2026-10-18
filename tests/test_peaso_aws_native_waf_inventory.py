@@ -4,7 +4,7 @@ import json
 import pytest
 from test_peaso_aws_bulk_inventory import sdk, ACCOUNT
 from peaso.collectors import aws, aws_bulk_inventory as facts
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 REGION = 'eu-west-1'

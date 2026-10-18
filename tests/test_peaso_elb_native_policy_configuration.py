@@ -5,7 +5,7 @@ import pytest
 from botocore.exceptions import ClientError
 from peaso.collectors import aws, collect_live
 from peaso.collectors.aws_classic_elb_policies_native import enrich
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from elb_native_policy_fixture import bind_policy_sources
 from peaso.checks import evaluate_check

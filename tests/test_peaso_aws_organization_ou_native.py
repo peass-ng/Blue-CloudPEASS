@@ -4,7 +4,7 @@ import pytest
 
 from tests.test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, aws_organization_ou_native as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 MEMBER = '999999999999'

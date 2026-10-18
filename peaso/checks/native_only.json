@@ -30,6 +30,36 @@
       "reason": "operator compliance policy defining protected transmission scope",
       "source": "peaso/checks/compliance_new_sw38.py::_transport@579"
     },
+    "aws.pci.backup.plan_frequency_retention": {
+      "mandatory_external_fields": [
+        "required_frequency_hours"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw42.py::backup_frequency_retention",
+      "source_gate_evidence": [
+        {
+          "expression": "return _positive_number(get(_policy(index, scope), \"required_frequency_hours\"), \"required_frequency_hours\")",
+          "field": "required_frequency_hours",
+          "line": 340
+        }
+      ]
+    },
+    "aws.pci.classic_elb.custom_ssl_policy": {
+      "mandatory_external_fields": [
+        "classic_elb_custom_ssl_policy"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw48.py::_elb",
+      "source_gate_evidence": [
+        {
+          "expression": "approved = _policy(index, 'classic_elb_custom_ssl_policy', dict) if custom else None",
+          "field": "classic_elb_custom_ssl_policy",
+          "line": 260
+        }
+      ]
+    },
     "aws.pci.cloudfront.min_tls_policy": {
       "mandatory_external_fields": [],
       "native_alternative": "aws.c2b.cloudfront.recommended_tls_policy",
@@ -48,11 +78,62 @@
       "reason": "customer-approved alarm metric, threshold or re-alert baseline",
       "source": "peaso/checks/compliance_new_sw46.py::_resource_alarm@464"
     },
+    "aws.pci.codecommit.pr_review_approval": {
+      "mandatory_external_fields": [
+        "security_reviewer_arns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw39.py::codecommit_review",
+      "source_gate_evidence": [
+        {
+          "expression": "reviewers = _strings(get(_policy(index, scope), \"security_reviewer_arns\", list), empty=False)",
+          "field": "security_reviewer_arns",
+          "line": 426
+        }
+      ]
+    },
+    "aws.pci.fms.web_acl_rule_priority": {
+      "mandatory_external_fields": [
+        "approved_fms_rule_priorities"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw49.py::fms_web_acl_rule_priority",
+      "source_gate_evidence": [
+        {
+          "expression": "approved = get(_policy(index, \"approved_fms_rule_priorities\", dict), policy_id, list)",
+          "field": "approved_fms_rule_priorities",
+          "line": 436
+        }
+      ]
+    },
     "aws.pci.iam.configured_password_policy": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "eight customer-configured IAM password thresholds",
       "source": "peaso/checks/compliance_new_sw05.py::configured_password_policy@648"
+    },
+    "aws.pci.iam.generic_user_ids": {
+      "mandatory_external_fields": [
+        "shared_account_patterns",
+        "approved_service_identity_ids"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw37.py::generic_user",
+      "source_gate_evidence": [
+        {
+          "expression": "patterns=_strings(_policy(index,'shared_account_patterns',list),nonempty=True)",
+          "field": "shared_account_patterns",
+          "line": 373
+        },
+        {
+          "expression": "approved=_strings(_policy(index,'approved_service_identity_ids',list))",
+          "field": "approved_service_identity_ids",
+          "line": 374
+        }
+      ]
     },
     "aws.pci.iam.policy_arn_attachment": {
       "mandatory_external_fields": [],
@@ -109,11 +190,56 @@
       "reason": "approved per-function Runtime, Role, Timeout and MemorySize",
       "source": "peaso/checks/compliance_new_sw06.py::_lambda_expected@370"
     },
+    "aws.pci.redshift.expected_settings": {
+      "mandatory_external_fields": [
+        "redshift_expected_settings"
+      ],
+      "native_alternative": null,
+      "reason": "approved per-cluster Redshift configuration; semantic family: _redshift@203, _policy@65, _inventory@34",
+      "source": "peaso/checks/compliance_new_sw48.py::_redshift@203",
+      "source_gate_evidence": "approved per-cluster Redshift configuration; semantic family: _redshift@203, _policy@65, _inventory@34"
+    },
     "aws.pci.s3.allowed_policy_principals": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved principals, CIDRs and VPC allowlists for bucket policy",
       "source": "peaso/checks/compliance_new_sw38.py::allowed_policy_principals@348"
+    },
+    "aws.pci.s3.sensitive_auth_data_findings": {
+      "mandatory_external_fields": [
+        "prohibited_auth_identifier_names",
+        "authorized_macie_bucket_arns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw49.py::sensitive_auth_data",
+      "source_gate_evidence": [
+        {
+          "expression": "identifiers = set(_strings(_policy(index, \"prohibited_auth_identifier_names\", list)))",
+          "field": "prohibited_auth_identifier_names",
+          "line": 271
+        },
+        {
+          "expression": "authorized = set(_strings(_policy(index, \"authorized_macie_bucket_arns\", list)))",
+          "field": "authorized_macie_bucket_arns",
+          "line": 272
+        }
+      ]
+    },
+    "aws.pci.shield.srt_access": {
+      "mandatory_external_fields": [
+        "required_shield_log_buckets"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw37.py::shield_srt",
+      "source_gate_evidence": [
+        {
+          "expression": "required=_strings(_policy(index,'required_shield_log_buckets',list))",
+          "field": "required_shield_log_buckets",
+          "line": 171
+        }
+      ]
     },
     "aws.pci.ssm.antimalware_inventory": {
       "mandatory_external_fields": [],
@@ -167,17 +293,101 @@
       "source": "peaso/checks/compliance_new_sw49.py::data_resource_region@660",
       "source_gate_evidence": "approved = set(_strings(_policy(index, \"approved_region_names\", list)))"
     },
+    "aws_backup_copy_encrypted": {
+      "mandatory_external_fields": [
+        "remote_backup_vaults.vault_arns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw47.py::_backup",
+      "source_gate_evidence": [
+        {
+          "expression": "designated = get(policy, \"vault_arns\", list)",
+          "field": "remote_backup_vaults.vault_arns",
+          "line": 779
+        }
+      ]
+    },
+    "aws_backup_plan_rule_required_frequency": {
+      "mandatory_external_fields": [
+        "required_frequency_hours"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/aws_backup_plan_frequency.py::required_frequency_hours",
+      "source_gate_evidence": [
+        {
+          "expression": "hours = get(body, \"required_frequency_hours\")",
+          "field": "required_frequency_hours",
+          "line": 186
+        }
+      ]
+    },
     "aws_backup_restore_tests_recent": {
       "mandatory_external_fields": [],
       "native_alternative": "aws_backup_recent_restore_test",
       "reason": "approved protected-resource ARN inventory and customer test interval",
       "source": "peaso/checks/compliance_new_sw43.py::_restore_tests@463"
     },
+    "aws_budgets_stop_action": {
+      "mandatory_external_fields": [
+        "approved_stop_document_arns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw39.py::budget_stop",
+      "source_gate_evidence": [
+        {
+          "expression": "documents = _strings(get(policy, \"approved_stop_document_arns\", list), empty=False)",
+          "field": "approved_stop_document_arns",
+          "line": 243
+        }
+      ]
+    },
     "aws_cis_ami_name_policy": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "organization-approved AMI name regular expression",
       "source": "peaso/checks/compliance_new_sw05.py::ami_name_policy@572"
+    },
+    "aws_cis_backup_recovery_point_isolation": {
+      "mandatory_external_fields": [
+        "backup_policy_requires_locked_copies"
+      ],
+      "native_alternative": null,
+      "reason": "customer decision that isolated copies require Vault Lock; semantic family: backup_isolation@436, _setting@100, _inventory@37",
+      "source": "peaso/checks/compliance_new_sw44.py::backup_isolation@436",
+      "source_gate_evidence": "customer decision that isolated copies require Vault Lock; semantic family: backup_isolation@436, _setting@100, _inventory@37"
+    },
+    "aws_cis_ec2_instance_approved_ami": {
+      "mandatory_external_fields": [
+        "approved_image_ids"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw45.py::instance_approved_ami",
+      "source_gate_evidence": [
+        {
+          "expression": "approved_ids = set(_strings(_policy(index, \"approved_image_ids\", list)))",
+          "field": "approved_image_ids",
+          "line": 712
+        }
+      ]
+    },
+    "aws_cis_ec2_tag_policy": {
+      "mandatory_external_fields": [
+        "approved_ec2_tag_values"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw49.py::ec2_tag_policy",
+      "source_gate_evidence": [
+        {
+          "expression": "approved = _policy(index, \"approved_ec2_tag_values\", dict)",
+          "field": "approved_ec2_tag_values",
+          "line": 608
+        }
+      ]
     },
     "aws_cis_lambda_database_secrets_manager": {
       "mandatory_external_fields": [],
@@ -214,11 +424,68 @@
       "source": "peaso/checks/compliance_new_sw06.py::_lightsail_instance_access@455",
       "source_gate_evidence": "mapping = get(_params(index), \"required_lightsail_bucket_instance_arns\", dict)"
     },
+    "aws_cis_organization_account_guardrails": {
+      "mandatory_external_fields": [
+        "prohibited_actions"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw43.py::_org_guardrails",
+      "source_gate_evidence": [
+        {
+          "expression": "actions = _policy(index, \"prohibited_actions\", list)",
+          "field": "prohibited_actions",
+          "line": 521
+        }
+      ]
+    },
+    "aws_cis_organization_units_environment_sensitivity": {
+      "mandatory_external_fields": [
+        "organization_management_account_id",
+        "approved_environment_ou_patterns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw49.py::ou_environment_sensitivity",
+      "source_gate_evidence": [
+        {
+          "expression": "management = _policy(index, \"organization_management_account_id\", str)",
+          "field": "organization_management_account_id",
+          "line": 511
+        },
+        {
+          "expression": "environment = _patterns(_policy(index, \"approved_environment_ou_patterns\", list))",
+          "field": "approved_environment_ou_patterns",
+          "line": 514
+        }
+      ]
+    },
     "aws_cis_organizations_integrated_services_delegated": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "customer-selected required organization integrated services",
       "source": "peaso/checks/compliance_new_sw37.py::org_services@233"
+    },
+    "aws_cis_organizations_management_account_workloads": {
+      "mandatory_external_fields": [
+        "management_account_id",
+        "governance_resource_allowlist"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw43.py::_management_workloads",
+      "source_gate_evidence": [
+        {
+          "expression": "management = _policy(index, \"management_account_id\", str)",
+          "field": "management_account_id",
+          "line": 561
+        },
+        {
+          "expression": "allowlist = _policy(index, \"governance_resource_allowlist\", list)",
+          "field": "governance_resource_allowlist",
+          "line": 567
+        }
+      ]
     },
     "aws_cis_route53_dns_firewall": {
       "mandatory_external_fields": [],
@@ -299,11 +566,35 @@
       "reason": "customer-designated AI accounts",
       "source": "peaso/checks/compliance_new_sw39.py::detective_graph@148"
     },
+    "aws_development_backup_assignment": {
+      "mandatory_external_fields": [
+        "development_resource_arns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw39.py::development_backup",
+      "source_gate_evidence": [
+        {
+          "expression": "development = _strings(get(policy, \"development_resource_arns\", list))",
+          "field": "development_resource_arns",
+          "line": 372
+        }
+      ]
+    },
     "aws_ec2_ai_nitro_instance_type": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "customer-designated AI or sensitive workload inventory",
       "source": "peaso/checks/compliance_new_sw46.py::_ec2_nitro@347"
+    },
+    "aws_ec2_ami_trusted_principals": {
+      "mandatory_external_fields": [
+        "ami_trusted_principals"
+      ],
+      "native_alternative": null,
+      "reason": "approved AMI launch-principal list; semantic family: _ami_trusted@768, _policy@248, _context@162, _subject@238, _inventory@172, _validated_inventory@180, _optional@273",
+      "source": "peaso/checks/compliance_new_sw07.py::_ami_trusted@768",
+      "source_gate_evidence": "approved AMI launch-principal list; semantic family: _ami_trusted@768, _policy@248, _context@162, _subject@238, _inventory@172, _validated_inventory@180, _optional@273"
     },
     "aws_ec2_dedicated_tenancy_for_sensitive_workloads": {
       "mandatory_external_fields": [],
@@ -350,17 +641,149 @@
       "source": "peaso/checks/compliance_new_sw45.py::ecr_scan_findings_metric_export@650",
       "source_gate_evidence": "target = _policy(index, \"metric_ingestion_target_arn\", str)"
     },
+    "aws_eks_cluster_current_supported_version": {
+      "mandatory_external_fields": [
+        "eks_version_floor.min_version"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw47.py::_eks_floor",
+      "source_gate_evidence": [
+        {
+          "expression": "floor = _version(get(_policy(context, \"eks_version_floor\"), \"min_version\", str))",
+          "field": "eks_version_floor.min_version",
+          "line": 487
+        }
+      ]
+    },
+    "aws_eks_cluster_supported_version_catalog": {
+      "mandatory_external_fields": [
+        "eks_version_support.allowed_support_types"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw47.py::_eks_catalog",
+      "source_gate_evidence": [
+        {
+          "expression": "allowed = get(policy, \"allowed_support_types\", list)",
+          "field": "eks_version_support.allowed_support_types",
+          "line": 496
+        }
+      ]
+    },
+    "aws_eks_runtime_image_integrity": {
+      "mandatory_external_fields": [
+        "eks_image_integrity.designated_cluster_arns",
+        "eks_image_integrity.approved_verifier_services"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw47.py::_eks_image",
+      "source_gate_evidence": [
+        {
+          "expression": "designated = get(policy, \"designated_cluster_arns\", list)",
+          "field": "eks_image_integrity.designated_cluster_arns",
+          "line": 570
+        },
+        {
+          "expression": "approved_rows = list_of_objects(get(policy, \"approved_verifier_services\", list))",
+          "field": "eks_image_integrity.approved_verifier_services",
+          "line": 571
+        }
+      ]
+    },
+    "aws_external_key_store_connected": {
+      "mandatory_external_fields": [
+        "external_key_store_connectivity"
+      ],
+      "native_alternative": null,
+      "reason": "approved external key-store inventory; semantic family: _external_store@503, _policy@248, _context@162, _subject@238, _inventory@172, _validated_inventory@180, _optional@273",
+      "source": "peaso/checks/compliance_new_sw07.py::_external_store@503",
+      "source_gate_evidence": "approved external key-store inventory; semantic family: _external_store@503, _policy@248, _context@162, _subject@238, _inventory@172, _validated_inventory@180, _optional@273"
+    },
     "aws_g6_sns_no_named_cross_account_principals": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved cross-account principal names",
       "source": "peaso/checks/compliance_new_sw46.py::_sns_policy@657"
     },
+    "aws_guardduty_doh_threat_list": {
+      "mandatory_external_fields": [
+        "approved_doh_locations"
+      ],
+      "native_alternative": null,
+      "reason": "approved GuardDuty threat-list locations; semantic family: _guardduty_doh@572, _policy@210, _context@163, _detail_listing@562, _strings@224, _detector@558, _resource@193, _items@174",
+      "source": "peaso/checks/compliance_new_sw46.py::_guardduty_doh@572",
+      "source_gate_evidence": "approved GuardDuty threat-list locations; semantic family: _guardduty_doh@572, _policy@210, _context@163, _detail_listing@562, _strings@224, _detector@558, _resource@193, _items@174"
+    },
     "aws_guardduty_siem_forwarding": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved SIEM forwarder or destination ARN",
       "source": "peaso/checks/compliance_new_sw36.py::guardduty_siem_forwarding@584"
+    },
+    "aws_guardduty_suppression_filters": {
+      "mandatory_external_fields": [
+        "approved_low_value_criteria"
+      ],
+      "native_alternative": null,
+      "reason": "approved suppression criteria; semantic family: _guardduty_filters@590, _policy@210, _context@163, _detail_listing@562, _detector@558, _resource@193, _items@174",
+      "source": "peaso/checks/compliance_new_sw46.py::_guardduty_filters@590",
+      "source_gate_evidence": "approved suppression criteria; semantic family: _guardduty_filters@590, _policy@210, _context@163, _detail_listing@562, _detector@558, _resource@193, _items@174"
+    },
+    "aws_guardduty_threat_feed": {
+      "mandatory_external_fields": [
+        "approved_threat_set_ids"
+      ],
+      "native_alternative": null,
+      "reason": "approved threat-set identifiers; semantic family: _guardduty_feed@614, _policy@210, _context@163, _detail_listing@562, _strings@224, _detector@558, _resource@193, _items@174",
+      "source": "peaso/checks/compliance_new_sw46.py::_guardduty_feed@614",
+      "source_gate_evidence": "approved threat-set identifiers; semantic family: _guardduty_feed@614, _policy@210, _context@163, _detail_listing@562, _strings@224, _detector@558, _resource@193, _items@174"
+    },
+    "aws_guardduty_trusted_administrator": {
+      "mandatory_external_fields": [
+        "trusted_account_ids"
+      ],
+      "native_alternative": null,
+      "reason": "trusted GuardDuty administrator accounts; semantic family: _guardduty_admin@631, _policy@210, _context@163, _detail_listing@562, _strings@224, _detector@558, _resource@193, _items@174",
+      "source": "peaso/checks/compliance_new_sw46.py::_guardduty_admin@631",
+      "source_gate_evidence": "trusted GuardDuty administrator accounts; semantic family: _guardduty_admin@631, _policy@210, _context@163, _detail_listing@562, _strings@224, _detector@558, _resource@193, _items@174"
+    },
+    "aws_iam_departed_identity_disabled": {
+      "mandatory_external_fields": [
+        "departure_roster"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw37.py::departed_user",
+      "source_gate_evidence": [
+        {
+          "expression": "roster=_policy(index,'departure_roster',dict)",
+          "field": "departure_roster",
+          "line": 390
+        }
+      ]
+    },
+    "aws_iam_inactive_accounts_disabled_after_policy_days": {
+      "mandatory_external_fields": [
+        "inactivity_days",
+        "approved_service_account_exclusions"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw37.py::inactive_user",
+      "source_gate_evidence": [
+        {
+          "expression": "days=_policy(index,'inactivity_days',int)",
+          "field": "inactivity_days",
+          "line": 409
+        },
+        {
+          "expression": "exclusions=_strings(_policy(index,'approved_service_account_exclusions',list))",
+          "field": "approved_service_account_exclusions",
+          "line": 411
+        }
+      ]
     },
     "aws_incident_automated_containment": {
       "mandatory_external_fields": [],
@@ -387,6 +810,15 @@
       "reason": "Current evaluator needs customer-defined scope, threshold, allowlist, signing trust, or owner applicability to produce its intended verdict. Mandatory fields: approved_response_hours, approved_response_identity_arns.",
       "source": "peaso/checks/compliance_new_sw44.py::incident_sla@283",
       "source_gate_evidence": "hours = _setting(index, 'approved_response_hours', None)"
+    },
+    "aws_inspector_cvss_version": {
+      "mandatory_external_fields": [
+        "approved_cvss_version"
+      ],
+      "native_alternative": null,
+      "reason": "customer-selected CVSS version; semantic family: inspector_cvss@263, _nonempty@94, _setting@100, _inventory@37",
+      "source": "peaso/checks/compliance_new_sw44.py::inspector_cvss@263",
+      "source_gate_evidence": "customer-selected CVSS version; semantic family: inspector_cvss@263, _nonempty@94, _setting@100, _inventory@37"
     },
     "aws_inspector_findings_metric_export": {
       "mandatory_external_fields": [],
@@ -439,6 +871,27 @@
       "source": "peaso/checks/compliance_new_sw48.py::_drift@442",
       "source_gate_evidence": "days = _policy(index, 'cloudformation_max_drift_age_days', int)"
     },
+    "aws_nist_codebuild_project_plaintext_env_variables_no_sensitive_aws_values": {
+      "mandatory_external_fields": [
+        "codebuild_sensitive_values.approved_secret_values",
+        "codebuild_sensitive_values.sensitive_name_patterns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw47.py::_codebuild",
+      "source_gate_evidence": [
+        {
+          "expression": "approved = get(policy, \"approved_secret_values\", list)",
+          "field": "codebuild_sensitive_values.approved_secret_values",
+          "line": 438
+        },
+        {
+          "expression": "patterns = get(policy, \"sensitive_name_patterns\", list)",
+          "field": "codebuild_sensitive_values.sensitive_name_patterns",
+          "line": 439
+        }
+      ]
+    },
     "aws_nist_ecs_task_definition_container_environment_no_secret": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -450,6 +903,15 @@
       "native_alternative": null,
       "reason": "customer-maintained latest-runtime mapping by language",
       "source": "peaso/checks/compliance_new_sw41.py::_runtime@206"
+    },
+    "aws_nist_opensearch_domain_logs_to_cloudwatch": {
+      "mandatory_external_fields": [
+        "required_opensearch_log_types"
+      ],
+      "native_alternative": null,
+      "reason": "customer-required OpenSearch log types; semantic family: opensearch_logs@743, _arn_account_region@248, _policy@221, _scope@175, _strings@235, _subject@211, _rows@185",
+      "source": "peaso/checks/compliance_new_sw38.py::opensearch_logs@743",
+      "source_gate_evidence": "customer-required OpenSearch log types; semantic family: opensearch_logs@743, _arn_account_region@248, _policy@221, _scope@175, _strings@235, _subject@211, _rows@185"
     },
     "aws_nist_vpc_configured_to_use_vpc_endpoints": {
       "mandatory_external_fields": [],
@@ -471,6 +933,15 @@
       "reason": "Current evaluator needs customer-defined scope, threshold, allowlist, signing trust, or owner applicability to produce its intended verdict. Mandatory fields: nitro_enclave_key_arns.",
       "source": "peaso/checks/compliance_new_sw41.py::_attestation@129",
       "source_gate_evidence": "enclave_keys=_strings(_param(index,'nitro_enclave_key_arns',list))"
+    },
+    "aws_organizations_environment_account_separation": {
+      "mandatory_external_fields": [
+        "environment_boundaries"
+      ],
+      "native_alternative": null,
+      "reason": "customer environment/account boundaries; semantic family: _separation@397, _observed_environment_workloads@346, _date@75, _inventory@34, _policy@65",
+      "source": "peaso/checks/compliance_new_sw48.py::_separation@397",
+      "source_gate_evidence": "customer environment/account boundaries; semantic family: _separation@397, _observed_environment_workloads@346, _date@75, _inventory@34, _policy@65"
     },
     "aws_organizations_restrict_ec2_instance_types": {
       "mandatory_external_fields": [],
@@ -530,6 +1001,21 @@
       "source": "peaso/checks/compliance_new_sw36.py::s3_delete_lifecycle@423",
       "source_gate_evidence": "bucket, applicable = _designated(item, index, 'customer_data_bucket_names')"
     },
+    "aws_sagemaker_approved_image_restriction": {
+      "mandatory_external_fields": [
+        "approved_sagemaker_image_names"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw39.py::sagemaker_images",
+      "source_gate_evidence": [
+        {
+          "expression": "approved = _strings(get(_policy(index, scope), \"approved_sagemaker_image_names\", list))",
+          "field": "approved_sagemaker_image_names",
+          "line": 172
+        }
+      ]
+    },
     "aws_sagemaker_model_clarify_bias_job": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -545,6 +1031,21 @@
       "reason": "Current evaluator needs customer-defined scope, threshold, allowlist, signing trust, or owner applicability to produce its intended verdict. Mandatory fields: security_log_group_names, approved_central_delivery_stream_arn.",
       "source": "peaso/checks/compliance_new_sw49.py::security_logs_central_search@149",
       "source_gate_evidence": "names = set(_strings(_policy(index, \"security_log_group_names\", list)))"
+    },
+    "aws_securityhub_aggregated_findings_present": {
+      "mandatory_external_fields": [
+        "required_aggregated_regions"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw42.py::securityhub_aggregated_findings",
+      "source_gate_evidence": [
+        {
+          "expression": "required = _strings(get(_policy(index, scope), \"required_aggregated_regions\", list), nonempty=True)",
+          "field": "required_aggregated_regions",
+          "line": 631
+        }
+      ]
     },
     "aws_securityhub_standards_control_baseline": {
       "mandatory_external_fields": [],
@@ -562,6 +1063,21 @@
       "source": "peaso/checks/compliance_new_sw36.py::sensitive_data_rest_access_controls@471",
       "source_gate_evidence": "bucket, applicable = _designated(item, index, 'sensitive_bucket_names')"
     },
+    "aws_service_transport_peer_authentication": {
+      "mandatory_external_fields": [
+        "approved_acm_certificate_arns"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw39.py::alb_listener",
+      "source_gate_evidence": [
+        {
+          "expression": "certs = _strings(get(policy, \"approved_acm_certificate_arns\", list), empty=False)",
+          "field": "approved_acm_certificate_arns",
+          "line": 307
+        }
+      ]
+    },
     "aws_siem_log_delivery": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -573,6 +1089,69 @@
       "native_alternative": null,
       "reason": "approved SIEM archive bucket and minimum retention",
       "source": "peaso/checks/compliance_new_sw36.py::siem_log_immutable_archive@520"
+    },
+    "aws_ssm_endpoint_device_compliance": {
+      "mandatory_external_fields": [
+        "endpoint_instance_ids",
+        "approved_association_ids"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw36.py::endpoint_device_compliance",
+      "source_gate_evidence": [
+        {
+          "expression": "endpoints = _string_set(index, 'endpoint_instance_ids')",
+          "field": "endpoint_instance_ids",
+          "line": 326
+        },
+        {
+          "expression": "associations = _string_set(index, 'approved_association_ids')",
+          "field": "approved_association_ids",
+          "line": 327
+        }
+      ]
+    },
+    "aws_ssm_removable_storage_policy_compliance": {
+      "mandatory_external_fields": [
+        "managed_instance_ids",
+        "removable_media_association_id"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw36.py::removable_storage_compliance",
+      "source_gate_evidence": [
+        {
+          "expression": "return result(bool(missing or stale), unmanaged_instance_ids=sorted(missing), stale_inventory_instance_ids=sorted(stale), running_count=len(running))",
+          "field": "managed_instance_ids",
+          "line": 320
+        },
+        {
+          "expression": "association = _text(index, 'removable_media_association_id')",
+          "field": "removable_media_association_id",
+          "line": 344
+        }
+      ]
+    },
+    "aws_ssm_software_allowlist_compliance": {
+      "mandatory_external_fields": [
+        "managed_instance_ids",
+        "allowed_packages"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw36.py::software_allowlist",
+      "source_gate_evidence": [
+        {
+          "expression": "return result(bool(missing or stale), unmanaged_instance_ids=sorted(missing), stale_inventory_instance_ids=sorted(stale), running_count=len(running))",
+          "field": "managed_instance_ids",
+          "line": 320
+        },
+        {
+          "expression": "raw = get(_inputs(index), 'allowed_packages', list)",
+          "field": "allowed_packages",
+          "line": 359
+        }
+      ]
     },
     "aws_ssm_software_inventory_enumeration": {
       "mandatory_external_fields": [],
@@ -592,17 +1171,106 @@
       "reason": "approved WAF managed-rule vendor/name baseline",
       "source": "peaso/checks/compliance_new_sw07.py::_waf_baseline@343"
     },
+    "aws_wafv2_blanket_rate_rule": {
+      "mandatory_external_fields": [
+        "wafv2_request_ceilings"
+      ],
+      "native_alternative": null,
+      "reason": "approved WAF request ceilings; semantic family: _waf_blanket_rate@387, _optional@273, _rate_rules@371, _approved_for@257, _mapping_value@262, _policy@248, _context@162, _waf_rules@280",
+      "source": "peaso/checks/compliance_new_sw07.py::_waf_blanket_rate@387",
+      "source_gate_evidence": "approved WAF request ceilings; semantic family: _waf_blanket_rate@387, _optional@273, _rate_rules@371, _approved_for@257, _mapping_value@262, _policy@248, _context@162, _waf_rules@280"
+    },
+    "aws_wafv2_global_allow_block_lists": {
+      "mandatory_external_fields": [
+        "approved_allow_cidrs",
+        "approved_allow_priority",
+        "approved_block_cidrs",
+        "approved_block_priority"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw45.py::global_allow_block_lists",
+      "source_gate_evidence": [
+        {
+          "expression": "raw = _strings(_policy(index, \"approved_\" + action.lower() + \"_cidrs\", list))",
+          "field": "approved_allow_cidrs,approved_allow_priority,approved_block_cidrs,approved_block_priority",
+          "line": 335
+        },
+        {
+          "expression": "priority = _policy(index, \"approved_\" + action.lower() + \"_priority\", int)",
+          "field": "approved_allow_cidrs,approved_allow_priority,approved_block_cidrs,approved_block_priority",
+          "line": 342
+        }
+      ]
+    },
+    "aws_wafv2_managed_block_alarm": {
+      "mandatory_external_fields": [
+        "approved_blocked_request_threshold"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw45.py::_waf_alarm",
+      "source_gate_evidence": [
+        {
+          "expression": "limit = _policy(index, \"approved_blocked_request_threshold\", int) if threshold else None",
+          "field": "approved_blocked_request_threshold",
+          "line": 278
+        }
+      ]
+    },
     "aws_wafv2_managed_rule_groups": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved WAF managed-rule vendor/name baseline",
       "source": "peaso/checks/compliance_new_sw07.py::_waf_extra_managed@360"
     },
+    "aws_wafv2_monitoring_rate_rule": {
+      "mandatory_external_fields": [
+        "monitoring_endpoints"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw45.py::monitoring_rate_rule",
+      "source_gate_evidence": [
+        {
+          "expression": "endpoints = _objects(_policy(index, \"monitoring_endpoints\", list))",
+          "field": "monitoring_endpoints",
+          "line": 391
+        }
+      ]
+    },
     "aws_wafv2_redacted_siem_logging": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "customer-sensitive field list and SIEM destination",
       "source": "peaso/checks/compliance_new_sw45.py::redacted_siem_logging@431"
+    },
+    "aws_wafv2_scoped_rate_rules": {
+      "mandatory_external_fields": [
+        "wafv2_scoped_rate"
+      ],
+      "native_alternative": null,
+      "reason": "approved scoped WAF rate rules; semantic family: _waf_scoped_rate@403, _optional@273, _rate_rules@371, _approved_for@257, _mapping_value@262, _policy@248, _context@162, _waf_rules@280",
+      "source": "peaso/checks/compliance_new_sw07.py::_waf_scoped_rate@403",
+      "source_gate_evidence": "approved scoped WAF rate rules; semantic family: _waf_scoped_rate@403, _optional@273, _rate_rules@371, _approved_for@257, _mapping_value@262, _policy@248, _context@162, _waf_rules@280"
+    },
+    "aws_wafv2_service_exclusion_rules": {
+      "mandatory_external_fields": [
+        "wafv2_service_exclusions"
+      ],
+      "native_alternative": null,
+      "reason": "approved WAF service exclusions; semantic family: _waf_exclusions@416, _optional@273, _managed@305, _approved_for@257, _mapping_value@262, _policy@248, _context@162, _waf_rules@280",
+      "source": "peaso/checks/compliance_new_sw07.py::_waf_exclusions@416",
+      "source_gate_evidence": "approved WAF service exclusions; semantic family: _waf_exclusions@416, _optional@273, _managed@305, _approved_for@257, _mapping_value@262, _policy@248, _context@162, _waf_rules@280"
+    },
+    "azure.cis.access_review_up_external_users_in_entra_privileged_identity_694482": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
+      ],
+      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
+      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
+      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
     },
     "azure.cis.auto_provision_defender_containers_components": {
       "mandatory_external_fields": [
@@ -673,6 +1341,24 @@
       "reason": "The native consideration branch still requires policy(index,cid); the full branch requires documented review and approved scope.",
       "source": "peaso/checks/compliance_new_sw13.py::geographic_review"
     },
+    "azure.cis.guest_users_reviewed_monthly_basis": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
+      ],
+      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
+      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
+      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
+    },
+    "azure.cis.guest_users_reviewed_regular_basis": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
+      ],
+      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
+      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
+      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
+    },
     "azure.cis.intune_logs_captured_sent_log_analytics": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw16[ID].{status,scope,requiredIntuneCategories,approvedWorkspaceIds}"
@@ -701,6 +1387,24 @@
       "source": "peaso/checks/compliance_new_sw16.py::resource_logging:999",
       "source_gate_evidence": "resource_logging requires a policy resource-ID set equal to the native discovery set, then _log_routes reads required categories, groups, sinks, and retention."
     },
+    "azure.cis.non_privileged_role_assignments_periodically_reviewed": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
+      ],
+      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
+      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
+      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
+    },
+    "azure.cis.privileged_role_assignments_periodically_reviewed": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
+      ],
+      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
+      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
+      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
+    },
     "azure.cis.shared_access_signature_tokens_expire_within_hour": {
       "mandatory_external_fields": [
         "storage_sas_issuance._provenance.{read_only,policy_approved,complete}",
@@ -709,6 +1413,34 @@
       "native_alternative": "Native full Storage account GET can prove an absent or non-enforcing SAS policy, but PASS on issued token lifetimes still needs a complete issuance inventory.",
       "reason": "The evaluator calls _evidence and requires an approved complete evidence payload for PASS.",
       "source": "peaso/checks/compliance_new_sw23.py::sas_expiry"
+    },
+    "azure.cis.tenant_creator_role_assignments_periodically_reviewed": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
+      ],
+      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
+      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
+      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
+    },
+    "azure.cis.unity_catalog_configured_databricks": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw33.databricksAccount"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW33 Unity Catalog branch requires owner Databricks account mapping",
+      "source": "peaso/checks/compliance_new_sw33.py::_unity_catalog",
+      "source_gate_evidence": "SW33 Unity Catalog branch requires owner Databricks account mapping"
+    },
+    "azure.gap.appservice_api_app_latest_tls_version": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw26.<check_id>.latest_supported",
+        "compliance_policy.sw26.<check_id>.organization_minimum"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW26 TLS branch loads source-external organization minimum/latest supported policy",
+      "source": "peaso/checks/compliance_new_sw26.py::_tls_results",
+      "source_gate_evidence": "SW26 TLS branch loads source-external organization minimum/latest supported policy"
     },
     "azure.gap.appservice_web_app_use_virtual_service_endpoint": {
       "mandatory_external_fields": [
@@ -981,6 +1713,47 @@
       "source": "peaso/checks/compliance_new_sw16.py::dps_cmk:1034",
       "source_gate_evidence": "dps_cmk calls _policy(index, IDS[8]) and reads assignedDefinitionId/maxPolicyStateAge before matching native policy assignments and states."
     },
+    "azure.gap.kubernetes_cluster_container_cpu_and_memory_resource_limit": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>.maxCpu",
+        "compliance_policy.sw25.<check_id>.maxMemory"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 _pod_inventory requires owner CPU and memory maxima",
+      "source": "peaso/checks/compliance_new_sw25.py::_pod_inventory",
+      "source_gate_evidence": "SW25 _pod_inventory requires owner CPU and memory maxima"
+    },
+    "azure.gap.kubernetes_cluster_container_use_allowed_apparmor_profile": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>.allowedProfiles",
+        "compliance_policy.sw25.<check_id>.nonLinuxApplies"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 _pod_inventory requires approved AppArmor profiles and non-Linux applicability",
+      "source": "peaso/checks/compliance_new_sw25.py::_pod_inventory",
+      "source_gate_evidence": "SW25 _pod_inventory requires approved AppArmor profiles and non-Linux applicability"
+    },
+    "azure.gap.kubernetes_cluster_container_use_allowed_images": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>.mode",
+        "compliance_policy.sw25.<check_id>.allowed",
+        "compliance_policy.sw25.<check_id>.allowedDigests",
+        "compliance_policy.sw25.<check_id>.immutableImages"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 _pod_inventory requires image policy mode/allowlists",
+      "source": "peaso/checks/compliance_new_sw25.py::_pod_inventory",
+      "source_gate_evidence": "SW25 _pod_inventory requires image policy mode/allowlists"
+    },
+    "azure.gap.kubernetes_cluster_https_enabled": {
+      "mandatory_external_fields": [
+        "authenticatedTransportProbe"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW04 AKS branch requires authenticated HTTP/HTTPS transport probes outside read-only provider API",
+      "source": "peaso/checks/compliance_new_sw04.py::_aks_evaluate",
+      "source_gate_evidence": "SW04 AKS branch requires authenticated HTTP/HTTPS transport probes outside read-only provider API"
+    },
     "azure.gap.kubernetes_cluster_pods_and_containers_uses_approved_user_and_group_id": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw26.{status,scope,[ID].approved_uid_ranges,[ID].approved_gid_ranges}"
@@ -989,6 +1762,15 @@
       "reason": "Approved UID/GID ranges are company policy and mandatory for this verdict.",
       "source": "peaso/checks/compliance_new_sw26.py::pod_identity:502",
       "source_gate_evidence": "pod_identity calls _policy(index, ID), then compares every effective UID/GID against approved ranges."
+    },
+    "azure.gap.kubernetes_cluster_service_listen_to_allowed_ports": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw22.approved_service_ports"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW22 Service port branch requires owner approved port set",
+      "source": "peaso/checks/compliance_new_sw22.py::_service_ports",
+      "source_gate_evidence": "SW22 Service port branch requires owner approved port set"
     },
     "azure.gap.kubernetes_cluster_upgraded_with_non_vulnerable_version": {
       "mandatory_external_fields": [
@@ -999,6 +1781,24 @@
       "source": "peaso/checks/compliance_new_sw30.py::vulnerability:386",
       "source_gate_evidence": "After a small frozen CVE floor, vulnerability calls _policy(index, aksAdvisories) and _fresh, then requires advisory vulnerableVersions and supportedBranches."
     },
+    "azure.gap.logic_app_integration_service_environment_encrypted_with_cmk": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw22.approved_ise_keys"
+      ],
+      "native_alternative": "Empty aggregate is vacuous; there is no resource-positive owner-policy-free PASS.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW22 ISE CMK branch requires approved key allowlist for nonempty ISE inventory",
+      "source": "peaso/checks/compliance_new_sw22.py::_ise",
+      "source_gate_evidence": "SW22 ISE CMK branch requires approved key allowlist for nonempty ISE inventory"
+    },
+    "azure.gap.monitor_log_analytics_workspace_integrated_with_encrypted_storage_account": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw19.<check_id>.required"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW19 _query_cmk loads per-ID required storage encryption policy",
+      "source": "peaso/checks/compliance_new_sw19.py::_query_cmk",
+      "source_gate_evidence": "SW19 _query_cmk loads per-ID required storage encryption policy"
+    },
     "azure.gap.mysql_server_private_link_used": {
       "mandatory_external_fields": [
         "context.metadata.sw14Policy.{status,scope,approvedCidrs on public-enabled branch}"
@@ -1007,6 +1807,15 @@
       "reason": "Mandatory external policy or attestation: The dispatched helper calls _policy for approved CIDRs/keys/trust, or requires supplemental evidence for feature support or testing.",
       "source": "peaso/checks/compliance_new_sw14.py::_policy",
       "source_gate_evidence": "The dispatched helper calls _policy for approved CIDRs/keys/trust, or requires supplemental evidence for feature support or testing."
+    },
+    "azure.gap.network_security_group_rdp_access_restricted": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw18.userRightsBaseline"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW18 Windows user rights branch loads owner guest rights baseline",
+      "source": "peaso/checks/compliance_new_sw18.py::windows_user_rights",
+      "source_gate_evidence": "SW18 Windows user rights branch loads owner guest rights baseline"
     },
     "azure.gap.network_subnet_protected_by_firewall": {
       "mandatory_external_fields": [
@@ -1054,6 +1863,15 @@
       "reason": "Mandatory external policy or attestation: The dispatched rule calls _policy for owner-selected assessment keys, retention ages, approved viewers/algorithms/peers, or prevention criteria.",
       "source": "peaso/checks/compliance_new_sw32.py::_policy",
       "source_gate_evidence": "The dispatched rule calls _policy for owner-selected assessment keys, retention ages, approved viewers/algorithms/peers, or prevention criteria."
+    },
+    "azure.other.activity_alert": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw24.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW24 selected branch loads per-ID owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw24.py::SW24 selected evaluator",
+      "source_gate_evidence": "SW24 selected branch loads per-ID owner policy before verdict"
     },
     "azure.other.admin_network_separation": {
       "mandatory_external_fields": [
@@ -1334,6 +2152,15 @@
       "source": "peaso/checks/compliance_new_sw12.py::_policy",
       "source_gate_evidence": "_detection and _enumeration call _policy before any verdict; check policy supplies reviewed query semantics, required sources and observation windows."
     },
+    "azure.other.azure_activity_anomaly": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw24.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW24 selected branch loads per-ID owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw24.py::SW24 selected evaluator",
+      "source_gate_evidence": "SW24 selected branch loads per-ID owner policy before verdict"
+    },
     "azure.other.azure_role_review": {
       "mandatory_external_fields": [
         "compliance_policy.privilegedRoleDefinitionIds",
@@ -1342,6 +2169,24 @@
       "native_alternative": "Use source-fixed role set and review window over native Graph data.",
       "reason": "_policy(index) supplies nonempty privileged role IDs and review age before judging native review instances.",
       "source": "peaso/checks/compliance_new_sw18.py::privileged_role_review"
+    },
+    "azure.other.backup_freshness_14_days": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw31.requiredBackupItemIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW31 freshness branch requires owner required backup item IDs",
+      "source": "peaso/checks/compliance_new_sw31.py::_backup_freshness",
+      "source_gate_evidence": "SW31 freshness branch requires owner required backup item IDs"
+    },
+    "azure.other.backup_freshness_30_days": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw31.requiredBackupItemIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW31 freshness branch requires owner required backup item IDs",
+      "source": "peaso/checks/compliance_new_sw31.py::_backup_freshness",
+      "source_gate_evidence": "SW31 freshness branch requires owner required backup item IDs"
     },
     "azure.other.backup_restore_evidence": {
       "mandatory_external_fields": [
@@ -1362,6 +2207,16 @@
       "native_alternative": "Native account/container settings support narrower access configuration checks.",
       "reason": "Effective object permissions and SAS grant completeness are external evidence.",
       "source": "peaso/checks/compliance_new_sw23.py::uniform_permissions"
+    },
+    "azure.other.blob_uniform_deny": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw26.<check_id>.protectedContainerIds",
+        "compliance_policy.sw26.<check_id>.deniedPrincipalIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW26 blob denial branch requires owner protected containers and denied principals",
+      "source": "peaso/checks/compliance_new_sw26.py::_blob_uniform_deny",
+      "source_gate_evidence": "SW26 blob denial branch requires owner protected containers and denied principals"
     },
     "azure.other.build_private_network": {
       "mandatory_external_fields": [
@@ -1412,6 +2267,16 @@
       "reason": "_policy(index) supplies guest measurement baseline and approved source IDs.",
       "source": "peaso/checks/compliance_new_sw18.py::clock_sync"
     },
+    "azure.other.credential_creation_role_scope": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw18.approvedCredentialAdmins",
+        "authorizedAttempt"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW18 credential action branch loads approved credential administrators and authorized attempts",
+      "source": "peaso/checks/compliance_new_sw18.py::_action_scope",
+      "source_gate_evidence": "SW18 credential action branch loads approved credential administrators and authorized attempts"
+    },
     "azure.other.database_backup_alert": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw33.backupAlerts.responseWindowMinutes",
@@ -1420,6 +2285,16 @@
       "native_alternative": "Native Backup and Monitor resources can support a configuration-only alert rule.",
       "reason": "The evaluator requires signal tests and alert delivery evidence, not just configured Azure Monitor rules.",
       "source": "peaso/checks/compliance_new_sw33.py::database_backup_alert"
+    },
+    "azure.other.database_backup_role_scope": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw18.approvedBackupPrincipalIds",
+        "authorizedAttempt"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW18 backup action branch loads approved backup principal IDs and authorized attempts",
+      "source": "peaso/checks/compliance_new_sw18.py::_action_scope",
+      "source_gate_evidence": "SW18 backup action branch loads approved backup principal IDs and authorized attempts"
     },
     "azure.other.database_default_login_restricted": {
       "mandatory_external_fields": [
@@ -1439,6 +2314,15 @@
       "reason": "Mandatory external policy or attestation: The dispatched helper calls _policy for approved CIDRs/keys/trust, or requires supplemental evidence for feature support or testing.",
       "source": "peaso/checks/compliance_new_sw14.py::_policy",
       "source_gate_evidence": "The dispatched helper calls _policy for approved CIDRs/keys/trust, or requires supplemental evidence for feature support or testing."
+    },
+    "azure.other.diagnostic_destination_alert": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw24.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW24 selected branch loads per-ID owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw24.py::SW24 selected evaluator",
+      "source_gate_evidence": "SW24 selected branch loads per-ID owner policy before verdict"
     },
     "azure.other.disabled_identity_24h": {
       "mandatory_external_fields": [
@@ -1585,6 +2469,17 @@
       "source": "peaso/checks/compliance_new_sw29.py::_proof",
       "source_gate_evidence": "The dispatched rule calls _proof for supplemental effective-state evidence; ML rules also call _classification from context.metadata.sw29. No collector populates sw29Evidence."
     },
+    "azure.other.gateway_vmss_autoscale": {
+      "mandatory_external_fields": [
+        "scaleObservations.authorized",
+        "scaleObservations.thresholdCrossed",
+        "scaleObservations.observedAt"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW27 VMSS autoscale branch requires authorized runtime scale observations and timing",
+      "source": "peaso/checks/compliance_new_sw27.py::_gateway_scale",
+      "source_gate_evidence": "SW27 VMSS autoscale branch requires authorized runtime scale observations and timing"
+    },
     "azure.other.human_federated_signin": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.{status,scope,max_age_seconds,parameters.{federationLookbackDays,approvedFederatedIssuerIds}}",
@@ -1631,6 +2526,34 @@
       "source": "peaso/checks/compliance_new_sw21.py::_policy",
       "source_gate_evidence": "The semantic evaluator calls _policy(index,name) for required categories, approved destinations, encryption applicability, or authorization baselines."
     },
+    "azure.other.log_expiry_query": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw19.<check_id>.retentionDays",
+        "compliance_policy.sw19.<check_id>.tables"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW19 _expiry requires company retention and table selection",
+      "source": "peaso/checks/compliance_new_sw19.py::_expiry",
+      "source_gate_evidence": "SW19 _expiry requires company retention and table selection"
+    },
+    "azure.other.log_writer_separation": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw26.<check_id>.sourceWorkloadPrincipalIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW26 writer separation needs owner source-workload principals",
+      "source": "peaso/checks/compliance_new_sw26.py::_log_writer_separation",
+      "source_gate_evidence": "SW26 writer separation needs owner source-workload principals"
+    },
+    "azure.other.message_namespace_cmk": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw33.messagingCmk.approvedKeys"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW33 message namespace CMK branch requires approved keys",
+      "source": "peaso/checks/compliance_new_sw33.py::_message_cmk",
+      "source_gate_evidence": "SW33 message namespace CMK branch requires approved keys"
+    },
     "azure.other.metric_ingestion_rate_alert": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.{status,scope,observed_at,max_age_seconds,parameters}"
@@ -1660,6 +2583,25 @@
       "source": "peaso/checks/compliance_new_sw24.py::sensitive_compute_access:1335",
       "source_gate_evidence": "sensitive_compute_access calls _classified and _reviewed; the latter requires an imported resolution digest approved by policy."
     },
+    "azure.other.ml_compute_file_download_restricted": {
+      "mandatory_external_fields": [
+        "ml_classification",
+        "ml_observation"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW04 ML branch needs owner sensitive-workspace classification and runtime/guest observation",
+      "source": "peaso/checks/compliance_new_sw04.py::_ml_evaluate",
+      "source_gate_evidence": "SW04 ML branch needs owner sensitive-workspace classification and runtime/guest observation"
+    },
+    "azure.other.ml_download_audit": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw24.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW24 selected branch loads per-ID owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw24.py::SW24 selected evaluator",
+      "source_gate_evidence": "SW24 selected branch loads per-ID owner policy before verdict"
+    },
     "azure.other.ml_public_access_exception": {
       "mandatory_external_fields": [
         "resource.sw29Evidence.publicAccess.{status=collected,read_only=true,resource_id}",
@@ -1680,6 +2622,16 @@
       "source": "peaso/checks/compliance_new_sw29.py::_proof",
       "source_gate_evidence": "The dispatched rule calls _proof for supplemental effective-state evidence; ML rules also call _classification from context.metadata.sw29. No collector populates sw29Evidence."
     },
+    "azure.other.ml_sensitive_root_disabled": {
+      "mandatory_external_fields": [
+        "ml_classification",
+        "ml_observation"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW04 ML branch needs owner sensitive-workspace classification and runtime/guest observation",
+      "source": "peaso/checks/compliance_new_sw04.py::_ml_evaluate",
+      "source_gate_evidence": "SW04 ML branch needs owner sensitive-workspace classification and runtime/guest observation"
+    },
     "azure.other.ml_sensitive_subnet_allowlist": {
       "mandatory_external_fields": [
         "resource.sw29Evidence.networkBaseline.{status=collected,read_only=true,resource_id}",
@@ -1690,6 +2642,16 @@
       "reason": "Mandatory external policy or attestation: The dispatched rule calls _proof for supplemental effective-state evidence; ML rules also call _classification from context.metadata.sw29. No collector populates sw29Evidence.",
       "source": "peaso/checks/compliance_new_sw29.py::_proof",
       "source_gate_evidence": "The dispatched rule calls _proof for supplemental effective-state evidence; ML rules also call _classification from context.metadata.sw29. No collector populates sw29Evidence."
+    },
+    "azure.other.ml_sensitive_terminal_disabled": {
+      "mandatory_external_fields": [
+        "ml_classification",
+        "ml_observation"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW04 ML branch needs owner sensitive-workspace classification and runtime/guest observation",
+      "source": "peaso/checks/compliance_new_sw04.py::_ml_evaluate",
+      "source_gate_evidence": "SW04 ML branch needs owner sensitive-workspace classification and runtime/guest observation"
     },
     "azure.other.ml_subnet_baseline": {
       "mandatory_external_fields": [
@@ -1778,6 +2740,24 @@
       "reason": "The approved region/zone set and operational negative-test proof are mandatory; resource.location alone cannot decide the full predicate.",
       "source": "peaso/checks/compliance_new_sw31.py::region_allowlist"
     },
+    "azure.other.retention_change_alert": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw24.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW24 selected branch loads per-ID owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw24.py::SW24 selected evaluator",
+      "source_gate_evidence": "SW24 selected branch loads per-ID owner policy before verdict"
+    },
+    "azure.other.runtime_public_ip": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw24.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW24 selected branch loads per-ID owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw24.py::SW24 selected evaluator",
+      "source_gate_evidence": "SW24 selected branch loads per-ID owner policy before verdict"
+    },
     "azure.other.security_event_correlation": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw13.{status,scope,authorized_by,document_id,observed_at,expires_at,checks[ID].requiredWorkspaceIds,checks[ID].requiredEventTables,checks[ID].requiredCorrelationFragments,checks[ID].maxCorrelationWindowSeconds,checks[ID].approvedCriteria}",
@@ -1843,6 +2823,17 @@
       "source": "peaso/checks/compliance_new_sw15.py::storage_immutability:749",
       "source_gate_evidence": "storage_immutability reads requiredRetentionDays and requires authorized premature delete/modify operation evidence for PASS."
     },
+    "azure.other.storage_lifecycle": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw23.protected_prefixes",
+        "compliance_policy.sw23.minimum_retention_days",
+        "compliance_policy.sw23.maximum_deletion_days"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW23 lifecycle branch requires protected prefixes and owner deletion/retention limits",
+      "source": "peaso/checks/compliance_new_sw23.py::_storage_lifecycle",
+      "source_gate_evidence": "SW23 lifecycle branch requires protected prefixes and owner deletion/retention limits"
+    },
     "azure.other.vault_key_approved_algorithm": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw32.{status,scope,approved_key_algorithms}"
@@ -1888,6 +2879,25 @@
       "reason": "Mandatory external policy or attestation: support invokes mandatory owner policy at function line 6: threshold = _version(_policy(index, \"oldestVersionSupported\"))",
       "source": "peaso/checks/compliance_new_sw30.py::support",
       "source_gate_evidence": "support invokes mandatory owner policy at function line 6: threshold = _version(_policy(index, \"oldestVersionSupported\"))"
+    },
+    "azure_aks_cluster_aks_cluster_rbac_enabled_fc209e3": {
+      "mandatory_external_fields": [
+        "kmsKeyEvidence.networkReachable"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW30 KMS branch needs external network reachability/key proof for PASS",
+      "source": "peaso/checks/compliance_new_sw30.py::_kms",
+      "source_gate_evidence": "SW30 KMS branch needs external network reachability/key proof for PASS"
+    },
+    "azure_api_management_1_2_8_1_ba319cf": {
+      "mandatory_external_fields": [
+        "frozen_protocol_policy.expected_endpoint_type",
+        "frozen_protocol_policy.forbidden_protocols"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW23 API protocol branch requires owner expected endpoint type and forbidden protocol list",
+      "source": "peaso/checks/compliance_new_sw23.py::_apim_protocol",
+      "source_gate_evidence": "SW23 API protocol branch requires owner expected endpoint type and forbidden protocol list"
     },
     "azure_api_management_1_2_8_3_e8fe737": {
       "mandatory_external_fields": [
@@ -1947,6 +2957,26 @@
       "native_alternative": "Native Function App site/config and plan GET can support a separate fixed source runtime or memory rule.",
       "reason": "The native Flex memory witness is a limited contradiction and still follows mandatory expectedFunctionSettings policy; full verdict uses supplied configuration evidence.",
       "source": "peaso/checks/compliance_new_sw13.py::function_settings"
+    },
+    "azure_application_gateway_1_2_5_8_33a9d21": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw29.approvedSslPolicy"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW29 gateway TLS branch requires approved SSL policy",
+      "source": "peaso/checks/compliance_new_sw29.py::_gateway_tls",
+      "source_gate_evidence": "SW29 gateway TLS branch requires approved SSL policy"
+    },
+    "azure_application_gateway_app_client_certificates_on_fcca0b8": {
+      "mandatory_external_fields": [
+        "certificateValidation.key_vault_accessible",
+        "certificateValidation.certificate_valid",
+        "certificateValidation.chain_trusted"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW29 client certificate branch requires external certificate chain/key vault proof",
+      "source": "peaso/checks/compliance_new_sw29.py::_gateway_cert",
+      "source_gate_evidence": "SW29 client certificate branch requires external certificate chain/key vault proof"
     },
     "azure_application_gateway_app_ensure_http_is_redirected_to_https_debad63": {
       "mandatory_external_fields": [
@@ -2049,6 +3079,15 @@
       "reason": "Pass requires an approved risk definition, recipients, window and delivery observations beyond sign-in API records.",
       "source": "peaso/checks/compliance_new_sw13.py::suspicious_notifications"
     },
+    "azure_c5_iam_03_01as": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw19.<check_id>.responseDeadlineHours"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW19 _compromised loads per-ID owner policy before evaluating response window",
+      "source": "peaso/checks/compliance_new_sw19.py::_compromised",
+      "source_gate_evidence": "SW19 _compromised loads per-ID owner policy before evaluating response window"
+    },
     "azure_c5_ops_05_04ac": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw16[ID].{status,scope,requiredSpecificationIds,authorizedExpertIds,immediateResponseSeconds,windowStart,windowEnd,specificationSourceId}",
@@ -2104,6 +3143,15 @@
       "source": "peaso/checks/compliance_new_sw03.py::activity_timestamps",
       "source_gate_evidence": "activity_timestamps invokes mandatory owner policy at function line 4: policy = _policy(index, \"activityLogWindow\")"
     },
+    "azure_c5_ops_17_02ac": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw19.<check_id>.requiredMeasures"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW19 _c5_logs requires owner-selected measures",
+      "source": "peaso/checks/compliance_new_sw19.py::_c5_logs",
+      "source_gate_evidence": "SW19 _c5_logs requires owner-selected measures"
+    },
     "azure_c5_ops_17_02b": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw25.{status,scope,checks[ID].{windowStart,windowEnd,maxReportDelaySeconds,criticalFailures,departmentRecipients}}",
@@ -2114,6 +3162,24 @@
       "native_alternative": "Native Activity Log can inventory failed operations without proving notification.",
       "reason": "Recipient mapping and delivery outcomes are organization process evidence.",
       "source": "peaso/checks/compliance_new_sw25_monitoring.py::_critical_reporting"
+    },
+    "azure_c5_ops_20_01b": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw32.incident_review"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW32 incident review branch requires owner incident-review policy",
+      "source": "peaso/checks/compliance_new_sw32.py::_incidents",
+      "source_gate_evidence": "SW32 incident review branch requires owner incident-review policy"
+    },
+    "azure_c5_ops_25_02b": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw32.vulnerability_severity_criteria"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW32 severity branch requires owner vulnerability criteria",
+      "source": "peaso/checks/compliance_new_sw32.py::_severity",
+      "source_gate_evidence": "SW32 severity branch requires owner vulnerability criteria"
     },
     "azure_c5_ops_30_01ac": {
       "mandatory_external_fields": [
@@ -2142,6 +3208,15 @@
       "source": "peaso/checks/compliance_new_sw26.py::customer_federation",
       "source_gate_evidence": "customer_federation invokes mandatory owner policy at function line 5: policy = _policy(index, cid)"
     },
+    "azure_cosmos_account_10_2_1_1_23_e04a63d": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw32.approved_cosmos_workspaces"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW32 non-Mongo diagnostics branch requires approved Cosmos workspace allowlist",
+      "source": "peaso/checks/compliance_new_sw32.py::_diagnostics",
+      "source_gate_evidence": "SW32 non-Mongo diagnostics branch requires approved Cosmos workspace allowlist"
+    },
     "azure_cosmos_account_10_5_1_5_2029065": {
       "mandatory_external_fields": [
         "context.metadata.cosmos_backup_retention.status=collected",
@@ -2151,6 +3226,25 @@
       "native_alternative": "Cosmos account backupPolicy mode and retention are native; a separately sourced fixed minimum could support a distinct native rule, but this check has no built-in floor.",
       "reason": "Every account needs an owner-declared retention minimum before the predicate can decide.",
       "source": "peaso/checks/compliance_new_azure_data_protection.py::cosmos_backup_retention/_owner"
+    },
+    "azure_devops_project_3_5_1_7_dc58423": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw14.devopsCredentialPolicy.credentialVariableNames",
+        "compliance_policy.sw14.devopsCredentialPolicy.requiredVariableNames"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW14 DevOps credential branch requires owner variable inventory",
+      "source": "peaso/checks/compliance_new_sw14.py::_devops_credentials",
+      "source_gate_evidence": "SW14 DevOps credential branch requires owner variable inventory"
+    },
+    "azure_diagnostic_setting_11_5_2_3_7959930": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 _metric_settings requires selected diagnostic metric settings policy",
+      "source": "peaso/checks/compliance_new_sw25.py::_metric_settings",
+      "source_gate_evidence": "SW25 _metric_settings requires selected diagnostic metric settings policy"
     },
     "azure_diagnostic_setting_app_http_logs_enabled_d32e8e1": {
       "mandatory_external_fields": [
@@ -2170,6 +3264,15 @@
       "source": "peaso/checks/compliance_new_sw01.py::required_group_has_direct_user",
       "source_gate_evidence": "required_group_has_direct_user invokes mandatory owner policy at function line 7: policy = get(index, \"context.metadata.compliance_policy\", dict)"
     },
+    "azure_directory_user_7_2_4_2_7a90cfb": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw19.<check_id>.inactiveDays"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW19 _stale requires owner inactivity limit",
+      "source": "peaso/checks/compliance_new_sw19.py::_stale",
+      "source_gate_evidence": "SW19 _stale requires owner inactivity limit"
+    },
     "azure_firewall_policy_10_2_1_1_24_0781f5f": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw21.{status,scope,firewallDiagnostics}"
@@ -2178,6 +3281,28 @@
       "reason": "Mandatory external policy or attestation: firewall_diagnostics invokes mandatory owner policy at function line 4: policy = _policy(index, 'firewallDiagnostics')",
       "source": "peaso/checks/compliance_new_sw21.py::firewall_diagnostics",
       "source_gate_evidence": "firewall_diagnostics invokes mandatory owner policy at function line 4: policy = _policy(index, 'firewallDiagnostics')"
+    },
+    "azure_firewall_policy_6_4_1_6_2ad9039": {
+      "mandatory_external_fields": [
+        "firewallManagerOrder._provenance.authority=FirewallManager",
+        "compliance_policy.sw14.approvedRanks"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW14 firewall ranking requires FirewallManager authority and approved ranks",
+      "source": "peaso/checks/compliance_new_sw14.py::firewall_rank",
+      "source_gate_evidence": "SW14 firewall ranking requires FirewallManager authority and approved ranks"
+    },
+    "azure_firewall_policy_6_4_1_7_a7975fc": {
+      "mandatory_external_fields": [
+        "web_application_firewall_policy.managedRuleCatalogue.status=collected",
+        "web_application_firewall_policy.managedRuleCatalogue._provenance.authority=approved-evidence|FirewallManager",
+        "web_application_firewall_policy.managedRuleCatalogue._provenance.read_only=true",
+        "web_application_firewall_policy.managedRuleCatalogue._provenance.resource_id/scope/snapshot_id",
+        "web_application_firewall_policy.managedRuleCatalogue.ruleSets[].ruleGroups[].rules[]"
+      ],
+      "native_alternative": "Implement a read-only collector for the authoritative versioned Azure WAF managed-rule catalogue, with explicit source operation, scope/snapshot binding and complete group/rule defaults; update _evidence to accept and validate that native provenance for this field. Until then keep this ID outside active native-only admission.",
+      "reason": "For attached enabled WAF policies, current evaluator calls _evidence(managedRuleCatalogue) before any PASS and accepts only approved-evidence or FirewallManager authority. No producer in tracked collector source populates this field; provider-native policy managedRuleSets alone does not satisfy the catalogue gate.",
+      "source": "peaso/checks/compliance_new_sw14.py::waf_managed_groups"
     },
     "azure_hdinsight_cluster_1_2_5_11_babfa1b": {
       "mandatory_external_fields": [
@@ -2224,6 +3349,15 @@
       "source": "peaso/checks/compliance_new_sw24.py::approved_compute_instance_subnets",
       "source_gate_evidence": "approved_compute_instance_subnets invokes mandatory owner policy at function line 7: policy = _policy(index, SUBNET_ID, rid)"
     },
+    "azure_ml_workspace_1_2_8_37_973721f": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw24.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW24 selected branch loads per-ID owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw24.py::SW24 selected evaluator",
+      "source_gate_evidence": "SW24 selected branch loads per-ID owner policy before verdict"
+    },
     "azure_nsg_world_ingress_approved_ports": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw31.approvedInternetPorts[]"
@@ -2231,6 +3365,25 @@
       "native_alternative": "Native NSG paths can support a fixed high-risk-port rule.",
       "reason": "Allowed ports are organization-specific.",
       "source": "peaso/checks/compliance_new_sw31.py::nsg_ports"
+    },
+    "azure_pci_10_2_1_1_25": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw15.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW15 MySQL audit export branch loads owner policy before verdict",
+      "source": "peaso/checks/compliance_new_sw15.py::mysql_audit_export",
+      "source_gate_evidence": "SW15 MySQL audit export branch loads owner policy before verdict"
+    },
+    "azure_pci_1_2_8_19": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw14.approvedCidrs",
+        "compliance_policy.sw14.approvedPrivateEndpointIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW14 network rule branch requires approved CIDRs/private endpoints",
+      "source": "peaso/checks/compliance_new_sw14.py::_network",
+      "source_gate_evidence": "SW14 network rule branch requires approved CIDRs/private endpoints"
     },
     "azure_pci_3_5_1_29": {
       "mandatory_external_fields": [
@@ -2268,6 +3421,34 @@
       "source": "peaso/checks/compliance_new_sw21.py::purview_required_regions",
       "source_gate_evidence": "purview_required_regions invokes mandatory owner policy at function line 4: policy = _policy(index, 'purview')"
     },
+    "azure_recovery_vault_10_3_3_2_5313a3c": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw13.schedule.requiredMinimumFrequency",
+        "compliance_policy.sw13.schedule.minimumRetentionDays"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW13 backup schedule branch requires owner minimum frequency and retention",
+      "source": "peaso/checks/compliance_new_sw13.py::policy_frequency_retention",
+      "source_gate_evidence": "SW13 backup schedule branch requires owner minimum frequency and retention"
+    },
+    "azure_recovery_vault_10_3_3_3_45b190e": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw13.points.minRetentionDays"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW13 backup points branch requires owner minimum retention",
+      "source": "peaso/checks/compliance_new_sw13.py::measured_point_retention",
+      "source_gate_evidence": "SW13 backup points branch requires owner minimum retention"
+    },
+    "azure_recovery_vault_10_3_3_8_26e08d7": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw31.<check_id>"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW31 backup retention branch requires owner thresholds",
+      "source": "peaso/checks/compliance_new_sw31.py::_backup_policy",
+      "source_gate_evidence": "SW31 backup retention branch requires owner thresholds"
+    },
     "azure_redis_cache_10_3_3_17_5912e19": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw27.{status,scope,minimumSnapshotSpanDays}"
@@ -2276,6 +3457,35 @@
       "reason": "Mandatory external policy or attestation: _redis invokes mandatory owner policy at function line 18: days = _policy(index, \"minimumSnapshotSpanDays\", int)",
       "source": "peaso/checks/compliance_new_sw27.py::_redis",
       "source_gate_evidence": "_redis invokes mandatory owner policy at function line 18: days = _policy(index, \"minimumSnapshotSpanDays\", int)"
+    },
+    "azure_role_assignment_7_2_1_14_6743a56": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw32.rbac_relevant_scopes_complete"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW32 role wildcard branch requires owner claim of complete RBAC scopes",
+      "source": "peaso/checks/compliance_new_sw32.py::_role_wildcard",
+      "source_gate_evidence": "SW32 role wildcard branch requires owner claim of complete RBAC scopes"
+    },
+    "azure_role_assignment_aks_cluster_rbac_enabled_1c8eacd": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw26.<check_id>.protectedScopes",
+        "compliance_policy.sw26.<check_id>.operationCatalog"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW26 role operation catalog branch requires protected scopes and owner operation catalog",
+      "source": "peaso/checks/compliance_new_sw26.py::_operation_catalog",
+      "source_gate_evidence": "SW26 role operation catalog branch requires protected scopes and owner operation catalog"
+    },
+    "azure_role_assignment_aks_cluster_rbac_enabled_675305a": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw32.required_role_assignments",
+        "compliance_policy.sw32.rbac_relevant_scopes_complete"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW32 required role assignments require owner list and scope completeness",
+      "source": "peaso/checks/compliance_new_sw32.py::_required_roles",
+      "source_gate_evidence": "SW32 required role assignments require owner list and scope completeness"
     },
     "azure_route_table_network_http_internet_access_restricted_5cd2484": {
       "mandatory_external_fields": [
@@ -2313,6 +3523,16 @@
       "source": "peaso/checks/compliance_new_sw03.py::defender_required_plans",
       "source_gate_evidence": "defender_required_plans invokes mandatory owner policy at function line 5: policy = _policy(index, \"defenderPlans\")"
     },
+    "azure_sql_database_sqlserver_auditing_enabled_77d6841": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw31.approvedSinkIds",
+        "compliance_policy.sw31.requiredCategories"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW31 audit branch requires approved sink IDs and categories",
+      "source": "peaso/checks/compliance_new_sw31.py::_sql_audit",
+      "source_gate_evidence": "SW31 audit branch requires approved sink IDs and categories"
+    },
     "azure_storage_account_10_2_1_1_20_5914d2c": {
       "mandatory_external_fields": [
         "context.metadata.{sw15|compliance_policy.sw15}.{status,scope}"
@@ -2321,6 +3541,25 @@
       "reason": "Mandatory external policy or attestation: servicebus_logs invokes mandatory owner policy at function line 8: if sku == \"Premium\" and get(_policy(index), \"requireServiceBusDataPlaneAudit\", bool):",
       "source": "peaso/checks/compliance_new_sw15.py::servicebus_logs",
       "source_gate_evidence": "servicebus_logs invokes mandatory owner policy at function line 8: if sku == \"Premium\" and get(_policy(index), \"requireServiceBusDataPlaneAudit\", bool):"
+    },
+    "azure_storage_account_10_5_1_13_2f5d4f6": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw23.required_objects",
+        "compliance_policy.sw23.required_scope_authoritative"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW23 protected object branch requires owner required object list and authoritative scope",
+      "source": "peaso/checks/compliance_new_sw23.py::_required_objects",
+      "source_gate_evidence": "SW23 protected object branch requires owner required object list and authoritative scope"
+    },
+    "azure_storage_account_monitor_alert_create_update_sqlserver_fr_7a7ddfa": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw25.<check_id>.requiredMetrics"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 _required_metrics requires owner required metric list",
+      "source": "peaso/checks/compliance_new_sw25.py::_required_metrics",
+      "source_gate_evidence": "SW25 _required_metrics requires owner required metric list"
     },
     "azure_storage_account_sqlserver_auditing_enabled_e4e4b28": {
       "mandatory_external_fields": [
@@ -2385,6 +3624,15 @@
       "source": "peaso/checks/compliance_new_sw30.py::retention",
       "source_gate_evidence": "retention invokes mandatory owner policy at function line 6: low = _policy(index, \"minimumRetentionDays\")"
     },
+    "azure_vault_10_3_2_3_922adc4": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw19.<check_id>.approvedKeyVaultKeyIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW19 _cluster_cmk requires approved key allowlist",
+      "source": "peaso/checks/compliance_new_sw19.py::_cluster_cmk",
+      "source_gate_evidence": "SW19 _cluster_cmk requires approved key allowlist"
+    },
     "azure_vault_keyvault_key_expiration_set_in_non_rbac_a7d99d3": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.{status,scope,observed_at,max_age_seconds,parameters}"
@@ -2412,6 +3660,16 @@
       "source": "peaso/checks/compliance_new_sw15.py::secret_rotation",
       "source_gate_evidence": "secret_rotation invokes mandatory owner policy at function line 4: days = _positive(get(_policy(index), \"maxDaysSinceRotation\", int))"
     },
+    "azure_vault_keyvault_rbac_enabled_0179c48": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw26.<check_id>.blockedKeyVaultActions",
+        "compliance_policy.sw26.<check_id>.protectedVaultIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW26 Key Vault action branch requires blocked actions/protected vaults",
+      "source": "peaso/checks/compliance_new_sw26.py::_keyvault_rbac",
+      "source_gate_evidence": "SW26 Key Vault action branch requires blocked actions/protected vaults"
+    },
     "azure_vm_1_2_8_10_1bd35d0": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw27.{status,scope,dscNodes}"
@@ -2430,6 +3688,24 @@
       "source": "peaso/checks/compliance_new_sw27.py::_managed_disks",
       "source_gate_evidence": "_managed_disks invokes mandatory owner policy at function line 10: mapping = _policy(index, \"expectedDiskVmIds\", dict)"
     },
+    "azure_vnet_gateway_10_2_1_1_14_4189d89": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw14.approvedDiagnosticDestinationIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW14 gateway diagnostics branch needs approved destinations",
+      "source": "peaso/checks/compliance_new_sw14.py::_gateway_diagnostics",
+      "source_gate_evidence": "SW14 gateway diagnostics branch needs approved destinations"
+    },
+    "azure_vnet_gateway_network_ssh_internet_access_restricted_e19b1dc": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw14.approvedVnetIds"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW14 SSH branch requires approved VNet IDs",
+      "source": "peaso/checks/compliance_new_sw14.py::_gateway_ssh",
+      "source_gate_evidence": "SW14 SSH branch requires approved VNet IDs"
+    },
     "gcp.appengine.service_version_count": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -2441,6 +3717,435 @@
       "native_alternative": null,
       "reason": "required table/column classification mapping and approved tag names",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_55.<locals>.table_classification@3338"
+    },
+    "gcp.claude.bucket.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.disk.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.image.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.instance.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.kms_key.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.kms_key_ring.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.node_group.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.node_template.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.pubsub_subscription.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.pubsub_topic.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.resource_policy.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.service_account.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
+    },
+    "gcp.claude.subnetwork.policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/claude_gcp_k8s_iam.py::shared_access.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "trust = {\"context\": {\"provider\": \"gcp\", \"scope\": SCOPE, \"metadata\": {\"trusted_users\": [\"trusted@example.com\"],",
+          "field": "trusted_users",
+          "line": 610
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_groups",
+          "line": 564
+        },
+        {
+          "expression": "TRUST_FIELDS = ((\"user\", \"trusted_users\"), (\"group\", \"trusted_groups\"), (\"domain\", \"trusted_domains\"),",
+          "field": "trusted_domains",
+          "line": 564
+        },
+        {
+          "expression": "(\"serviceAccount\", \"trusted_service_accounts\"))",
+          "field": "trusted_service_accounts",
+          "line": 565
+        }
+      ]
     },
     "gcp.compute.os_patch_compliance": {
       "mandatory_external_fields": [],
@@ -2460,6 +4165,201 @@
       "reason": "protected project numbers and approved supported service set",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_55.<locals>.vpc_supported_services@3431"
     },
+    "gcp.orgpolicy.central_constraints": {
+      "mandatory_external_fields": [
+        "required_constraints"
+      ],
+      "native_alternative": null,
+      "reason": "customer-required organization constraints; semantic family: central_constraints@1943, _list@1821, _scope@1774, _rows@2162, _policy@1812, register@1762",
+      "source": "peaso/checks/batch_remaining_gcp.py::central_constraints@1943",
+      "source_gate_evidence": "customer-required organization constraints; semantic family: central_constraints@1943, _list@1821, _scope@1774, _rows@2162, _policy@1812, register@1762"
+    },
+    "gcp.ports.bigtable_instance_policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_ports_perimeter.py::trust.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_users",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_groups",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_domains",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_service_accounts",
+          "line": 57
+        }
+      ]
+    },
+    "gcp.ports.billing_account_policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_ports_perimeter.py::trust.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_users",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_groups",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_domains",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_service_accounts",
+          "line": 57
+        }
+      ]
+    },
+    "gcp.ports.cloud_function_policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_ports_perimeter.py::trust.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_users",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_groups",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_domains",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_service_accounts",
+          "line": 57
+        }
+      ]
+    },
+    "gcp.ports.cloud_run_job_policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_ports_perimeter.py::trust.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_users",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_groups",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_domains",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_service_accounts",
+          "line": 57
+        }
+      ]
+    },
+    "gcp.ports.cloud_run_service_policy_shared_access": {
+      "mandatory_external_fields": [
+        "trusted_users",
+        "trusted_groups",
+        "trusted_domains",
+        "trusted_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_ports_perimeter.py::trust.evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_users",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_groups",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_domains",
+          "line": 57
+        },
+        {
+          "expression": "CASES[cid][\"index\"] = {\"context\": {\"metadata\": {\"trusted_users\": [\"trusted@example.com\"], \"trusted_groups\": [], \"trusted_domains\": [], \"trusted_service_accounts\": []}}}",
+          "field": "trusted_service_accounts",
+          "line": 57
+        }
+      ]
+    },
+    "gcp.ports.iam_corporate_domain_declaration": {
+      "mandatory_external_fields": [
+        "trusted_domains",
+        "trusted_domains_explicit"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_ports_iam.py::corporate",
+      "source_gate_evidence": [
+        {
+          "expression": "if policy.get(\"trusted_domains_explicit\") is False:",
+          "field": "trusted_domains",
+          "line": 85
+        },
+        {
+          "expression": "if policy.get(\"trusted_domains_explicit\") is False:",
+          "field": "trusted_domains_explicit",
+          "line": 85
+        }
+      ]
+    },
     "gcp.resourcemanager.folder_environment_structure": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -2478,6 +4378,15 @@
       "reason": "approved customer-consent scope",
       "source": "peaso/checks/compliance_new_sw55.py::prior_customer_consent@251"
     },
+    "gcp_c5_asset_change_audit": {
+      "mandatory_external_fields": [
+        "audit_window"
+      ],
+      "native_alternative": null,
+      "reason": "customer asset-change audit window; semantic family: asset_change_audit@425, _datetime@238, _read_time@250, _by@228, _policy@210, _scope@159, _rows@203, _validated_rows@169",
+      "source": "peaso/checks/compliance_new_sw51.py::asset_change_audit@425",
+      "source_gate_evidence": "customer asset-change audit window; semantic family: asset_change_audit@425, _datetime@238, _read_time@250, _by@228, _policy@210, _scope@159, _rows@203, _validated_rows@169"
+    },
     "gcp_c5_asset_inventory": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -2489,6 +4398,24 @@
       "native_alternative": null,
       "reason": "required label keys, risk asset types and approved label values",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_51.<locals>.asset_risk_label@1413"
+    },
+    "gcp_c5_backup_remote_location": {
+      "mandatory_external_fields": [
+        "approved_offsite_policy"
+      ],
+      "native_alternative": null,
+      "reason": "approved offsite backup policy; semantic family: _remote@464, _na@241, _rows@137, _ctx@127, _sql@431, _scope@207, _policy@173, _base@164",
+      "source": "peaso/checks/compliance_new_sw53.py::_remote@464",
+      "source_gate_evidence": "approved offsite backup policy; semantic family: _remote@464, _na@241, _rows@137, _ctx@127, _sql@431, _scope@207, _policy@173, _base@164"
+    },
+    "gcp_c5_build_provenance": {
+      "mandatory_external_fields": [
+        "production_trigger_ids"
+      ],
+      "native_alternative": null,
+      "reason": "customer production trigger scope and Cloud Build coverage; semantic family: c5_build_provenance@548, _build@285, _inventory@44, _scope@33, _strings@97, _policy@73, _member@66, _signed@508",
+      "source": "peaso/checks/compliance_new_sw54.py::c5_build_provenance@548",
+      "source_gate_evidence": "customer production trigger scope and Cloud Build coverage; semantic family: c5_build_provenance@548, _build@285, _inventory@44, _scope@33, _strings@97, _policy@73, _member@66, _signed@508"
     },
     "gcp_c5_classification_label": {
       "mandatory_external_fields": [],
@@ -2502,17 +4429,64 @@
       "reason": "admin backend mapping and approved WAF expression/action",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_51.<locals>.admin_waf@1560"
     },
+    "gcp_c5_cloudbuild_gate": {
+      "mandatory_external_fields": [
+        "production_trigger_ids",
+        "approval_required",
+        "security_test_step"
+      ],
+      "native_alternative": null,
+      "reason": "customer production build scope and security gate; semantic family: c5_cloudbuild_gate@3229, _build@2973, _inventory@3246, _strings@2795, _policy@2774, _scope@2738, _member@2768, _signed@3180",
+      "source": "peaso/checks/batch_remaining_gcp.py::c5_cloudbuild_gate@3229",
+      "source_gate_evidence": "customer production build scope and security gate; semantic family: c5_cloudbuild_gate@3229, _build@2973, _inventory@3246, _strings@2795, _policy@2774, _scope@2738, _member@2768, _signed@3180"
+    },
     "gcp_c5_deletion_recoverability": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved bucket deletion exceptions and deadlines",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_50.<locals>._deletion@1141"
     },
+    "gcp_c5_iam_change_timeliness": {
+      "mandatory_external_fields": [
+        "policy.personnel_changes",
+        "policy.personnel_change_feed_complete"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/batch_remaining_gcp.py::_timeliness",
+      "source_gate_evidence": [
+        {
+          "expression": "events = get(policy, 'personnel_changes', list)",
+          "field": "policy.personnel_changes",
+          "line": 2606
+        },
+        {
+          "expression": "if get(policy, 'personnel_change_feed_complete', bool) is not True:",
+          "field": "policy.personnel_change_feed_complete",
+          "line": 2607
+        }
+      ]
+    },
     "gcp_c5_iam_conditions": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved required IAM condition attributes by grant",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_53.<locals>._conditions@2550"
+    },
+    "gcp_c5_iam_expiry": {
+      "mandatory_external_fields": [
+        "policy.expiring_privileged_grants"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/batch_remaining_gcp.py::_expiry",
+      "source_gate_evidence": [
+        {
+          "expression": "required = get(policy, 'expiring_privileged_grants', list)",
+          "field": "policy.expiring_privileged_grants",
+          "line": 2579
+        }
+      ]
     },
     "gcp_c5_iam_inventory": {
       "mandatory_external_fields": [],
@@ -2562,6 +4536,24 @@
       "reason": "approved required malware agent name",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_53.<locals>._malware@2347"
     },
+    "gcp_c5_network_separation": {
+      "mandatory_external_fields": [
+        "segregated_vpcs"
+      ],
+      "native_alternative": null,
+      "reason": "approved segregated VPC inventory; semantic family: production_subnet_separation@857, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436",
+      "source": "peaso/checks/batch_remaining_gcp.py::production_subnet_separation@857",
+      "source_gate_evidence": "approved segregated VPC inventory; semantic family: production_subnet_separation@857, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436"
+    },
+    "gcp_c5_network_topology": {
+      "mandatory_external_fields": [
+        "topology_register"
+      ],
+      "native_alternative": null,
+      "reason": "customer-approved network topology register; semantic family: approved_network_topology@885, _inventory@957, _scope@448, _policy@496, signed@436",
+      "source": "peaso/checks/batch_remaining_gcp.py::approved_network_topology@885",
+      "source_gate_evidence": "customer-approved network topology register; semantic family: approved_network_topology@885, _inventory@957, _scope@448, _policy@496, signed@436"
+    },
     "gcp_c5_patch_deployment": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -2574,11 +4566,39 @@
       "reason": "approved regions and asset-location mapping",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_51.<locals>.asset_region@1429"
     },
+    "gcp_c5_restore_destination": {
+      "mandatory_external_fields": [
+        "approved_restoration_instances"
+      ],
+      "native_alternative": null,
+      "reason": "approved restoration instance inventory; semantic family: _restore_destination@530, _rows@137, _ctx@127, _public_members@513, _operations@482, _sql@431, _na@241, _scope@207",
+      "source": "peaso/checks/compliance_new_sw53.py::_restore_destination@530",
+      "source_gate_evidence": "approved restoration instance inventory; semantic family: _restore_destination@530, _rows@137, _ctx@127, _public_members@513, _operations@482, _sql@431, _na@241, _scope@207"
+    },
     "gcp_c5_restore_test": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved SQL restore-test scope; interval is fixed",
       "source": "peaso/checks/compliance_new_sw53.py::_restore_test@488"
+    },
+    "gcp_c5_secret_access": {
+      "mandatory_external_fields": [
+        "credential_secrets",
+        "approved_secret_readers"
+      ],
+      "native_alternative": null,
+      "reason": "credential classification and approved readers; semantic family: c5_secret_access@2025, _iam_members@1833, _identity@1830, _bindings@1827, _list@1821, _scope@1774, _policy@1812, _rows@2162",
+      "source": "peaso/checks/batch_remaining_gcp.py::c5_secret_access@2025",
+      "source_gate_evidence": "credential classification and approved readers; semantic family: c5_secret_access@2025, _iam_members@1833, _identity@1830, _bindings@1827, _list@1821, _scope@1774, _policy@1812, _rows@2162"
+    },
+    "gcp_c5_security_event_route": {
+      "mandatory_external_fields": [
+        "approved_security_event_metrics"
+      ],
+      "native_alternative": null,
+      "reason": "customer-selected security event metrics; semantic family: c5_security_event_route@2055, _list@1821, _scope@1774, _rows@2162, _policy@1812, register@1762",
+      "source": "peaso/checks/batch_remaining_gcp.py::c5_security_event_route@2055",
+      "source_gate_evidence": "customer-selected security event metrics; semantic family: c5_security_event_route@2055, _list@1821, _scope@1774, _rows@2162, _policy@1812, register@1762"
     },
     "gcp_c5_siem_sink": {
       "mandatory_external_fields": [],
@@ -2598,6 +4618,25 @@
       "reason": "approved backup recovery point objective",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_53.<locals>._backup_run@2424"
     },
+    "gcp_c5_tls_policy": {
+      "mandatory_external_fields": [
+        "approved_min_tls",
+        "approved_ciphers"
+      ],
+      "native_alternative": null,
+      "reason": "approved TLS version and cipher baseline; semantic family: frontend_tls_policy@733, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436",
+      "source": "peaso/checks/batch_remaining_gcp.py::frontend_tls_policy@733",
+      "source_gate_evidence": "approved TLS version and cipher baseline; semantic family: frontend_tls_policy@733, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436"
+    },
+    "gcp_c5_workforce_federation": {
+      "mandatory_external_fields": [
+        "customer_provider_mapping"
+      ],
+      "native_alternative": null,
+      "reason": "customer workforce provider mapping; semantic family: c5_workforce_federation@3233, _workforce@3019, _strings@2795, _inventory@3246, _policy@2774, _scope@2738, _member@2768, _signed@3180",
+      "source": "peaso/checks/batch_remaining_gcp.py::c5_workforce_federation@3233",
+      "source_gate_evidence": "customer workforce provider mapping; semantic family: c5_workforce_federation@3233, _workforce@3019, _strings@2795, _inventory@3246, _policy@2774, _scope@2738, _member@2768, _signed@3180"
+    },
     "gcp_cloud_armor_cidr_deny": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -2609,6 +4648,25 @@
       "native_alternative": null,
       "reason": "customer-approved request rate and key policy",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_51.<locals>.armor_rate_limit@1625"
+    },
+    "gcp_cloudbuild_private_pool": {
+      "mandatory_external_fields": [
+        "approved_worker_networks"
+      ],
+      "native_alternative": null,
+      "reason": "approved Cloud Build worker networks; semantic family: cloudbuild_private_pool@1995, _identity@1830, _full_omitted@1847, _policy@1812, _scope@1774, _member@2165, _rows@2162, register@1762",
+      "source": "peaso/checks/batch_remaining_gcp.py::cloudbuild_private_pool@1995",
+      "source_gate_evidence": "approved Cloud Build worker networks; semantic family: cloudbuild_private_pool@1995, _identity@1830, _full_omitted@1847, _policy@1812, _scope@1774, _member@2165, _rows@2162, register@1762"
+    },
+    "gcp_cloudbuild_trigger_trust": {
+      "mandatory_external_fields": [
+        "approved_repositories",
+        "approved_build_service_accounts"
+      ],
+      "native_alternative": null,
+      "reason": "approved build repositories and service accounts; semantic family: cloudbuild_trigger_trust@678, _scope@448, _policy@496, _strings@503, _inventory@957, signed@436",
+      "source": "peaso/checks/batch_remaining_gcp.py::cloudbuild_trigger_trust@678",
+      "source_gate_evidence": "approved build repositories and service accounts; semantic family: cloudbuild_trigger_trust@678, _scope@448, _policy@496, _strings@503, _inventory@957, signed@436"
     },
     "gcp_cloudcdn_cache_policy": {
       "mandatory_external_fields": [],
@@ -2648,11 +4706,167 @@
       "reason": "expected replica locations per bucket",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_50.<locals>._replication@1185"
     },
+    "gcp_gke_client_certificate_enabled": {
+      "mandatory_external_fields": [
+        "legacy_client_certificate_exceptions"
+      ],
+      "native_alternative": null,
+      "reason": "approved GKE client certificate exceptions; semantic family: legacy_client_certificate@724, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436",
+      "source": "peaso/checks/batch_remaining_gcp.py::legacy_client_certificate@724",
+      "source_gate_evidence": "approved GKE client certificate exceptions; semantic family: legacy_client_certificate@724, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436"
+    },
+    "gcp_iam_workforce_mfa": {
+      "mandatory_external_fields": [
+        "customer_provider_mapping"
+      ],
+      "native_alternative": null,
+      "reason": "customer workforce provider and MFA claim mapping; semantic family: iam_workforce_mfa@3237, _workforce@3019, _strings@2795, _inventory@3246, _policy@2774, _scope@2738, _member@2768, _signed@3180",
+      "source": "peaso/checks/batch_remaining_gcp.py::iam_workforce_mfa@3237",
+      "source_gate_evidence": "customer workforce provider and MFA claim mapping; semantic family: iam_workforce_mfa@3237, _workforce@3019, _strings@2795, _inventory@3246, _policy@2774, _scope@2738, _member@2768, _signed@3180"
+    },
     "gcp_kms_approved_algorithm": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "approved KMS key-version algorithm set",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_08.<locals>._approved_algorithm@236"
+    },
+    "gcp_logging_detect_t1119": {
+      "mandatory_external_fields": [
+        "approved_read_rate"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check",
+      "source_gate_evidence": [
+        {
+          "expression": "policy = 'approved_read_rate' if check_id.endswith('t1119') else 'approved_list_rate'",
+          "field": "approved_read_rate",
+          "line": 161
+        }
+      ]
+    },
+    "gcp_logging_detect_t1136": {
+      "mandatory_external_fields": [
+        "audit_detection_policy.approved_identity_admins"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_audit_native.py::evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "ALLOW = {'gcp_logging_detect_t1136':'approved_identity_admins',",
+          "field": "audit_detection_policy.approved_identity_admins",
+          "line": 23
+        }
+      ]
+    },
+    "gcp_logging_detect_t1490": {
+      "mandatory_external_fields": [
+        "approved_backup_admins"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check",
+      "source_gate_evidence": [
+        {
+          "expression": "approved = _strings(_policy(context, 'approved_backup_admins', list))",
+          "field": "approved_backup_admins",
+          "line": 167
+        }
+      ]
+    },
+    "gcp_logging_detect_t1518": {
+      "mandatory_external_fields": [
+        "approved_list_rate"
+      ],
+      "native_alternative": null,
+      "reason": "approved audit API call-rate threshold; semantic family: callback@50, evaluate@18",
+      "source": "peaso/checks/gcp_audit_rates.py::callback@50",
+      "source_gate_evidence": "approved audit API call-rate threshold; semantic family: callback@50, evaluate@18"
+    },
+    "gcp_logging_detect_t1526": {
+      "mandatory_external_fields": [
+        "approved_list_rate"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check",
+      "source_gate_evidence": [
+        {
+          "expression": "policy = 'approved_read_rate' if check_id.endswith('t1119') else 'approved_list_rate'",
+          "field": "approved_list_rate",
+          "line": 161
+        }
+      ]
+    },
+    "gcp_logging_detect_t1546": {
+      "mandatory_external_fields": [
+        "audit_detection_policy.approved_automation_admins"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/gcp_audit_native.py::evaluate",
+      "source_gate_evidence": [
+        {
+          "expression": "'gcp_logging_detect_t1546':'approved_automation_admins'}",
+          "field": "audit_detection_policy.approved_automation_admins",
+          "line": 24
+        }
+      ]
+    },
+    "gcp_logging_detect_t1614": {
+      "mandatory_external_fields": [
+        "approved_list_rate"
+      ],
+      "native_alternative": null,
+      "reason": "approved audit API call-rate threshold; semantic family: callback@50, evaluate@18",
+      "source": "peaso/checks/gcp_audit_rates.py::callback@50",
+      "source_gate_evidence": "approved audit API call-rate threshold; semantic family: callback@50, evaluate@18"
+    },
+    "gcp_logging_detect_t1619": {
+      "mandatory_external_fields": [
+        "approved_list_rate"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check",
+      "source_gate_evidence": [
+        {
+          "expression": "policy = 'approved_read_rate' if check_id.endswith('t1119') else 'approved_list_rate'",
+          "field": "approved_list_rate",
+          "line": 161
+        }
+      ]
+    },
+    "gcp_logging_detect_t1648": {
+      "mandatory_external_fields": [
+        "approved_invokers"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check",
+      "source_gate_evidence": [
+        {
+          "expression": "'gcp_logging_detect_t1648': ('approved_invokers', {'run.routes.invoke', 'cloudfunctions.functions.call'}),",
+          "field": "approved_invokers",
+          "line": 145
+        }
+      ]
+    },
+    "gcp_logging_detect_t1651": {
+      "mandatory_external_fields": [
+        "approved_cloud_admins"
+      ],
+      "native_alternative": null,
+      "reason": "Mandatory owner supplied comparator, roster, trust list, or assessment scope read by this exact semantic evaluator; no native PASS path before the gate.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check",
+      "source_gate_evidence": [
+        {
+          "expression": "'gcp_logging_detect_t1651': ('approved_cloud_admins', {'SetIamPolicy', 'UpdateProject'}),",
+          "field": "approved_cloud_admins",
+          "line": 146
+        }
+      ]
     },
     "gcp_logging_query_rate_alert": {
       "mandatory_external_fields": [],
@@ -2660,11 +4874,38 @@
       "reason": "approved log-query count threshold",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_54.<locals>._alerts@3106"
     },
+    "gcp_logging_scc_findings_alert": {
+      "mandatory_external_fields": [
+        "approved_on_call_topics"
+      ],
+      "native_alternative": null,
+      "reason": "approved on-call notification topics; semantic family: scc_finding_route@358, _matches_filter@339, _time@93, _strings@87, _policy@80, _inventory@44, _anchor@75, _scope@34",
+      "source": "peaso/checks/compliance_new_sw55.py::scc_finding_route@358",
+      "source_gate_evidence": "approved on-call notification topics; semantic family: scc_finding_route@358, _matches_filter@339, _time@93, _strings@87, _policy@80, _inventory@44, _anchor@75, _scope@34"
+    },
+    "gcp_network_auto_subnets_enabled": {
+      "mandatory_external_fields": [
+        "auto_subnet_vpcs"
+      ],
+      "native_alternative": null,
+      "reason": "customer-selected auto-subnet VPC scope; semantic family: auto_subnet_design@627, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436",
+      "source": "peaso/checks/batch_remaining_gcp.py::auto_subnet_design@627",
+      "source_gate_evidence": "customer-selected auto-subnet VPC scope; semantic family: auto_subnet_design@627, _policy@496, _scope@448, _strings@503, _inventory@957, signed@436"
+    },
     "gcp_pci_backend_service_571fd0bfec67": {
       "mandatory_external_fields": [],
       "native_alternative": null,
       "reason": "required Cloud Armor log sink",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_51.<locals>.armor_backend_logging@1710"
+    },
+    "gcp_pci_bucket_7dc6cb8c2e05": {
+      "mandatory_external_fields": [
+        "excludedPublicBuckets"
+      ],
+      "native_alternative": null,
+      "reason": "approved public-bucket exception list; semantic family: bucket_public_access@315, _effective_bucket_public@307, _rows@203, _validated_rows@169, _scope@159, _by@228, _policy@210, _acl_public@286",
+      "source": "peaso/checks/compliance_new_sw51.py::bucket_public_access@315",
+      "source_gate_evidence": "approved public-bucket exception list; semantic family: bucket_public_access@315, _effective_bucket_public@307, _rows@203, _validated_rows@169, _scope@159, _by@228, _policy@210, _acl_public@286"
     },
     "gcp_resource_approved_location": {
       "mandatory_external_fields": [],
@@ -2677,6 +4918,15 @@
       "native_alternative": null,
       "reason": "required label keys, risk asset types and approved label values",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_09.<locals>.asset_inventory_labels@711"
+    },
+    "gcp_source_repo_access_restricted": {
+      "mandatory_external_fields": [
+        "approved_developers"
+      ],
+      "native_alternative": null,
+      "reason": "approved source repository developers; semantic family: source_repo_access_restricted@2010, _iam_members@1833, _identity@1830, _policy@1812, _scope@1774, _bindings@1827, _list@1821, _member@2165",
+      "source": "peaso/checks/batch_remaining_gcp.py::source_repo_access_restricted@2010",
+      "source_gate_evidence": "approved source repository developers; semantic family: source_repo_access_restricted@2010, _iam_members@1833, _identity@1830, _policy@1812, _scope@1774, _bindings@1827, _list@1821, _member@2165"
     },
     "gcp_vpc_peering_allowlist": {
       "mandatory_external_fields": [],
@@ -2719,6 +4969,15 @@
       "native_alternative": null,
       "reason": "customer-designated sensitive Workbench instances and approved exceptions",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_08.<locals>.<lambda>@387"
+    },
+    "k8s.cis.a_limit_is_set_on_pod_pids": {
+      "mandatory_external_fields": [
+        "_component_config._provenance.source=operator-supplied metadata"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Component PID declaration helper requires operator-supplied metadata provenance",
+      "source": "peaso/checks/compliance_new_k8s_component.py::_observed_declaration",
+      "source_gate_evidence": "Component PID declaration helper requires operator-supplied metadata provenance"
     },
     "k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller": {
       "mandatory_external_fields": [
@@ -3077,6 +5336,26 @@
       "reason": "Host file ownership and node coverage are imported attestations outside the read-only Kubernetes API.",
       "source": "peaso/checks/batch_remaining_k8s.py::_load_57._files_scope/_file"
     },
+    "k8s.cis.kubelet_rotate_kubelet_server_certificate_true": {
+      "mandatory_external_fields": [
+        "_component_config._provenance.source=operator-supplied metadata"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Kubelet declaration helper requires operator-supplied metadata provenance, outside read-only Kubernetes API",
+      "source": "peaso/checks/batch_remaining_k8s.py::_observed_declaration",
+      "source_gate_evidence": "Kubelet declaration helper requires operator-supplied metadata provenance, outside read-only Kubernetes API"
+    },
+    "k8s.cis.namespace_has_networkpolicy": {
+      "mandatory_external_fields": [
+        "context.metadata.compliance_policy.status=collected",
+        "context.metadata.compliance_policy.source=operator-supplied",
+        "context.metadata.compliance_policy.system_namespaces"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. System namespace exclusion requires operator-supplied company namespace policy",
+      "source": "peaso/checks/k8s_namespace_policy_presence.py::_system_namespaces",
+      "source_gate_evidence": "System namespace exclusion requires operator-supplied company namespace policy"
+    },
     "k8s.cis.the_eventrecordqps_argument_is_set_to_a_level_which_ensures_appropriate_event_capture": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.status=collected",
@@ -3096,6 +5375,15 @@
       "native_alternative": "Kubernetes Node OS identity is native; Windows host policy state is not.",
       "reason": "Windows node policy state is imported component configuration, not Kubernetes API data.",
       "source": "peaso/checks/batch_remaining_k8s.py::_load_57._windows"
+    },
+    "k8s.cis.the_kube_proxy_metrics_service_is_bound_to_localhost": {
+      "mandatory_external_fields": [
+        "context.metadata.kube_proxy_pod_coverage"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Selected kube-proxy branch requires attested pod coverage before port verdict",
+      "source": "peaso/checks/batch_remaining_k8s.py::_attested_coverage",
+      "source_gate_evidence": "Selected kube-proxy branch requires attested pod coverage before port verdict"
     },
     "k8s.cis.the_request_timeout_argument_is_set_as_appropriate": {
       "mandatory_external_fields": [
@@ -3291,6 +5579,25 @@
       "reason": "The image allowlist and literal CEL admission expression are generated from mandatory owner policy.",
       "source": "peaso/checks/batch_remaining_k8s.py::_load_56._approved_image"
     },
+    "k8s_cluster_appropriate_set_procedures_information_labelling_should_e24bda19": {
+      "mandatory_external_fields": [
+        "compliance_policy.classification_label_key",
+        "approved_values"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Classification label branch requires owner label key and approved values",
+      "source": "peaso/checks/batch_remaining_k8s.py::_policy",
+      "source_gate_evidence": "Classification label branch requires owner label key and approved values"
+    },
+    "k8s_cluster_clocks_information_processing_systems_used_by_82e06ff4": {
+      "mandatory_external_fields": [
+        "compliance_policy.sw57.approved_clock_skew"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW57 clock branch requires owner approved skew threshold",
+      "source": "peaso/checks/compliance_new_sw57.py::_clock",
+      "source_gate_evidence": "SW57 clock branch requires owner approved skew threshold"
+    },
     "k8s_cluster_version_at_least_oldest_supported": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.{status,cluster_id,oldestVersionSupported}"
@@ -3306,6 +5613,15 @@
       "native_alternative": "Kubernetes API discovery supplies gitVersion; a separately sourced fixed support floor could form a distinct native rule.",
       "reason": "The server version is native, but the evaluated support floor is operator-supplied and has no built-in fixed value.",
       "source": "peaso/checks/batch_remaining_k8s.py::_load_10._scope_evaluator"
+    },
+    "k8s_environment_separation": {
+      "mandatory_external_fields": [
+        "compliance_policy.environment_matrix"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Environment separation requires owner environment matrix",
+      "source": "peaso/checks/batch_remaining_k8s.py::_policy",
+      "source_gate_evidence": "Environment separation requires owner environment matrix"
     },
     "k8s_namespace_has_rolebinding": {
       "mandatory_external_fields": [
@@ -3327,6 +5643,63 @@
       "reason": "Mandatory owner policy controls the pass/fail target; API data alone cannot decide it.",
       "source": "peaso/checks/compliance_new_k8s_owner_policy.py::namespace_labels"
     },
+    "k8s_networkpolicy_cluster_has_network_policies_that_1fd253608e": {
+      "mandatory_external_fields": [
+        "compliance_policy.allowed_public_ports|allowed_ports"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. World ingress port decision requires owner allowed port set",
+      "source": "peaso/checks/batch_remaining_k8s.py::_ports",
+      "source_gate_evidence": "World ingress port decision requires owner allowed port set"
+    },
+    "k8s_networkpolicy_cluster_has_network_policies_that_24d2fc90b0": {
+      "mandatory_external_fields": [
+        "context.metadata.network_policy_enforcement.status=verified",
+        "context.metadata.network_policy_enforcement.policy_union_complete=true"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Selected branch requires external CNI enforcement verification and complete policy union",
+      "source": "peaso/checks/batch_remaining_k8s.py::_networkpolicy",
+      "source_gate_evidence": "Selected branch requires external CNI enforcement verification and complete policy union"
+    },
+    "k8s_networkpolicy_has_ingress_or_egress_rules": {
+      "mandatory_external_fields": [
+        "compliance_policy.network_policy_intent",
+        "context.metadata.network_policy_enforcement.status=verified"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Selected branch requires owner network policy intent and CNI attestation",
+      "source": "peaso/checks/batch_remaining_k8s.py::_networkpolicy",
+      "source_gate_evidence": "Selected branch requires owner network policy intent and CNI attestation"
+    },
+    "k8s_networkpolicy_world_ingress_authorized_ports": {
+      "mandatory_external_fields": [
+        "compliance_policy.allowed_public_ports|allowed_ports"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. World ingress port decision requires owner allowed port set",
+      "source": "peaso/checks/batch_remaining_k8s.py::_ports",
+      "source_gate_evidence": "World ingress port decision requires owner allowed port set"
+    },
+    "k8s_persistentvolume_persistentvolumeclaims_pvc_permissions_do_not_allow_00af04b0": {
+      "mandatory_external_fields": [
+        "approved_control_namespaces"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. PVC namespace decision requires approved control namespaces",
+      "source": "peaso/checks/batch_remaining_k8s.py::_pvc",
+      "source_gate_evidence": "PVC namespace decision requires approved control namespaces"
+    },
+    "k8s_pod_pod_deployed_specific_namespace_its_76714f9dfe": {
+      "mandatory_external_fields": [
+        "approved_namespaces",
+        "approved_node_pool_selector|approved_node_selector|approved_label_selector"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Pod placement predicate requires owner approved namespaces and selected placement constraints",
+      "source": "peaso/checks/batch_remaining_k8s.py::_string_set",
+      "source_gate_evidence": "Pod placement predicate requires owner approved namespaces and selected placement constraints"
+    },
     "k8s_pod_pod_deployed_within_specific_namespace_0daa0bd46b": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.{status,cluster_id,observed_at,max_age_seconds,approved_namespaces}"
@@ -3336,6 +5709,47 @@
       "source": "peaso/checks/compliance_next_k8s.py::_evaluate",
       "source_gate_evidence": "_evaluate requires _names(index, approved_namespaces) for Pod namespace membership."
     },
+    "k8s_pod_pod_deployed_within_specific_namespace_3790c81f90": {
+      "mandatory_external_fields": [
+        "approved_namespaces",
+        "approved_node_pool_selector|approved_node_selector|approved_label_selector"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Pod placement predicate requires owner approved namespaces and selected placement constraints",
+      "source": "peaso/checks/batch_remaining_k8s.py::_string_set",
+      "source_gate_evidence": "Pod placement predicate requires owner approved namespaces and selected placement constraints"
+    },
+    "k8s_pod_pod_deployed_within_specific_namespace_62bb9e62c0": {
+      "mandatory_external_fields": [
+        "approved_namespaces",
+        "approved_node_pool_selector|approved_node_selector|approved_label_selector"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Pod placement predicate requires owner approved namespaces and selected placement constraints",
+      "source": "peaso/checks/batch_remaining_k8s.py::_string_set",
+      "source_gate_evidence": "Pod placement predicate requires owner approved namespaces and selected placement constraints"
+    },
+    "k8s_pod_pod_running_within_specific_namespace_0f3d581358": {
+      "mandatory_external_fields": [
+        "approved_namespaces",
+        "approved_node_pool_selector|approved_node_selector|approved_label_selector"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Pod placement predicate requires owner approved namespaces and selected placement constraints",
+      "source": "peaso/checks/batch_remaining_k8s.py::_string_set",
+      "source_gate_evidence": "Pod placement predicate requires owner approved namespaces and selected placement constraints"
+    },
+    "k8s_privileged_utility_access": {
+      "mandatory_external_fields": [
+        "authorized_subjects",
+        "authorized_utility_namespaces",
+        "privileged_utility_pods"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. Utility authorization requires owner subject/namespace/pod allowlists",
+      "source": "peaso/checks/batch_remaining_k8s.py::_privileged_utility",
+      "source_gate_evidence": "Utility authorization requires owner subject/namespace/pod allowlists"
+    },
     "k8s_response_team_required_binding": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.{status,cluster_id,observed_at,max_age_seconds,allowed_namespaces,required_subject_kind,required_subject_name,required_role_kind,required_role_name}"
@@ -3344,6 +5758,16 @@
       "reason": "Mandatory external policy or attestation: _evaluate calls _names/_policy for the required response-team RBAC identity and approved namespaces before a verdict.",
       "source": "peaso/checks/compliance_next_k8s.py::_evaluate",
       "source_gate_evidence": "_evaluate calls _names/_policy for the required response-team RBAC identity and approved namespaces before a verdict."
+    },
+    "k8s_service_external_traffic_policy_matches_required": {
+      "mandatory_external_fields": [
+        "in_scope_service_names",
+        "compliance_policy.sw10.required_external_traffic_policy"
+      ],
+      "native_alternative": "No independent provider-only PASS branch in the selected evaluator.",
+      "reason": "Selected source branch has no independent read-only-provider PASS path. SW10 service branch requires owner in-scope Services and required externalTrafficPolicy",
+      "source": "peaso/checks/compliance_new_sw10.py::_resource_evaluator",
+      "source_gate_evidence": "SW10 service branch requires owner in-scope Services and required externalTrafficPolicy"
     },
     "k8s_service_loadbalancers_associated_authorized_namespace_rule_8b0a04d99f": {
       "mandatory_external_fields": [

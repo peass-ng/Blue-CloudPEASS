@@ -16,7 +16,7 @@ from peaso.checks import CHECKS, aws_backup_plan_frequency as backup
 from peaso.checks.catalog import framework_ids_for, names_for_ids, requirement_tags_for
 from peaso.checks.fixtures import CASES
 from peaso.collectors import aws_policy
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot, validate
 
 from tests.release_successor_history import (ancestor_json, ancestor_bytes, ancestor_sha, registered_before_bulk, registry_source_before_bulk)

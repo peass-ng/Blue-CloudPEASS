@@ -2,7 +2,7 @@
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_azure_bulk_native import Transport, SCOPE, SUB, SQL, fixture
 

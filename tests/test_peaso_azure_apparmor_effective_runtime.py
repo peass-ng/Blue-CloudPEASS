@@ -1,5 +1,5 @@
 """AppArmor declared policy versus independently measured applied profiles."""
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 SCOPE = '/subscriptions/sub'

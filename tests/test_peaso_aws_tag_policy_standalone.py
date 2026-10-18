@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 from tests.test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, collect_live, aws_organizations_native as native
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 
 CONTROL = 'aws_cis_ec2_tag_policy'

@@ -4,7 +4,7 @@ from datetime import datetime,timezone,timedelta
 import pytest
 from test_peaso_aws_bulk_inventory import sdk,ACCOUNT,REGION
 from peaso.collectors import aws,collect_live
-from peaso.engine import evaluate_snapshot,collect_snapshot
+from tests.archived_check_contract import evaluate_snapshot,collect_snapshot
 from peaso.aws_budget_policy import normalize
 CHECK='aws_budgets_stop_action'
 ID='11111111-2222-3333-4444-555555555555'
