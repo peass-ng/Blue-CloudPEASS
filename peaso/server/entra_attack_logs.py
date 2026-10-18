@@ -182,13 +182,11 @@ def _run(auth, scopes, options, source, *, analyze):
                 "pages_read": pages, "events_read": read, "events_normalized": len(events),
                 "events_ignored": ignored, "truncated": truncated,
                 "credential_add_candidates": len(candidates),
-                "detection_status": "credential_add_only"}
+                "detection_status": "not_implemented"}
     if not analyze:
         return {"source_status": "accessible", "coverage": coverage,
                 "note": "Graph directoryAudits read succeeded. Empty results do not prove that all activities were logged or retained."}
-    from peaso.attack_detection import detect_azure_events
-    return {"coverage": coverage, "events": events,
-            "detections": [item.__dict__ for item in detect_azure_events(candidates)] if candidates else []}
+    return {"coverage": coverage, "events": events, "detections": []}
 
 
 def check_entra_source(auth, scopes, options, source):

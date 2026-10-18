@@ -650,14 +650,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return {"status": "blocked", "reason": "Could not read this log source with the selected connector. Verify CloudTrail LookupEvents or S3 ListBucket/GetObject and, for encrypted objects, KMS Decrypt."}
         if result["source_status"] != "accessible":
             return {"status": "warning", **result}
+        if body.kind == "entra_directory_audit":
+            return {"status": "warning", **result, "reason": "Directory audit access is verified. An Entra attack rule needs more context to avoid routine credential-rotation alerts."}
         try:
             from peaso.attack_detection import load_rules
             product = "kubernetes" if body.kind == "gke_audit" else provider
-            rules = load_rules(product=product)
-            if body.kind == "entra_directory_audit" and not any(
-                rule.selection.get("event.source") == "entra.directoryAudit" for rule in rules
-            ):
-                return {"status": "blocked", **result, "reason": "No reviewed Entra detection rule is available."}
+            load_rules(product=product)
         except Exception:
             return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Check the pinned rule repository and retry."}
         payload = body.model_dump()

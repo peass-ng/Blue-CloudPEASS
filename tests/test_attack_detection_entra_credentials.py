@@ -77,7 +77,7 @@ def test_ambiguous_or_unrelated_event_fails_closed(change):
     assert normalized(event) is None
 
 
-def test_reader_returns_only_reviewed_signal(monkeypatch):
+def test_reader_does_not_publish_noisy_credential_activity_as_attack(monkeypatch):
     from types import SimpleNamespace
 
     claims = base64.urlsafe_b64encode(json.dumps({
@@ -90,10 +90,10 @@ def test_reader_returns_only_reviewed_signal(monkeypatch):
         def close(self): pass
 
     monkeypatch.setattr("peaso.server.entra_attack_logs.AzureTransport", lambda auth: API())
-    monkeypatch.setattr("peaso.attack_detection.rules.load_rules", lambda *args, **kwargs: (RULE,))
     result = entra_attack_logs.analyze_entra_source(
         {"tenant_id": TENANT}, [], {}, SimpleNamespace(kind="entra_directory_audit", tenant_id=TENANT))
     assert result["coverage"]["events_read"] == 1
     assert result["coverage"]["credential_add_candidates"] == 1
-    assert len(result["detections"]) == 1
+    assert result["coverage"]["detection_status"] == "not_implemented"
+    assert result["detections"] == []
     assert "sensitive app" not in str(result)

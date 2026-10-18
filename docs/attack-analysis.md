@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `73503b614c029d413d7b64790ab9d8336effc682` by
+pack at pinned commit `c849870fdba47f1270b14e5f35f68b69bcb37bcd` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -53,8 +53,9 @@ same window and reports a successfully correlated Owner or User Access
 Administrator self-assignment at subscription scope. The Started event carries
 the assignee and role, while a matching Succeeded event supplies the outcome.
 This proves the assignment operation, not malicious intent or net new access.
-The separate Microsoft Entra source reads the connector tenant's directory
-audits and currently evaluates one service-principal credential-add activity.
+The separate Microsoft Entra source checks the connector tenant's directory
+audits. Attack evaluation remains disabled until contextual rules can separate
+routine credential rotation from activity needing investigation.
 The current
 request stops at 2,000 events, and AWS S3 stops at five objects and rejects
 any object above the decompression bound. The response reports read coverage
@@ -96,9 +97,10 @@ ClickHouse local documentation: <https://clickhouse.com/docs/operations/utilitie
   needs separate workspace access.
 - Microsoft Entra directory audit: a bounded Microsoft Graph read checks
   `AuditLog.Read.All` application permission with tenant admin consent. The
-  connector token must belong to its configured tenant. Its reviewed rule
-  reports successful additions of service-principal credentials; it does not
-  infer credential use, privilege gain or malicious intent.
+  connector token must belong to its configured tenant. The source currently
+  checks access only. A read of 100 existing credential-add audit records
+  found just two app actors affecting 100 targets, so a raw activity rule was
+  withdrawn as too noisy; this pattern is not proof that those events were benign.
 - Kubernetes: generic clusters may write audit events to a file or webhook;
   `kubectl get events` is not an audit-log source.
 
@@ -110,7 +112,7 @@ Kubernetes: <https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/>
 
 ## Detection quality
 
-The pinned pack has eighteen activity rules: ten AWS, four GCP, two
+The pinned pack has seventeen activity rules: ten AWS, four GCP, one
 Azure, and two Kubernetes. The AWS role attachment rule requires the exact
 AdministratorAccess policy and evidence that the target is the issuing role.
 The GCP Token Creator rule reports a binding in the resulting service-account
@@ -119,8 +121,7 @@ added. The uploaded-key rule retains only its key resource name. Successful
 CloudTrail and GuardDuty disabling or deletion operations are reported as
 requests, with no claim about present monitoring state. The GCP service-account
 restore rule reports the returned identity, not retained permissions or usable
-credentials. The Entra rule reports a service-principal credential addition,
-not subsequent use or elevated rights. Kubernetes binding
+credentials. Kubernetes binding
 updates are normalized as observed state, but do not emit a privilege-gain
 detection without a before/after comparison.
 
