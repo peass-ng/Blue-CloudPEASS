@@ -52,12 +52,17 @@ durable investigation job.
 
 For a full historical service, stream normalized records into Parquet and
 benchmark an embedded DuckDB scan against a persistent ClickHouse deployment
-on identical logs, rules, CPUs, and network transfer. DuckDB can push Parquet
-filters and projections into scans, but no official general Sigma-to-DuckDB
-backend is assumed. A supported Sigma compiler must reject unsupported rules
-and have positive/negative conformance tests before replacing the preview
-evaluator. No universal speed or cost winner is claimed without that workload
-benchmark.
+on identical logs, rules, CPUs, and network transfer. A local synthetic check
+on one million already-normalized events and five equality rules took 1.84 s
+in the current Python evaluator; writing Parquet took 0.53 s and querying
+bounded evidence with DuckDB took 0.033 s. Both found the same 50 synthetic
+matches. This excludes transfer, gzip/JSON parsing, normalization and real
+rule complexity, so it is a direction for the batch prototype, not a
+production speed or cost estimate. Keep the current in-process evaluator for
+the 2,000-event interactive preview. DuckDB can push Parquet filters and
+projections into scans, but no official general Sigma-to-DuckDB backend is
+assumed. A supported Sigma compiler must reject unsupported rules and have
+positive/negative conformance tests before replacing the preview evaluator.
 
 DuckDB Parquet documentation: <https://duckdb.org/docs/data/parquet>
 ClickHouse local documentation: <https://clickhouse.com/docs/operations/utilities/clickhouse-local>
