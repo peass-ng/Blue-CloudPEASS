@@ -99,7 +99,7 @@ jobs:
           HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud:${{ github.workspace }}/.hacktricks-cloud-azure:${{ github.workspace }}/.hacktricks-cloud-k8s
           PEASO_HACKTRICKS_ROOT: ${{ github.workspace }}/.hacktricks-cloud
         # --dist loadfile keeps each module's expensive fixtures on one worker.
-        run: python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs --junitxml=pytest-report.xml --ignore=tests/test_peaso_perf_benchmark.py tests
+        run: python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs --ignore=tests/test_peaso_perf_benchmark.py --junitxml=pytest-report.xml tests
       - name: Fail on unexpected performance skips
         if: ${{ !cancelled() && steps.benchmark.outcome != 'skipped' }}
         run: python scripts/check_test_skips.py pytest benchmark-report.xml
