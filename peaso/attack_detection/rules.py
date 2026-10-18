@@ -24,6 +24,7 @@ from .aws_role_boundary_next import normalize_aws_role_boundary_delete
 from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
+from .aws_s3_bucket import normalize_aws_s3_bucket
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -45,8 +46,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "bbf89c5e54cf970a24f13c3c91038efa33388baa"
-DEFAULT_RULE_PACK_SHA256 = "c0c465eb02dd91161c789832dedf1c8e3edfebb38f9e040f2d3db8d88b68ea98"
+DEFAULT_RULE_REF = "8771bb42764598d01e73f5e38834c4db0195a610"
+DEFAULT_RULE_PACK_SHA256 = "0631f676a219e4642defb145e4d0252cac01fd6fb2540c78fd3957c40c23d5ae"
 
 
 @dataclass(frozen=True)
@@ -162,13 +163,15 @@ def detect_aws_events(
         self_user_boundary = normalize_aws_self_user_boundary_delete(record)
         trust = normalize_aws_wildcard_role_trust(record)
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
+        s3_bucket = normalize_aws_s3_bucket(record)
         return (([base] if base is not None else [])
                 + ([profile] if profile is not None else [])
                 + ([updated_profile] if updated_profile is not None else [])
                 + ([boundary] if boundary is not None else [])
                 + ([self_user_boundary] if self_user_boundary is not None else [])
                 + ([trust] if trust is not None else [])
-                + ([keyspaces_credential] if keyspaces_credential is not None else []))
+                + ([keyspaces_credential] if keyspaces_credential is not None else [])
+                + ([s3_bucket] if s3_bucket is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
