@@ -24,9 +24,9 @@ DOCS = {
 }
 
 
-def install(cid, kind, title, passing, failing, *, query=None, category="hardening", severity="medium", dependencies=None, target="resource", extra=None):
+def install(cid, kind, title, passing, failing, *, query=None, category="hardening", severity="medium", dependencies=None, target="resource", extra=None, empty_applicability_dependencies=()):
     def decorate(function):
-        register(cid, "aws", category, kind, title, severity, "CM-6", "Review the configuration against intended workload requirements; remediate the reported setting and retain independent verification evidence.", target=target, dependencies=dependencies)(function)
+        register(cid, "aws", category, kind, title, severity, "CM-6", "Review the configuration against intended workload requirements; remediate the reported setting and retain independent verification evidence.", target=target, dependencies=dependencies, empty_applicability_dependencies=empty_applicability_dependencies)(function)
         IDS.append(cid)
         CASES[cid] = {"pass": passing, "fail": failing, "missing": {}, "malformed": None, **(extra or {})}
         if query:

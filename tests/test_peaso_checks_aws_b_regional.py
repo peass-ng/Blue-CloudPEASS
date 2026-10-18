@@ -19,7 +19,7 @@ def test_backup_report_applicability_and_missing_join():
     check = next(c for c in CHECKS if c.id == "aws.b.backup.report_plan_presence")
     item = {"scope": "111111111111/us-east-1"}
     empty = {"collections": {"backup_plan": [{"status": "empty"}], "backup_report_plan": [{"status": "empty"}]}, "backup_plan": [], "backup_report_plan": []}
-    assert check.evaluate(item, empty)[0] == "MANUAL"
+    assert check.evaluate(item, empty)[0] == "NOT_APPLICABLE"
     empty["backup_plan"] = [{"data": {"id": "configured"}}]
     empty["collections"]["backup_plan"][0]["status"] = "collected"
     assert check.evaluate(item, empty)[0] == "FAIL"

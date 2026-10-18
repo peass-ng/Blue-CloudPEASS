@@ -180,6 +180,14 @@ def _self_documents(requests, session, region, account):
     return requests.pages(session, "ssm", region, "list_documents", "DocumentIdentifiers", Filters=[{"Key": "Owner", "Values": ["Self"]}])
 
 
+def _backup_report_plans(requests, session, region, account):
+    # ListReportPlans returns NextToken but SDK 1.43.38 does not declare a
+    # paginator. A first page with a token is not a complete presence or absence
+    # inventory; let the shared read scheduler follow every page.
+    return requests.pages(session, "backup", region, "list_report_plans", "ReportPlans",
+                          _tokens=("NextToken", "NextToken"))
+
+
 def _inspector_review(requests, session, region, account):
     """Keep independent admin proof and config availability in separate fields.
 
@@ -244,6 +252,7 @@ def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argumen
 
 
 FETCHERS = {
+    "backup_report_plan": _backup_report_plans,
     "acm_certificate": _acm_certificates,
     "inspector_organization_review": _inspector_review,
     "rest_api_stage": _api_stages("apigateway", "get_rest_apis", "items", "id", "item", "restApiId"),

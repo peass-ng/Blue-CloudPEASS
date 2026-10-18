@@ -24,13 +24,13 @@ _scope_present("backup_vault", "backup_vault_region_configured", "A backup vault
 _report_anchor = {"scope": "111111111111/us-east-1"}
 _report_base = {"collections": {"backup_plan": [{"status": "collected"}], "backup_report_plan": [{"status": "empty"}]}, "backup_plan": [{"data": {"id": "plan"}}], "backup_report_plan": []}
 _report_good = {**_report_base, "collections": {"backup_plan": [{"status": "collected"}], "backup_report_plan": [{"status": "collected"}]}, "backup_report_plan": [{"data": {"id": "report"}}]}
-@install("aws.b.backup.report_plan_presence", "backup_report_plan", "Regions with backup plans also have a backup report plan", _report_anchor, _report_anchor, query="backup_report_plan_configured", target="scope", dependencies=["backup_plan", "backup_report_plan"], extra={"pass_index": _report_good, "fail_index": _report_base})
+@install("aws.b.backup.report_plan_presence", "backup_report_plan", "Regions with backup plans also have a backup report plan", _report_anchor, _report_anchor, query="backup_report_plan_configured", target="scope", dependencies=["backup_plan", "backup_report_plan"], empty_applicability_dependencies=["backup_plan"], extra={"pass_index": _report_good, "fail_index": _report_base})
 def backup_report(item, index):
     scope = get(item, "scope", str)
     plans = complete_items(index, "backup_plan")
-    reports = complete_items(index, "backup_report_plan")
     if not plans:
-        return "MANUAL", {"scope": scope, "reason": "Pinned source uses info when no backup plan is configured; report plan requirement applicability needs owner review."}
+        return "NOT_APPLICABLE", {"scope": scope, "backup_plans": 0, "reason": "Complete backup plan inventory is empty in this account and Region; the pinned source query returns info because no backup plan is configured."}
+    reports = complete_items(index, "backup_report_plan")
     return result(not reports, scope=scope, backup_plans=len(plans), backup_report_plans=len(reports))
 
 
