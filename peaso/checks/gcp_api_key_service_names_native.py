@@ -25,10 +25,14 @@ def source_correction(signed_spec_sha256):
     """Admit only the pinned one-check schema erratum over unchanged source."""
     root = Path(__file__).resolve().parents[2]
     ledger = root / "docs/compliance-ledgers"
-    erratum = ledger / "gcp-api-key-service-name-erratum-20261018.json"
+    erratum = Path(__file__).with_name("gcp_api_key_service_name_erratum.json")
+    checkout_erratum = ledger / "gcp-api-key-service-name-erratum-20261018.json"
     source = ledger / "new-checks-gcp.json"
+    # Wheels retain the byte-pinned record and its exact original spec below.
+    # A source checkout additionally verifies the complete original ledger file.
     if (signed_spec_sha256 != PRIOR_SPEC_SHA256 or
-            hashlib.sha256(source.read_bytes()).hexdigest() != FROZEN_SOURCE_SHA256 or
+            source.exists() and hashlib.sha256(source.read_bytes()).hexdigest() != FROZEN_SOURCE_SHA256 or
+            checkout_erratum.exists() and hashlib.sha256(checkout_erratum.read_bytes()).hexdigest() != ERRATUM_SHA256 or
             hashlib.sha256(erratum.read_bytes()).hexdigest() != ERRATUM_SHA256):
         raise ValueError("GCP API key service-name source correction changed")
     row = json.loads(erratum.read_text())
