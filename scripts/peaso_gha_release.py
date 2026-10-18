@@ -44,9 +44,9 @@ def verify_source_archive(manifest: dict) -> Path:
         raise ValueError('Frozen source archive is missing or exceeds reviewed size')
     with zipfile.ZipFile(source_zip) as archive:
         members = archive.infolist()
-        if len(members) != len(set(row.filename for row in members)) or len(members) > 2501:
+        if len(members) != len(set(row.filename for row in members)) or len(members) > deploy.CURRENT_SOURCE_MEMBER_LIMIT:
             raise ValueError('Frozen source archive member count is invalid')
-        if sum(row.file_size for row in members) > 275_000_000:
+        if sum(row.file_size for row in members) > deploy.CURRENT_SOURCE_UNCOMPRESSED_LIMIT:
             raise ValueError('Frozen source archive expands beyond reviewed size')
         if archive.read('release.json') != json.dumps(manifest, indent=2).encode():
             raise ValueError('Frozen source archive manifest differs from release')

@@ -136,6 +136,11 @@ aws_iam_role.customer_trust aws_iam_role_policy.customer_trust
 # installer markers are removed. Historical approval contracts retain their
 # own 4,600-member limit; this bound applies to the current package build.
 CURRENT_API_MEMBER_LIMIT = 4800
+# Current corresponding source has grown beyond the historical artifact-update
+# contract. Keep these bounds aligned with the GitHub Actions release reviewer;
+# historical artifact-update approvals retain their original measured limits.
+CURRENT_SOURCE_MEMBER_LIMIT = 2501  # Includes release.json.
+CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 275_000_000
 
 
 def checked_member(root, name):
@@ -386,9 +391,9 @@ def freeze_release(release_source=None):
         except ModuleNotFoundError:
             from scripts.peaso_source_archive import optimize_source_archive
         compression = optimize_source_archive(
-            archive_path, max_members=artifact_update.MAX_SOURCE_MEMBERS + 1,
+            archive_path, max_members=CURRENT_SOURCE_MEMBER_LIMIT,
             max_member_bytes=artifact_update.MAX_SOURCE_MEMBER_BYTES,
-            max_uncompressed_bytes=artifact_update.MAX_SOURCE_UNCOMPRESSED_BYTES)
+            max_uncompressed_bytes=CURRENT_SOURCE_UNCOMPRESSED_LIMIT)
         (BUILD / "source-compression.json").write_text(json.dumps(compression, indent=2) + "\n")
         if archive_path.stat().st_size > artifact_update.MAX_SOURCE_ARCHIVE_BYTES:
             raise RuntimeError("Frozen source ZIP exceeds the unchanged archive byte limit")
