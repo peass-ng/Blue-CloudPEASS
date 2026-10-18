@@ -171,7 +171,7 @@ test("scan framework picker adds multiple relevant selections and clears on conn
   await expect(page.getByRole("button", { name: /CIS GCP v2/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /CIS AWS v1/ })).toHaveCount(0);
 });
-test("live starts empty without invented scans and fixture is explicit", async ({
+test("authenticated workspace starts empty without demo controls", async ({
   page,
 }) => {
   await emptyApi(page);
@@ -182,10 +182,11 @@ test("live starts empty without invented scans and fixture is explicit", async (
   await expect(
     page.getByRole("heading", { name: "Coverage is not available yet" }),
   ).toBeVisible();
-  await expect(
-    page.getByLabel("Fixture demo", { exact: true }),
-  ).not.toBeChecked();
-  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeDisabled();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toHaveCount(0);
+  await expect(page.locator(".api-status")).toHaveCount(0);
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/icons/peaso-badge.svg");
+  await expect(page.locator(".hero")).not.toContainText("Native evidence");
+  await expect(page.locator(".hero")).not.toContainText("Four cloud providers");
   await page.screenshot({
     path: "evidence/live-empty-desktop.png",
     fullPage: true,
@@ -218,8 +219,8 @@ test("anonymous visitors start in fixture demo with prominent account actions", 
   expect(identityChecks).toBe(checksBeforeSwitch);
   signedIn = true;
   await page.evaluate(() => window.dispatchEvent(new Event("hacktricks-cspm-auth-session-changed")));
-  await expect(page.getByLabel("Fixture demo", { exact: true })).toBeDisabled();
-  await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();
+  await expect(page.getByLabel("Fixture demo", { exact: true })).toHaveCount(0);
+  await expect(page.locator(".api-status")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveCount(0);
 });
 test("account initial and Help route show actionable documentation", async ({ page }) => {
