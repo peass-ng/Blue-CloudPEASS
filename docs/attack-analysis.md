@@ -10,17 +10,20 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `7943488f8e9d3e69ca3ef3dbdfdddff2876c28a3` by
+pack at pinned commit `70ac609714d6923615e97d01743a1b799e5089a6` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
 without detections. Public tests use synthetic rules only.
 
-Hosted loading needs outbound HTTPS to `api.github.com`. No GitHub token or AWS
-Secrets Manager access is needed. An operator may override the default with
+Hosted loading needs outbound HTTPS to `codeload.github.com`. A single bounded
+archive from the pinned commit avoids GitHub's anonymous REST API quota. The
+default pack also has an expected SHA-256 digest over its rule files. No GitHub
+token or AWS Secrets Manager access is needed. An operator may override the default with
 `HACKTRICKS_CSPM_RULES_GITHUB_REF`; overriding the repository through
-`HACKTRICKS_CSPM_RULES_GITHUB_REPO` also requires an exact commit ref. The first
-successful read is cached per process for that commit. Local development may
+`HACKTRICKS_CSPM_RULES_GITHUB_REPO` also requires an exact commit ref. A custom
+pack may set `HACKTRICKS_CSPM_RULES_PACK_SHA256` for its reviewed rule-file
+digest. The first successful read is cached per process for that commit. Local development may
 use `HACKTRICKS_CSPM_RULES_DIR` to point at a checkout; hosted Cognito mode
 never falls back to this directory.
 
@@ -28,8 +31,11 @@ The current evaluator deliberately
 accepts a small portable subset: one exact-match selection, conjunction across
 fields, and OR lists within a field. Unsupported Sigma constructs fail closed.
 Raw provider events are normalized to common `event.*`, `actor.*`, `target.*`
-and `cloud.provider` fields before matching. The raw event ID and source scope
-remain available for investigation. OCSF is the intended interchange schema
+and `cloud.provider` fields before matching. Azure first joins the Started
+request with the Succeeded outcome for one role-assignment operation; the
+pinned Sigma selection then decides which joined grants to report. This join
+is application code, not portable Sigma correlation syntax. The event IDs and
+source scope remain available for investigation. OCSF is the intended interchange schema
 for stored large-scale batches; the interactive preview does not yet emit OCSF
 or Parquet.
 
@@ -43,8 +49,11 @@ subset evaluator. AWS Event History reads management events from one Region for
 at most 90 days; S3 reads CloudTrail `.json.gz` objects under one selected
 account, Region and day. GCP and GKE read Cloud Logging for a selected project
 and recent 24-hour window. Azure reads one subscription's Activity Log for the
-same window, but does not yet issue attack detections because the log alone
-does not reliably prove which role was granted to which principal. The current
+same window and reports a successfully correlated Owner or User Access
+Administrator self-assignment at subscription scope. The Started event carries
+the assignee and role, while a matching Succeeded event supplies the outcome.
+This proves the assignment operation, not malicious intent or net new access.
+The current
 request stops at 2,000 events, and AWS S3 stops at five objects and rejects
 any object above the decompression bound. The response reports read coverage
 and truncation. Analysis is synchronous and results are not stored as a
@@ -81,13 +90,15 @@ ClickHouse local documentation: <https://clickhouse.com/docs/operations/utilitie
   enabled. A GKE Kubernetes audit source lives in Cloud Logging, not in a
   generic Kubernetes API endpoint.
 - Azure Activity Log: subscription-scoped reads do not include Entra audit
-  records. Historical Log Analytics data needs separate workspace access.
+  records or management-group assignments. Historical Log Analytics data
+  needs separate workspace access.
 - Kubernetes: generic clusters may write audit events to a file or webhook;
   `kubectl get events` is not an audit-log source.
 
 AWS: <https://docs.aws.amazon.com/awscloudtrail/latest/userguide/view-cloudtrail-events.html>
 GCP: <https://docs.cloud.google.com/logging/docs/access-control>
 Azure: <https://learn.microsoft.com/en-us/azure/azure-monitor/platform/activity-log>
+Azure RBAC change history: <https://learn.microsoft.com/en-us/azure/role-based-access-control/change-history-report>
 Kubernetes: <https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/>
 
 ## Detection quality

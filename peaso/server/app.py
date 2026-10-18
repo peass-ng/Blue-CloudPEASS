@@ -637,13 +637,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return {"status": "blocked", "reason": "Could not read this log source with the selected connector. Verify CloudTrail LookupEvents or S3 ListBucket/GetObject and, for encrypted objects, KMS Decrypt."}
         if result["source_status"] != "accessible":
             return {"status": "warning", **result}
-        if provider != "azure":
-            try:
-                from peaso.attack_detection import load_rules
-                product = "kubernetes" if body.kind == "gke_audit" else provider
-                load_rules(product=product)
-            except Exception:
-                return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Check the pinned rule repository and retry."}
+        try:
+            from peaso.attack_detection import load_rules
+            product = "kubernetes" if body.kind == "gke_audit" else provider
+            load_rules(product=product)
+        except Exception:
+            return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Check the pinned rule repository and retry."}
         payload = body.model_dump()
         token = cipher.encrypt({"tenant": user.tenant_id, "digest": connector_digest(payload),
                                 "connector_fingerprint": connector_fingerprint,

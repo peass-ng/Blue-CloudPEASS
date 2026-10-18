@@ -29,7 +29,7 @@ def test_hosted_rule_source_never_uses_local_directory(monkeypatch, tmp_path):
     for name in ("HACKTRICKS_CSPM_RULES_GITHUB_REPO", "HACKTRICKS_CSPM_RULES_GITHUB_REF"):
         monkeypatch.delenv(name, raising=False)
     calls = []
-    monkeypatch.setattr(source, "fetch_rules", lambda repo, ref: calls.append((repo, ref)) or {"remote.yml": SAMPLE})
+    monkeypatch.setattr(source, "fetch_rules", lambda repo, ref, digest: calls.append((repo, ref)) or {"remote.yml": SAMPLE})
     _github_rule_texts.cache_clear()
     assert len(load_rules(product="aws")) == 1
     assert calls == [(DEFAULT_RULE_REPO, DEFAULT_RULE_REF)]
@@ -43,7 +43,7 @@ def test_pinned_source_reads_public_repo_and_sanitizes_failures(monkeypatch):
     import peaso.attack_detection.github_source as source
 
     _github_rule_texts.cache_clear()
-    monkeypatch.setattr(source, "fetch_rules", lambda repo, ref: {"sample.yml": SAMPLE}
+    monkeypatch.setattr(source, "fetch_rules", lambda repo, ref, digest: {"sample.yml": SAMPLE}
                         if (repo, ref) == ("owner/public", "a" * 40) else {})
     assert len(_github_rule_texts("owner/public", "a" * 40)) == 1
     _github_rule_texts.cache_clear()

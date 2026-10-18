@@ -1,10 +1,9 @@
-"""Pinned public GitHub rule reads with mocked network responses."""
+"""The public rule archive is immutable, bounded, and parsed without extraction."""
 from __future__ import annotations
 
-import base64
 import hashlib
 import io
-import json
+import tarfile
 from urllib.request import Request
 
 import pytest
@@ -13,32 +12,37 @@ from peaso.attack_detection import github_source as source
 
 
 COMMIT = "a" * 40
-TREE = "b" * 40
+ROOT = f"rules-{COMMIT}"
 TEXT = "title: reviewed example\n"
 
 
-def blob_sha(raw: bytes) -> str:
-    return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+def archive(*entries: tuple[str, bytes, bytes]) -> bytes:
+    out = io.BytesIO()
+    with tarfile.open(fileobj=out, mode="w:gz") as tar:
+        for name, content, kind in entries:
+            info = tarfile.TarInfo(name)
+            info.type = kind
+            info.size = len(content) if kind == tarfile.REGTYPE else 0
+            tar.addfile(info, io.BytesIO(content) if kind == tarfile.REGTYPE else None)
+    return out.getvalue()
 
 
-def fixture(*, paths=("rules/sample.yml",), content=TEXT):
-    raw = content.encode()
-    sha = blob_sha(raw)
-    entries = [{"path": path, "mode": "100644", "type": "blob", "size": len(raw), "sha": sha}
-               for path in paths]
-    return {
-        f"/commits/{COMMIT}": {"sha": COMMIT, "tree": {"sha": TREE}},
-        f"/trees/{TREE}": {"sha": TREE, "truncated": False, "tree": entries},
-        f"/blobs/{sha}": {"sha": sha, "size": len(raw), "encoding": "base64",
-                           "content": base64.b64encode(raw).decode()},
-    }
+def pack(*extra):
+    return archive((ROOT, b"", tarfile.DIRTYPE),
+                   (f"{ROOT}/README.md", b"Public reviewed rules\n", tarfile.REGTYPE),
+                   (f"{ROOT}/rules", b"", tarfile.DIRTYPE),
+                   (f"{ROOT}/rules/sample.yml", TEXT.encode(), tarfile.REGTYPE), *extra)
+
+
+def digest(raw=TEXT.encode()):
+    return hashlib.sha256(b"sample.yml\0" + raw + b"\0").hexdigest()
 
 
 class Reply(io.BytesIO):
     status = 200
 
-    def __init__(self, data):
-        super().__init__(data)
+    def __init__(self, raw):
+        super().__init__(raw)
         self.read_limits = []
 
     def read(self, size=-1):
@@ -47,140 +51,92 @@ class Reply(io.BytesIO):
 
 
 class Network:
-    def __init__(self, responses):
-        self.responses = responses
-        self.calls = []
+    def __init__(self, raw):
+        self.raw = raw
+        self.requests = []
         self.replies = []
 
     def open(self, request: Request, timeout):
         assert timeout == 15
-        assert request.full_url.startswith("https://api.github.com/repos/acme/rules/git/")
+        assert request.full_url == f"https://codeload.github.com/acme/rules/tar.gz/{COMMIT}"
         assert request.get_method() == "GET"
         assert request.get_header("Authorization") is None
-        self.calls.append(request.full_url)
-        path = request.full_url.split("/git", 1)[1].split("?", 1)[0]
-        value = self.responses[path]
-        reply = Reply(value if isinstance(value, bytes) else json.dumps(value).encode())
-        self.replies.append(reply)
-        return reply
+        self.requests.append(request)
+        response = Reply(self.raw)
+        self.replies.append(response)
+        return response
 
 
-def mock_network(monkeypatch, responses):
-    network = Network(responses)
+def mock_network(monkeypatch, raw):
+    network = Network(raw)
     monkeypatch.setattr(source, "build_opener", lambda *handlers: network)
     return network
 
 
-def fetch():
-    return source.fetch_rules("acme/rules", COMMIT)
+def fetch(expected=None):
+    return source.fetch_rules("acme/rules", COMMIT, expected)
 
 
-def test_fetches_pinned_tree_and_verifies_blob(monkeypatch):
-    responses = fixture()
-    responses[f"/trees/{TREE}"]["tree"].insert(0, {"path": "README.md", "type": "blob", "mode": "100644"})
-    network = mock_network(monkeypatch, responses)
-    assert fetch() == {"sample.yml": TEXT}
-    assert len(network.calls) == 3
-    assert all(reply.closed for reply in network.replies)
-    assert network.replies[1].read_limits == [source.MAX_TREE_BYTES + 1]
-    assert network.replies[2].read_limits == [source.MAX_BLOB_RESPONSE_BYTES + 1]
+def test_single_public_archive_read_and_content_digest(monkeypatch):
+    network = mock_network(monkeypatch, pack())
+    assert fetch(digest()) == {"sample.yml": TEXT}
+    assert len(network.requests) == 1
+    assert network.replies[0].closed
+    assert network.replies[0].read_limits == [source.MAX_ARCHIVE_BYTES + 1]
 
 
-@pytest.mark.parametrize("repo,commit,code", [
-    ("https://github.com/acme/rules", COMMIT, "invalid_repo"),
-    ("acme/rules/other", COMMIT, "invalid_repo"),
-    ("acme/../rules", COMMIT, "invalid_repo"),
-    ("acme/rules", "main", "invalid_commit_sha"),
+@pytest.mark.parametrize("repo,commit,expected,code", [
+    ("https://github.com/acme/rules", COMMIT, None, "invalid_repo"),
+    ("acme/rules/other", COMMIT, None, "invalid_repo"),
+    ("acme/../rules", COMMIT, None, "invalid_repo"),
+    ("acme/rules", "main", None, "invalid_commit_sha"),
+    ("acme/rules", COMMIT, "wrong", "invalid_pack_hash"),
 ])
-def test_rejects_untrusted_parameters_before_network(monkeypatch, repo, commit, code):
+def test_bad_parameters_never_make_a_request(monkeypatch, repo, commit, expected, code):
     monkeypatch.setattr(source, "build_opener", lambda *args: pytest.fail("network called"))
     with pytest.raises(source.RuleSourceError, match=code):
-        source.fetch_rules(repo, commit)
+        source.fetch_rules(repo, commit, expected)
 
 
-def test_rejects_truncated_tree(monkeypatch):
-    responses = fixture()
-    responses[f"/trees/{TREE}"]["truncated"] = True
-    network = mock_network(monkeypatch, responses)
-    with pytest.raises(source.RuleSourceError, match="invalid_or_truncated_tree"):
+@pytest.mark.parametrize("name,kind", [
+    (f"{ROOT}/rules/nested/sample.yml", tarfile.REGTYPE),
+    (f"{ROOT}/rules/../sample.yml", tarfile.REGTYPE),
+    (f"{ROOT}/other.yml", tarfile.REGTYPE),
+    (f"{ROOT}/rules/other.yaml", tarfile.REGTYPE),
+    (f"{ROOT}/rules/link.yml", tarfile.SYMTYPE),
+])
+def test_rejects_unreviewed_paths_and_links(monkeypatch, name, kind):
+    mock_network(monkeypatch, pack((name, b"", kind)))
+    with pytest.raises(source.RuleSourceError, match="invalid_rule_archive_path"):
         fetch()
-    assert len(network.calls) == 2
 
 
-@pytest.mark.parametrize("path", ["sample.yml", "other/sample.yaml", "rules/nested/sample.yml",
-                                        "rules/sample.yaml", "rules/../sample.yml", "rules/README.md"])
-def test_rejects_rule_paths_outside_exact_rule_directory(monkeypatch, path):
-    network = mock_network(monkeypatch, fixture(paths=(path,)))
-    with pytest.raises(source.RuleSourceError, match="invalid_rule_path"):
-        fetch()
-    assert len(network.calls) == 2
-
-
-def test_rejects_duplicate_basename_and_symlink(monkeypatch):
-    responses = fixture(paths=("rules/sample.yml", "rules/sample.yml"))
-    mock_network(monkeypatch, responses)
+def test_rejects_duplicate_and_wrong_root(monkeypatch):
+    mock_network(monkeypatch, pack((f"{ROOT}/rules/sample.yml", TEXT.encode(), tarfile.REGTYPE)))
     with pytest.raises(source.RuleSourceError, match="duplicate_rule"):
         fetch()
-    responses = fixture()
-    responses[f"/trees/{TREE}"]["tree"][0]["mode"] = "120000"
-    mock_network(monkeypatch, responses)
-    with pytest.raises(source.RuleSourceError, match="invalid_rule_path"):
+    mock_network(monkeypatch, archive(("other/rules/sample.yml", TEXT.encode(), tarfile.REGTYPE)))
+    with pytest.raises(source.RuleSourceError, match="invalid_rule_archive_path"):
         fetch()
 
 
-def test_rejects_oversize_tree_before_parsing(monkeypatch):
-    responses = fixture()
-    responses[f"/trees/{TREE}"] = b" " * (source.MAX_TREE_BYTES + 1)
-    network = mock_network(monkeypatch, responses)
-    with pytest.raises(source.RuleSourceError, match="github_response_too_large"):
+def test_rejects_oversized_archive_rule_and_bad_digest(monkeypatch):
+    network = mock_network(monkeypatch, b"x" * (source.MAX_ARCHIVE_BYTES + 1))
+    with pytest.raises(source.RuleSourceError, match="rule_archive_too_large"):
         fetch()
-    assert len(network.calls) == 2
-
-
-def test_rejects_oversize_rule_declarations(monkeypatch):
-    responses = fixture()
-    responses[f"/trees/{TREE}"]["tree"][0]["size"] = source.MAX_BLOB_BYTES + 1
-    network = mock_network(monkeypatch, responses)
+    assert network.replies[0].read_limits == [source.MAX_ARCHIVE_BYTES + 1]
+    mock_network(monkeypatch, pack((f"{ROOT}/rules/huge.yml", b"x" * (source.MAX_MEMBER_BYTES + 1), tarfile.REGTYPE)))
     with pytest.raises(source.RuleSourceError, match="rule_too_large"):
         fetch()
-    assert len(network.calls) == 2
+    mock_network(monkeypatch, pack())
+    with pytest.raises(source.RuleSourceError, match="rule_pack_hash_mismatch"):
+        fetch("0" * 64)
 
 
-def test_rejects_aggregate_rule_size_before_fetching_blobs(monkeypatch):
-    responses = fixture()
-    item = responses[f"/trees/{TREE}"]["tree"][0]
-    responses[f"/trees/{TREE}"]["tree"] = [
-        {**item, "path": f"rules/rule-{index}.yml", "size": source.MAX_BLOB_BYTES}
-        for index in range(31)
-    ]
-    network = mock_network(monkeypatch, responses)
-    with pytest.raises(source.RuleSourceError, match="rules_too_large"):
+def test_rejects_invalid_gzip_and_redirect(monkeypatch):
+    mock_network(monkeypatch, b"not a gzip archive")
+    with pytest.raises(source.RuleSourceError, match="invalid_rule_archive"):
         fetch()
-    assert len(network.calls) == 2
-
-
-def test_rejects_oversize_blob_http_response(monkeypatch):
-    responses = fixture()
-    key = next(key for key in responses if key.startswith("/blobs/"))
-    responses[key] = b" " * (source.MAX_BLOB_RESPONSE_BYTES + 1)
-    network = mock_network(monkeypatch, responses)
-    with pytest.raises(source.RuleSourceError, match="github_response_too_large"):
-        fetch()
-    assert len(network.calls) == 3
-
-
-def test_rejects_blob_hash_mismatch_without_leaking_content(monkeypatch):
-    responses = fixture()
-    key = next(key for key in responses if key.startswith("/blobs/"))
-    responses[key]["content"] = base64.b64encode(b"X" * len(TEXT.encode())).decode()
-    mock_network(monkeypatch, responses)
-    with pytest.raises(source.RuleSourceError) as error:
-        fetch()
-    assert error.value.code == "blob_sha_mismatch"
-    assert "reviewed example" not in str(error.value)
-
-
-def test_rejects_redirect_without_following_destination():
     handler = source._NoRedirect()
     with pytest.raises(source.RuleSourceError, match="redirect_rejected"):
         handler.redirect_request(None, None, 302, "moved", {}, "https://evil.example/")

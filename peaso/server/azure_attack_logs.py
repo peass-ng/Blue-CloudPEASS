@@ -1,9 +1,4 @@
-"""Bounded Azure Activity Log reads for an explicitly selected subscription.
-
-The Activity Log records a successful role-assignment write, but does not
-reliably include the assigned role and principal. Those records are available
-to a future evaluator; this module does not label them as privilege escalation.
-"""
+"""Bounded Azure Activity Log reads for an explicitly selected subscription."""
 from __future__ import annotations
 
 import re
@@ -125,6 +120,7 @@ def _read_pages(transport, subscription, *, analyze):
     url, path = _initial_url(subscription)
     expected_filter = parse_qs(urlsplit(url).query)["$filter"][0]
     events = []
+    role_rows = []
     read_count = 0
     ignored = 0
     relevant = 0
@@ -150,6 +146,8 @@ def _read_pages(transport, subscription, *, analyze):
                 ignored += 1
                 continue
             events.append(normalized)
+            if normalized["request.role_assignment_write"]:
+                role_rows.append(row)
             if normalized["request.role_assignment_write"] and normalized["event.outcome"] == "success":
                 relevant += 1
         next_url = page.get("nextLink")
@@ -165,7 +163,7 @@ def _read_pages(transport, subscription, *, analyze):
         url = next_url
     else:
         truncated = bool(next_url)
-    return read_count, events, ignored, relevant, truncated
+    return read_count, events, role_rows, ignored, relevant, truncated
 
 
 def _run(auth, scopes, options, source, *, analyze):
@@ -174,7 +172,7 @@ def _run(auth, scopes, options, source, *, analyze):
     subscription = _selected_subscription(scopes, source)
     transport = AzureTransport(auth)
     try:
-        read_count, events, ignored, relevant, truncated = _read_pages(transport, subscription, analyze=analyze)
+        read_count, events, role_rows, ignored, relevant, truncated = _read_pages(transport, subscription, analyze=analyze)
     finally:
         transport.close()
     if not analyze:
@@ -183,13 +181,18 @@ def _run(auth, scopes, options, source, *, analyze):
             "source_status": "accessible",
             "coverage": "Azure Activity Log read succeeded for the selected subscription and last 24 hours. An empty response does not prove that all operations were logged or retained.",
         }
+    from peaso.attack_detection.azure import correlate_azure_self_grants
+    candidates = correlate_azure_self_grants(role_rows, subscription=subscription)
+    from peaso.attack_detection import detect_azure_events
+    detections = detect_azure_events(candidates)
     return {
         "coverage": {"subscription_id": subscription, "source": "azure_activity_log",
                      "window_hours": 24, "events_read": read_count,
                      "events_normalized": len(events), "events_ignored": ignored,
                      "successful_role_assignment_writes": relevant,
-                     "truncated": truncated, "detection_status": "not_implemented"},
-        "detections": [],
+                     "self_grant_candidates": len(candidates),
+                     "truncated": truncated, "detection_status": "correlated_self_grants"},
+        "detections": [item.__dict__ for item in detections],
     }
 
 

@@ -7,8 +7,22 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
+from peaso.attack_detection import Rule, detect_azure_events
 from peaso.server.attack_logs import LogAccessError
 from peaso.server.azure_attack_logs import analyze_azure_source, check_azure_source, normalize_azure_activity_event
+
+
+@pytest.fixture(autouse=True)
+def reviewed_azure_rule(monkeypatch):
+    rule = Rule(id="unit-azure-self-grant", title="Reviewed self grant", level="high",
+                description="A successful privileged role self assignment requires review.",
+                technique_id="azure-rbac-self-assign-privileged-role", product="azure",
+                selection={"event.name": "role_self_assignment", "event.outcome": "success",
+                           "request.self_grant": True,
+                           "request.role_definition_id": ["8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+                                                          "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9"]})
+    monkeypatch.setattr("peaso.attack_detection.detect_azure_events",
+                        lambda candidates: detect_azure_events(candidates, [rule]))
 
 
 def test_transport_enforces_response_byte_limit(monkeypatch):
@@ -80,7 +94,7 @@ def test_analysis_exposes_coverage_without_raw_events_or_compromise_claim(monkey
     result = analyze_azure_source({}, [], {}, SOURCE)
     assert result["coverage"]["events_read"] == 3
     assert result["coverage"]["successful_role_assignment_writes"] == 1
-    assert result["coverage"]["detection_status"] == "not_implemented"
+    assert result["coverage"]["detection_status"] == "correlated_self_grants"
     assert result["detections"] == []
     assert "events" not in result
     assert api.closed
@@ -107,7 +121,7 @@ def test_subscription_level_and_optional_field_rows_do_not_block(monkeypatch):
     assert analyzed["coverage"]["events_normalized"] == 1
     assert analyzed["coverage"]["events_ignored"] == 2
     assert analyzed["coverage"]["successful_role_assignment_writes"] == 0
-    assert analyzed["coverage"]["detection_status"] == "not_implemented"
+    assert analyzed["coverage"]["detection_status"] == "correlated_self_grants"
     assert api.closed
 
 
@@ -143,3 +157,30 @@ def test_normalizer_requires_success_and_exact_scope():
     assert normalize_azure_activity_event(event(subscription=OTHER), SUB) is None
     assert normalize_azure_activity_event(event(status="Started"), SUB)["event.outcome"] == "unknown"
     assert normalize_azure_activity_event(event(), SUB)["request.role_assignment_write"] is True
+
+
+def test_analysis_correlates_only_complete_self_grants(monkeypatch):
+    import json
+    from peaso.attack_detection.azure import OWNER
+    actor = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    assignment = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+    operation = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+    start = event(status="Started")
+    start.update({"resourceId": f"/subscriptions/{SUB}/providers/Microsoft.Authorization/roleAssignments/{assignment}",
+                  "operationId": operation, "category": {"value": "Administrative"},
+                  "claims": {"oid": actor}, "eventDataId": "start-event",
+                  "properties": {"requestbody": json.dumps({"id": assignment, "properties": {
+                      "principalId": actor, "roleDefinitionId": f"/providers/Microsoft.Authorization/roleDefinitions/{OWNER}"}})}})
+    success = {**start, "status": {"value": "Succeeded"}, "eventDataId": "success-event",
+               "eventTimestamp": "2026-10-18T08:01:00Z", "properties": {"statusCode": "Created"}}
+    api = with_api(monkeypatch, [{"value": [success, start]}])
+    result = analyze_azure_source({}, [SUB], {}, SOURCE)
+    assert result["coverage"]["events_read"] == 2
+    assert result["coverage"]["successful_role_assignment_writes"] == 1
+    assert result["coverage"]["self_grant_candidates"] == 1
+    assert len(result["detections"]) == 1
+    assert result["detections"][0]["event_id"] == "success-event"
+    assert result["detections"][0]["rule_id"] == "unit-azure-self-grant"
+    assert "candidate_events" not in result
+    assert "requestbody" not in json.dumps(result)
+    assert api.closed

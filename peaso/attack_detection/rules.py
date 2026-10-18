@@ -22,7 +22,8 @@ from .kubernetes import normalize_kubernetes_audit
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "7943488f8e9d3e69ca3ef3dbdfdddff2876c28a3"
+DEFAULT_RULE_REF = "70ac609714d6923615e97d01743a1b799e5089a6"
+DEFAULT_RULE_PACK_SHA256 = "aa861ba4f4448147f94f241e545150c6c305484a7a0a2eda6822c42ddf3ce84a"
 
 
 @dataclass(frozen=True)
@@ -63,7 +64,9 @@ def _github_rule_texts(repo: str, ref: str) -> tuple[tuple[str, str], ...]:
         raise RuleSourceError("rule_source_not_configured")
     try:
         from .github_source import fetch_rules
-        return tuple(sorted(fetch_rules(repo, ref).items()))
+        digest = (DEFAULT_RULE_PACK_SHA256 if (repo, ref) == (DEFAULT_RULE_REPO, DEFAULT_RULE_REF)
+                  else os.getenv("HACKTRICKS_CSPM_RULES_PACK_SHA256") or None)
+        return tuple(sorted(fetch_rules(repo, ref, digest).items()))
     except Exception:
         raise RuleSourceError("rule_source_unavailable") from None
 
@@ -91,6 +94,7 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
         detection = source.get("detection")
         if not isinstance(logsource, Mapping) or (logsource.get("product"), logsource.get("service")) not in {
             ("aws", "cloudtrail"), ("gcp", "audit"), ("kubernetes", "audit"),
+            ("azure", "activity"),
         } or set(logsource) != {"product", "service"}:
             raise ValueError(f"Unsupported log source: {name}")
         if not isinstance(detection, Mapping) or set(detection) != {"selection", "condition"} or detection["condition"] != "selection":
@@ -142,6 +146,13 @@ def detect_kubernetes_events(
     return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize_kubernetes_audit, "kubernetes")
 
 
+def detect_azure_events(
+    correlated_events: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
+) -> list[Detection]:
+    """Match reviewed Sigma rules against bounded, joined Azure Activity evidence."""
+    return _detect_events(correlated_events, rules if rules is not None else load_rules(product="azure"), lambda event: event, "azure")
+
+
 def _detect_events(
     records: Iterable[Mapping[str, Any]], selected_rules: Sequence[Rule], normalizer: Any, product: str,
 ) -> list[Detection]:
@@ -154,13 +165,17 @@ def _detect_events(
             if rule.product != product:
                 continue
             if all(event.get(field) in expected if isinstance(expected, list) else event.get(field) == expected for field, expected in rule.selection.items()):
+                evidence = {field: event[field] for field in rule.selection}
+                correlation = event.get("correlation_evidence")
+                if isinstance(correlation, Mapping):
+                    evidence["correlation"] = dict(correlation)
                 matches.append(Detection(
                     rule_id=rule.id, title=rule.title, severity=rule.level,
                     technique_id=rule.technique_id,
                     event_id=event["event.id"], event_time=event["event.time"],
                     account_id=event["account.id"],
                     actor_id=event["actor.id"], target_id=event["target.id"],
-                    evidence={field: event[field] for field in rule.selection},
+                    evidence=evidence,
                     description=rule.description,
                     legitimate_context=rule.falsepositives,
                 ))
