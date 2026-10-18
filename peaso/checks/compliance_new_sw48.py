@@ -618,21 +618,69 @@ def _ecs(item, index):
     definitions = _inventory(index, 'ecs_task_definition')
     efs = _inventory(index, 'efs_file_system')
     cluster = get(item,'clusterArn',str)
+    scope = get(index, 'context.scope', str)
+    account, region = scope.split('/')
+    cluster_match = re.fullmatch(r'arn:(aws|aws-us-gov|aws-cn):ecs:' + re.escape(region) +
+                                r':' + re.escape(account) + r':cluster/[^/]+', cluster)
+    if cluster_match is None:
+        raise Unavailable('ECS cluster identity unavailable')
+    partition = cluster_match.group(1)
     related = [s for s in services if get(s,'clusterArn',str) == cluster]
     bad = []
     for service in related:
-        for config in get(service,'volumeConfigurations',list):
-            if 'managedEBSVolume' in config and not get(config,'managedEBSVolume.encrypted',bool):
-                bad.append(get(service,'serviceArn',str))
+        configurations = get(service,'volumeConfigurations',list)
+        coverage = get(service,'_coverage.volumeConfigurations',dict)
+        service_arn = get(service,'serviceArn',str)
+        service_match = re.fullmatch(r'arn:' + partition + r':ecs:' + re.escape(region) +
+                                    r':' + re.escape(account) + r':service/(?:[^/]+/)?[^/]+', service_arn)
+        if service_match is None:
+            raise Unavailable('ECS service identity unavailable')
+        if (coverage.get('status') not in {'empty', 'collected'} or
+                coverage.get('source_operation') != 'ecs:DescribeServices' or
+                coverage.get('native_member_present') is not (coverage['status'] == 'collected') or
+                (coverage['status'] == 'empty' and configurations != []) or
+                coverage.get('account_id') != scope.split('/')[0] or
+                coverage.get('region') != scope.split('/')[1] or
+                coverage.get('service_arn') != get(service,'serviceArn',str) or
+                coverage.get('cluster_arn') != cluster or
+                coverage.get('task_definition_arn') != get(service,'taskDefinition',str) or
+                coverage.get('deployment_status') != 'PRIMARY'):
+            raise Unavailable('service deployment volume provenance unavailable')
         arn = get(service,'taskDefinition',str)
-        matches = [d for d in definitions if d.get('taskDefinitionArn') == arn]
+        if not re.fullmatch(r'arn:' + partition + r':ecs:' + re.escape(region) +
+                            r':' + re.escape(account) + r':task-definition/[^:]+:[0-9]+', arn):
+            raise Unavailable('foreign or malformed task definition ARN')
+        matches = [d for d in definitions if get(d,'taskDefinitionArn',str) == arn]
         if len(matches) != 1:
             raise Unavailable('task definition join unavailable')
-        for volume in get(matches[0],'Definition.taskDefinition.volumes',list):
-            if 'efsVolumeConfiguration' not in volume:
+        if (get(matches[0], 'Definition.collection_status', str) != 'collected' or
+                get(matches[0], 'Definition.taskDefinition.taskDefinitionArn', str) != arn):
+            raise Unavailable('task definition detail identity unavailable')
+        volumes = get(matches[0],'Definition.taskDefinition.volumes',list)
+        launch_names = []
+        for volume in volumes:
+            guard(volume)
+            if 'configuredAtLaunch' in volume or 'configuredAtLaunch' in volume.get('_coverage', {}):
+                launch = get(volume,'configuredAtLaunch',bool)
+            else:
+                launch = False
+            if launch is True:
+                launch_names.append(get(volume,'name',str))
+        config_names = [get(config,'name',str) for config in configurations]
+        if (len(config_names) != len(set(config_names)) or
+                len(launch_names) != len(set(launch_names)) or
+                set(config_names) != set(launch_names)):
+            raise Unavailable('service launch-volume configuration join unavailable')
+        for config in configurations:
+            get(config,'managedEBSVolume',dict)
+            if not get(config,'managedEBSVolume.encrypted',bool):
+                bad.append(get(service,'serviceArn',str))
+        for volume in volumes:
+            if 'efsVolumeConfiguration' not in volume and 'efsVolumeConfiguration' not in volume.get('_coverage', {}):
                 continue
+            get(volume,'efsVolumeConfiguration',dict)
             fsid = get(volume,'efsVolumeConfiguration.fileSystemId',str)
-            found = [f for f in efs if f.get('FileSystemId') == fsid]
+            found = [f for f in efs if get(f,'FileSystemId',str) == fsid]
             if len(found) != 1:
                 raise Unavailable('EFS join unavailable')
             if not get(found[0],'Encrypted',bool):

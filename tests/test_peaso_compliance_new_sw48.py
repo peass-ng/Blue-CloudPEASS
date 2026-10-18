@@ -223,9 +223,19 @@ def test_cloudformation_drift():
 def test_ecs_external_volumes():
     identifier = 'aws_g6_ecs_fargate_storage_encryption'
     cluster = {'clusterArn':'arn:aws:ecs:us-east-1:123456789012:cluster/c'}
-    service = {'clusterArn':cluster['clusterArn'],'serviceArn':'arn:aws:ecs:us-east-1:123456789012:service/s',
-               'volumeConfigurations':[{'managedEBSVolume':{'encrypted':True}}],'taskDefinition':'td1'}
-    definition = {'taskDefinitionArn':'td1','Definition':{'taskDefinition':{'volumes':[{'efsVolumeConfiguration':{'fileSystemId':'fs1'}}]}}}
+    service_arn = 'arn:aws:ecs:us-east-1:123456789012:service/s'
+    task_arn = 'arn:aws:ecs:us-east-1:123456789012:task-definition/t:1'
+    service = {'clusterArn':cluster['clusterArn'],'serviceArn':service_arn,
+               'volumeConfigurations':[{'name':'data','managedEBSVolume':{'encrypted':True}}],
+               'taskDefinition':task_arn,
+               '_coverage':{'volumeConfigurations':{'status':'collected','source_operation':'ecs:DescribeServices',
+                   'native_member_present':True,'account_id':'123456789012','region':'us-east-1',
+                   'service_arn':service_arn,'cluster_arn':cluster['clusterArn'],
+                   'task_definition_arn':task_arn,'deployment_status':'PRIMARY'}}}
+    definition = {'taskDefinitionArn':task_arn,'Definition':{'collection_status':'collected',
+                  'taskDefinition':{'taskDefinitionArn':task_arn,
+                    'volumes':[{'name':'data','configuredAtLaunch':True},
+                               {'efsVolumeConfiguration':{'fileSystemId':'fs1'}}]}}}
     fs = {'FileSystemId':'fs1','Encrypted':True}
     collections = {'ecs_cluster':[cluster],'ecs_service':[service],'ecs_task_definition':[definition],'efs_file_system':[fs]}
     assert evaluate(identifier,cluster,index(collections)) == 'PASS'

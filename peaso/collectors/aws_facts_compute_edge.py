@@ -7,6 +7,7 @@ records are projected onto the metadata the checks read.
 """
 from __future__ import annotations
 import copy
+import re
 
 from .aws_b_services import _metadata
 
@@ -118,7 +119,7 @@ def _ecs_services(requests, session, region):
     clusters = requests.pages(session, "ecs", region, "list_clusters", "clusterArns")
     if not _usable(clusters):
         return [], clusters
-    services, failed = [], None
+    services, failed, seen = [], None, set()
     for cluster in clusters.items:
         arns = requests.pages(session, "ecs", region, "list_services", "serviceArns", cluster=cluster)
         if not _usable(arns):
@@ -135,10 +136,29 @@ def _ecs_services(requests, session, region):
             if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
                 failed = failed or _result([], "malformed", {"code": "malformed_response"})
                 continue
-            # MISSING is a service deleted between list and describe, not a hidden one.
-            if any(f.get("reason") != "MISSING" for f in response.get("failures") or [] if isinstance(f, dict)):
+            # Account for every requested identity before treating absence as
+            # complete. Only an explicit MISSING failure proves a list/describe race.
+            requested = set(arns.items[offset:offset + 10])
+            failures = response.get("failures", [])
+            if (not isinstance(failures, list) or
+                    any(not isinstance(f, dict) or f.get("reason") != "MISSING" or
+                        not isinstance(f.get("arn"), str) or f["arn"] not in requested
+                        for f in failures)):
                 failed = failed or _result([], "partial", {"code": "describe_services_failures"})
-            services.extend(rows)
+                failures = []
+            missing = [f["arn"] for f in failures]
+            for row in rows:
+                service_arn = row.get("serviceArn")
+                if (not isinstance(service_arn, str) or service_arn not in requested or
+                        service_arn in seen or row.get("clusterArn") != cluster):
+                    failed = failed or _result([], "malformed", {"code": "describe_services_identity_mismatch"})
+                    continue
+                seen.add(service_arn)
+                services.append(row)
+            returned = {row["serviceArn"] for row in rows if isinstance(row.get("serviceArn"), str)}
+            if (len(missing) != len(set(missing)) or returned.intersection(missing) or
+                    returned.union(missing) != requested):
+                failed = failed or _result([], "partial", {"code": "describe_services_incomplete"})
     return services, failed
 
 
@@ -147,6 +167,37 @@ def _ecs_service(requests, session, region, account):
     rows = []
     for service in services:
         row = {key: value for key, value in service.items() if key not in ("events", "taskSets", "deployments")}
+        # Service has no top-level volumeConfigurations member. The native
+        # DescribeServices Deployment has it; retain only an exact PRIMARY view.
+        service_arn, cluster_arn = row.get("serviceArn"), row.get("clusterArn")
+        service_match = re.fullmatch(
+            r"arn:(aws|aws-us-gov|aws-cn):ecs:" + re.escape(region) +
+            r":" + re.escape(account) + r":service/(?:[^/]+/)?[^/]+", service_arn or "")
+        cluster_match = re.fullmatch(
+            r"arn:(aws|aws-us-gov|aws-cn):ecs:" + re.escape(region) +
+            r":" + re.escape(account) + r":cluster/[^/]+", cluster_arn or "")
+        deployments = service.get("deployments")
+        if (not failed and service_match and cluster_match and
+                service_match.group(1) == cluster_match.group(1) and
+                "_coverage" not in service and "volumeConfigurations" not in service and
+                isinstance(deployments, list) and len(deployments) == 1 and
+                isinstance(deployments[0], dict) and
+                "_coverage" not in deployments[0] and
+                deployments[0].get("status") == "PRIMARY" and
+                deployments[0].get("taskDefinition") == row.get("taskDefinition")):
+            primary = deployments[0]
+            if "volumeConfigurations" in primary:
+                row["volumeConfigurations"] = primary["volumeConfigurations"]
+                state = "collected"
+            else:
+                row["volumeConfigurations"] = []
+                state = "empty"
+            row.setdefault("_coverage", {})["volumeConfigurations"] = {
+                "status": state, "source_operation": "ecs:DescribeServices",
+                "native_member_present": state == "collected", "account_id": account,
+                "region": region, "service_arn": service_arn,
+                "cluster_arn": cluster_arn, "task_definition_arn": row["taskDefinition"],
+                "deployment_status": "PRIMARY"}
         rows.append(_metadata(row))
     if failed:
         return _fail(failed, rows)
