@@ -1076,7 +1076,7 @@ FLEET = {"Arn": "arn:aws:appstream:us-east-1:111111111111:fleet/f", "Name": "f",
 flag("aws.c2b.appstream.no_default_internet", "appstream_fleet", "AppStream fleet default internet access is disabled", "EnableDefaultInternetAccess",
      rows=[P + "appstream_fleet_default_internet_access_disabled", C + "appstream_fleet_default_internet_access_disabled"], severity="medium", category="network",
      control="SC-7", remediation="Disable default internet access and route fleet traffic through a NAT gateway with controlled egress.",
-     sentinel="Arn", base=FLEET, good=False, bad=True, default=False, docs=[D_AS], note="Prowler and steampipe: EnableDefaultInternetAccess true fails.")
+     sentinel="Arn", base=FLEET, good=False, bad=True, docs=[D_AS], note="Prowler and steampipe: EnableDefaultInternetAccess true fails. A response that omits the field cannot prove the configured value.")
 
 
 def _fleet(**fields):
