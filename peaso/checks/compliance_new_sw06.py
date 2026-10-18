@@ -302,16 +302,24 @@ def _kms_expiry(item, index):
             retired = True
     expired = False
     if origin == "EXTERNAL":
-        valid_to = get(metadata, "ValidTo", str)
-        captured = get(get(index, "context", dict), "created_at", str)
-        try:
-            end = datetime.fromisoformat(valid_to.replace("Z", "+00:00"))
-            now = datetime.fromisoformat(captured.replace("Z", "+00:00"))
-        except ValueError as exc:
-            raise Unavailable("malformed KMS expiry or capture time") from exc
-        if end.tzinfo is None or now.tzinfo is None:
-            return unknown("KMS expiry and capture time require timezone")
-        expired = end <= now
+        model = optional(metadata, "ExpirationModel", None, str)
+        if model == "KEY_MATERIAL_DOES_NOT_EXPIRE":
+            if "ValidTo" in metadata:
+                return unknown("nonexpiring imported KMS material has contradictory ValidTo")
+        elif model in (None, "KEY_MATERIAL_EXPIRES"):
+            # Older snapshots omitted ExpirationModel but retained ValidTo.
+            valid_to = get(metadata, "ValidTo", str)
+            captured = get(get(index, "context", dict), "created_at", str)
+            try:
+                end = datetime.fromisoformat(valid_to.replace("Z", "+00:00"))
+                now = datetime.fromisoformat(captured.replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise Unavailable("malformed KMS expiry or capture time") from exc
+            if end.tzinfo is None or now.tzinfo is None:
+                return unknown("KMS expiry and capture time require timezone")
+            expired = end <= now
+        else:
+            return unknown("unrecognized imported KMS material expiration model")
     return result(expired or retired and state != "Disabled", key_id=metadata["KeyId"],
                   imported_material_expired=expired, retired=retired, key_state=state)
 

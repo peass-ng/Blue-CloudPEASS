@@ -7,7 +7,7 @@ from peaso.checks import CHECKS, evaluate_check
 from peaso.checks import compliance_new_azure_pricing as new
 from peaso.collectors.azure import _defender_containers_policy
 from peaso.collectors import azure
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 NOW = datetime(2026, 10, 12, tzinfo=timezone.utc)
@@ -211,8 +211,14 @@ def test_actual_collector_pricing_list_and_owner_policy_reach_engine_once():
             if urlsplit(url).path == "/providers/Microsoft.ResourceGraph/resources":
                 assert body is not None and body["subscriptions"] == ["sub"]
                 return {"data": [], "resultTruncated": "false"}
-            assert body is None and urlsplit(url).path == SCOPE + "/providers/Microsoft.Security/pricings"
-            return {"value": deepcopy(rows)}
+            path = urlsplit(url).path
+            assert body is None
+            if path == SCOPE + "/providers/Microsoft.Security/pricings":
+                return {"value": deepcopy(rows)}
+            for row in rows:
+                if path == row["id"]:
+                    return deepcopy(row)
+            raise AssertionError(path)
 
     transport = PricingTransport()
     live_policy = supplied(observed_at=datetime.now(timezone.utc).isoformat())
@@ -223,7 +229,9 @@ def test_actual_collector_pricing_list_and_owner_policy_reach_engine_once():
     assert len(pricing_inventory[0]["items"]) == 2
     assert snapshot["metadata"]["defender_containers_policy"]["status"] == "collected"
     pricing_calls = [url for url, body, _ in transport.calls if body is None]
-    assert len(transport.calls) == 2 and len(pricing_calls) == 1
-    assert "api-version=2024-01-01" in pricing_calls[0]
+    assert len(transport.calls) == 4 and len(pricing_calls) == 3
+    assert all("api-version=2024-01-01" in url for url in pricing_calls)
+    assert {urlsplit(url).path for url in pricing_calls} == {
+        SCOPE + "/providers/Microsoft.Security/pricings", *(row["id"] for row in rows)}
     report = evaluate_snapshot(snapshot, checks=list(new.IDS))
     assert report["stats"]["by_status"] == {"PASS": 2}

@@ -469,7 +469,7 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
 
 # A LIST containing properties is not a full GET. These evaluators apply
 # documented omitted defaults only to a verified resource detail response.
-FULL_GET_KINDS = frozenset({"recovery_vault", "vm", "vm_scale_set", "nic", "vnet", "nsg", "route_table", "storage_account", "web_application_firewall_policy",
+FULL_GET_KINDS = frozenset({"recovery_vault", "vm", "vm_scale_set", "nic", "vnet", "nsg", "route_table", "storage_account", "security_pricing", "web_application_firewall_policy",
     "frontdoor", "cdn_profile", "frontdoor_waf_policy",
                             "hdinsight_cluster", "firewall_policy", "log_analytics_cluster",
                             "image_template",

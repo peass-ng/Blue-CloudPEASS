@@ -310,8 +310,12 @@ def _vpn(requests, session, region, item):
 
 @_each
 def _lambda(requests, session, region, item):
-    signing = _detail(requests, session, region, "lambda", "get_function_code_signing_config", FunctionName=item["FunctionName"], keys=["FunctionName", "FunctionArn", "CodeSigningConfigArn"])
+    requested_name = item["FunctionName"]
+    signing = _detail(requests, session, region, "lambda", "get_function_code_signing_config", FunctionName=requested_name, keys=["FunctionName", "FunctionArn", "CodeSigningConfigArn"])
     if signing.get("collection_status") == "collected":
+        # Bind an omitted response identity to the exact successful read request.
+        # This records request provenance, not a claimed response field.
+        signing["_request"] = {"operation": "get_function_code_signing_config", "FunctionName": requested_name}
         # Successful read with no attachment omits this optional field.
         signing.setdefault("CodeSigningConfigArn", "")
         arn = signing.get("CodeSigningConfigArn")

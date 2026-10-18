@@ -254,17 +254,28 @@ def _alarm(item,index,kind,namespace,metric,dimension,value):
     identity=_member(item,index,kind)
     def build():
         by_metric={}
+        unresolved=[]
+        # Validate collection identity/completeness before considering any
+        # positive. An unsupported sibling cannot negate a proved match, but
+        # still prevents proving absence across the entire alarm inventory.
         for row in _rows(index,'cloudwatch_alarm'):
-            ns=get(row,'Namespace',str);name=get(row,'MetricName',str)
-            dimensions=list_of_objects(get(row,'Dimensions',list))
-            parsed=[(get(d,'Name',str),get(d,'Value',str)) for d in dimensions]
-            if len(parsed)!=1:continue
-            if not get(row,'ActionsEnabled',bool):continue
-            actions=get(row,'AlarmActions',list)
-            if not isinstance(actions,list) or not actions or any(not isinstance(a,str) or not a for a in actions):continue
-            by_metric.setdefault((ns,name,*parsed[0]),[]).append(get(row,'AlarmArn',str))
-        return by_metric
-    matches=memoized(index,('batch_aws_alarm_map',),build).get((namespace,metric,dimension,value),[])
+            try:
+                ns=get(row,'Namespace',str);name=get(row,'MetricName',str)
+                dimensions=list_of_objects(get(row,'Dimensions',list))
+                parsed=[(get(d,'Name',str),get(d,'Value',str)) for d in dimensions]
+                if len(parsed)!=1:continue
+                if not get(row,'ActionsEnabled',bool):continue
+                actions=get(row,'AlarmActions',list)
+                if not actions or any(not isinstance(a,str) or not a for a in actions):continue
+                by_metric.setdefault((ns,name,*parsed[0]),[]).append(get(row,'AlarmArn',str))
+            except Unavailable as exc:
+                unresolved.append(str(exc))
+        return by_metric,unresolved
+    alarms,unresolved=memoized(index,('batch_aws_alarm_map',),build)
+    matches=alarms.get((namespace,metric,dimension,value),[])
+    if not matches and unresolved:
+        return unknown('alarm absence cannot be established from unresolved native alarms',
+                       unresolved_alarm_count=len(unresolved))
     return result(not matches,resource_id=identity,matching_alarm_arns=matches)
 
 
@@ -358,21 +369,31 @@ def _signing(item,index):
     if state in ('Pending','Inactive','Failed'):
         return 'NOT_APPLICABLE',{'function_arn':identity,'state':state}
     if state!='Active':return unknown('unrecognized Lambda state')
+    package=optional(item,'PackageType',None,str)
+    configured_package=optional(get(item,'Configuration',dict),'PackageType',None,str)
+    if configured_package is not None and package is not None and configured_package!=package:
+        return unknown('Lambda package type disagrees with function configuration')
+    package=package if package is not None else configured_package
+    if package=='Image':
+        return 'NOT_APPLICABLE',{'function_arn':identity,'reason':'image package is outside Lambda code signing'}
+    if package not in (None,'Zip'):
+        return unknown('unrecognized Lambda package type')
     signing=get(item,'CodeSigning',dict)
     if get(signing,'collection_status',str)!='collected':
         raise Unavailable('Lambda code-signing detail unavailable')
     name=get(item,'FunctionName',str) if 'FunctionName' in item else None
     if name is not None and (not name or not identity.endswith(':function:'+name)):
         raise Unavailable('Lambda function name and ARN mismatch')
-    # GetFunctionCodeSigningConfig returns FunctionName. Retain the older
-    # FunctionArn projection for already stored snapshots, validating both
-    # identities if they are present.
+    # Some successful no-attachment responses omit FunctionName. Accept only
+    # exact collector request provenance when both response identities are absent.
     if 'FunctionName' in signing:
         returned=get(signing,'FunctionName',str)
         if name is None or returned not in (name,identity):
             raise Unavailable('Lambda code-signing detail belongs to a foreign function')
     elif 'FunctionArn' not in signing:
-        raise Unavailable('Lambda code-signing detail identity unavailable')
+        request=signing.get('_request')
+        if name is None or request!={'operation':'get_function_code_signing_config','FunctionName':name}:
+            raise Unavailable('Lambda code-signing detail identity unavailable')
     if 'FunctionArn' in signing and get(signing,'FunctionArn',str)!=identity:
         raise Unavailable('Lambda code-signing detail belongs to a foreign function')
     config_arn=optional(signing,'CodeSigningConfigArn','',str)

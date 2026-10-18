@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from dataclasses import replace
 from datetime import datetime, timezone
+from urllib.parse import quote
 from . import CHECKS, register, result, unknown
 from .facts import Unavailable, complete_items, get, optional, list_of_objects
 
@@ -257,7 +258,19 @@ def _rows(index, kind):
         if not rid or rid.casefold() in seen:
             raise Unavailable("missing or duplicate resource identity")
         seen.add(rid.casefold())
-        if kind != "activity_log" and not rid.casefold().startswith(scope + "/"):
+        if kind == "pod" and rid.startswith("k8s://"):
+            cluster = get(row, "_provenance.cluster_id", str)
+            namespace = get(row, "metadata.namespace", str)
+            uid = get(row, "metadata.uid", str)
+            if (not re.fullmatch(re.escape(scope) + r"/resourcegroups/[^/]+/providers/microsoft\.containerservice/managedclusters/[^/]+", cluster.casefold())
+                    or cluster != cluster.casefold()
+                    or get(row, "provenance.cluster_id", str) != cluster
+                    or get(row, "provenance.namespace", str) != namespace
+                    or get(row, "provenance.uid", str) != uid
+                    or get(row, "_provenance.source_operation", str) != "list_pods"
+                    or rid != "k8s://" + "/".join(quote(x, safe="") for x in (cluster, "pod", namespace, uid))):
+                raise Unavailable("foreign or malformed AKS pod identity")
+        elif kind != "activity_log" and not rid.casefold().startswith(scope + "/"):
             raise Unavailable("foreign resource identity")
         if kind == "activity_log":
             target = get(row, "resourceId", str)
@@ -552,11 +565,22 @@ def host_pid(item, index):
         host = optional(spec, "hostPID", False, bool)
         if host:
             bad.append(rid)
+    unresolved_aci = False
     for group in groups:
-        if get(group, "hostProcessEvidence.status", str) != "collected":
-            raise Unavailable("ACI host process sharing evidence unavailable")
-        if get(group, "hostProcessEvidence.sharesHostPid", bool):
+        try:
+            if get(group, "hostProcessEvidence.status", str) != "collected":
+                unresolved_aci = True
+                continue
+            sharing = get(group, "hostProcessEvidence.sharesHostPid", bool)
+        except Unavailable:
+            unresolved_aci = True
+            continue
+        if sharing:
             bad.append(get(group, "id", str))
+    if bad:
+        return result(True, affected=bad, checked_pods=len(pods), checked_aci=len(groups))
+    if unresolved_aci:
+        raise Unavailable("ACI host process sharing evidence unavailable")
     if not pods and not groups:
         return "NOT_APPLICABLE", {"reason": "no applicable pods or ACI groups"}
     return result(bool(bad), affected=bad, checked_pods=len(pods), checked_aci=len(groups))
