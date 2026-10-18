@@ -8,7 +8,7 @@ from tests.test_gcp_audit_native import collect,event,status
 from peaso.engine import evaluate_snapshot
 
 
-@pytest.mark.parametrize('ident,method',[(i,m)for i,methods in METHODS.items()for m in methods])
+@pytest.mark.parametrize('ident,method',[(i, m) for i, methods in sorted(METHODS.items()) for m in sorted(methods)])
 def test_native_rpc_paged_collector_to_rate_engine(ident,method):
     service='osconfig.googleapis.com'if ident.endswith('1518')else 'compute.googleapis.com'
     a=event(method,service=service,identity='a',logclass='data_access')
@@ -16,8 +16,12 @@ def test_native_rpc_paged_collector_to_rate_engine(ident,method):
     snap,t=collect([{'entries':[a],'nextPageToken':'next'},{'entries':[b]}],classes=['data_access'],policy={'approved_list_rate':1})
     assert len(t.calls)==2 and method in t.calls[0][2]['filter']
     assert status(snap,ident)=='FAIL'
-    before=copy.deepcopy(snap);result=evaluate_snapshot(snap,checks=[ident]);assert snap==before
-    assert len(result['findings'])==1
+    # A fixture's approved rate is organizational policy, not native evidence.
+    # Retain evaluator regressions while proving automated scans reject it.
+    before = copy.deepcopy(snap)
+    with pytest.raises(ValueError, match='requires external policy or manual evidence'):
+        evaluate_snapshot(snap, checks=[ident])
+    assert snap == before
     snap,_=collect([{'entries':[a]}],classes=['data_access'],policy={'approved_list_rate':1})
     assert status(snap,ident)=='PASS'
     for policy in ({},{'approved_list_rate':True}):
