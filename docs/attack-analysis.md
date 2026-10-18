@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `654489a507e79e66ec4ca774c7e88e42bc0e259a` by
+pack at pinned commit `819b23f99e6442c6f7a0da423980c596b4544e80` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -145,9 +145,10 @@ logging across the account.
 The pinned pack has twenty-seven activity rules: thirteen AWS, six GCP, three
 Azure, and five Kubernetes. The AWS role attachment rule requires the exact
 AdministratorAccess policy and evidence that the target is the issuing role.
-The GCP Token Creator rule reports a binding in the resulting service-account
-policy; a SetIAMPolicy log entry alone cannot prove the binding was newly
-added. The uploaded-key rule retains only its key resource name. Successful
+The GCP Token Creator rule requires a matching `ADD` policy delta and a binding
+in the resulting service-account policy; the event alone cannot establish
+malicious intent or newly effective access. The uploaded-key rule retains only
+its key resource name. Successful
 CloudTrail and GuardDuty disabling or deletion operations are reported as
 requests, with no claim about present monitoring state. The GCP service-account
 restore rule reports the returned identity, not retained permissions or usable

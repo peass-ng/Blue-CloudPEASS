@@ -28,8 +28,8 @@ from .kubernetes_pod_next import normalize_kubernetes_privileged_host_pod
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "654489a507e79e66ec4ca774c7e88e42bc0e259a"
-DEFAULT_RULE_PACK_SHA256 = "f50c12ee9d34586635a414649ab1c98d7a04312dbc6afe5259104cfd5f8b0620"
+DEFAULT_RULE_REF = "819b23f99e6442c6f7a0da423980c596b4544e80"
+DEFAULT_RULE_PACK_SHA256 = "154491ccf34670ecf90611c1b68fa20107737d980ff11cb48aca271738f0bf9d"
 
 
 @dataclass(frozen=True)

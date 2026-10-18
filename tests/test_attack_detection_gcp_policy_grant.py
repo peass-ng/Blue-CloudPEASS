@@ -29,6 +29,10 @@ def event(*, actor=ACTOR, member=None):
             "request": {"@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest",
                         "resource": TARGET},
             "resourceName": "projects/-/serviceAccounts/123456789012345678901",
+            "serviceData": {"policyDelta": {"bindingDeltas": [
+                {"action": "ADD", "role": "roles/iam.serviceAccountTokenCreator",
+                 "member": member or (("serviceAccount:" if actor.endswith(".gserviceaccount.com") else "user:") + actor)}
+            ]}},
             "response": {"@type": "type.googleapis.com/google.iam.v1.Policy",
                          "bindings": [{"role": "roles/iam.serviceAccountTokenCreator",
                                        "members": [member or f"user:{actor}"]}]},
@@ -45,6 +49,7 @@ def test_complete_admin_activity_response_is_only_binding_observation():
         "account.id": PROJECT, "actor.id": ACTOR, "target.id": TARGET,
         "request.actor_is_member": True, "request.role": "roles/iam.serviceAccountTokenCreator",
         "request.binding_observed": True, "target.service_account": SERVICE_ACCOUNT,
+        "request.binding_added": True,
     }
     assert "new_privilege" not in result and "compromise" not in result
 
@@ -71,6 +76,7 @@ def test_explicit_project_resource_preserves_requested_target_and_returned_bindi
     assert result["target.id"] == requested
     assert result["target.service_account"] == SERVICE_ACCOUNT
     assert result["request.binding_observed"] is True
+    assert result["request.binding_added"] is True
     assert "new_privilege" not in result and "compromise" not in result
 
 
@@ -110,6 +116,7 @@ def test_public_rule_shape_matches_only_completed_binding_observation():
                    "event.name": "service_account_token_creator_self_binding_observed",
                    "event.outcome": "success", "request.actor_is_member": True,
                    "request.binding_observed": True,
+                   "request.binding_added": True,
                    "request.role": "roles/iam.serviceAccountTokenCreator"},
     )
     assert normalize_gcp_audit(event()) == normalize_gcp_token_creator_binding_observation(event())
@@ -127,6 +134,7 @@ def test_public_rule_shape_matches_only_completed_binding_observation():
     "foreign_resource_label", "missing_request", "redacted_request", "missing_response",
     "redacted_response", "failed", "boolean_status", "different_member", "wrong_role",
     "conditional_binding", "wrong_resource_name", "redacted_actor", "missing_event_id",
+    "missing_delta", "removed_delta", "unrelated_delta", "conditional_delta",
 ])
 def test_incomplete_or_ambiguous_events_fail_closed(change):
     row = deepcopy(event())
@@ -167,4 +175,20 @@ def test_incomplete_or_ambiguous_events_fail_closed(change):
         payload["authenticationInfo"]["principalEmail"] = "REDACTED"
     elif change == "missing_event_id":
         row.pop("insertId")
+    elif change == "missing_delta":
+        payload.pop("serviceData")
+    elif change == "removed_delta":
+        payload["serviceData"]["policyDelta"]["bindingDeltas"][0]["action"] = "REMOVE"
+    elif change == "unrelated_delta":
+        payload["serviceData"]["policyDelta"]["bindingDeltas"][0]["member"] = "user:other@example.com"
+    elif change == "conditional_delta":
+        payload["serviceData"]["policyDelta"]["bindingDeltas"][0]["condition"] = {"expression": "true"}
+    assert normalize_gcp_token_creator_binding_observation(row) is None
+
+
+def test_preexisting_binding_with_unrelated_policy_edit_does_not_alert():
+    row = event()
+    row["protoPayload"]["serviceData"]["policyDelta"]["bindingDeltas"] = [
+        {"action": "ADD", "role": "roles/iam.serviceAccountUser", "member": "user:other@example.com"}
+    ]
     assert normalize_gcp_token_creator_binding_observation(row) is None

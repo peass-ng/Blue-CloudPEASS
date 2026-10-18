@@ -264,11 +264,7 @@ def normalize_gcp_uploaded_service_account_key(record: Mapping[str, Any]) -> dic
 
 
 def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -> dict[str, Any] | None:
-    """Return a policy-binding observation for a separately reviewed rule.
-
-    A SetIAMPolicy response contains the resulting complete policy, not a
-    before/after delta. Therefore this event does not prove a new privilege.
-    """
+    """Return a self-grant only when the audit delta and resulting policy agree."""
     if not isinstance(record, Mapping):
         return None
     log_name = record.get("logName")
@@ -318,6 +314,15 @@ def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -
             or not (named_match.group(2).isdigit() or named_match.group(2) == target_email)):
         return None
     member = ("serviceAccount:" if actor.endswith(".gserviceaccount.com") else "user:") + actor
+    service_data = payload.get("serviceData")
+    policy_delta = service_data.get("policyDelta") if isinstance(service_data, Mapping) else None
+    deltas = policy_delta.get("bindingDeltas") if isinstance(policy_delta, Mapping) else None
+    if not isinstance(deltas, list) or not any(
+        isinstance(delta, Mapping) and delta.get("action") == "ADD"
+        and delta.get("role") == _TOKEN_CREATOR and delta.get("member") == member
+        and "condition" not in delta for delta in deltas
+    ):
+        return None
     bindings = response.get("bindings")
     if not isinstance(bindings, list):
         return None
@@ -342,6 +347,7 @@ def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -
         "request.actor_is_member": True,
         "request.role": _TOKEN_CREATOR,
         "request.binding_observed": True,
+        "request.binding_added": True,
         "target.service_account": target_email,
     }
 
