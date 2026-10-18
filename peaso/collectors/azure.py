@@ -432,6 +432,7 @@ DIRECTORY = {
     "directory_administrative_unit": "directory/administrativeUnits?$select=id,displayName,isMemberManagementRestricted,membershipRule,membershipRuleProcessingState,visibility",
     "directory_role_eligibility_schedule": "roleManagement/directory/roleEligibilitySchedules?$select=id,principalId,roleDefinitionId,directoryScopeId,memberType,status",
     "directory_role_eligibility_instance": "roleManagement/directory/roleEligibilityScheduleInstances?$select=id,principalId,roleDefinitionId,directoryScopeId,startDateTime,endDateTime,memberType",
+    "directory_role_assignment_instance": "roleManagement/directory/roleAssignmentScheduleInstances?$select=id,principalId,roleDefinitionId,directoryScopeId,startDateTime,endDateTime,memberType",
     "directory_oauth2_permission_grant": "oauth2PermissionGrants?$select=id,clientId,consentType,principalId,resourceId,scope",
 }
 DIRECTORY_SINGLETONS = {
@@ -1152,6 +1153,14 @@ def _selected(options, requirements):
         selected.add("directory_service_principal")
     if "directory_membership" in selected:
         selected.add("directory_group")
+    # This evidence kind is shared with subscription-scoped Guest Configuration.
+    # Only the directory-user consumer requests the tenant-scoped MFA producer.
+    if "azure_sw18_evidence" in selected and "directory_user" in selected:
+        selected.update(("directory_user", "directory_group", "directory_membership",
+                         "directory_user_group_membership", "directory_role_assignment",
+                         "directory_role_definition", "directory_role_eligibility_schedule",
+                         "directory_role_eligibility_instance", "directory_role_assignment_instance",
+                         "user_registration_detail"))
     if "ml_compute" in selected:
         selected.add("ml_workspace")
     if selected.intersection({"key_vault_certificate", "key_vault_certificate_current"}):
@@ -1194,7 +1203,7 @@ def _selected(options, requirements):
         selected.add("mssql_managed_instance")
     if "defender_pricing" in selected:
         selected.add("aks_cluster")
-    if "guest_configuration_report" in selected or "azure_sw18_evidence" in selected:
+    if "guest_configuration_report" in selected:
         selected.add("vm")
     if "storage_local_user" in selected or "eventgrid_subscription" in selected:
         selected.add("storage_account")
@@ -1497,7 +1506,11 @@ def collect(connector, requirements=None, *, transport=None):
             jobs.append(("management_group", tenant_scope, "Microsoft.Management", management_groups))
         directory_kinds = set(DIRECTORY) | set(DIRECTORY_SINGLETONS)
         if wanted.intersection(directory_kinds) and wanted.intersection(set(ENDPOINTS) | set(AUTHORIZATION)):
-            known = {item["id"].lower() for collection in reader.collections if collection["type"] == "subscription" for item in collection["items"] if isinstance(item.get("tenantId"), str)}
+            # An attempted selected-subscription read is already the authoritative
+            # envelope for that scope, even when denied or malformed. Retrying it
+            # here would create a duplicate type/scope and invalidate the scan.
+            known = {collection["scope"].lower() for collection in reader.collections
+                     if collection["type"] == "subscription"}
             for scope in scopes:
                 if scope.lower() in known: continue
                 def subscription_binding(scope=scope):
@@ -2100,7 +2113,10 @@ def collect(connector, requirements=None, *, transport=None):
                     seen_graph = set()
                     try:
                         for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
-                            if kind in ("directory_application", "directory_service_principal", "directory_user"):
+                            if kind in ("directory_application", "directory_service_principal", "directory_user",
+                                        "directory_group", "user_registration_detail", "directory_role_assignment",
+                                        "directory_role_definition", "directory_role_eligibility_schedule",
+                                        "directory_role_eligibility_instance", "directory_role_assignment_instance"):
                                 for row in page:
                                     rid = row.get("id") if isinstance(row, dict) else None
                                     if not isinstance(rid, str) or not rid or rid.casefold() in seen_graph:
@@ -2360,6 +2376,10 @@ def collect(connector, requirements=None, *, transport=None):
         azure_conditional_access_native.collect(reader, request, wanted, transport)
         azure_access_reviews_native.collect(reader, request, wanted, transport)
         azure_identity_intune_native.collect(reader, request, scopes, wanted, transport)
+        if requirements is None or "directory_user" in requirements:
+            from . import azure_sw18_mfa_native
+            azure_sw18_mfa_native.collect(reader, request, wanted, transport,
+                                         credential_context_id, customer_context_id)
         from .azure_entra_diagnostics_native import collect as collect_entra_diagnostics
         collect_entra_diagnostics(reader, request, scopes, wanted, transport)
         from .azure_apim_diagnostics_native import collect as collect_apim_diagnostics

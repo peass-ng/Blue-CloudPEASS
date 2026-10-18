@@ -508,6 +508,7 @@
         "directory_owner",
         "directory_role",
         "directory_role_assignment",
+        "directory_role_assignment_instance",
         "directory_role_definition",
         "directory_role_eligibility_instance",
         "directory_role_eligibility_schedule",
