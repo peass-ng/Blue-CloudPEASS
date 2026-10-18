@@ -1,0 +1,160 @@
+"""Evaluate a deliberately small, portable subset of Sigma against canonical events.
+
+The checked-in YAML follows Sigma's logsource/detection/condition format. This
+module supports only exact field equality, OR lists, AND within one selection,
+and ``condition: selection``. Unsupported constructs fail closed at load time.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass
+from functools import lru_cache
+import os
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from .aws import normalize_aws_cloudtrail
+from .gcp import normalize_gcp_audit
+from .kubernetes import normalize_kubernetes_audit
+
+
+@dataclass(frozen=True)
+class Rule:
+    id: str
+    title: str
+    level: str
+    description: str
+    technique_id: str
+    product: str
+    selection: Mapping[str, Any]
+
+
+@dataclass(frozen=True)
+class Detection:
+    rule_id: str
+    title: str
+    severity: str
+    technique_id: str
+    event_id: str | None
+    account_id: str | None
+    actor_id: str | None
+    target_id: str | None
+    evidence: Mapping[str, Any]
+
+
+class RuleSourceError(ValueError):
+    """A stable error that never contains the GitHub credential or response."""
+
+
+@lru_cache(maxsize=4)
+def _github_rule_texts(repo: str, ref: str, secret_arn: str) -> tuple[tuple[str, str], ...]:
+    if not repo or not ref or not secret_arn:
+        raise RuleSourceError("private_rule_source_not_configured")
+    try:
+        import boto3
+        from botocore.config import Config
+        from .github_source import fetch_rules
+
+        secret = boto3.client("secretsmanager", config=Config(connect_timeout=5, read_timeout=10,
+            retries={"max_attempts": 1})).get_secret_value(SecretId=secret_arn)
+        token = secret.get("SecretString")
+        if not isinstance(token, str) or not token or len(token) > 4096:
+            raise ValueError("invalid token secret")
+        return tuple(sorted(fetch_rules(repo, ref, token).items()))
+    except Exception:
+        raise RuleSourceError("private_rule_source_unavailable") from None
+
+
+def _rule_texts(directory: Path | None) -> tuple[tuple[str, str], ...]:
+    if directory is not None:
+        return tuple((path.name, path.read_text(encoding="utf-8")) for path in sorted(directory.glob("*.yml")))
+    repo = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REPO", "")
+    ref = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REF", "")
+    secret = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_TOKEN_SECRET_ARN", "")
+    if repo or ref or secret or os.getenv("PEASO_AUTH_MODE") == "cognito":
+        return _github_rule_texts(repo, ref, secret)
+    local = os.getenv("HACKTRICKS_CSPM_RULES_DIR", "")
+    if not local:
+        raise RuleSourceError("private_rule_source_not_configured")
+    return _rule_texts(Path(local))
+
+
+def load_rules(directory: Path | None = None, *, product: str | None = None) -> tuple[Rule, ...]:
+    loaded: list[Rule] = []
+    for name, text in _rule_texts(directory):
+        source = yaml.safe_load(text)
+        if not isinstance(source, Mapping):
+            raise ValueError(f"Invalid detection rule: {name}")
+        logsource = source.get("logsource")
+        detection = source.get("detection")
+        if not isinstance(logsource, Mapping) or (logsource.get("product"), logsource.get("service")) not in {
+            ("aws", "cloudtrail"), ("gcp", "audit"), ("kubernetes", "audit"),
+        } or set(logsource) != {"product", "service"}:
+            raise ValueError(f"Unsupported log source: {name}")
+        if not isinstance(detection, Mapping) or set(detection) != {"selection", "condition"} or detection["condition"] != "selection":
+            raise ValueError(f"Unsupported detection grammar: {name}")
+        selection = detection["selection"]
+        if not isinstance(selection, Mapping) or not selection or any(not isinstance(k, str) or "|" in k for k in selection):
+            raise ValueError(f"Unsupported detection selection: {name}")
+        if any(not isinstance(v, (str, bool, int, list)) or isinstance(v, list) and (not v or any(not isinstance(x, (str, bool, int)) for x in v)) for v in selection.values()):
+            raise ValueError(f"Unsupported detection values: {name}")
+        if product is not None and logsource["product"] != product:
+            continue
+        loaded.append(Rule(
+            id=str(source["id"]), title=str(source["title"]),
+            level=str(source["level"]), description=str(source["description"]),
+            technique_id=str(source["x_hacktricks_technique_id"]),
+            product=logsource["product"],
+            selection=dict(selection),
+        ))
+    if not loaded:
+        raise ValueError("No detection rules found")
+    if len({rule.id for rule in loaded}) != len(loaded):
+        raise ValueError("Duplicate detection rule ID")
+    return tuple(loaded)
+
+
+def detect_aws_events(
+    records: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
+) -> list[Detection]:
+    """Return evidence for matching records; no compromise verdict is implied."""
+    return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize_aws_cloudtrail, "aws")
+
+
+def detect_gcp_events(
+    records: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
+) -> list[Detection]:
+    """Detect successful GCP audit events with concrete credential evidence."""
+    return _detect_events(records, rules if rules is not None else load_rules(product="gcp"), normalize_gcp_audit, "gcp")
+
+
+def detect_kubernetes_events(
+    records: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
+) -> list[Detection]:
+    """Detect completed Kubernetes audit events with returned RBAC objects."""
+    return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize_kubernetes_audit, "kubernetes")
+
+
+def _detect_events(
+    records: Iterable[Mapping[str, Any]], selected_rules: Sequence[Rule], normalizer: Any, product: str,
+) -> list[Detection]:
+    matches: list[Detection] = []
+    for record in records:
+        event = normalizer(record)
+        if event is None:
+            continue
+        for rule in selected_rules:
+            if rule.product != product:
+                continue
+            if all(event.get(field) in expected if isinstance(expected, list) else event.get(field) == expected for field, expected in rule.selection.items()):
+                matches.append(Detection(
+                    rule_id=rule.id, title=rule.title, severity=rule.level,
+                    technique_id=rule.technique_id,
+                    event_id=event["event.id"], account_id=event["account.id"],
+                    actor_id=event["actor.id"], target_id=event["target.id"],
+                    evidence={field: event[field] for field in rule.selection},
+                ))
+    return matches

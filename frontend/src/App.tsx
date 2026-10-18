@@ -8,6 +8,7 @@ import {
   Layers,
   Network,
   ScanLine,
+  Radar,
   Settings as SettingsIcon,
   Shield,
   ShieldCheck,
@@ -20,6 +21,7 @@ import { Connectors } from "./Connectors";
 import { Dashboard } from "./Dashboard";
 import { Findings } from "./Findings";
 import { LeastPrivilege } from "./LeastPrivilege";
+import { AttackAnalysis } from "./AttackAnalysis";
 import { Help } from "./Help";
 import { authLink } from "./authLinks";
 const NetworkMap = lazy(() =>
@@ -48,6 +50,11 @@ const pages = [
     label: "Scans",
     icon: ScanLine,
     description: "Assess, monitor and revisit your cloud posture.",
+  },
+  {
+    label: "Attack Analysis",
+    icon: Radar,
+    description: "Review suspicious actions in cloud audit logs.",
   },
   {
     label: "Hardening Findings",
@@ -356,6 +363,7 @@ export function App() {
             />
           )}
           {page === "Connectors" && <Connectors demo={demo} canWrite={canWriteWorkspace} />}
+          {page === "Attack Analysis" && <AttackAnalysis demo={demo} canWrite={canWriteWorkspace} onNavigate={navigate} />}
           {page === "Scans" && (
             <Scans
               demo={demo}

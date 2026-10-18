@@ -49,6 +49,23 @@ class ScanCreate(StrictModel):
     frameworks: list[str] = Field(default_factory=list, max_length=100)
 
 
+class AttackLogSource(StrictModel):
+    connector_id: str = Field(min_length=1, max_length=100)
+    kind: Literal["aws_event_history", "aws_cloudtrail_s3", "gcp_audit", "gke_audit", "azure_activity_log"]
+    region: str = Field(pattern=r"^[a-z]{2}(?:-gov)?-[a-z]+-\d$")
+    role_arn: str | None = Field(default=None, max_length=600)
+    bucket: str | None = Field(default=None, min_length=3, max_length=63, pattern=r"^[a-z0-9][a-z0-9.-]*[a-z0-9]$")
+    prefix: str = Field(default="", max_length=1024, pattern=r"^[A-Za-z0-9!_.*'()/+=:@ -]*$")
+    day: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    project_id: str | None = Field(default=None, max_length=80, pattern=r"^[a-z][a-z0-9-]{4,79}$")
+    cluster_id: str | None = Field(default=None, max_length=256, pattern=r"^[A-Za-z0-9_.:/-]+$")
+    subscription_id: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+
+class AttackLogRun(AttackLogSource):
+    check_token: str = Field(min_length=1, max_length=4096)
+
+
 class ScheduleCreate(ScanCreate):
     interval_hours: float = Field(default=168, ge=1, le=8760)
     enabled: bool = True

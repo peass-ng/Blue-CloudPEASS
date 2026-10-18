@@ -26,7 +26,7 @@ from peaso.storage import SQLiteStore, StoreError, FileArtifacts
 from peaso.storage.runtime import stores, WorkflowDispatcher
 from peaso.storage.reports import finding_summary
 from .config import Settings
-from .models import ConnectorCreate, ConnectorCheck, ConnectorPatch, ScanCreate, ScheduleCreate, SchedulePatch, ReachabilityQuery, ReachabilityBatchQuery, ReachabilityMatrixQuery, ReachabilityGridQuery, WorkspaceCreate, WorkspaceInvite, WorkspaceRole
+from .models import ConnectorCreate, ConnectorCheck, ConnectorPatch, ScanCreate, AttackLogSource, AttackLogRun, ScheduleCreate, SchedulePatch, ReachabilityQuery, ReachabilityBatchQuery, ReachabilityMatrixQuery, ReachabilityGridQuery, WorkspaceCreate, WorkspaceInvite, WorkspaceRole
 from .validation import validate_connector, validate_selectors, auth_capabilities, COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL, EXTERNAL_ID_PREFIX
 
 
@@ -560,6 +560,121 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if user.auth_kind != "api_key":
             store.expire()
         return {"items": store.jobs(user.tenant_id)}
+
+    def attack_source(body, user):
+        if body.kind == "aws_cloudtrail_s3" and (not body.bucket or not body.prefix or not body.prefix.endswith("/")):
+            raise HTTPException(422, "Enter an S3 bucket and a CloudTrail prefix ending in /.")
+        if body.kind in {"gcp_audit", "gke_audit"} and not body.project_id:
+            raise HTTPException(422, "Select a GCP project that owns the audit logs.")
+        if body.kind == "gke_audit" and not body.cluster_id:
+            raise HTTPException(422, "Enter the GKE cluster name.")
+        if body.kind == "azure_activity_log" and not body.subscription_id:
+            raise HTTPException(422, "Select an Azure subscription.")
+        row = store.connector(user.tenant_id, body.connector_id)
+        data = json.loads(row["data"])
+        provider = "aws" if body.kind.startswith("aws_") else "gcp" if body.kind in {"gcp_audit", "gke_audit"} else "azure"
+        if data.get("provider") != provider or data.get("input_mode") != "live":
+            raise HTTPException(422, "Choose a live connector for the selected audit source.")
+        private = cipher.decrypt(row["auth"])
+        return provider, private["auth"], data.get("scopes", []), private["options"]
+
+    def attack_log_error(code):
+        return {
+            "role_not_in_connector": "The selected role is not configured in this connector.",
+            "platform_account_forbidden": "The HackTricks platform account cannot be a log target.",
+            "select_connector_role": "Select a target account role from this connector.",
+            "role_account_mismatch": "The assumed role returned a different account than its ARN.",
+            "account_outside_connector_scope": "Add this AWS account to the connector scopes before reading its logs.",
+            "region_outside_connector_scope": "Add this AWS account and Region to the connector scopes before reading its logs.",
+            "prefix_must_select_target_account_cloudtrail": "The S3 base prefix must contain the selected account ID followed by /CloudTrail/.",
+            "select_cloudtrail_day": "Choose a CloudTrail log day.",
+            "invalid_cloudtrail_day": "Choose a valid CloudTrail log day.",
+            "future_cloudtrail_day": "The selected CloudTrail day is in the future.",
+            "object_size_changed": "A CloudTrail object changed while it was being read; retry the analysis.",
+            "decompressed_object_too_large": "A CloudTrail object exceeds the bounded preview size; select a smaller source window.",
+            "malformed_cloudtrail_object": "A selected S3 object is not a valid CloudTrail gzip record set.",
+            "select_valid_customer_project": "Enter a valid customer GCP project ID.",
+            "platform_project_forbidden": "The HackTricks platform project cannot be a log target.",
+            "project_outside_connector_scope": "Add this project to the GCP connector scope before reading its logs.",
+            "select_valid_gke_cluster": "Enter a valid GKE cluster name.",
+            "platform_identity_unavailable": "The hosted GCP service account is unavailable.",
+            "customer_project_not_approved": "The project is missing this connector's approval label.",
+            "log_read_denied": "The connector cannot read this audit source. Grant the logging roles shown below and retry.",
+            "log_source_not_found": "The selected audit source or project was not found.",
+            "log_read_rate_limited": "The audit service rate limited this read. Retry shortly.",
+            "log_read_unavailable": "The audit source could not be read right now.",
+            "log_response_too_large": "The audit response exceeds the preview limit.",
+            "invalid_log_response": "The audit service returned an invalid response.",
+            "select_valid_azure_subscription": "Enter a valid Azure subscription ID.",
+            "invalid_connector_scope": "The Azure connector has an invalid subscription scope.",
+            "subscription_outside_connector_scope": "Add this subscription to the Azure connector scope before reading its logs.",
+            "invalid_azure_log_continuation": "Azure returned an invalid Activity Log continuation; analysis stopped.",
+            "invalid_azure_log_response": "Azure returned an invalid Activity Log response.",
+            "azure_log_read_failed": "The connector cannot read this subscription's Activity Log. Grant Monitoring Reader and retry.",
+            "azure_log_foreign_subscription": "Azure returned events from outside the selected subscription; analysis stopped.",
+        }.get(code, "The selected log source could not be read.")
+
+    @app.post("/api/attack-analysis/check-access")
+    def attack_log_check_access(body: AttackLogSource, user=Depends(identity)):
+        provider, auth, scopes, options = attack_source(body, user)
+        from .attack_logs import LogAccessError, check_aws_source
+        from .gcp_attack_logs import GcpLogAccessError
+        try:
+            if provider == "aws":
+                result = check_aws_source(auth, options, body, scopes)
+            elif provider == "gcp":
+                from .gcp_attack_logs import check_gcp_source
+                result = check_gcp_source(auth, scopes, options, settings, body)
+            else:
+                from .azure_attack_logs import check_azure_source
+                result = check_azure_source(auth, scopes, options, body)
+        except (LogAccessError, GcpLogAccessError) as exc:
+            return {"status": "blocked", "reason": attack_log_error(exc.code)}
+        except Exception:
+            return {"status": "blocked", "reason": "Could not read this log source with the selected connector. Verify CloudTrail LookupEvents or S3 ListBucket/GetObject and, for encrypted objects, KMS Decrypt."}
+        if result["source_status"] != "accessible":
+            return {"status": "warning", **result}
+        if provider != "azure":
+            try:
+                from peaso.attack_detection import load_rules
+                product = "kubernetes" if body.kind == "gke_audit" else provider
+                load_rules(product=product)
+            except Exception:
+                return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Configure the private rule source and retry."}
+        payload = body.model_dump()
+        token = cipher.encrypt({"tenant": user.tenant_id, "digest": connector_digest(payload),
+                                "expires": time.time() + 600})
+        return {"status": "pass", **result, "check_token": token}
+
+    @app.post("/api/attack-analysis/run")
+    def attack_log_run(body: AttackLogRun, user=Depends(identity)):
+        payload = body.model_dump(exclude={"check_token"})
+        try:
+            checked = cipher.decrypt(body.check_token)
+        except Exception:
+            checked = None
+        if (not checked or checked.get("tenant") != user.tenant_id
+                or checked.get("digest") != connector_digest(payload)
+                or checked.get("expires", 0) < time.time()):
+            raise HTTPException(422, "Check log access again before starting analysis.")
+        provider, auth, scopes, options = attack_source(body, user)
+        from .attack_logs import LogAccessError, analyze_aws_source
+        from .gcp_attack_logs import GcpLogAccessError
+        from peaso.attack_detection.rules import RuleSourceError
+        try:
+            if provider == "aws":
+                return analyze_aws_source(auth, options, body, scopes)
+            if provider == "gcp":
+                from .gcp_attack_logs import analyze_gcp_source
+                return analyze_gcp_source(auth, scopes, options, settings, body)
+            from .azure_attack_logs import analyze_azure_source
+            return analyze_azure_source(auth, scopes, options, body)
+        except (LogAccessError, GcpLogAccessError) as exc:
+            raise HTTPException(422, "Log analysis stopped: " + attack_log_error(exc.code)) from None
+        except RuleSourceError:
+            raise HTTPException(503, "Reviewed detection rules are unavailable; retry after the private rule source is restored.") from None
+        except Exception:
+            raise HTTPException(502, "Log source could not be read. Check connector and log access again.") from None
 
     @app.post("/api/scans", status_code=201)
     def add_scan(body: ScanCreate, user=Depends(identity), idempotency_key: str | None = Header(default=None)):

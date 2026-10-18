@@ -742,7 +742,7 @@ class AzureTransport:
                 raise AzureReadError("token_audience_mismatch", 401)
             return token
 
-    def request(self, url, *, body=None, audience=ARM, capture_subject=False):
+    def request(self, url, *, body=None, audience=ARM, capture_subject=False, max_response_bytes=None):
         parsed = urlsplit(url)
         origin_allowed = parsed.netloc == urlsplit(audience).netloc
         if audience == VAULT:
@@ -760,7 +760,15 @@ class AzureTransport:
             headers["Content-Type"] = "application/json"
         request = Request(url, data=payload, headers=headers, method="POST" if body is not None else "GET")
         with build_opener(_NoRedirect()).open(request, timeout=20) as response:
-            value = json.load(response)
+            if max_response_bytes is None:
+                value = json.load(response)
+            else:
+                if type(max_response_bytes) is not int or not 0 < max_response_bytes <= 20_000_000:
+                    raise ValueError("invalid response byte limit")
+                raw = response.read(max_response_bytes + 1)
+                if len(raw) > max_response_bytes:
+                    raise AzureReadError("response_too_large")
+                value = json.loads(raw)
             if capture_subject:
                 from .azure_disclosure_native import accepted_subject
                 if not hasattr(self, "disclosure_accepted_subjects"):

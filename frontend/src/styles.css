@@ -3494,4 +3494,30 @@ textarea:focus-visible,
 .network-table-main strong { flex:1; min-width:80px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .network-table-main span { width:120px; color:#a8c2c6; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .network-table-open { flex:none; border:1px solid #5b8f83; background:#21443f; color:#c5f0d9; border-radius:5px; padding:6px 8px; cursor:pointer; }
+/* Audit-log investigation keeps setup and evidence in one readable flow. */
+.attack-analysis { display:grid; gap:18px; }
+.attack-intro { display:flex; align-items:flex-start; gap:13px; margin-bottom:20px; }
+.attack-intro svg { flex:none; color:#8be6bf; margin-top:3px; }
+.attack-intro h2,.attack-analysis .panel > h2 { margin:0 0 7px; font-size:1.16rem; }
+.attack-intro p { margin:0; color:#b7c9d3; line-height:1.5; }
+.attack-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-bottom:18px; }
+.attack-form-grid label { display:grid; gap:7px; min-width:0; color:#dbe8ef; font-size:.88rem; }
+.attack-form-grid input,.attack-form-grid select { min-width:0; width:100%; }
+.attack-access { display:flex; align-items:flex-start; gap:11px; padding:13px 15px; margin-top:17px; border:1px solid #53798a; border-radius:10px; background:#142b38; }
+.attack-access.pass { border-color:#4b9879; background:#102f2b; }
+.attack-access svg { flex:none; margin-top:2px; }
+.attack-access p { margin:4px 0 0; color:#c0d4dd; }
+.attack-permissions { margin:15px 0; padding:12px 14px; border:1px solid #365564; border-radius:9px; }
+.attack-permissions summary { cursor:pointer; font-weight:650; }
+.attack-permissions p { color:#bfd0d9; line-height:1.5; }
+.attack-permissions pre { padding:13px; overflow:auto; background:#0a1723; border-radius:8px; font-size:.75rem; line-height:1.5; }
+.attack-results { display:grid; gap:12px; margin-top:18px; }
+.attack-result-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.attack-result { display:flex; align-items:flex-start; gap:14px; padding:16px; border:1px solid #365564; border-radius:10px; }
+.attack-result h3 { margin:0 0 6px; font-size:1rem; }
+.attack-result p { margin:0 0 7px; overflow-wrap:anywhere; }
+.attack-result small { color:#b8cbd5; overflow-wrap:anywhere; }
+.attack-result details { margin-top:10px; }
+.attack-result pre { max-height:220px; overflow:auto; padding:12px; border-radius:8px; background:#0a1723; font-size:.75rem; }
+@media(max-width:760px) { .attack-form-grid { grid-template-columns:1fr; } }
 @media(max-width:760px) { .network-table-main span { display:none; } .network-table-open { font-size:10px; } }
