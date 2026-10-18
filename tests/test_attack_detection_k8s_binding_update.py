@@ -107,3 +107,45 @@ def test_gke_wrapped_update_requires_response_and_rejects_dry_run(verb):
     dry_run = deepcopy(row)
     dry_run["labels"] = {"command.gke.io/dryRun": "All"}
     assert normalize_kubernetes_audit(dry_run) is None
+
+
+@pytest.mark.parametrize("status", [
+    {"code": False}, {"code": True}, {"code": None}, {"code": "0"},
+    {"code": 0.0}, {"code": {}}, {"code": []}, {"code": 7},
+    None, "success", [],
+])
+def test_gke_wrapped_status_requires_omitted_code_or_literal_integer_zero(status):
+    original = binding_event(verb="patch")
+    row = {
+        "logName": "projects/customer/logs/cloudaudit.googleapis.com%2Factivity",
+        "insertId": "gke-event-1", "timestamp": "2026-10-18T08:00:00Z",
+        "resource": {"type": "k8s_cluster", "labels": {"cluster_name": "demo"}},
+        "protoPayload": {
+            "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+            "serviceName": "k8s.io",
+            "methodName": "io.k8s.authorization.rbac.v1.clusterrolebindings.patch",
+            "authenticationInfo": {"principalEmail": "alice@example.test"},
+            "status": status, "response": original["responseObject"],
+        },
+    }
+    assert normalize_kubernetes_audit(row) is None
+
+
+@pytest.mark.parametrize("status", [None, {}, {"code": 0}])
+def test_gke_wrapped_status_accepts_missing_or_integer_zero_code(status):
+    original = binding_event(verb="patch")
+    row = {
+        "logName": "projects/customer/logs/cloudaudit.googleapis.com%2Factivity",
+        "insertId": "gke-event-1", "timestamp": "2026-10-18T08:00:00Z",
+        "resource": {"type": "k8s_cluster", "labels": {"cluster_name": "demo"}},
+        "protoPayload": {
+            "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+            "serviceName": "k8s.io",
+            "methodName": "io.k8s.authorization.rbac.v1.clusterrolebindings.patch",
+            "authenticationInfo": {"principalEmail": "alice@example.test"},
+            "status": status, "response": original["responseObject"],
+        },
+    }
+    if status is None:
+        row["protoPayload"].pop("status")
+    assert normalize_kubernetes_audit(row)["rbac.change_effect"] == "observed_state"

@@ -8,9 +8,6 @@ from typing import Any
 from urllib.parse import unquote
 
 
-ADMINISTRATOR_ACCESS_ARN = "arn:aws:iam::aws:policy/AdministratorAccess"
-
-
 def _policy_document(value: Any) -> Mapping[str, Any] | None:
     if isinstance(value, Mapping):
         return value
@@ -101,7 +98,7 @@ def normalize_aws_cloudtrail(record: Mapping[str, Any]) -> dict[str, Any] | None
     self_role_admin_policy_attach = (
         record.get("eventName") == "AttachRolePolicy"
         and not failed and self_role
-        and request.get("policyArn") == ADMINISTRATOR_ACCESS_ARN
+        and request.get("policyArn") == f"arn:{issuer_parts[1]}:iam::aws:policy/AdministratorAccess"
     )
     return {
         "cloud.provider": "aws",

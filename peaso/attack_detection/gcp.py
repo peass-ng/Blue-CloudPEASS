@@ -297,15 +297,16 @@ def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -
     requested_resource = request.get("resource")
     if not isinstance(requested_resource, str):
         return None
-    target_match = re.fullmatch(r"projects/-/serviceAccounts/([^/]+)", requested_resource)
-    if target_match is None:
+    target_match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([^/]+)", requested_resource)
+    if target_match is None or target_match.group(1) not in ("-", project):
         return None
-    target_email = target_match.group(1)
+    target_email = target_match.group(2)
     if _ACCOUNT_EMAIL.fullmatch(target_email) is None or not target_email.endswith(f"@{project}.iam.gserviceaccount.com"):
         return None
     named_resource = payload.get("resourceName")
-    named_match = re.fullmatch(r"projects/-/serviceAccounts/([^/]+)", named_resource) if isinstance(named_resource, str) else None
-    if named_match is None or not (named_match.group(1).isdigit() or named_match.group(1) == target_email):
+    named_match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([^/]+)", named_resource) if isinstance(named_resource, str) else None
+    if (named_match is None or named_match.group(1) not in ("-", project)
+            or not (named_match.group(2).isdigit() or named_match.group(2) == target_email)):
         return None
     member = ("serviceAccount:" if actor.endswith(".gserviceaccount.com") else "user:") + actor
     bindings = response.get("bindings")

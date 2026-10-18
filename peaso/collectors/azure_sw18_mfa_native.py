@@ -188,6 +188,8 @@ def collect(reader, request, wanted, transport, credential_context_id, customer_
             principal_ids = {uid}
             for group in member.get("groups", []):
                 gid = _id(group.get("id"))
+                if "groups_index" not in shared:
+                    raise ValueError(failures["groups"])
                 if gid not in shared["groups_index"]:
                     raise ValueError("foreign transitive group")
                 principal_ids.add(gid)
