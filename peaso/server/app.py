@@ -615,6 +615,14 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             "invalid_azure_log_response": "Azure returned an invalid Activity Log response.",
             "azure_log_read_failed": "The connector cannot read this subscription's Activity Log. Grant Monitoring Reader and retry.",
             "azure_log_foreign_subscription": "Azure returned events from outside the selected subscription; analysis stopped.",
+            "entra_connector_tenant_required": "Set a valid tenant ID on the Azure connector before reading Entra audit logs.",
+            "entra_source_tenant_mismatch": "The requested tenant differs from this connector's tenant.",
+            "entra_graph_token_unavailable": "The connector could not obtain a Microsoft Graph token.",
+            "entra_graph_tenant_mismatch": "The Microsoft Graph token belongs to another tenant.",
+            "entra_graph_audience_mismatch": "The connector token is not for Microsoft Graph.",
+            "entra_log_read_failed": "Grant Microsoft Graph AuditLog.Read.All application permission and admin consent, then retry.",
+            "invalid_entra_log_response": "Microsoft Graph returned an invalid directory audit response.",
+            "invalid_entra_log_continuation": "Microsoft Graph returned an invalid directory audit continuation; analysis stopped.",
         }.get(code, "The selected log source could not be read.")
 
     @app.post("/api/attack-analysis/check-access")
@@ -628,15 +636,22 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             elif provider == "gcp":
                 from .gcp_attack_logs import check_gcp_source
                 result = check_gcp_source(auth, scopes, options, settings, body)
+            elif body.kind == "entra_directory_audit":
+                from .entra_attack_logs import check_entra_source
+                result = check_entra_source(auth, scopes, options, body)
             else:
                 from .azure_attack_logs import check_azure_source
                 result = check_azure_source(auth, scopes, options, body)
         except (LogAccessError, GcpLogAccessError) as exc:
             return {"status": "blocked", "reason": attack_log_error(exc.code)}
         except Exception:
+            if body.kind == "entra_directory_audit":
+                return {"status": "blocked", "reason": "Could not read Microsoft Graph directory audits with this Azure connector. Check its tenant, Graph permission and admin consent."}
             return {"status": "blocked", "reason": "Could not read this log source with the selected connector. Verify CloudTrail LookupEvents or S3 ListBucket/GetObject and, for encrypted objects, KMS Decrypt."}
         if result["source_status"] != "accessible":
             return {"status": "warning", **result}
+        if body.kind == "entra_directory_audit":
+            return {"status": "warning", **result, "reason": "Directory audit access is verified. Detection rules for this source are still under review."}
         try:
             from peaso.attack_detection import load_rules
             product = "kubernetes" if body.kind == "gke_audit" else provider
@@ -672,6 +687,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             if provider == "gcp":
                 from .gcp_attack_logs import analyze_gcp_source
                 return analyze_gcp_source(auth, scopes, options, settings, body)
+            if body.kind == "entra_directory_audit":
+                from .entra_attack_logs import analyze_entra_source
+                return analyze_entra_source(auth, scopes, options, body)
             from .azure_attack_logs import analyze_azure_source
             return analyze_azure_source(auth, scopes, options, body)
         except (LogAccessError, GcpLogAccessError) as exc:

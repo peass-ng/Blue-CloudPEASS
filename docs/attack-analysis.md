@@ -92,6 +92,11 @@ ClickHouse local documentation: <https://clickhouse.com/docs/operations/utilitie
 - Azure Activity Log: subscription-scoped reads do not include Entra audit
   records or management-group assignments. Historical Log Analytics data
   needs separate workspace access.
+- Microsoft Entra directory audit: a bounded Microsoft Graph read checks
+  `AuditLog.Read.All` application permission with tenant admin consent. The
+  connector token must belong to its configured tenant. This source currently
+  checks access only; no Entra attack rule runs and no result is described as
+  evidence of attack or its absence.
 - Kubernetes: generic clusters may write audit events to a file or webhook;
   `kubectl get events` is not an audit-log source.
 

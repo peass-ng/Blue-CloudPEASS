@@ -51,7 +51,7 @@ class ScanCreate(StrictModel):
 
 class AttackLogSource(StrictModel):
     connector_id: str = Field(min_length=1, max_length=100)
-    kind: Literal["aws_event_history", "aws_cloudtrail_s3", "gcp_audit", "gke_audit", "azure_activity_log"]
+    kind: Literal["aws_event_history", "aws_cloudtrail_s3", "gcp_audit", "gke_audit", "azure_activity_log", "entra_directory_audit"]
     region: str = Field(pattern=r"^[a-z]{2}(?:-gov)?-[a-z]+-\d$")
     role_arn: str | None = Field(default=None, max_length=600)
     bucket: str | None = Field(default=None, min_length=3, max_length=63, pattern=r"^[a-z0-9][a-z0-9.-]*[a-z0-9]$")
@@ -60,6 +60,7 @@ class AttackLogSource(StrictModel):
     project_id: str | None = Field(default=None, max_length=80, pattern=r"^[a-z][a-z0-9-]{4,79}$")
     cluster_id: str | None = Field(default=None, max_length=256, pattern=r"^[A-Za-z0-9_.:/-]+$")
     subscription_id: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+    tenant_id: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 
 class AttackLogRun(AttackLogSource):
