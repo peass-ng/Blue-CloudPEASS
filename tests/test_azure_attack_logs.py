@@ -94,7 +94,7 @@ def test_analysis_exposes_coverage_without_raw_events_or_compromise_claim(monkey
     result = analyze_azure_source({}, [], {}, SOURCE)
     assert result["coverage"]["events_read"] == 3
     assert result["coverage"]["successful_role_assignment_writes"] == 1
-    assert result["coverage"]["detection_status"] == "self_grants_and_subscription_diagnostic_deletes"
+    assert result["coverage"]["detection_status"] == "self_grants_and_monitoring_deletes"
     assert result["detections"] == []
     assert "events" not in result
     assert api.closed
@@ -121,7 +121,7 @@ def test_subscription_level_and_optional_field_rows_do_not_block(monkeypatch):
     assert analyzed["coverage"]["events_normalized"] == 1
     assert analyzed["coverage"]["events_ignored"] == 2
     assert analyzed["coverage"]["successful_role_assignment_writes"] == 0
-    assert analyzed["coverage"]["detection_status"] == "self_grants_and_subscription_diagnostic_deletes"
+    assert analyzed["coverage"]["detection_status"] == "self_grants_and_monitoring_deletes"
     assert api.closed
 
 
@@ -207,4 +207,26 @@ def test_analysis_reports_successful_subscription_activity_export_deletion(monke
     assert result["coverage"]["self_grant_candidates"] == 0
     assert [hit["rule_id"] for hit in result["detections"]] == [rule.id]
     assert "authorization" not in str(result)
+    assert api.closed
+
+
+def test_analysis_reports_only_confirmed_vm_dcr_association_deletion(monkeypatch):
+    from tests.test_attack_detection_azure_dcr_association_next import event as vm_dcr_event
+    rule = Rule(id="unit-azure-vm-dcr", title="VM DCR association deleted", level="medium",
+                description="One VM DCR association was deleted", technique_id="azure-vm-dcr-association-delete",
+                product="azure", selection={
+                    "event.source": "azure.activity", "event.name": "vm_dcr_association_delete",
+                    "event.outcome": "success", "scope.type": "virtual_machine",
+                    "request.vm_dcr_association_deleted": True,
+                })
+    monkeypatch.setattr("peaso.attack_detection.detect_azure_events",
+                        lambda candidates: detect_azure_events(candidates, [rule]))
+    positive = vm_dcr_event()
+    no_resource = vm_dcr_event()
+    no_resource["subStatus"] = {"value": "No Content"}
+    api = with_api(monkeypatch, [{"value": [positive, no_resource]}])
+    result = analyze_azure_source({}, [SUB], {}, SOURCE)
+    assert result["coverage"]["vm_dcr_association_delete_candidates"] == 1
+    assert [hit["rule_id"] for hit in result["detections"]] == [rule.id]
+    assert "private@example.test" not in str(result)
     assert api.closed

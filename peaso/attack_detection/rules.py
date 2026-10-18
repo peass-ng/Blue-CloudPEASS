@@ -17,19 +17,23 @@ from typing import Any
 import yaml
 
 from .aws import normalize_aws_cloudtrail
+from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
+from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
 from .gcp_logging_next import normalize_gcp_default_sink_disabled
+from .gcp_logging_tamper_next import normalize_gcp_data_access_exclusion_created, normalize_gcp_data_access_log_delete
 from .kubernetes import normalize_kubernetes_audit
 from .kubernetes_next import normalize_kubernetes_cluster_admin_grant
 from .kubernetes_pod_next import normalize_kubernetes_privileged_host_pod
+from .kubernetes_ephemeral_next import normalize_kubernetes_privileged_ephemeral_update
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "819b23f99e6442c6f7a0da423980c596b4544e80"
-DEFAULT_RULE_PACK_SHA256 = "154491ccf34670ecf90611c1b68fa20107737d980ff11cb48aca271738f0bf9d"
+DEFAULT_RULE_REF = "2e32f3ab008dd9f2834cbeae56384e67c59a952b"
+DEFAULT_RULE_PACK_SHA256 = "315b500bb0df64005cf384ea65b6407c37ebd234c8803b5b798960a8692b3775"
 
 
 @dataclass(frozen=True)
@@ -135,9 +139,14 @@ def detect_aws_events(
     records: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
 ) -> list[Detection]:
     """Return evidence for matching records; no compromise verdict is implied."""
-    def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
-        return (normalize_aws_cloudtrail(record) or normalize_aws_security_control(record)
+    def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
+        base = (normalize_aws_cloudtrail(record) or normalize_aws_security_control(record)
                 or normalize_aws_trail_update(record))
+        profile = normalize_aws_other_user_login_profile(record)
+        updated_profile = normalize_aws_other_user_login_profile_update(record)
+        return (([base] if base is not None else [])
+                + ([profile] if profile is not None else [])
+                + ([updated_profile] if updated_profile is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
@@ -149,9 +158,14 @@ def detect_gcp_events(
     def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         base = normalize_gcp_audit(record)
         sink = normalize_gcp_default_sink_disabled(record)
+        deleted = normalize_gcp_data_access_log_delete(record)
+        exclusion = normalize_gcp_data_access_exclusion_created(record)
         return (([base] if base is not None else [])
                 + normalize_gcp_project_self_iam_bindings(record)
-                + ([sink] if sink is not None else []))
+                + normalize_gcp_cross_project_sa_grants(record)
+                + ([sink] if sink is not None else [])
+                + ([deleted] if deleted is not None else [])
+                + ([exclusion] if exclusion is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="gcp"), normalize, "gcp")
 
@@ -164,9 +178,11 @@ def detect_kubernetes_events(
         base = normalize_kubernetes_audit(record)
         next_event = normalize_kubernetes_cluster_admin_grant(record)
         pod = normalize_kubernetes_privileged_host_pod(record)
+        ephemeral = normalize_kubernetes_privileged_ephemeral_update(record)
         return (([base] if base is not None else [])
                 + ([next_event] if next_event is not None else [])
-                + ([pod] if pod is not None else []))
+                + ([pod] if pod is not None else [])
+                + ([ephemeral] if ephemeral is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize, "kubernetes")
 
