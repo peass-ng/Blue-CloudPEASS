@@ -43,6 +43,7 @@ class Detection:
     severity: str
     technique_id: str
     event_id: str | None
+    event_time: str | None
     account_id: str | None
     actor_id: str | None
     target_id: str | None
@@ -148,7 +149,8 @@ def _detect_events(
                 matches.append(Detection(
                     rule_id=rule.id, title=rule.title, severity=rule.level,
                     technique_id=rule.technique_id,
-                    event_id=event["event.id"], account_id=event["account.id"],
+                    event_id=event["event.id"], event_time=event["event.time"],
+                    account_id=event["account.id"],
                     actor_id=event["actor.id"], target_id=event["target.id"],
                     evidence={field: event[field] for field in rule.selection},
                 ))

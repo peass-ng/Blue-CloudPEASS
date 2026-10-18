@@ -52,6 +52,7 @@ def test_self_admin_inline_policy_and_negative_cases() -> None:
     matches = detect_aws_events([good], rules)
     assert len(matches) == 1
     assert matches[0].target_id == "alice"
+    assert matches[0].event_time == "2026-10-18T00:00:00Z"
     assert matches[0].evidence["request.unconditional_admin_grant"] is True
 
     narrower = {**ADMIN, "Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*", "Condition": {"Bool": {"aws:MultiFactorAuthPresent": "true"}}}]}
