@@ -452,7 +452,7 @@ export function App() {
               <a
                 href={
                   sourceHref(health.data?.source_url) ||
-                  "https://github.com/carlospolop/Blue-CloudPEASS"
+                  "https://github.com/peass-ng/PEASSo-CSPM"
                 }
                 target="_blank"
                 rel="noopener noreferrer"

@@ -22,8 +22,8 @@ def _compile_into(tmp_path, seed):
     environment.update(PYTHONHASHSEED=str(seed), PYTHONDONTWRITEBYTECODE="1")
     command = [sys.executable, "scripts/peaso_compliance_compile.py",
                "--ledger-root", "docs/compliance-ledgers",
-               "--audit-matrix", "docs/handoff/compliance-requirements-matrix.json.gz",
-               "--audit-summary", "docs/handoff/compliance-requirements-summary.json",
+               "--audit-matrix", "docs/compliance-ledgers/inputs/compliance-requirements-matrix.json.gz",
+               "--audit-summary", "docs/compliance-ledgers/inputs/compliance-requirements-summary.json",
                "--native-catalog", str(PACK / "native_catalog.json"),
                "--requirements-output", str(paths["compliance_requirements.json"]),
                "--lookup-output", str(paths["compliance_lookup.json"]),

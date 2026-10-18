@@ -1,4 +1,4 @@
-"""Regression tests for the privesc audit fixes (docs/peaso-gap-audit.md) and the K8s live-QA findings:
+"""Regression tests for the privesc audit fixes (historical gap review) and the K8s live-QA findings:
 
 * IAM Condition evaluation (proven -> edge kept, excluded -> edge dropped, undecidable -> conditional/MANUAL);
 * machine-checked `preconditions` (missing facts -> unresolved/UNKNOWN, never FAIL);

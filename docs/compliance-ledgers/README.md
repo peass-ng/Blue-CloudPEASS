@@ -1,12 +1,14 @@
 # Compliance coverage ledgers
 
-These are research outputs that record one decision for every requirement of every supported compliance framework version, plus verified "what it detects" descriptions for every native check. Product code consumes them only through `manifest.json`.
+These inputs record reviewed requirement mappings and native-check descriptions. The compiler validates the manifest and content hashes; runtime products use materialized catalogs. A mapping records its stated scope and does not prove complete live evidence collection or compliance certification.
 
 ## Files
+
+- `inputs/compliance-requirements-matrix.json.gz`, `inputs/compliance-requirements-summary.json` and `inputs/compliance-runtime-coverage.json`: reproducible compiler/source-archive inputs, moved from the retired coordination directory without changing their contents.
 - `inputs/<slice>.json`: frozen input (matrix frameworks for the slice). `inputs/check-index.json` is the check catalogue snapshot. `inputs/desc-<chunk>.json` lists the check ids in each chunk.
 - `<slice>.json`: the ledger. `<slice>.todo.md` is the human checklist. `<slice>.verify.md` is the adversarial verifier log.
 - `descriptions/<chunk>.json`: check descriptions. `descriptions/<chunk>.verify.md` is the verifier log.
-- `manifest.json`: written by the supervisor ONLY after the verifier pass and supervisor spot checks. It is the single completeness authority.
+- `manifest.json`: admission manifest for reviewed mappings and descriptions. Matching hashes establish the reviewed input version, not live-account coverage.
 
 ## Ledger schema (`<slice>.json`)
 ```

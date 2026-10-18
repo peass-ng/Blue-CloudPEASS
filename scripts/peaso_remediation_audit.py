@@ -14,7 +14,7 @@ from peaso.analysis import ANALYSIS_CHECKS  # noqa: E402
 from peaso.checks import CHECKS  # noqa: E402
 from peaso.remediation import rules, template  # noqa: E402
 
-OUT = ROOT / "docs/handoff/gate-remediation-audit.md"
+OUT = ROOT / "docs/compliance-ledgers/.work/remediation-audit.md"
 OFFICIAL = {"docs.aws.amazon.com", "cloud.google.com", "kubernetes.io", "etcd.io", "learn.microsoft.com"}
 ANALYSIS_PROVIDERS = {"analysis.federated_trust": ("aws", "gcp", "azure")}
 PROVENANCE_SUMMARY = re.compile(r"\b(evaluator|Prowler|Steampipe|upstream)\b", re.I)
@@ -143,6 +143,7 @@ def build():
                       "- Private sanitized machine receipt: `.cache/remediation-preflight/10x-size-comparison.json`.", ""])
     if errors:
         lines.extend(["## Audit errors", "", *["- " + error for error in errors], ""])
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines))
     print(f"Approved native {sum(native.values())}/{len(CHECKS)}, analysis variants {len(analysis_approved)}/{len(variants)}; {len(errors)} validation errors; wrote {OUT}")
     return not errors

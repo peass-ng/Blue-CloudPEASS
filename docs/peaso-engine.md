@@ -43,7 +43,7 @@ A complete request has this shape:
 }
 ```
 
-Categories are `hardening`, `exposure`, `least_privilege`, `iam_graph`, and `network`. Missing or empty category/check/framework lists mean the default selection, matching the API. Check IDs and framework names come from `peaso catalog`; unknown IDs and unsupported frameworks fail early. `hacktricks` aliases `HackTricks Cloud Best Practices`; NIST aliases are available only where reviewed mappings support that family.
+Common categories include `hardening`, `exposure`, `least_privilege`, `iam_graph`, and `network`; `peaso catalog` lists the complete current selection. Missing or empty category/check/framework lists mean the default selection, matching the API. Check IDs and framework names come from `peaso catalog`; unknown IDs and unsupported frameworks fail early. `hacktricks` aliases `HackTricks Cloud Best Practices`; NIST aliases are available only where reviewed mappings support that family.
 
 ## Planning, bounds and immutable facts
 
@@ -67,122 +67,28 @@ Network graph edges describe observed topology references and separately identif
 
 Diffs compare stable finding IDs, statuses and collected evidence within the same provider and scope selection. A source snapshot-digest change alone is ignored; configuration/evidence changes remain visible. Added/removed findings can reflect coverage or selection differences, so before/after coverage is included in every diff.
 
-## Validation and measured limits
+## Validation and maintenance
 
-Core validation commands:
+Run focused tests for the changed component before the release gate:
 
 ```sh
-.venv/bin/python -m pytest -q tests/test_peaso_engine.py tests/test_hardening.py tests/test_hardening_grouping.py
-.venv/bin/python -m pytest -q
-.venv/bin/python -m compileall -q peaso bluepeass scripts
-.venv/bin/python -m pip wheel --no-deps --wheel-dir /tmp/peaso-core-wheels .
+.venv/bin/python -m pytest -q -p no:cacheprovider tests/test_peaso_engine.py tests/test_peaso_analysis.py
+.venv/bin/python scripts/peaso_compliance_materialize.py
 .venv/bin/python examples/benchmark_peaso.py --resources 30000
-.venv/bin/peaso scan --request examples/aws-live-minimal-request.json -o /tmp/peaso-live-minimal.json
+.venv/bin/python examples/benchmark_peaso_k8s.py --resources 10000
+.venv/bin/python examples/benchmark_peaso_saved_snapshot.py /path/to/private-snapshot.json
 ```
 
-The focused core suite exercises passing/failing native facts across four providers, denied/empty/partial/malformed/missing facts, content tampering, global IDs, selection planning, explicit inventory overrides, stable diffs, graph endpoints, Markdown fences and all one-shot CLI paths. Per-provider collectors, native check predicates, API tenancy and defensive analysis have separately owned tests in the same full suite.
+Benchmarks measure the supplied snapshot or synthetic fixture on the current host. They do not establish provider collection latency, effective access or production capacity. Keep live snapshots and generated results outside the repository. Do not interpret old test totals as acceptance of current source.
 
-The defined benchmark evaluates one native IMDSv2 predicate against 30,000 synthetic EC2 instance facts in one authoritative scope: 15,000 PASS and 15,000 FAIL, zero cloud calls. [Recorded result](../examples/benchmark-result.json) on Python 3.13.11/macOS arm64: 1.013751 seconds, approximately 29,593 resources/second. This includes snapshot validation, resource indexing and finding construction; it excludes live collection, graph generation, other predicates and export rendering. The measurement is host-specific and not a universal performance guarantee.
-
-The core live smoke used existing AWS profile `naxusai-admin`, region `us-east-1`, instance-only inventory and strict call/resource/page bounds. Two read calls succeeded, account identity was collected and the region had no instances; the result was EMPTY rather than PASS. [Sanitized evidence](../examples/aws-live-smoke-summary.json) and [exact request](../examples/aws-live-minimal-request.json) are retained. This validates successful read access and honest empty reporting, not a live instance predicate. Broader live provider fixtures, reauthentication limitations and cleanup evidence are recorded by QA in [peaso-validation.md](peaso-validation.md).
-
-### Extended Kubernetes controls and installed rulepack verification
-
-The core extension adds 32 native predicates: four distinct security checks on each of Deployment, DaemonSet, StatefulSet, ReplicaSet, Job and CronJob Pod templates, plus Pod host-port/proc/SELinux-identity controls, ServiceAccount default automount, and four namespace quota relationships. Templates use the correct CronJob nesting, preserve Pod-level `runAsNonRoot` inheritance, reject explicit UID0, and inspect init and ephemeral containers. HostPort0 is permitted according to the current [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/). ServiceAccount token defaults remain distinct from Pod overrides. Quota controls require complete scoped inventory; scoped-only quotas are MANUAL rather than a namespace-wide pass. No removed PodSecurityPolicy API or unobserved host/control-plane setting is claimed assessed.
-
-The reviewed extension shard preserves 30 upstream references. Six host-network predicates have equivalent native adaptations; the other 24 remain pending with related native check IDs because upstream SQL differs in container selection, defaults, inheritance, hostPort0 or quota scope handling. Corrected native controls remain implemented without fabricated upstream migration claims. The remaining two original Pod controls use official documentation rather than claiming an unrelated upstream mapping.
+For an installed-package check, build and install the wheel into temporary directories, then run the offline verifier:
 
 ```sh
-.venv/bin/python -m pytest -q tests/test_peaso_checks_k8s_extended.py
-.venv/bin/python examples/benchmark_peaso_k8s.py --resources 10000
-.venv/bin/python -m pip install --no-deps --target /tmp/peaso-core-isolated-wheel /tmp/peaso-core-wheels/peaso-0.1.0-py3-none-any.whl
-.venv/bin/python -I examples/verify_installed_peaso.py /tmp/peaso-core-isolated-wheel
-.venv/bin/python examples/benchmark_peaso_saved_snapshot.py .cache/peaso-qa/task_02a312b5ac1f/azure-uncapped/azure-snapshot.json
-.venv/bin/python examples/benchmark_peaso_saved_snapshot.py .cache/peaso-qa/task_02a312b5ac1f/aws-snapshot.json
+python -m pip wheel --no-deps --wheel-dir /tmp/peaso-wheels .
+python -m pip install --no-deps --target /tmp/peaso-installed /tmp/peaso-wheels/*.whl
+python -I examples/verify_installed_peaso.py /tmp/peaso-installed
 ```
 
-The [Kubernetes benchmark result](../examples/benchmark-k8s-result.json) measured 10,000 synthetic Deployment templates and 40,000 findings from four predicates in 1.942389 seconds, with zero cloud calls. [Isolated wheel verification](../examples/installed-wheel-verification.json) ran outside the checkout with socket connections blocked, produced offline reports for all four providers, and confirmed known critical AWS/GCP/Azure standalone classifications from bundled audited YAML. `risk_rules` and its source metadata now ship as a data package; missing native rulepack data remains unknown without a remote fallback. YAML uses PyYAML's safe C loader when available, retaining the safe Python fallback.
+The verifier exercises bundled native rules without network access. Provider collection, tenant isolation, API lifecycle and UI flows have separate tests. CI runs the broader Python and frontend gates; a mocked fixture proves its stated contract, not successful live collection across an entire account.
 
-Full saved real-snapshot evaluation, with all five categories and scan-scoped analysis indexes/cache, measured [Azure](../examples/benchmark-azure-saved-result.json): 4,912 resources, 8,641 findings, 62 selected checks, cold 2.058202s / warm 2.407373s; [AWS](../examples/benchmark-aws-saved-result.json): 259 resources, 439 findings, 72 selected checks, cold 0.408448s / warm 0.118538s. Each cold/warm pair produced identical reports and left its input unchanged, with zero cloud calls. These current-catalog counts differ from earlier QA timing runs because the implementation and catalog have expanded; they are not a claim that earlier and current catalogs produce identical reports. Private cloud facts remain outside committed examples.
-
-Exact pinned source checklist/version IDs are exposed as `catalog.framework_versions`, independently from family names. Pass an ID through `--frameworks` to select its reviewed native predicates. Pending checklists produce explicit UNKNOWN framework coverage and no invented check findings; partially implemented checklists stay incomplete. Foreign-provider checklist IDs fail early. Selected version titles, declared versions, revisions, supported counts and pending source counts are retained in both JSON and full Markdown.
-
-The final installed-wheel smoke also blocks imports of cloud SDKs and request transports, establishing that native evaluation and bundled risk classification work without provider clients. An explicit `offline=True` classifier mode and engine-scoped context reject missing/corrupt/wrong-provider YAML without downloading fallback data. Legacy scanner classification keeps its original default fallback behavior.
-
-Final full shared-suite checkpoint: **2,386 passed, one skipped in 46.53 seconds** using `.venv/bin/python -m pytest -q`. [Sanitized core validation summary](../examples/peaso-core-validation-summary.json) records native/reference counts, installed-wheel verification and live-smoke limits. The release wheel was built with `.venv/bin/python -m pip wheel --no-deps --wheel-dir /tmp/peaso-core-release-wheel .`, installed into `/tmp/peaso-core-release-installed`, and verified with `.venv/bin/python -I examples/verify_installed_peaso.py /tmp/peaso-core-release-installed`.
-
-### Owner-declared AWS cost alert recipients
-
-The three Cost Explorer anomaly checks read monitors and subscriptions using the
-native AWS collector. Their notification and environment requirements must come
-from the owner; configured subscription addresses are not treated as approvals.
-Without these declarations the checks report `UNKNOWN`.
-
-Set this connector option in CLI options JSON or the web connector's advanced
-options JSON, replacing the example recipients and tag values with your policy:
-
-```json
-{
-  "compliance_parameters": {
-    "cost_anomaly_alerts": {
-      "approved_recipients": ["security@example.com"],
-      "cost_allocation_tag_key": "Environment",
-      "prod_tag_value": "Production",
-      "qa_tag_value": "QA"
-    }
-  }
-}
-```
-
-Only `approved_recipients` is required. Environment-specific checks also need the
-corresponding tag value and tag key. The snapshot records this as an
-`owner_declared_policy`; it establishes configuration intent, not successful
-alert delivery. These scans do not send notifications or create monitors,
-subscriptions or restore jobs.
-
-### Owner-declared Azure guest baselines
-
-The six Guest Configuration checks for administrator membership, Windows
-firewall properties, trusted root certificates and Linux `/etc/passwd` permissions
-read the latest report of an existing assignment. They do not install an agent,
-create an assignment, execute guest code or fetch DSC credentials. The configured
-baseline must publish the resource observations required by the selected check;
-a generic `Compliant` flag without those details remains `UNKNOWN`.
-
-Declare the approved assignment identity and freshness limit in the CLI options
-JSON or the web connector's advanced options JSON. For example:
-
-```json
-{
-  "compliance_parameters": {
-    "azure_guest_configuration": {
-      "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
-      "checks": {
-        "azure.gap.compute_vm_administrators_group_with_extra_accounts_windows": {
-          "assignmentName": "baseline",
-          "configurationName": "approved-windows-baseline",
-          "configurationVersion": "1.0",
-          "maxReportAgeSeconds": 3600,
-          "approvedAdministrators": ["CONTOSO\\security-admins"]
-        }
-      }
-    }
-  }
-}
-```
-
-Replace the example subscription and baseline values with your actual policy.
-Other administrator checks require `requiredAdministrators` or
-`prohibitedAdministrators`; the certificate check requires `requiredThumbprints`.
-The firewall check requires `requiredSettings`, with each setting declaring its
-`category` and `expected` value and covering all five categories: `firewallState`,
-`inboundConnections`, `outboundConnections`, `ruleManagement`, and `notifications`.
-The Linux permissions check uses the four common identity/freshness fields and
-requires the assignment parameters `filePaths=["/etc/passwd"]` and
-`requiredModes=["0644"]`, encoded as JSON strings in the assignment. An empty
-certificate requirement additionally needs explicit `emptyRequiredSetApproved`.
-
-Owner policy is recorded as `owner_declared_policy`. Report identity, VM binding,
-baseline version, completion times, field coverage and measured resources are
-validated independently against the native read. Pending, denied, stale,
-incomplete or foreign reports cannot produce a pass.
+Compliance inputs and reviewed descriptions live in [compliance-ledgers](compliance-ledgers/README.md). Unsupported organizational, historical or unavailable evidence must remain excluded or explicitly unassessed; a complete mapping is not a complete live assessment.

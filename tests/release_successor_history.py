@@ -102,7 +102,7 @@ def _history():
             shutil.copyfile(path, output)
         (target / "manifest.json").write_bytes(encoded(manifest))
         (target / "descriptions/implemented-new-checks.json").write_bytes(encoded(supplemental))
-        requirements, descriptions = compile_verified(target, matrix_from(ROOT / "docs/handoff/compliance-requirements-matrix.json.gz"), native)
+        requirements, descriptions = compile_verified(target, matrix_from(ROOT / "docs/compliance-ledgers/inputs/compliance-requirements-matrix.json.gz"), native)
     # Rebind the only derived mapping fields that registration of a new proposal can alter.
     native["compliance_source_manifest_sha256"] = ANCESTOR_MANIFEST
     for row in native["checks"]:

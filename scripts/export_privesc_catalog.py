@@ -31,7 +31,7 @@ README = """# Privilege escalation paths
 {{#include ../banners/hacktricks-training.md}}
 
 HackTricks Cloud maintains the machine-readable privilege-escalation technique catalog consumed by \
-[Blue-CloudPEASS](https://github.com/peass-ng/Blue-CloudPEASS). Each entry describes, without any exploitation \
+[Blue-CloudPEASS](https://github.com/peass-ng/PEASSo-CSPM). Each entry describes, without any exploitation \
 steps, which permissions let a principal obtain the privileges of another principal (or an administrative \
 entity), and links to the HackTricks page that documents the technique. Edit the files here; consumers \
 fetch and validate them weekly.

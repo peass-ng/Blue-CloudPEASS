@@ -28,6 +28,22 @@ jobs:
           path: .hacktricks-cloud
           sparse-checkout: src
           persist-credentials: false
+      - name: Check out the exact Azure provenance revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: HackTricks-wiki/hacktricks-cloud
+          ref: 4913b6d88ced9972f72ccdd708d21641725a6fb5
+          path: .hacktricks-cloud-azure
+          sparse-checkout: src
+          persist-credentials: false
+      - name: Check out the exact Kubernetes provenance revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: HackTricks-wiki/hacktricks-cloud
+          ref: 4202559da31f53bb101052ab4622a636d243c4a5
+          path: .hacktricks-cloud-k8s
+          sparse-checkout: src
+          persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
@@ -56,9 +72,19 @@ jobs:
           (cd "$RUNNER_TEMP" && grep " $archive\$" SHA256SUMS | sha256sum -c -)
           unzip -q -o "$RUNNER_TEMP/$archive" -d "$RUNNER_TEMP/terraform"
           echo "PEASO_TERRAFORM=$RUNNER_TEMP/terraform/terraform" >> "$GITHUB_ENV"
+      - name: Fetch exact source objects cited by the active catalog
+        run: |
+          python - <<'PYTHON'
+          import json, re, subprocess
+          from pathlib import Path
+          sources = json.loads(Path('tests/fixtures/hacktricks-source-revisions.json').read_text())
+          revisions = sources['revisions']
+          assert revisions and all(re.fullmatch(r'[0-9a-f]{40}', rev) for rev in revisions)
+          subprocess.run(['git', '-C', '.hacktricks-cloud', 'fetch', '--no-tags', '--depth=1', 'origin', *revisions], check=True)
+          PYTHON
       - name: Run the test suite
         env:
-          HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud
+          HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud:${{ github.workspace }}/.hacktricks-cloud-azure:${{ github.workspace }}/.hacktricks-cloud-k8s
           PEASO_HACKTRICKS_ROOT: ${{ github.workspace }}/.hacktricks-cloud
         # --dist loadfile keeps each module's expensive fixtures on one worker.
         run: python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs --junitxml=pytest-report.xml tests

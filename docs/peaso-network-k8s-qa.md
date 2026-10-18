@@ -1,4 +1,4 @@
-# Kubernetes network graph QA — directive13
+# Kubernetes network graph semantics
 
 The network projection now connects workload selectors to collected matching pods,
 attaches observed interfaces to their native owners, and exposes selector details
@@ -94,7 +94,6 @@ The SHA256 of the complete rechecked network graph serialized with
 49 named network regressions passed, including the captured native recheck:
 
 ```sh
-K8S_NETWORK_QA_SNAPSHOT=/private/tmp/claude-501/-Users-carlospolop-git-Blue-CloudPEASS/32170eee-6a9b-41b2-90e5-63caa171ca85/scratchpad/k8sqa/k8s-snap.json .venv/bin/python -m pytest -q tests/test_peaso_network_k8s_qa.py
 ```
 
 Without `K8S_NETWORK_QA_SNAPSHOT`, the captured recheck skips and the portable

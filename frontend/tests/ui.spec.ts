@@ -506,7 +506,7 @@ test("hosted auth respects server runtime capabilities", async ({ page }) => {
     .getByRole("button", { name: "Add connector", exact: true })
     .click();
   await expect(page.getByLabel("Authentication", { exact: true })).toHaveValue(
-    "access_keys",
+    "assume_role",
   );
   await expect(
     page

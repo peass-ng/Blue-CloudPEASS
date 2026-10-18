@@ -1,4 +1,4 @@
-# PEASO web workspace
+# PEASS'o CSPM web workspace
 
 The React 19 / TypeScript / Vite frontend lives in `frontend/`. It uses same-origin `/api` calls, TanStack Query for API state, TanStack Table and Virtual for findings, and React Flow with ELK in a Web Worker for maps. Provider SVGs and the generic fallback are local assets. There are no remote icon or font requests and no Steampipe/Powerpipe integration.
 

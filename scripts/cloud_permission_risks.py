@@ -4,7 +4,7 @@ Adapted from Blue-PEASS for CloudPEASS integration.
 Uses bundled audited rules; network/cache is a fallback for missing bundles.
 
 Note: The Blue-CloudPEASS repository must be publicly accessible at:
-https://github.com/peass-ng/Blue-CloudPEASS
+https://github.com/peass-ng/PEASSo-CSPM
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ RISK_LEVELS = ("low", "medium", "high", "critical")
 
 # Blue-CloudPEASS GitHub repository base URL
 # Note: Update this to match your Blue-CloudPEASS repository name and branch
-BLUEPEASS_RISK_RULES_BASE_URL = "https://raw.githubusercontent.com/peass-ng/Blue-CloudPEASS/refs/heads/main/risk_rules"
+BLUEPEASS_RISK_RULES_BASE_URL = "https://raw.githubusercontent.com/peass-ng/PEASSo-CSPM/refs/heads/main/risk_rules"
 RISK_RULES_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60  # 7 days
 
 
