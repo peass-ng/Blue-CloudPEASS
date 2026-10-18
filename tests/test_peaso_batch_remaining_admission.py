@@ -306,3 +306,78 @@ def test_four_k8s_scope_checks_bind_only_real_collected_runtime_kinds():
         assert signed[cid]["resource_kind"] == source_kind
         _, selected = _selection("k8s", None, [cid], None)
         assert [check.id for check in selected] == [cid]
+
+
+def test_exact_ecr_private_policy_fixture_semantics_and_no_mutation():
+    cid = "aws_g6_ecr_public_repositories_absent"
+    check = _batch()[cid]
+    cases = CASES[cid]
+    for name, verdict in (("pass", "PASS"), ("fail", "FAIL"),
+                          ("unknown", "UNKNOWN"), ("missing", "UNKNOWN"),
+                          ("malformed", "UNKNOWN")):
+        item = deepcopy(cases[name])
+        index = deepcopy(cases.get(name + "_index", cases["index"]))
+        before = deepcopy((item, index))
+        assert check.evaluate(item, index)[0] == verdict, name
+        assert (item, index) == before, name
+
+    def with_policy(item, policy):
+        item = deepcopy(item)
+        index = deepcopy(cases["pass_index"])
+        item["Policy"] = policy
+        index["collections"]["ecr_repository"][0]["items"] = [deepcopy(item)]
+        index["ecr_repository"][0]["data"] = deepcopy(item)
+        return check.evaluate(item, index)[0]
+
+    wildcard = deepcopy(cases["fail"]["Policy"])
+    wildcard["policyText"]["Statement"][0]["Effect"] = "Deny"
+    assert with_policy(cases["fail"], wildcard) == "PASS"
+    scoped = deepcopy(cases["fail"]["Policy"])
+    scoped["policyText"]["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::111111111111:root"
+    assert with_policy(cases["fail"], scoped) == "PASS"
+    assert with_policy(cases["pass"], {"collection_status": "empty"}) == "UNKNOWN"
+    assert with_policy(cases["pass"], {"collection_status": "denied"}) == "UNKNOWN"
+    assert with_policy(cases["pass"], {"collection_status": "partial"}) == "UNKNOWN"
+    assert with_policy(cases["pass"], {}) == "UNKNOWN"
+
+    foreign = deepcopy(cases["pass"])
+    foreign["repositoryArn"] = "arn:aws:ecr-public::111111111111:repository/private-one"
+    index = deepcopy(cases["pass_index"])
+    index["collections"]["ecr_repository"][0]["items"] = [deepcopy(foreign)]
+    index["ecr_repository"][0]["data"] = deepcopy(foreign)
+    assert check.evaluate(foreign, index)[0] == "UNKNOWN"
+
+    from peaso.checks import aws_ecr_source_correction as correction
+    from peaso.checks.catalog import description_for
+    _, signed = signed_proposals(LEDGER)
+    assert correction.validate_prior_spec(signed[cid])
+    assert cases["proposed_spec_sha256"] == spec_digest(signed[cid]) == correction.PRIOR_FROZEN_SPEC_SHA256
+    provenance = proposal_provenance_for(cid)
+    assert provenance["signed_spec_sha256"] == correction.PRIOR_FROZEN_SPEC_SHA256
+    assert provenance["signed_spec_status"] == "historical_superseded_for_this_check"
+    assert provenance["signed_resource_kind"] == "ecr_public_repository"
+    assert provenance["source_correction"]["current_canonical_spec_sha256"] == correction.CORRECTED_SPEC_SHA256
+    assert provenance["source_correction"]["current_predicate_sha256"] == correction.PREDICATE_SHA256
+    assert description_for(cid)["source_correction"] == provenance["source_correction"]
+    assert correction.CORRECTED_SPEC["resource_kind"] == "ecr_repository"
+
+
+def test_exact_scoped_iam_corrected_fixture_semantics_and_no_mutation():
+    from peaso.checks import aws_pci_iam_scoped_source_correction as correction
+    cid = correction.CHECK_ID
+    cases = CASES[cid]
+    check = _batch()[cid]
+    _, signed = signed_proposals(LEDGER)
+    assert correction.validate_prior_spec(signed[cid])
+    assert cases["proposed_spec_sha256"] == spec_digest(signed[cid]) == correction.PRIOR_FROZEN_SPEC_SHA256
+    provenance = proposal_provenance_for(cid)
+    assert provenance["signed_spec_status"] == "historical_superseded_for_this_check"
+    assert provenance["source_correction"]["current_canonical_spec_sha256"] == correction.SOURCE_CORRECTION["current_canonical_spec_sha256"]
+    for name, verdict in (("pass", "PASS"), ("fail", "FAIL"),
+                          ("unknown", "UNKNOWN"), ("missing", "UNKNOWN"),
+                          ("malformed", "UNKNOWN")):
+        item = deepcopy(cases[name])
+        index = deepcopy(cases.get(name + "_index", cases["index"]))
+        before = deepcopy((item, index))
+        assert check.evaluate(item, index)[0] == verdict, name
+        assert (item, index) == before, name
