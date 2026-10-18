@@ -209,6 +209,13 @@ def detect_azure_events(
 def _detect_events(
     records: Iterable[Mapping[str, Any]], selected_rules: Sequence[Rule], normalizer: Any, product: str,
 ) -> list[Detection]:
+    def exact(actual: Any, expected: Any) -> bool:
+        # Python treats True == 1 and False == 0; boolean proof fields must
+        # match booleans while numeric 1 and 1.0 retain existing behavior.
+        if isinstance(actual, bool) or isinstance(expected, bool):
+            return type(actual) is type(expected) and actual == expected
+        return actual == expected
+
     matches: list[Detection] = []
     for record in records:
         normalized = normalizer(record)
@@ -219,7 +226,9 @@ def _detect_events(
             for rule in selected_rules:
                 if rule.product != product:
                     continue
-                if all(event.get(field) in expected if isinstance(expected, list) else event.get(field) == expected for field, expected in rule.selection.items()):
+                if all(any(exact(event.get(field), choice) for choice in expected)
+                       if isinstance(expected, list) else exact(event.get(field), expected)
+                       for field, expected in rule.selection.items()):
                     evidence = {field: event[field] for field in rule.selection}
                     correlation = event.get("correlation_evidence")
                     if isinstance(correlation, Mapping):
